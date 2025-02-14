@@ -56,6 +56,13 @@
 ---
 ## Applicable Issue Structure  
 
+### 📝 **Subtasks**
+- Break down the issue into **smaller tasks** if necessary.
+- Use checkboxes to mark the completion of each task.
+- Example: 
+  - [ ] Task 1
+  - [ ] Task 2
+
 ### ✅ **Expected Behavior** 
 - What should happen if the issue is resolved? 
 Example: Users should be able to switch between **light and dark mode** via settings. 
