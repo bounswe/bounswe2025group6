@@ -13,7 +13,6 @@ After that issue is completed, we will have an example issue template that will 
 - 15-02-2025 (Saturday)
 
 ### 📌 Reviewers:
-- @alpk
 - @bahadirdemirel
 - @aligokcek1
 

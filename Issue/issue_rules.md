@@ -101,4 +101,14 @@ Example: The application **only supports light mode**.
 - **Oath** is included.
 - **Screenshots** are included if applicable.
 
+## Team Members
+@ahmeterthacioglu
+@ahmetselcukersoy
+@aligokcek1
+@bahadirdemirel
+@celilozknn
+@ekincimuhammed
+@OzgurSavascioglu
+@seyitm
+
 🚀 **The more details provided, the less time spent understanding the issue, leading to faster development!** 🚀  
