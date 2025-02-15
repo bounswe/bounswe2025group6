@@ -22,7 +22,7 @@ After that issue is completed, we will have an example issue template that will 
 ---
 
 ### ⚡ Footer
-✅ This issue follows the [issue template rules](/Issue/issue-rules.md) to maintain consistency.  
+✅ This issue follows the [issue template rules](/Issue/issue_rules.md) to maintain consistency.  
 ✅ The assignee(s) ensure this issue is **clear, structured, and meets all must-have criteria**.  
 ✅ Open to **feedback & improvements**, because even the best code can get better!  
 💡 And remember: "It works on my machine" doesn’t mean it works for everyone, and "It’s not a bug, it’s a feature" only works if everyone agrees!
