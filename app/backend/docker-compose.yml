@@ -6,7 +6,7 @@ services:
     container_name: myproject-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 3346   # 👉 your root password
+      MYSQL_ROOT_PASSWORD: password   # 👉 your root password
       MYSQL_DATABASE: cooking_app              # 👉 database name
     ports:
       - "3307:3306"

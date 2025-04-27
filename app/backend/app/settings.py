@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'cooking_app',        # Database name
         'USER': 'root',              # MySQL user
-        'PASSWORD': '3346',      # MySQL password
+        'PASSWORD': 'password',      # MySQL password
         'HOST': 'db',                # Service name from docker-compose.yml
         'PORT': '3306',              # MySQL default port
     }
