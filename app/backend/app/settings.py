@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'app',
 ]
 
 MIDDLEWARE = [
@@ -76,13 +77,14 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'cooking_app'),
-        'USER': os.getenv('DB_USER', 'root'),
-        'PASSWORD': os.getenv('DB_PASSWORD', '3346'),
-        'HOST': os.getenv('DB_HOST', 'db'),  # <== important!
-        'PORT': os.getenv('DB_PORT', '3306'),
+        'NAME': 'cooking_app',        # Database name
+        'USER': 'root',              # MySQL user
+        'PASSWORD': 'password',      # MySQL password
+        'HOST': 'db',                # Service name from docker-compose.yml
+        'PORT': '3306',              # MySQL default port
     }
 }
+
 
 
 # Password validation

@@ -23,3 +23,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name="index"),
 ]
+
+# users/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('register/', views.register_user, name='register_user')
+]
