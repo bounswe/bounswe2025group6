@@ -5,6 +5,7 @@ FROM python:3.11.1
 
 # Disable output buffering so that the logs of the server can be read from Docker in real time.
 
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Copy all the files in current directory to the /app directory in the container.

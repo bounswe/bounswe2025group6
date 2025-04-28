@@ -1,38 +1,12 @@
 version: '3.8'
 
 services:
-  db:
-    image: mysql:8.0
-    container_name: myproject-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password   # 👉 your root password
-      MYSQL_DATABASE: cooking_app              # 👉 database name
-    ports:
-      - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - backend
-
   web:
     build: .
-    container_name: myproject-django
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
       - "8000:8000"
-    depends_on:
-      - db
-    environment:
-      - DEBUG=1
-    networks:
-      - backend
-
-volumes:
-  db_data:
-
-networks:
-  backend:
-    driver: bridge
+    env_file:
+      - .env
