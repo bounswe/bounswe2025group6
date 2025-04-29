@@ -11,12 +11,15 @@ from .serializers import UserRegistrationSerializer
 def index(request):
     return HttpResponse("Home page! Work in progress...")
 
+
+
 @api_view(['POST'])
 def register_user(request):
     if request.method == 'POST':
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            # Save to registered_users table
+            user = serializer.save()  # This saves the user data into registered_users
             return Response({
                 'message': 'User registered successfully.',
                 'username': user.username,
