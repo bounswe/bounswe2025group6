@@ -5,7 +5,6 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 
 // Optional (if these are also ready)
-import DashboardPage from './pages/DashboardPage';
 <Route element={<Layout />}>
   <Route path="/" element={<HomePage />} />
   <Route path="/login" element={<LoginPage />} />
