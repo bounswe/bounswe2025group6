@@ -1,0 +1,90 @@
+/* src/styles/HomePage.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.homepage-wrapper {
+  min-height: calc(100vh - 64px); /* Subtract navbar height */
+  width: 100%;
+  background: linear-gradient(to right, #6ee7b7, #3b82f6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1; /* Ensure it's below the navbar */
+}
+
+.homepage-container {
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+}
+
+.homepage-title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.homepage-subtitle {
+  font-size: 1.25rem;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.homepage-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.homepage-btn-outline {
+  background-color: white;
+  color: #10b981; /* emerald green */
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.homepage-btn-outline:hover {
+  background-color: #d1fae5; /* soft green hover */
+}
+
+.homepage-btn-filled {
+  background-color: #10b981;
+  color: white;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.homepage-btn-filled:hover {
+  background-color: #059669;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 640px) {
+  .homepage-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .homepage-title {
+    font-size: 2.5rem;
+  }
+}
