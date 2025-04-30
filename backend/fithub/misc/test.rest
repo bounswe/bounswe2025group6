@@ -1,4 +1,4 @@
-POST http://127.0.0.1:8000/register/ 
+POST http://127.0.0.1:8000/api/register/ 
 Content-Type: application/json
 
-{ "username": "adam", "password": "Pass1234!", "email": "adam@mail.com" }
+{ "username": "ozgur2", "password": "Pass1234!", "email": "adam2@mail.com" }
