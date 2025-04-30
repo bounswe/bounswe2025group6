@@ -72,6 +72,7 @@ docker-compose --version
     python manage.py runserver
     ```
     This will start the development server, and you can access the application in your web browser at `http://127.0.0.1:8000/`.
+    You can also see the swagger documentation at `http://127.0.0.1:8000/swagger/`.
 
 - **Stop the Django application**:
     To stop the Django application, press `Ctrl + C` (Windows) or `Command + C` (Mac) in the terminal where the server is running. This will stop the server and free up the resources used by it.
@@ -104,6 +105,7 @@ docker-compose --version
 
 - **Access the Django application**:
     Open your web browser and go to `http://0.0.0.0:8000/` to access the Django application.
+    You can also see the swagger documentation at `http://0.0.0.0:8000/swagger/`.
 
 - **Stop the Docker container**:
     To stop the container, press `Ctrl + C` (Windows), `Command + C` (Mac) in the terminal where the container is running. This will stop the application and free up the resources used by the container.
