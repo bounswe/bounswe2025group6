@@ -8,12 +8,12 @@ FROM python:3.11.1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Copy all the files in current directory to the /app directory in the container.
-COPY . /app
+# Copy all the files in current directory to the /fithub directory in the container.
+COPY . /fithub
 
-# Set the working directory (like "cd") to "/app".
+# Set the working directory (like "cd") to "/fithub".
 
-WORKDIR /app
+WORKDIR /fithub
 
 # Allow the container to accept requests coming to the port 8000.
 

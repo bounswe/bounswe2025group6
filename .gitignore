@@ -17,6 +17,9 @@ db.sqlite3
 # Python
 .Python
 env/
+.env/
+.env
+.env.*
 venv/
 .venv/
 ENV/

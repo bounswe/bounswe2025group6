@@ -13,10 +13,15 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -38,9 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app',
     'rest_framework',
     'rest_framework.authtoken',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -53,7 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'app.urls'
+ROOT_URLCONF = 'fithub.urls'
 
 TEMPLATES = [
     {
@@ -70,25 +75,21 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'app.wsgi.application'
+WSGI_APPLICATION = 'fithub.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-load_dotenv() # Load environment variables from .env file
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # <- use mysql, not postgresql
+        'ENGINE': 'django.db.backends.mysql',  
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '3306'),  # default MySQL port
-        'OPTIONS': {
-            'auth_plugin': 'caching_sha2_password',  # Use this for MySQL 8.0 and later
-        },
+        'PORT': os.getenv('DB_PORT'),  
     }
 }
 
@@ -134,4 +135,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+# Log in cookies, and email settings must be imlemented here later

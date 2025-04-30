@@ -27,11 +27,13 @@ docker-compose --version
     - **Docker Setup**: This option is for those who prefer to run the application inside a Docker container. It isolates the application and its dependencies from your local environment, making it easier to manage and deploy.
 
 
-## 1. Local Setup (Not Recommended) (Work in Progress)
+## 1. Local Setup 
 - **Move to the backend directory**:
     ```bash
-    cd app/backend
+    cd backend/fithub
     ```
+- **Create Environment Variables**:
+    Create a `.env` file in the `backend/fithub` directory. You can obtained necessary `.env` folder with the help of the backend team. 
 
 - **Virtual Environment**: 
     It's recommended to use a virtual environment to manage dependencies. You can create one using:
@@ -58,9 +60,36 @@ docker-compose --version
     pip install -r requirements.txt
     ```
 
-> 🛑 .env file: A .env file already exists in the repo (under backend/). In a real project, sensitive credentials should not be committed, but it's here for simplicity.
+- **Running necessary migrations**:
+    After installing the dependencies, you need to run the necessary migrations to set up the database schema. This step is crucial for the application to function correctly and to have the current database structure.
+    ```bash
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
+- **Run the Django application**:
+    Finally, you can run the Django application using the following command:
+    ```bash
+    python manage.py runserver
+    ```
+    This will start the development server, and you can access the application in your web browser at `http://127.0.0.1:8000/`.
 
-## 2. Docker Setup (Recommended)
+- **Stop the Django application**:
+    To stop the Django application, press `Ctrl + C` (Windows) or `Command + C` (Mac) in the terminal where the server is running. This will stop the server and free up the resources used by it.
+
+- **Deactivate the virtual environment**:
+    When you're done working with the application, you can deactivate the virtual environment by running:
+    ```bash
+    deactivate
+    ```
+
+- **NOTE**: If you encounter any issues during the setup process, please refer to the troubleshooting section or reach out to the backend team for assistance.
+
+## 2. Docker Setup 
+- **Move to the backend directory**:
+    ```bash
+    cd backend/fithub
+    ```
+
 - **Build the Docker image**:
     We first need to build the Docker image. This will create a container with all the necessary dependencies and configurations for our Django application.
     ```bash
@@ -78,8 +107,6 @@ docker-compose --version
 
 - **Stop the Docker container**:
     To stop the container, press `Ctrl + C` (Windows), `Command + C` (Mac) in the terminal where the container is running. This will stop the application and free up the resources used by the container.
-
-> 🛑 .env file: A .env file already exists in the repo (under backend/). In a real project, sensitive credentials should not be committed, but it's here for simplicity.
 
 ## 3. Django Migrations
 
