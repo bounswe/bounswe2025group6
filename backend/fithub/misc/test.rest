@@ -1,4 +1,8 @@
 POST http://127.0.0.1:8000/api/register/ 
 Content-Type: application/json
 
-{ "username": "ozgur2", "password": "Pass1234!", "email": "adam2@mail.com" }
+{  "username": "john_dietitian",
+    "email": "john@example.com",
+    "password": "securepass123",
+    "usertype": "dietitian",
+    "certification_url": "https://example.com/certification.pdf" }

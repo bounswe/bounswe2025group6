@@ -3,40 +3,46 @@ from rest_framework import serializers
 from .models import RegisteredUser, Dietitian
 from django.contrib.auth.hashers import make_password
 
+class DietitianSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dietitian
+        fields = ['certification_url']
+
+from rest_framework import serializers
+from .models import RegisteredUser, Dietitian
+from django.contrib.auth.hashers import make_password
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    
+    dietitian = DietitianSerializer(write_only=True, required=False)
+
     class Meta:
         model = RegisteredUser
-        fields = ['username', 'email', 'password','usertype', 'certification_url']
+        fields = ['username', 'email', 'password', 'usertype', 'dietitian']
 
     def validate(self, attrs):
         usertype = attrs.get('usertype')
-        certification = attrs.get('certification_url')
+        dietitian_data = attrs.get('dietitian')
 
-        if usertype == 'dietitian' and not certification:
+        if usertype == 'dietitian' and not dietitian_data:
             raise serializers.ValidationError({
-                'certification_url': 'This field is required when usertype is "dietitian".'
+                'dietitian': 'This field is required when usertype is "dietitian".'
             })
 
         return attrs
-    
+
     def create(self, validated_data):
         password = validated_data.pop('password')
+        dietitian_data = validated_data.pop('dietitian', None)
         validated_data['password_hash'] = make_password(password)
+
         user = RegisteredUser.objects.create(**validated_data)
 
-        if user.usertype == 'dietitian':
+        if user.usertype == 'dietitian' and dietitian_data:
+            # Create Dietitian object linked to RegisteredUser
             Dietitian.objects.create(
                 registered_user=user,
-                certification_url=certification_url
+                certification_url=dietitian_data.get('certification_url')
             )
 
         return user
-        
-
-    def create(self, validated_data):
-        password = validated_data.pop('password')  # Get the plain text password
-        validated_data['password_hash'] = make_password(password)  # Save hashed password in 'password_hash'
-        return RegisteredUser.objects.create(**validated_data)  # Create the user with hashed password
-        
