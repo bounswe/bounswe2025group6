@@ -34,9 +34,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         dietitian_data = validated_data.pop('dietitian', None)
-        validated_data['password_hash'] = make_password(password)
 
         user = RegisteredUser.objects.create(**validated_data)
+
+         # Set the user's password (this will hash the password automatically)
+        user.set_password(password)
+        user.save()
 
         if user.usertype == 'dietitian' and dietitian_data:
             # Create Dietitian object linked to RegisteredUser
