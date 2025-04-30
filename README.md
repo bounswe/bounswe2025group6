@@ -1,4 +1,4 @@
-# CMPE 352 Spring 2025 - Group 6
+# CMPE 352 Spring 2025 - Group 6 FITHUB
 
 Welcome! This is the project repository of group 6. For further information, see the [wiki](https://github.com/bounswe/bounswe2025group6/wiki).
 

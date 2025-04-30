@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,8 +27,7 @@ SECRET_KEY = 'django-insecure-f7#u$4w*^*l6s*yh^$6=a9t*h$loal!1^=p@_u%icge!g_ul%h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -76,6 +76,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+load_dotenv() # Load environment variables from .env file
 
 DATABASES = {
     'default': {
@@ -85,10 +86,11 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT', '3306'),  # default MySQL port
+        'OPTIONS': {
+            'auth_plugin': 'caching_sha2_password',  # Use this for MySQL 8.0 and later
+        },
     }
 }
-
-
 
 
 # Password validation
