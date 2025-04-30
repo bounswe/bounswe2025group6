@@ -1,0 +1,95 @@
+/* src/styles/AuthPages.css */
+
+.auth-page {
+    min-height: 100vh;
+    background: linear-gradient(to right, #a7f3d0, #60a5fa);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .auth-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .auth-title {
+    font-size: 2rem;
+    text-align: center;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+  }
+  
+  .auth-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+  }
+  
+  .auth-button {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    transition: background 0.3s;
+  }
+  
+  .auth-button.green {
+    background-color: #10b981;
+    color: white;
+  }
+  
+  .auth-button.green:hover {
+    background-color: #059669;
+  }
+  
+  .auth-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+  
+  .auth-link {
+    color: #2563eb;
+    font-weight: 500;
+  }
+  
+  .auth-link:hover {
+    text-decoration: underline;
+  }
+  
+  .auth-error {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Toggle User Type Buttons */
+  .user-type-toggle {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+  
+  .user-type-toggle button {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-weight: 500;
+    border-radius: 0.5rem;
+  }
+  
+  .user-type-toggle button.active {
+    background: #3b82f6;
+    color: white;
+  }
