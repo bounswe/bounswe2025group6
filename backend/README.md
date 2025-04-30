@@ -118,7 +118,7 @@ Django **does not automatically apply changes** you make to `models.py`. You mus
 
 2. **Generate migration files**:
    ```bash
-   python manage.py make migrations
+   python manage.py makemigrations
    ```
 
 3. **Apply migrations to the database:**
