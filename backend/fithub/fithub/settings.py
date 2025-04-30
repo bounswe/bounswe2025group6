@@ -17,7 +17,6 @@ import pymysql
 
 pymysql.install_as_MySQLdb()
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 print(f"BASE_DIR: {BASE_DIR}")
@@ -83,12 +82,12 @@ WSGI_APPLICATION = 'fithub.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # <- use mysql, not postgresql
-        'NAME': 'fithub',
-        'USER': 'admin',
-        'PASSWORD': 'group6.password',
-        'HOST': 'cmpe352group6.chuu2g00iiy2.eu-north-1.rds.amazonaws.com',
-        'PORT': '3306',  # default MySQL port
+        'ENGINE': 'django.db.backends.mysql',  
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),  
     }
 }
 
