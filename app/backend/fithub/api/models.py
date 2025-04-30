@@ -10,7 +10,6 @@ class RegisteredUser(models.Model):
 
     class Meta:
         db_table = 'registered_users'  # table name in MySQL
-        managed = False 
     
     
     def __str__(self):
