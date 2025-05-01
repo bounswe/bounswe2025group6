@@ -1,0 +1,70 @@
+/* src/styles/theme.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+body {
+  background-color: #f7fafc; /* Light background */
+  color: #2d3748;            /* Dark gray text */
+  font-family: 'Inter', sans-serif;
+}
+
+/* Common Components */
+button, .button {
+  background-color: #38a169; /* Green */
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem; /* Rounded */
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+button:hover, .button:hover {
+  background-color: #68d391; /* Light green on hover */
+}
+
+input, textarea, select {
+  border: 1px solid #e2e8f0; /* Light border */
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #38a169; /* Green border on focus */
+  box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.3);
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.link {
+  color: #38a169;
+  text-decoration: underline;
+}
+
+.link:hover {
+  color: #68d391;
+}
+
+/* Additional Utilities */
+.section-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+.badge {
+  background-color: #c6f6d5;
+  color: #22543d;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  margin-right: 0.25rem;
+  display: inline-block;
+}
