@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Login Button
                 Center(
                   child: ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: signIn,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.buttonGrey,
                       padding: const EdgeInsets.symmetric(horizontal: 70),
@@ -200,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() {
+  void signIn() {
     if (_formKey.currentState!.validate()) {
       // TODO: Implement login logic
       print('Email: ${_emailController.text}');

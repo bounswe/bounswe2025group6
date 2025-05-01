@@ -65,7 +65,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 24),
               Center(
                 child: ElevatedButton(
-                  onPressed: _handleResetPassword,
+                  onPressed: forgotPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.buttonGrey,
                     padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 8),
@@ -90,7 +90,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  void _handleResetPassword() {
+  void forgotPassword() {
     if (_formKey.currentState!.validate()) {
       // TODO: Implement password reset logic
       // This should connect to your backend API
