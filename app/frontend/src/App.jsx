@@ -16,6 +16,7 @@ function Layout() {
     </>
   );
 }
+
 function App() {
   return (
 
@@ -28,9 +29,9 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/profile" element={<ProfilePage />} />
     </Route>
+
     </Routes>
     </BrowserRouter>
-
   );
 }
 
