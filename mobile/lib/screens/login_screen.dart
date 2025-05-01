@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Basic email validation
                     if (!value.contains('@')) {
                       return 'Please enter a valid email';
-                  }
+                    }
                     return null;
                   },
         
@@ -127,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 4), // Reduce padding
+                      padding: const EdgeInsets.symmetric(vertical: 4),
                     ),
                     child: const Text(
                       'Forgot Password?',
