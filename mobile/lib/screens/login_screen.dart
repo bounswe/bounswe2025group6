@@ -1,3 +1,4 @@
+import 'package:fithub/screens/forgot_pass_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -87,6 +88,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
+                    // Basic email validation
+                    if (!value.contains('@')) {
+                      return 'Please enter a valid email';
+                  }
                     return null;
                   },
         
@@ -114,7 +119,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // TODO: Navigate to forgot password screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordScreen(),
+                        ),
+                      );
                     },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 4), // Reduce padding
@@ -129,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 24), // Adjust spacing before login button
+                const SizedBox(height: 24), 
 
                 // Login Button
                 Center(
