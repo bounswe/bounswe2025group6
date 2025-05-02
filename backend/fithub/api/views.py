@@ -12,6 +12,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.hashers import make_password
 
 from rest_framework.decorators import api_view
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -23,7 +25,10 @@ User = get_user_model()
 def index(request):
     return HttpResponse("Home page! Work in progress...")
 
-
+@swagger_auto_schema(
+    method='post',
+    request_body=UserRegistrationSerializer(),
+)
 @api_view(['POST'])
 def register_user(request):
     serializer = UserRegistrationSerializer(data=request.data)
