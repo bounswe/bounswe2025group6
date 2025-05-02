@@ -94,6 +94,14 @@ send_mail(
 )
 
 class login_view(APIView):
+    @swagger_auto_schema(
+        request_body=LoginSerializer(),  # Specify the serializer for login
+        responses={
+            200: 'Successful login response with token',
+            400: 'Bad request',
+            401: 'Invalid credentials'
+        }
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -109,7 +117,24 @@ class login_view(APIView):
 
 class logout_view(APIView):
     permission_classes = [IsAuthenticated]
-
+    @swagger_auto_schema(
+        operation_description="Logs out the user by deleting the authentication token.",
+        produces=["application/json"],
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Token-based authorization. Format: `Token <your_token>`",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        responses={
+            200: openapi.Response(description="Logout successful"),
+            400: openapi.Response(description="No token found"),
+            401: openapi.Response(description="User not authenticated"),
+        }
+    )
     def post(self, request):
         try:
             # Get the token associated with the current user
