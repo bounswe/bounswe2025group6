@@ -9,9 +9,9 @@ void main() {
           (WidgetTester tester) async {
         await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
-        expect(find.text('Hesap Oluştur'), findsOneWidget);
+        expect(find.text('Create Account'), findsOneWidget);
         expect(find.byType(TextFormField), findsNWidgets(3));
-        expect(find.text('PDF Yükle (Sertifika)'), findsNothing);
+        expect(find.text('Upload PDF (Certificate)'), findsNothing);
       });
 
   testWidgets('Selecting Dietitian reveals PDF picker',
@@ -24,19 +24,19 @@ void main() {
         await tester.tap(find.text('Dietitian').last);
         await tester.pumpAndSettle();
 
-        expect(find.text('PDF Yükle (Sertifika)'), findsOneWidget);
+        expect(find.text('Upload PDF (Certificate)'), findsOneWidget);
       });
 
   testWidgets('Validation errors appear on empty form submit',
           (WidgetTester tester) async {
         await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
-        await tester.tap(find.text('Kayıt Ol'));
+        await tester.tap(find.text('Register'));
         await tester.pump();
 
-        expect(find.text('En az 3 karakter'), findsOneWidget);
-        expect(find.text('Geçerli email gir'), findsOneWidget);
-        expect(find.text('En az 6 karakter'), findsOneWidget);
+        expect(find.text('Enter at least 3 characters'), findsOneWidget);
+        expect(find.text('Enter a valid email'), findsOneWidget);
+        expect(find.text('Enter at least 6 characters'), findsOneWidget);
       });
 
   testWidgets('Form passes validation with valid user data',
@@ -47,10 +47,10 @@ void main() {
         await tester.enterText(find.byType(TextFormField).at(1), 'seyit@example.com');
         await tester.enterText(find.byType(TextFormField).at(2), '123456');
 
-        await tester.tap(find.text('Kayıt Ol'));
+        await tester.tap(find.text('Register'));
         await tester.pump();
 
-        expect(find.textContaining('En az'), findsNothing);
-        expect(find.textContaining('Geçerli email'), findsNothing);
+        expect(find.textContaining('least'), findsNothing);
+        expect(find.textContaining('valid email'), findsNothing);
       });
 }

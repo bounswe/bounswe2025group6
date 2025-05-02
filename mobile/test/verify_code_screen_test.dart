@@ -12,7 +12,7 @@ void main() {
 
     expect(find.textContaining('test@example.com'), findsOneWidget);
     expect(find.byType(TextFormField), findsOneWidget);
-    expect(find.text('Doğrula'), findsOneWidget);
+    expect(find.text('Verify'), findsOneWidget);
   });
 
   testWidgets('Shows error if less than 6 digits entered', (WidgetTester tester) async {
@@ -23,10 +23,10 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextFormField), '123');
-    await tester.tap(find.text('Doğrula'));
+    await tester.tap(find.text('Verify'));
     await tester.pump();
 
-    expect(find.text('6 haneli kod girin'), findsOneWidget);
+    expect(find.text('Enter 6-digit code'), findsOneWidget);
   });
 
   testWidgets('Accepts 6-digit correct code', (WidgetTester tester) async {
@@ -37,11 +37,9 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextFormField), '123456');
-    await tester.tap(find.text('Doğrula'));
-
+    await tester.tap(find.text('Verify'));
     await tester.pumpAndSettle();
 
-    // Yeni sayfa açıldığında eski başlık görünmemeli
-    expect(find.text('Kodu Doğrula'), findsNothing);
+    expect(find.text('Verify Code'), findsNothing);
   });
 }

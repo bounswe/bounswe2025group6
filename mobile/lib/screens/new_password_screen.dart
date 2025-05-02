@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fithub/theme/app_theme.dart';
 
 class CreateNewPasswordPage extends StatefulWidget {
   const CreateNewPasswordPage({super.key});
@@ -15,8 +16,8 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final newPassword = _newPasswordController.text;
-      debugPrint("Yeni şifre: $newPassword");
-      // TODO: Şifreyi backend'e gönder
+      debugPrint("New password: $newPassword");
+      // TODO: Send password to backend
     }
   }
 
@@ -30,10 +31,11 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundGrey,
       appBar: AppBar(
-        title: const Text('Yeni Şifre Oluştur'),
+        title: const Text('Create New Password'),
         centerTitle: true,
-        backgroundColor: Colors.green[700],
+        backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -42,47 +44,42 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
           key: _formKey,
           child: Column(
             children: [
-              // Yeni Şifre
               TextFormField(
                 controller: _newPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Yeni Şifre',
+                  labelText: 'New Password',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
                 value != null && value.length >= 6
                     ? null
-                    : 'En az 6 karakter girin',
+                    : 'Enter at least 6 characters',
               ),
               const SizedBox(height: 16),
-
-              // Şifre Tekrar
               TextFormField(
                 controller: _repeatPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Şifreyi Tekrar Yaz',
+                  labelText: 'Confirm Password',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value != _newPasswordController.text) {
-                    return 'Şifreler eşleşmiyor';
+                    return 'Passwords do not match';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 32),
-
-              // Onay Butonu
               ElevatedButton(
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
+                  backgroundColor: AppTheme.primaryGreen,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 child: const Text(
-                  'Şifreyi Kaydet',
+                  'Save Password',
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),

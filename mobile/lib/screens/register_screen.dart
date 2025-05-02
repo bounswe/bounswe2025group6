@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:fithub/theme/app_theme.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -11,27 +12,23 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // --- Form alanları ---
   String _username = '';
-  String _email    = '';
+  String _email = '';
   String _password = '';
   String _userType = 'User';
-  PlatformFile? _pdfFile;          // Dietitian için PDF
+  PlatformFile? _pdfFile;
 
-  // --- Formu gönder ---
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Dietitian ise PDF zorunlu
       if (_userType == 'Dietitian' && _pdfFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen PDF yükleyin')),
+          const SnackBar(content: Text('Please upload a PDF certificate')),
         );
         return;
       }
 
-      // DEBUG çıktısı
       debugPrint('Username : $_username');
       debugPrint('Email    : $_email');
       debugPrint('Password : $_password');
@@ -40,7 +37,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // --- PDF seç ---
   Future<void> _pickPdfFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -51,13 +47,12 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // --- UI -------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1FDF3),             // çok açık yeşil
+      backgroundColor: AppTheme.backgroundGrey,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF4CAF50),           // yeşil
+        backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
         title: const Text('Register'),
         centerTitle: true,
@@ -77,28 +72,24 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   children: [
                     const Text(
-                      'Hesap Oluştur',
+                      'Create Account',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // Username
                     TextFormField(
                       decoration: const InputDecoration(
-                        labelText: 'Kullanıcı Adı',
+                        labelText: 'Username',
                         border: OutlineInputBorder(),
                       ),
                       onSaved: (v) => _username = v ?? '',
                       validator: (v) => v != null && v.length >= 3
                           ? null
-                          : 'En az 3 karakter',
+                          : 'Enter at least 3 characters',
                     ),
                     const SizedBox(height: 16),
-
-                    // Email
                     TextFormField(
                       decoration: const InputDecoration(
                         labelText: 'Email',
@@ -107,28 +98,24 @@ class _RegisterPageState extends State<RegisterPage> {
                       onSaved: (v) => _email = v ?? '',
                       validator: (v) => v != null && v.contains('@')
                           ? null
-                          : 'Geçerli email gir',
+                          : 'Enter a valid email',
                     ),
                     const SizedBox(height: 16),
-
-                    // Password
                     TextFormField(
                       decoration: const InputDecoration(
-                        labelText: 'Şifre',
+                        labelText: 'Password',
                         border: OutlineInputBorder(),
                       ),
                       obscureText: true,
                       onSaved: (v) => _password = v ?? '',
                       validator: (v) => v != null && v.length >= 6
                           ? null
-                          : 'En az 6 karakter',
+                          : 'Enter at least 6 characters',
                     ),
                     const SizedBox(height: 16),
-
-                    // User Type
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
-                        labelText: 'Kullanıcı Tipi',
+                        labelText: 'User Type',
                         border: OutlineInputBorder(),
                       ),
                       value: _userType,
@@ -145,18 +132,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       onChanged: (v) {
                         setState(() {
                           _userType = v!;
-                          _pdfFile = null; // type değişince PDF sıfırla
+                          _pdfFile = null;
                         });
                       },
                       onSaved: (v) => _userType = v ?? 'User',
                     ),
                     const SizedBox(height: 16),
-
-                    // PDF picker (sadece Dietitian)
                     if (_userType == 'Dietitian') ...[
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF66BB6A),
+                          backgroundColor: AppTheme.primaryGreen,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -164,25 +149,23 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         onPressed: _pickPdfFile,
                         icon: const Icon(Icons.upload_file),
-                        label: const Text('PDF Yükle (Sertifika)'),
+                        label: const Text('Upload PDF (Certificate)'),
                       ),
                       if (_pdfFile != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                            'Yüklenen: ${_pdfFile!.name}',
-                            style: const TextStyle(color: Colors.green),
+                            'Uploaded: ${_pdfFile!.name}',
+                            style: const TextStyle(color: AppTheme.primaryGreen),
                           ),
                         ),
                       const SizedBox(height: 16),
                     ],
-
-                    // Register Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF388E3C),
+                          backgroundColor: AppTheme.primaryGreen,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -190,7 +173,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         onPressed: _submitForm,
                         child: const Text(
-                          'Kayıt Ol',
+                          'Register',
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       ),
