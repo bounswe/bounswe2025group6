@@ -31,7 +31,7 @@ void main() {
           (WidgetTester tester) async {
         await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
-        await tester.tap(find.text('Register'));
+        await tester.tap(find.byType(ElevatedButton));
         await tester.pump();
 
         expect(find.text('Enter at least 3 characters'), findsOneWidget);
@@ -47,7 +47,7 @@ void main() {
         await tester.enterText(find.byType(TextFormField).at(1), 'seyit@example.com');
         await tester.enterText(find.byType(TextFormField).at(2), '123456');
 
-        await tester.tap(find.text('Register'));
+        await tester.tap(find.byType(ElevatedButton));
         await tester.pump();
 
         expect(find.textContaining('least'), findsNothing);
