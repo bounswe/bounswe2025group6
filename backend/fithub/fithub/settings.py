@@ -164,3 +164,5 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 AUTH_USER_MODEL = 'api.RegisteredUser'
+
+SITE_DOMAIN = "http://localhost:8000" 

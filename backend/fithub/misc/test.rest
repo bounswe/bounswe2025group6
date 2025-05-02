@@ -2,13 +2,10 @@ POST http://127.0.0.1:8000/api/register/
 Content-Type: application/json
 
 {
-  "username": "dietitianjohn154",
-  "email": "dietitian.john154@example.com",
-  "password": "secureDietitianPassword123",
-  "usertype": "dietitian",
-  "dietitian": {
-    "certification_url": "https://example.com/certifications/john_certification"
-  }
+  "username": "ozgur2",
+  "email": "savascio@unhcr.com",
+  "password": "123",
+  "usertype": "user"
 }
 ###
 
@@ -17,9 +14,17 @@ Content-Type: application/json
 
 {
   "email": "savasciogluozgur@gmail.com",
-  "password": "123"
+  "password": "333"
 }
 ###
 
 POST http://127.0.0.1:8000/api/logout/
 Authorization: Token d2a5f9c71b45d88ed04b8ce9d2ceec2378b47c25
+
+
+###
+
+POST http://127.0.0.1:8000/api/forgot-password//
+{
+  "email": "savasciogluozgur@gmail.com",
+}
