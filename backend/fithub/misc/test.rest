@@ -2,11 +2,21 @@ POST http://127.0.0.1:8000/api/register/
 Content-Type: application/json
 
 {
-  "username": "dietitianjohn",
-  "email": "dietitian.john@example.com",
+  "username": "dietitianjohn154",
+  "email": "dietitian.john154@example.com",
   "password": "secureDietitianPassword123",
   "usertype": "dietitian",
   "dietitian": {
     "certification_url": "https://example.com/certifications/john_certification"
   }
 }
+###
+
+POST http://127.0.0.1:8000/api/login/
+Content-Type: application/json
+
+{
+  "email": "dietitian.john154@example.com",
+  "password": "secureDietitianPassword123"
+}
+

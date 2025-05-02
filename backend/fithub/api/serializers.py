@@ -2,15 +2,12 @@
 from rest_framework import serializers
 from .models import RegisteredUser, Dietitian
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
 
 class DietitianSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dietitian
         fields = ['certification_url']
-
-from rest_framework import serializers
-from .models import RegisteredUser, Dietitian
-from django.contrib.auth.hashers import make_password
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -49,3 +46,23 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             )
 
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        try:
+            user = RegisteredUser.objects.get(email=email)
+        except RegisteredUser.DoesNotExist:
+            raise serializers.ValidationError('Invalid email or password.')
+
+        if not user.check_password(password):
+            raise serializers.ValidationError('Invalid email or password.')
+
+        attrs['user'] = user
+        return attrs
