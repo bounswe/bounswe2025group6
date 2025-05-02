@@ -16,7 +16,10 @@ POST http://127.0.0.1:8000/api/login/
 Content-Type: application/json
 
 {
-  "email": "dietitian.john154@example.com",
-  "password": "secureDietitianPassword123"
+  "email": "savasciogluozgur@gmail.com",
+  "password": "123"
 }
+###
 
+POST http://127.0.0.1:8000/api/logout/
+Authorization: Token d2a5f9c71b45d88ed04b8ce9d2ceec2378b47c25
