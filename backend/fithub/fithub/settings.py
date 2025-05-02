@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', # Token authentication
     'drf_yasg', # Swagger and ReDoc
     'api',      # Our main api
+    'recipes',  # Recipes app
 ]
 
 REST_FRAMEWORK = {
@@ -85,7 +86,7 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'api.backends.EmailBackend', 
+    'api.backends.EmailBackend',
 ]
 
 WSGI_APPLICATION = 'fithub.wsgi.application'
@@ -97,7 +98,7 @@ WSGI_APPLICATION = 'fithub.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -165,4 +166,4 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTH_USER_MODEL = 'api.RegisteredUser'
 
-SITE_DOMAIN = "http://localhost:8000" 
+SITE_DOMAIN = "http://localhost:8000"
