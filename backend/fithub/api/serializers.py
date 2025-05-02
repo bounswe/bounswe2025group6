@@ -3,6 +3,14 @@ from rest_framework import serializers
 from .models import RegisteredUser, Dietitian
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from .models import PasswordResetCode
+from django.utils.crypto import get_random_string
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.conf import settings
+
+User = get_user_model()
 
 class DietitianSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,3 +77,58 @@ class LoginSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+    
+
+class RequestPasswordResetCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("User with this email does not exist.")
+        return email
+
+    def save(self):
+        email = self.validated_data['email']
+        code = get_random_string(length=6, allowed_chars='0123456789')
+
+        PasswordResetCode.objects.create(email=email, code=code)
+
+        # You can send the email here using Django's email backend
+        print(f"Password reset code for {email} is: {code}")  # Replace with actual email logic
+
+        send_mail(
+            subject="Your Password Reset Code",
+            message=f"Use this code to reset your password: {code}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email]
+        )
+
+
+class VerifyPasswordResetCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(min_length=6, max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, data):
+        try:
+            record = PasswordResetCode.objects.filter(email=data['email'], code=data['code'], is_used=False).latest('created_at')
+        except PasswordResetCode.DoesNotExist:
+            raise serializers.ValidationError("Invalid or expired code.")
+
+        if record.is_expired():
+            raise serializers.ValidationError("The code has expired.")
+        
+        data['user'] = User.objects.get(email=data['email'])
+        data['record'] = record
+        return data
+
+    def save(self):
+        user = self.validated_data['user']
+        new_password = self.validated_data['new_password']
+        record = self.validated_data['record']
+
+        user.set_password(new_password)
+        user.save()
+
+        record.is_used = True
+        record.save()

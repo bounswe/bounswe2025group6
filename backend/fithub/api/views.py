@@ -20,8 +20,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import UserRegistrationSerializer, LoginSerializer
-
+from .serializers import UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer, VerifyPasswordResetCodeSerializer
 
 User = get_user_model()
 
@@ -160,7 +159,34 @@ def password_reset(request, uidb64, token):
     
     return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
+class RequestResetCodeView(APIView):
+    @swagger_auto_schema(
+        operation_description="Request a 6-digit password reset code to be sent to your email.",
+        request_body=RequestPasswordResetCodeSerializer,
+        responses={200: "Code sent", 400: "Validation error"}
+    )
+    def post(self, request):
+        serializer = RequestPasswordResetCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            
+            return Response({"detail": "A reset code has been sent to your email."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class VerifyResetCodeView(APIView):
+    @swagger_auto_schema(
+        operation_description="Verify 6-digit code and reset password.",
+        request_body=VerifyPasswordResetCodeSerializer,
+        responses={200: "Password reset", 400: "Validation error"}
+    )
+    def post(self, request):
+        serializer = VerifyPasswordResetCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"detail": "Password has been successfully reset."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class login_view(APIView):
     @swagger_auto_schema(
         request_body=LoginSerializer(),  # Specify the serializer for login
