@@ -12,12 +12,15 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.hashers import make_password
 
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
-from .serializers import UserRegistrationSerializer
+from .serializers import UserRegistrationSerializer, LoginSerializer
+
 
 User = get_user_model()
 
@@ -87,3 +90,17 @@ send_mail(
     ['savasciogluozgur@gmail.com'],
     fail_silently=False,
 )
+
+class login_view(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user_id': user.id,
+                'email': user.email,
+                'usertype': user.usertype,
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
