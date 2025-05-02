@@ -20,8 +20,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import UserRegistrationSerializer, LoginSerializer
-
+from .serializers import UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer, VerifyPasswordResetCodeSerializer
 
 User = get_user_model()
 
@@ -93,6 +92,101 @@ send_mail(
     fail_silently=False,
 )
 
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email of the user to reset password'),
+        },
+        required=['email']
+    ),
+    responses={
+        200: openapi.Response(description="Password reset email sent."),
+        400: openapi.Response(description="Invalid email."),
+    }
+)
+@api_view(['POST'])
+def forgot_password(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"detail": "Please check your inbox and junk folder for the password reset email"}, status=status.HTTP_200_OK)
+
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_url = reverse('password-reset', kwargs={'uidb64': uid, 'token': token})
+    reset_link = f'http://{settings.SITE_DOMAIN}{reset_url}'
+
+    subject = "Fithub Password Reset Request"
+    message = f"To reset your password, click the following link: {reset_link}"
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+
+    return Response({"detail": "If this email exists, a password reset link has been sent."}, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'new_password': openapi.Schema(type=openapi.TYPE_STRING, description='New password for the user'),
+        },
+    ),
+    responses={
+        200: openapi.Response(description='Password has been reset successfully.'),
+        400: openapi.Response(description='Invalid token or password missing.'),
+    },
+)
+@api_view(['POST'])
+def password_reset(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (User.DoesNotExist, ValueError, OverflowError):
+        return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        new_password = request.data.get("new_password")
+        if new_password:
+            user.password = make_password(new_password)
+            user.save()
+            return Response({"detail": "Password has been reset successfully."}, status=status.HTTP_200_OK)
+        return Response({"error": "New password is required."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+class RequestResetCodeView(APIView):
+    @swagger_auto_schema(
+        operation_description="Request a 6-digit password reset code to be sent to your email.",
+        request_body=RequestPasswordResetCodeSerializer,
+        responses={200: "Code sent", 400: "Validation error"}
+    )
+    def post(self, request):
+        serializer = RequestPasswordResetCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            
+            return Response({"detail": "A reset code has been sent to your email."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VerifyResetCodeView(APIView):
+    @swagger_auto_schema(
+        operation_description="Verify 6-digit code and reset password.",
+        request_body=VerifyPasswordResetCodeSerializer,
+        responses={200: "Password reset", 400: "Validation error"}
+    )
+    def post(self, request):
+        serializer = VerifyPasswordResetCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"detail": "Password has been successfully reset."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class login_view(APIView):
     @swagger_auto_schema(
         request_body=LoginSerializer(),  # Specify the serializer for login

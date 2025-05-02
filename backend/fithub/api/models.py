@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from datetime import timedelta
 from django.utils.timezone import now
 
 class TimestampedModel(models.Model):
@@ -40,4 +41,13 @@ class RegisteredUser(AbstractUser, TimestampedModel):
 class Dietitian(TimestampedModel, models.Model):
     registered_user = models.OneToOneField(RegisteredUser, on_delete=models.CASCADE, related_name='dietitian')
     certification_url = models.URLField()
+
+class PasswordResetCode(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def is_expired(self):
+        return self.created_at + timedelta(minutes=10) < timezone.now()
 
