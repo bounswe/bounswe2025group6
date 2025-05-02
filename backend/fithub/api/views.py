@@ -18,6 +18,7 @@ from drf_yasg import openapi
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 
 from .serializers import UserRegistrationSerializer, LoginSerializer
 
@@ -32,6 +33,7 @@ def index(request):
     method='post',
     request_body=UserRegistrationSerializer(),
 )
+
 @api_view(['POST'])
 def register_user(request):
     serializer = UserRegistrationSerializer(data=request.data)
@@ -104,3 +106,16 @@ class login_view(APIView):
                 'usertype': user.usertype,
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class logout_view(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Get the token associated with the current user
+            token = Token.objects.get(user=request.user)
+            token.delete()  # Delete the token to log out the user
+            return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
+        except Token.DoesNotExist:
+            return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
+
