@@ -51,10 +51,21 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': "JWT Authorization header using the Bearer scheme. Example: 'Bearer your_token_here'",
+        }
+    },
+    'USE_SESSION_AUTH': False,  # Disable default BasicAuth
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -85,7 +96,7 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'api.backends.EmailBackend', 
+    'api.backends.EmailBackend',
 ]
 
 WSGI_APPLICATION = 'fithub.wsgi.application'
@@ -97,7 +108,7 @@ WSGI_APPLICATION = 'fithub.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -165,4 +176,4 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTH_USER_MODEL = 'api.RegisteredUser'
 
-SITE_DOMAIN = "http://localhost:8000" 
+SITE_DOMAIN = "http://localhost:8000"
