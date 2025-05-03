@@ -5,4 +5,7 @@ PyMySQL==1.1.1             # For MySQL connection if mysqlclient won't work
 psycopg2-binary>=2.9
 python-dotenv==1.0.1       # To read .env file
 drf-yasg>=1.21.7           # For swagger documentation
+PyJWT==2.9.0               # JWT Token Authentication
+djangorestframework_simplejwt==5.5.0
 django-cors-headers==4.7.0 # For CORS headers
+

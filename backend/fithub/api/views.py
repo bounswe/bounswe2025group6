@@ -14,13 +14,16 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from drf_yasg import openapi
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer, VerifyPasswordResetCodeSerializer
+from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
+                           VerifyPasswordResetCodeSerializer)
 
 User = get_user_model()
 
@@ -44,7 +47,7 @@ def register_user(request):
             request.data['password'] = make_password(password)
         else:
             return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         user = serializer.save()
         user.is_active = False  # Require email verification before login
         user.save()
@@ -52,9 +55,9 @@ def register_user(request):
         send_verification_email(user, request)
 
         return Response({'detail': 'User registered. Please check your email to verify your account.'}, status=status.HTTP_201_CREATED)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 def send_verification_email(user, request):
     token = default_token_generator.make_token(user)
@@ -156,7 +159,7 @@ def password_reset(request, uidb64, token):
             user.save()
             return Response({"detail": "Password has been reset successfully."}, status=status.HTTP_200_OK)
         return Response({"error": "New password is required."}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
 class RequestResetCodeView(APIView):
@@ -169,7 +172,7 @@ class RequestResetCodeView(APIView):
         serializer = RequestPasswordResetCodeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            
+
             return Response({"detail": "A reset code has been sent to your email."})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -186,7 +189,7 @@ class VerifyResetCodeView(APIView):
             serializer.save()
             return Response({"detail": "Password has been successfully reset."})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 class login_view(APIView):
     @swagger_auto_schema(
         request_body=LoginSerializer(),  # Specify the serializer for login
@@ -237,4 +240,3 @@ class logout_view(APIView):
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:
             return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
-
