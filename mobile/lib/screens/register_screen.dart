@@ -11,6 +11,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _passwordController = TextEditingController(); // Added controller
 
   String _username = '';
   String _email = '';
@@ -85,9 +86,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: OutlineInputBorder(),
                       ),
                       onSaved: (v) => _username = v ?? '',
-                      validator: (v) => v != null && v.length >= 3
-                          ? null
-                          : 'Enter at least 3 characters',
+                      validator:
+                          (v) =>
+                              v != null && v.length >= 3
+                                  ? null
+                                  : 'Enter at least 3 characters',
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -96,9 +99,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: OutlineInputBorder(),
                       ),
                       onSaved: (v) => _email = v ?? '',
-                      validator: (v) => v != null && v.contains('@')
-                          ? null
-                          : 'Enter a valid email',
+                      validator:
+                          (v) =>
+                              v != null && v.contains('@')
+                                  ? null
+                                  : 'Enter a valid email',
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -107,10 +112,31 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: OutlineInputBorder(),
                       ),
                       obscureText: true,
+                      controller: _passwordController, // Assign controller
                       onSaved: (v) => _password = v ?? '',
-                      validator: (v) => v != null && v.length >= 6
-                          ? null
-                          : 'Enter at least 6 characters',
+                      validator:
+                          (v) =>
+                              v != null && v.length >= 6
+                                  ? null
+                                  : 'Enter at least 6 characters',
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      // Added Confirm Password field
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Password',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (v != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
@@ -120,10 +146,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       value: _userType,
                       items: const [
-                        DropdownMenuItem(
-                          value: 'User',
-                          child: Text('User'),
-                        ),
+                        DropdownMenuItem(value: 'User', child: Text('User')),
                         DropdownMenuItem(
                           value: 'Dietitian',
                           child: Text('Dietitian'),
@@ -156,7 +179,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             'Uploaded: ${_pdfFile!.name}',
-                            style: const TextStyle(color: AppTheme.primaryGreen),
+                            style: const TextStyle(
+                              color: AppTheme.primaryGreen,
+                            ),
                           ),
                         ),
                       const SizedBox(height: 16),
@@ -186,5 +211,11 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose(); // Dispose controller
+    super.dispose();
   }
 }

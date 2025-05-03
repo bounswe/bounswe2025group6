@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fithub/screens/login_screen.dart';
 import 'package:fithub/screens/forgot_pass_screen.dart';
-import 'package:fithub/theme/app_theme.dart';
 
 void main() {
   group('Login Screen Tests', () {
-    testWidgets('Login screen shows all required elements', (WidgetTester tester) async {
+    testWidgets('Login screen shows all required elements', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
       // Verify all important widgets are present
@@ -41,7 +42,7 @@ void main() {
       final emailField = find.byType(TextFormField).first;
       await tester.ensureVisible(emailField);
       await tester.enterText(emailField, 'invalid-email');
-      
+
       // Ensure button is visible before tapping
       await tester.ensureVisible(find.text('Log In'));
       await tester.tap(find.text('Log In'));
@@ -51,7 +52,9 @@ void main() {
       expect(find.text('Please enter a valid email'), findsOneWidget);
     });
 
-    testWidgets('Navigation to Forgot Password works', (WidgetTester tester) async {
+    testWidgets('Navigation to Forgot Password works', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
       // Tap forgot password link
@@ -64,18 +67,27 @@ void main() {
   });
 
   group('Forgot Password Screen Tests', () {
-    testWidgets('Forgot password screen shows all required elements', (WidgetTester tester) async {
+    testWidgets('Forgot password screen shows all required elements', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(const MaterialApp(home: ForgotPasswordScreen()));
 
       // Verify all important widgets are present
       expect(find.text('Forgot Password'), findsOneWidget);
       expect(find.text('Reset Password'), findsOneWidget);
-      expect(find.text('Enter your email address and we will send you instructions to reset your password.'), findsOneWidget);
+      expect(
+        find.text(
+          'Enter your email address and we will send you instructions to reset your password.',
+        ),
+        findsOneWidget,
+      );
       expect(find.text('EMAIL'), findsOneWidget);
       expect(find.text('Send Reset Link'), findsOneWidget);
     });
 
-    testWidgets('Forgot password form validation works', (WidgetTester tester) async {
+    testWidgets('Forgot password form validation works', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(const MaterialApp(home: ForgotPasswordScreen()));
 
       // Try to submit without entering email
@@ -99,7 +111,10 @@ void main() {
       await tester.pump();
 
       // Verify success message
-      expect(find.text('Password reset link sent to your email'), findsOneWidget);
+      expect(
+        find.text('Password reset link sent to your email'),
+        findsOneWidget,
+      );
     });
   });
 }
