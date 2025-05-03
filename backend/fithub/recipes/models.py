@@ -133,3 +133,12 @@ class RecipeIngredient(TimestampedModel):
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
 
 # RecipeLike model that will be used for the recipe
+class RecipeLike(TimestampedModel):
+    recipe = models.ForeignKey(Recipe, related_name="likes", on_delete=models.CASCADE)
+    user = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('recipe', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} liked {self.recipe.name}"
