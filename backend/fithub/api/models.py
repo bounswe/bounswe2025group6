@@ -5,10 +5,10 @@ from datetime import timedelta
 from django.utils.timezone import now
 
 class TimestampedModel(models.Model):
-    class TimestampedModel(models.Model):
-        created_at = models.DateTimeField(auto_now_add=True, null=True)
-        updated_at = models.DateTimeField(auto_now=True, null=True)
-        deleted_on = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    deleted_on = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -36,7 +36,7 @@ class RegisteredUser(AbstractUser, TimestampedModel):
 
     def __str__(self):
         return self.username
-    
+
 
 class Dietitian(TimestampedModel, models.Model):
     registered_user = models.OneToOneField(RegisteredUser, on_delete=models.CASCADE, related_name='dietitian')
@@ -50,4 +50,3 @@ class PasswordResetCode(models.Model):
 
     def is_expired(self):
         return self.created_at + timedelta(minutes=10) < timezone.now()
-
