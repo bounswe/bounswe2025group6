@@ -1,7 +1,8 @@
-# myproject/urls.py
-from django.urls import path
+# ingredients/urls.py
+from rest_framework.routers import DefaultRouter
+from .views import IngredientViewSet
 
-urlpatterns = [
-    # path('register/', views.register_user, name='register_user'),
-    # later put urls here
-]
+router = DefaultRouter()
+router.register(r'ingredients', IngredientViewSet, basename='ingredient')
+
+urlpatterns = router.urls

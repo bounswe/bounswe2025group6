@@ -26,7 +26,7 @@ class Ingredient(TimestampedModel):
     ]
 
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)  # Unique name for the ingredient
     category = models.CharField(
         max_length=50,
         choices=CATEGORY_CHOICES,  # Use choices from the list above
@@ -39,4 +39,3 @@ class Ingredient(TimestampedModel):
 
     def __str__(self):
         return self.name
-
