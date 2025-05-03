@@ -11,7 +11,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
-        fields = '__all__'
+        fields = ['ingredient', 'quantity', 'unit']
 
     def create(self, validated_data):
         # Extract recipe from context
