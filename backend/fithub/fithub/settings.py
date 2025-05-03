@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', # Token authentication
     'drf_yasg', # Swagger and ReDoc
     'api',      # Our main api
+    'ingredients', # Ingredients app
 ]
 
 REST_FRAMEWORK = {
