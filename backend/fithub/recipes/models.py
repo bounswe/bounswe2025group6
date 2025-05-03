@@ -1,60 +1,39 @@
 from django.db import models
+from api.models import TimestampedModel
 
-# Create your models here.
+class Ingredient(TimestampedModel):
+    # Define the ingredient categories directly in the model using choices
+    CATEGORY_CHOICES = [
+        ("proteins", "Proteins"),
+        ("vegetables", "Vegetables"),
+        ("fruits", "Fruits"),
+        ("grains", "Grains"),
+        ("dairy", "Dairy"),
+        ("oils_and_fats", "Oils and fats"),
+        ("sweeteners", "Sweeteners"),
+        ("herbs_and_spices", "Herbs and spices"),
+        ("sauces", "Sauces"),
+        ("canned_goods", "Canned goods"),
+        ("frozen_foods", "Frozen foods"),
+        ("baking_essentials", "Baking essentials"),
+        ("nuts_and_seeds", "Nuts and seeds"),
+        ("snacks", "Snacks"),
+        ("beverages", "Beverages"),
+        ("other", "Other"),
+    ]
 
-"""
-  class Recipe {
-    +id: Int
-    +name: String
-    +ingredients: List<Ingredient>
-    +steps: List<String>
-    +costPerServing: double
-    +prepTime: int
-    +cookTime: int
-    +difficultyRating: double
-    +tasteRating: double
-    +healthRating: double
-    +mealType: String
-    +mediaFiles: List<Media>
-    +comments: List<RecipeComment>
-    +likes: int
-    +creator: RegisteredUser
-    +isApproved: boolean
-    +isFeatured: boolean
 
+    name = models.CharField(max_length=100)
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,  # Use choices from the list above
+        default="other"           # Default to "other" if not specified
+    )
 
-    +calculateCost()
-    +displaySteps()
-    +checkAllergens()
-    +addComment(Comment)
-    +addLike()
-    +removeLike()
-    +updateRating(String, int)
-    +searchRecipes(keyword: String): List<Recipe>
-    +filterRecipes(criteria: Map<String, Object>): List<Recipe>
-  }
-"""
+    # Allergens and dietary info can be nullable
+    allergens = models.JSONField(default=list, null=True, blank=True)     # e.g., ["nuts", "dairy"]
+    dietary_info = models.JSONField(default=list, null=True, blank=True)  # e.g., ["vegan", "gluten-free"]
 
-"""
-  class Ingredient {
-    +id: String
-    +name: String # apple
-    +quantity: double # 200.0
-    +unit: String  # g
-    +category: String
-    +allergens: List<String>
-    +dietaryInfo: List<String>
-    +displayInfo()
-    +searchIngredients(keyword: String): List<Ingredient>
-    +filterIngredients(criteria: Map<String, Object>): List<Ingredient>
-    +Ingredient(id: String, name: String, quantity: double, unit: String, category: String, allergens: List<String>, dietaryInfo: List<String>)
-    +~Ingredient()
-  }
-"""
-
-"""
-MEAL_TYPES = [
-        (BREAKFAST, 'Breakfast'),
-        (LUNCH, 'Lunch'),
-        (DINNER, 'Dinner'),
-    ] """
+    def __str__(self):
+        return self.name
+ 

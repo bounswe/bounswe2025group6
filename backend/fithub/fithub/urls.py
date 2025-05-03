@@ -35,9 +35,11 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
     path('', index, name='index_page'),  # Map the root URL to the index page view
+
+    path('admin/', admin.site.urls),
+
+    path('api/', include('api.urls')),
     path('recipes/', include('recipes.urls')),  # Include the recipes app URLs
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
