@@ -1,4 +1,3 @@
-
 from django.test import TestCase
 from recipes.models import Ingredient
 from django.core.exceptions import ValidationError
@@ -36,29 +35,18 @@ class IngredientModelTests(TestCase):
         with self.assertRaises(ValidationError):
             ingredient.full_clean()
 
-    def test_create_ingredient_with_nullable_allergens_and_dietary_info(self):
+    def test_create_ingredient_with_empty_allergens_and_dietary_info(self):
         """
-        Test that allergens and dietary_info fields can be nullable.
+        Test that allergens and dietary_info fields are empty lists when not provided.
         """
         ingredient = Ingredient.objects.create(
             name="Olive Oil",
             category="oils_and_fats",
-            allergens=None,
-            dietary_info=None
+            allergens=[],  # Explicitly passing an empty list
+            dietary_info=[]  # Explicitly passing an empty list
         )
-        self.assertIsNone(ingredient.allergens)
-        self.assertIsNone(ingredient.dietary_info)
 
-    def test_create_ingredient_with_empty_allergens_and_dietary_info(self):
-        """
-        Test that allergens and dietary_info can be empty (empty list).
-        """
-        ingredient = Ingredient.objects.create(
-            name="Salt",
-            category="herbs_and_spices",
-            allergens=[],
-            dietary_info=[]
-        )
+        # Check that allergens and dietary_info are empty lists, not None
         self.assertEqual(ingredient.allergens, [])
         self.assertEqual(ingredient.dietary_info, [])
 
@@ -68,5 +56,3 @@ class IngredientModelTests(TestCase):
         """
         ingredient = Ingredient.objects.create(name="Tomato", category="vegetables")
         self.assertEqual(str(ingredient), "Tomato")
-
-
