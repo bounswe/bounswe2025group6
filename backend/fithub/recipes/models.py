@@ -85,17 +85,18 @@ class Recipe(TimestampedModel):
     # Total time will be accessible like a property
     @property
     def total_time(self):
-        return self.prep_time + self.cook_time
+        return (self.prep_time or 0) + (self.cook_time or 0)
 
     # Total user ratings will be accessible like a property
     @property
     def total_user_ratings(self):
-        return self.difficulty_rating_count + self.taste_rating_count
+        return (self.difficulty_rating_count or 0) + (self.taste_rating_count or 0)
 
     # Total ratings will be accessible like a property
     @property
     def total_ratings(self):
-        return self.difficulty_rating + self.taste_rating + self.health_rating
+        return (self.difficulty_rating or 0) + (self.taste_rating or 0) + (self.health_rating or 0)
+
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):

@@ -3,7 +3,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Recipe
-from .serializers import RecipeSerializer
+from .serializers import RecipeDetailSerializer, RecipeSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -23,6 +23,8 @@ class RecipeCreateView(generics.CreateAPIView):
 
 # GET /recipes/
 class RecipeListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
     serializer_class = RecipeSerializer
 
     def get_queryset(self):
@@ -35,20 +37,27 @@ class RecipeListView(generics.ListAPIView):
 
 # GET /recipes/<id>/
 class RecipeDetailView(generics.RetrieveAPIView):
-    serializer_class = RecipeSerializer
+    permission_classes = [IsAuthenticated]
     queryset = Recipe.objects.all()
+    serializer_class = RecipeDetailSerializer
 
 # PUT /recipes/<id>/update/
 class RecipeUpdateView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+
     serializer_class = RecipeSerializer
     queryset = Recipe.objects.all()
 
 # DELETE /recipes/<id>/delete/
 class RecipeDeleteView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+
     queryset = Recipe.objects.all()
 
 # GET /recipes/<id>/allergens/
 class RecipeAllergensView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
         return Response({'allergens': recipe.check_allergens()})
