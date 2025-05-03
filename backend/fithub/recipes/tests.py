@@ -3,6 +3,7 @@
 
 from django.test import TestCase
 from .models import Ingredient
+from django.core.exceptions import ValidationError
 
 """Tests for the Ingredient model"""
 
@@ -30,11 +31,12 @@ class IngredientModelTests(TestCase):
         """
         Test that an invalid category raises a validation error.
         """
-        with self.assertRaises(ValueError):
-            Ingredient.objects.create(
-                name="Invalid Ingredient",
-                category="invalid_category"  # Invalid category not in CATEGORY_CHOICES
-            )
+        ingredient = Ingredient(
+            name="Invalid Ingredient",
+            category="invalid_category"  # Invalid category not in CATEGORY_CHOICES
+        )
+        with self.assertRaises(ValidationError):
+            ingredient.full_clean()  #
 
     def test_create_ingredient_with_nullable_allergens_and_dietary_info(self):
         """
