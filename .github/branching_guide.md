@@ -7,7 +7,7 @@ This guide outlines the naming conventions and branching strategies for contribu
 We follow a structured naming convention to ensure clarity and traceability:
 
 ```bash
-<branch_number>-<subgroup>-<contributor>-<short-description>
+<subgroup>-<branch_number>-<contributor>-<short-description>
 ```
 
 ### Components:
@@ -33,7 +33,7 @@ We follow a structured naming convention to ensure clarity and traceability:
 ### ✅ Example:
 
 ```bash
-0004-g-celil-add-branching-guide
-0007-b-ozgur-add-register-endpoint
-0012-f-ahmet-add-like-button
+g-0004-celil-add-branching-guide
+b-0007-ozgur-add-register-endpoint
+f-0012-ahmet-add-like-button
 ```
