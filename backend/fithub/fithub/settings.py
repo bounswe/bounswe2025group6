@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework', # Django REST framework
     'rest_framework.authtoken', # Token authentication
+    'corsheaders', # CORS headers (for cross-origin requests from frontend)
     'drf_yasg', # Swagger and ReDoc
     'api',      # Our main api
 ]
@@ -55,10 +56,24 @@ REST_FRAMEWORK = {
     ],
 }
 
+CORS_ALLOWED_ORIGINS = [
+    # "http://localhost:3000",  # I assume this is our frontend URL (but need to clearify)
+]
+
+# Remove this in production, and use cors_allowed_origins instead
+# Put for now for simplicity, but we need to remove this in production
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5000'
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -85,7 +100,7 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'api.backends.EmailBackend', 
+    'api.backends.EmailBackend',
 ]
 
 WSGI_APPLICATION = 'fithub.wsgi.application'
@@ -97,7 +112,7 @@ WSGI_APPLICATION = 'fithub.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -165,4 +180,4 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTH_USER_MODEL = 'api.RegisteredUser'
 
-SITE_DOMAIN = "http://localhost:8000" 
+SITE_DOMAIN = "http://localhost:8000"
