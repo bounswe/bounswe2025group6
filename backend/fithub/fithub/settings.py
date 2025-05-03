@@ -48,9 +48,12 @@ INSTALLED_APPS = [
     'corsheaders', # CORS headers (for cross-origin requests from frontend)
     'drf_yasg', # Swagger and ReDoc
     'api',      # Our main api
+    'ingredients', # Ingredients app
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,  # Number of items per page
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
