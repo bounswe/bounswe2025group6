@@ -41,7 +41,7 @@ class Ingredient(TimestampedModel):
 class Recipe(TimestampedModel):
     MEAL_TYPES = [('breakfast', 'Breakfast'), ('lunch', 'Lunch'), ('dinner', 'Dinner')]
 
-    name = models.CharField(max_length=255, null=False, blank=False) # name cannot be null or empty ("")
+    name = models.CharField(max_length=255, null=False, blank=False) # name cannot be null or empty, ("")
     steps = models.JSONField(default=list)  # ["Chop onions", "Boil pasta"], empty list is allowed (None is not)
     prep_time = models.PositiveIntegerField(help_text="Minutes")
     cook_time = models.PositiveIntegerField(help_text="Minutes")
@@ -101,8 +101,8 @@ class Recipe(TimestampedModel):
 class RecipeIngredient(TimestampedModel):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey("Recipe", related_name="recipe_ingredients", on_delete=models.CASCADE)
-    quantity = models.FloatField()          # 100.0
-    unit = models.CharField(max_length=20)  # g, ml, pcs
+    quantity = models.FloatField(validators=[MinValueValidator(0.001)])  # Ensures value is > 0.001
+    unit = models.CharField(max_length=20)
 
     def __str__(self):
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
