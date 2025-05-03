@@ -41,12 +41,13 @@ class Ingredient(TimestampedModel):
 class Recipe(TimestampedModel):
     MEAL_TYPES = [('breakfast', 'Breakfast'), ('lunch', 'Lunch'), ('dinner', 'Dinner')]
 
-    name = models.CharField(max_length=255)
-    steps = models.JSONField(default=list)  # e.g., ["Chop onions", "Boil pasta"]
+    name = models.CharField(max_length=255, null=False, blank=False) # name cannot be null
+    steps = models.JSONField(default=list)  # ["Chop onions", "Boil pasta"], empty list is allowed (None is not)
     prep_time = models.PositiveIntegerField(help_text="Minutes")
     cook_time = models.PositiveIntegerField(help_text="Minutes")
     cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
+    # Rating will be initialized to null, but can be updated later
     difficulty_rating = models.FloatField(null=True, blank=True)
     taste_rating = models.FloatField(null=True, blank=True)
     health_rating = models.FloatField(null=True, blank=True)
@@ -85,6 +86,15 @@ class Recipe(TimestampedModel):
             for ri in self.recipe_ingredients.all()
             for info in ri.ingredient.dietary_info
         ))
+
+    def clean(self):
+        """Custom clean method to validate ratings between 0 and 5."""
+        # Validate ratings if they are not None
+        for rating_field in ['difficulty_rating', 'taste_rating', 'health_rating']:
+            rating_value = getattr(self, rating_field)
+            if rating_value is not None:
+                if rating_value < 0 or rating_value > 5:
+                    raise ValidationError(f"{rating_field} must be between 0 and 5.")
 ```
 
 ```python

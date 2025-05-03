@@ -1,6 +1,7 @@
 from django.db import models
 from api.models import TimestampedModel
 
+# Ingredient model that will be used for the recipe
 class Ingredient(TimestampedModel):
     # Define the ingredient categories directly in the model using choices
     CATEGORY_CHOICES = [
@@ -36,3 +37,6 @@ class Ingredient(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+
+# Recipe model that will be used for the recipe
