@@ -30,10 +30,9 @@ class Ingredient(TimestampedModel):
         default="other"           # Default to "other" if not specified
     )
 
-    # Allergens and dietary info can be nullable
-    allergens = models.JSONField(default=list, null=True, blank=True)     # e.g., ["nuts", "dairy"]
-    dietary_info = models.JSONField(default=list, null=True, blank=True)  # e.g., ["vegan", "gluten-free"]
+    # Allergens and dietary info cannot be null (unless admin (blank is allowed))
+    allergens = models.JSONField(default=list, blank=True)     # e.g., ["nuts", "dairy"]
+    dietary_info = models.JSONField(default=list, blank=True)  # e.g., ["vegan", "gluten-free"]
 
     def __str__(self):
         return self.name
- 
