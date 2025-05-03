@@ -131,3 +131,5 @@ class RecipeIngredient(TimestampedModel):
 
     def __str__(self):
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
+
+# RecipeLike model that will be used for the recipe

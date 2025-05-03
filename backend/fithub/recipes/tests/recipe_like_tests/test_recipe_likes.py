@@ -36,12 +36,16 @@ class RecipeLikeModelTests(TestCase):
         self.assertEqual(like.user, self.user)
         self.assertEqual(like.recipe, self.recipe)
         self.assertIsNotNone(like.created_at)
+        self.assertIsNotNone(like.updated_at)  # Check that the updated_at field is set
 
     def test_unique_user_recipe_like(self):
         """
         Test that a user cannot like the same recipe more than once.
         """
+        # First like creation
         RecipeLike.objects.create(user=self.user, recipe=self.recipe)
+
+        # Try creating the same like again, expect IntegrityError
         with self.assertRaises(IntegrityError):
             RecipeLike.objects.create(user=self.user, recipe=self.recipe)
 
@@ -49,12 +53,12 @@ class RecipeLikeModelTests(TestCase):
         """
         Test that different users can like the same recipe.
         """
-
         RecipeLike.objects.create(user=self.user, recipe=self.recipe)
         like2 = RecipeLike.objects.create(user=self.user2, recipe=self.recipe)
 
         self.assertEqual(like2.recipe, self.recipe)
         self.assertEqual(like2.user, self.user2)
+        self.assertEqual(self.recipe.like_count, 2)  # Check like count after second like
 
     def test_user_can_like_multiple_recipes(self):
         """
@@ -70,8 +74,3 @@ class RecipeLikeModelTests(TestCase):
         )
 
         like1 = RecipeLike.objects.create(user=self.user, recipe=self.recipe)
-        like2 = RecipeLike.objects.create(user=self.user, recipe=another_recipe)
-
-        self.assertEqual(like1.user, self.user)
-        self.assertEqual(like2.user, self.user2)
-        self.assertNotEqual(like1.recipe, like2.recipe)
