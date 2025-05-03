@@ -7,6 +7,8 @@ from .serializers import RecipeSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+
 
 # POST /recipes/
 class RecipeCreateView(generics.CreateAPIView):

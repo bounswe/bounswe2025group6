@@ -20,7 +20,9 @@ from api.views import index
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+# Create the schema view for Swagger UI
 schema_view = get_schema_view(
     openapi.Info(
         title="Fithub API",
@@ -31,13 +33,14 @@ schema_view = get_schema_view(
         license=openapi.License(name="BSD License"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],
+    permission_classes=(permissions.AllowAny,),  # Everyone can access the API documentation
 )
 
 urlpatterns = [
     path('', index, name='index_page'),  # Map the root URL to the index page view
-
     path('admin/', admin.site.urls),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), # JWT token generation
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('api/', include('api.urls')),
     path('recipes/', include('recipes.urls')),  # Include the recipes app URLs

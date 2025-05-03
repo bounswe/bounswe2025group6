@@ -254,3 +254,15 @@ Feature recipes: is_featured for home page curation.
 - Keep ratings tied to users so only one rating per user per recipe exists.
 - Only the creator can delete their comment.
 - Return flags like has_liked, user_rating, can_edit in recipe detail responses for the frontend to adjust UI.
+
+
+
+## Mock Data
+Recipe Create
+{
+  "name": "string",
+  "steps": ["step1"],
+  "prep_time": 4294967295,
+  "cook_time": 4294967295,
+  "meal_type": "breakfast"
+}
