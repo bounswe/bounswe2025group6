@@ -49,10 +49,11 @@ class Recipe(TimestampedModel):
     steps = models.JSONField(default=list)  # ["Chop onions", "Boil pasta"], empty list is allowed (None is not)
     prep_time = models.PositiveIntegerField(help_text="Minutes")
     cook_time = models.PositiveIntegerField(help_text="Minutes")
-    cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-
     meal_type = models.CharField(max_length=50, choices=MEAL_TYPES)
     creator = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE, related_name="recipes")
+
+    # Null first, will be filled with scraped data later
+    cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
     # Rating will be initialized to null, but can be updated later
     difficulty_rating = models.FloatField(null=True, blank=True)
