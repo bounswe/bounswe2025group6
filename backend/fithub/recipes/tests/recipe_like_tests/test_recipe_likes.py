@@ -28,6 +28,24 @@ class RecipeLikeModelTests(TestCase):
             creator=self.user
         )
 
+    def test_default_like_count(self):
+        """
+        Test that the like_count is initialized to 0 when a new recipe is created.
+        """
+        # Create a new recipe
+        new_recipe = Recipe.objects.create(
+            name="New Recipe",
+            steps=["Step 1", "Step 2"],
+            prep_time=5,
+            cook_time=10,
+            meal_type="lunch",
+            creator=self.user
+        )
+
+        # Check that the like_count is initially set to 0
+        self.assertEqual(new_recipe.like_count, 0)
+
+
     def test_create_recipe_like(self):
         """
         Test that a RecipeLike can be created successfully.
