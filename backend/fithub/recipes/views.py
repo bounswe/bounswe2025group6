@@ -1,56 +1,52 @@
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .models import Recipe, RecipeLike, Ingredient
-from .serializers import RecipeSerializer, RecipeLikeSerializer, IngredientSerializer
-from rest_framework.permissions import IsAuthenticated
+# recipes/views.py
 
-# Recipe ViewSet to handle all Recipe related actions (CRUD)
-class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+from rest_framework import generics, status
+from rest_framework.response import Response
+from .models import Recipe
+from .serializers import RecipeSerializer
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
+# POST /recipes/
+class RecipeCreateView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]  # Ensure user is logged in
+
     serializer_class = RecipeSerializer
-    permission_classes = [IsAuthenticated]
+    queryset = Recipe.objects.all()
 
     def perform_create(self, serializer):
-        # Associate the creator with the logged-in user
+        # Set the creator field from the authenticated user
         serializer.save(creator=self.request.user)
 
-    def update(self, request, *args, **kwargs):
-        recipe = self.get_object()
-        # Ensure the logged-in user is the creator of the recipe
-        if recipe.creator != self.request.user:
-            return Response({"detail": "You cannot update a recipe you did not create."},
-                            status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+# GET /recipes/
+class RecipeListView(generics.ListAPIView):
+    serializer_class = RecipeSerializer
 
-# RecipeLike API Views
-class RecipeLikeViewSet(viewsets.ModelViewSet):
-    queryset = RecipeLike.objects.all()
-    serializer_class = RecipeLikeSerializer
-    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        # Add optional filters here if needed, e.g. ?meal_type=lunch
+        meal_type = self.request.query_params.get('meal_type')
+        if meal_type:
+            queryset = queryset.filter(meal_type=meal_type)
+        return queryset
 
-    def perform_create(self, serializer):
-        recipe = self.get_object()  # Get the related recipe
-        # Ensure that a user cannot like a recipe more than once
-        if RecipeLike.objects.filter(user=self.request.user, recipe=recipe).exists():
-            return Response({"detail": "You have already liked this recipe."},
-                            status=status.HTTP_400_BAD_REQUEST)
-        serializer.save(user=self.request.user)
+# GET /recipes/<id>/
+class RecipeDetailView(generics.RetrieveAPIView):
+    serializer_class = RecipeSerializer
+    queryset = Recipe.objects.all()
 
-    def destroy(self, request, *args, **kwargs):
-        like = self.get_object()
-        # Ensure that the user can only delete their own like
-        if like.user != request.user:
-            return Response({"detail": "You cannot remove someone else's like."},
-                            status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+# PUT /recipes/<id>/update/
+class RecipeUpdateView(generics.UpdateAPIView):
+    serializer_class = RecipeSerializer
+    queryset = Recipe.objects.all()
 
-# Ingredient ViewSet to handle listing and retrieving ingredients
-class IngredientViewSet(viewsets.ModelViewSet):
-    queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializer
-    permission_classes = [IsAuthenticated]
+# DELETE /recipes/<id>/delete/
+class RecipeDeleteView(generics.DestroyAPIView):
+    queryset = Recipe.objects.all()
 
-    def perform_create(self, serializer):
-        # Ingredients can be created by the admin (or other users if applicable)
-        serializer.save()
+# GET /recipes/<id>/allergens/
+class RecipeAllergensView(generics.GenericAPIView):
+    def get(self, request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        return Response({'allergens': recipe.check_allergens()})
