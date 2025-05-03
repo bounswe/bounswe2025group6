@@ -1,9 +1,36 @@
 ```python
-class Ingredient(models.Model):
+class Ingredient(TimestampedModel):
+    # Define the ingredient categories directly in the model using choices
+    CATEGORY_CHOICES = [
+        ("proteins", "Proteins"),
+        ("vegetables", "Vegetables"),
+        ("fruits", "Fruits"),
+        ("grains", "Grains"),
+        ("dairy", "Dairy"),
+        ("oils_and_fats", "Oils and fats"),
+        ("sweeteners", "Sweeteners"),
+        ("herbs_and_spices", "Herbs and spices"),
+        ("sauces", "Sauces"),
+        ("canned_goods", "Canned goods"),
+        ("frozen_foods", "Frozen foods"),
+        ("baking_essentials", "Baking essentials"),
+        ("nuts_and_seeds", "Nuts and seeds"),
+        ("snacks", "Snacks"),
+        ("beverages", "Beverages"),
+        ("other", "Other"),
+    ]
+
+
     name = models.CharField(max_length=100)
-    category = models.CharField(max_length=50)
-    allergens = models.JSONField(default=list)  # or ManyToManyField(Allergen)
-    dietary_info = models.JSONField(default=list)  # e.g., ["vegan", "gluten-free"]
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,  # Use choices from the list above
+        default="other"           # Default to "other" if not specified
+    )
+
+    # Allergens and dietary info can be nullable
+    allergens = models.JSONField(default=list, null=True, blank=True)     # e.g., ["nuts", "dairy"]
+    dietary_info = models.JSONField(default=list, null=True, blank=True)  # e.g., ["vegan", "gluten-free"]
 
     def __str__(self):
         return self.name
@@ -11,71 +38,69 @@ class Ingredient(models.Model):
 ```
 
 ```python
-class RecipeIngredient(models.Model):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey("Recipe", related_name="recipe_ingredients", on_delete=models.CASCADE)
-    quantity = models.FloatField()
-    unit = models.CharField(max_length=20)  # g, ml, pcs
-
-    def __str__(self):
-        return f"{self.quantity} {self.unit} {self.ingredient.name}"
-
-```
-
-```python
-class Recipe(models.Model):
-    MEAL_TYPES = [('breakfast', 'Breakfast'), ('lunch', 'Lunch'), ('dinner', 'Dinner'), ('snack', 'Snack')]
+class Recipe(TimestampedModel):
+    MEAL_TYPES = [('breakfast', 'Breakfast'), ('lunch', 'Lunch'), ('dinner', 'Dinner')]
 
     name = models.CharField(max_length=255)
-    steps = models.JSONField()  # e.g., ["Chop onions", "Boil pasta"]
+    steps = models.JSONField(default=list)  # e.g., ["Chop onions", "Boil pasta"]
     prep_time = models.PositiveIntegerField(help_text="Minutes")
     cook_time = models.PositiveIntegerField(help_text="Minutes")
-    cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2)
+    cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
-    difficulty_rating = models.FloatField(default=0)
-    taste_rating = models.FloatField(default=0)
-    health_rating = models.FloatField(default=0)
+    difficulty_rating = models.FloatField(null=True, blank=True)
+    taste_rating = models.FloatField(null=True, blank=True)
+    health_rating = models.FloatField(null=True, blank=True)
 
     meal_type = models.CharField(max_length=50, choices=MEAL_TYPES)
-    creator = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="recipes")
+    creator = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE, related_name="recipes")
 
     is_approved = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+
+    # These will be handled by the extended TimestampedModel
+    # created_at
+    # updated_at
+    # deleted_on
 
     def __str__(self):
         return self.name
 
+    # Total time will be accessible like a property
     @property
     def total_time(self):
         return self.prep_time + self.cook_time
 
+    # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
         return list(set(
             allergen
             for ri in self.recipe_ingredients.all()
             for allergen in ri.ingredient.allergens
         ))
-
 ```
 
 ```python
-class MediaFile(models.Model):
-    file = models.FileField(upload_to='recipes/media/')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+class RecipeIngredient(TimestampedModel):
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey("Recipe", related_name="recipe_ingredients", on_delete=models.CASCADE)
+    quantity = models.FloatField()          # 100.0
+    unit = models.CharField(max_length=20)  # g, ml, pcs
+
+    def __str__(self):
+        return f"{self.quantity} {self.unit} {self.ingredient.name}"
 ```
 
 ```python
-class RecipeMedia(models.Model):
+class RecipeMedia(TimestampedModel):
     recipe = models.ForeignKey(Recipe, related_name="media", on_delete=models.CASCADE)
-    file = models.FileField(upload_to="recipes/")
-    type = models.CharField(max_length=20, choices=[('image', 'Image'), ('video', 'Video')])
+    file = models.FileField(upload_to="media/recipes/")
+    file_type = models.CharField(max_length=20, choices=[('image', 'Image'), ('video', 'Video')])
 ```
 
 ```python
-class RecipeComment(models.Model):
+class RecipeComment(TimestampedModel):
     recipe = models.ForeignKey(Recipe, related_name="comments", on_delete=models.CASCADE)
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+    user = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -84,29 +109,28 @@ class RecipeComment(models.Model):
 ```
 
 ```python
-class RecipeLike(models.Model):
+class RecipeLike(TimestampedModel):
     recipe = models.ForeignKey(Recipe, related_name="likes", on_delete=models.CASCADE)
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('recipe', 'user')
 ```
 
 ```python
-class RecipeRating(models.Model):
+class RecipeRating(TimestampedModel):
     RATING_TYPES = [('taste', 'Taste'), ('difficulty', 'Difficulty'), ('health', 'Health')]
 
     recipe = models.ForeignKey(Recipe, related_name="ratings", on_delete=models.CASCADE)
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
-    type = models.CharField(max_length=20, choices=RATING_TYPES)
+    user = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE)
+    rating_type = models.CharField(max_length=20, choices=RATING_TYPES)
     value = models.IntegerField()  # 0–5
 
     class Meta:
-        unique_together = ('recipe', 'user', 'type')
+        unique_together = ('recipe', 'user', 'rating_type')
 
     def clean(self):
-        if self.type == 'health' and not self.user.groups.filter(name='Dietitian').exists():
+        if self.rating_type == 'health' and not self.user.groups.filter(name='Dietitian').exists():
             raise ValidationError("Only dietitians can rate health.")
 ```
 
