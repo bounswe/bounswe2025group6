@@ -41,7 +41,7 @@ class Ingredient(TimestampedModel):
 class Recipe(TimestampedModel):
     MEAL_TYPES = [('breakfast', 'Breakfast'), ('lunch', 'Lunch'), ('dinner', 'Dinner')]
 
-    name = models.CharField(max_length=255, null=False, blank=False) # name cannot be null
+    name = models.CharField(max_length=255, null=False, blank=False) # name cannot be null or empty ("")
     steps = models.JSONField(default=list)  # ["Chop onions", "Boil pasta"], empty list is allowed (None is not)
     prep_time = models.PositiveIntegerField(help_text="Minutes")
     cook_time = models.PositiveIntegerField(help_text="Minutes")
