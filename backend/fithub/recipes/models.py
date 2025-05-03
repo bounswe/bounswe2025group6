@@ -1,6 +1,7 @@
 from django.db import models
 from api.models import TimestampedModel
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 
 # Ingredient model that will be used for the recipe
 class Ingredient(TimestampedModel):
@@ -97,3 +98,15 @@ class Recipe(TimestampedModel):
             if rating_value is not None:
                 if rating_value < 0 or rating_value > 5:
                     raise ValidationError(f"{rating_field} must be between 0 and 5.")
+
+
+# RecipeIngredient model that will be used for the recipe (holds the relationship between Recipe and Ingredient)
+# Many-to-many relationship
+class RecipeIngredient(TimestampedModel):
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, related_name="recipe_ingredients", on_delete=models.CASCADE)
+    quantity = models.FloatField(validators=[MinValueValidator(0.001)])  # Ensures value is > 0.001
+    unit = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.quantity} {self.unit} {self.ingredient.name}"
