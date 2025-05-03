@@ -47,13 +47,24 @@ class Recipe(TimestampedModel):
     cook_time = models.PositiveIntegerField(help_text="Minutes")
     cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
+    meal_type = models.CharField(max_length=50, choices=MEAL_TYPES)
+    creator = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE, related_name="recipes")
+
     # Rating will be initialized to null, but can be updated later
     difficulty_rating = models.FloatField(null=True, blank=True)
     taste_rating = models.FloatField(null=True, blank=True)
     health_rating = models.FloatField(null=True, blank=True)
 
-    meal_type = models.CharField(max_length=50, choices=MEAL_TYPES)
-    creator = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE, related_name="recipes")
+    # Like count
+    like_count = models.PositiveIntegerField(default=0)
+
+    # Comment count
+    comment_count = models.PositiveIntegerField(default=0)
+
+    # Rate count
+    difficulty_rating_count = models.PositiveIntegerField(default=0)
+    taste_rating_count = models.PositiveIntegerField(default=0)
+    health_rating_count = models.PositiveIntegerField(default=0)
 
     is_approved = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
@@ -70,6 +81,16 @@ class Recipe(TimestampedModel):
     @property
     def total_time(self):
         return self.prep_time + self.cook_time
+
+    # Total user ratings will be accessible like a property
+    @property
+    def total_user_ratings(self):
+        return self.difficulty_rating_count + self.taste_rating_count
+
+    # Total ratings will be accessible like a property
+    @property
+    def total_ratings(self):
+        return self.difficulty_rating + self.taste_rating + self.health_rating
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
@@ -132,6 +153,9 @@ class RecipeLike(TimestampedModel):
 
     class Meta:
         unique_together = ('recipe', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} liked {self.recipe.name}"
 ```
 
 ```python
