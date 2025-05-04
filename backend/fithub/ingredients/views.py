@@ -1,9 +1,16 @@
 # ingredients/views.py
+from logging import Logger
+from math import log
 from rest_framework import viewsets
 from .models import Ingredient
-from .serializers import IngredientSerializer
+from .serializers import IngredientSerializer, IngredientIdSerializer, IngredientNameQuerySerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 class IngredientPagination(PageNumberPagination):
     page_size = 10                       # Customize the number of items per page
@@ -32,3 +39,25 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = IngredientPagination
+
+@swagger_auto_schema(
+    methods=['get'],
+    manual_parameters=[
+        openapi.Parameter('name', openapi.IN_QUERY, description="Name of the ingredient", type=openapi.TYPE_STRING, required=True)
+    ]
+)
+@api_view(['GET'])
+def get_ingredient_id_by_name(request):
+    # Validate the query parameters using the serializer
+    name = request.query_params.get('name')  # Get name from query parameters
+    if not name:
+        return Response({'error': 'Name parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Search for the ingredient with case insensitivity
+        ingredient = Ingredient.objects.get(name__iexact=name)
+        # Serialize the result
+        serializer = IngredientIdSerializer(ingredient)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Ingredient.DoesNotExist:
+        return Response({'error': 'Ingredient not found'}, status=status.HTTP_404_NOT_FOUND)
