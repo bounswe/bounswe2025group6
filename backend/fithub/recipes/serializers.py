@@ -9,6 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from ingredients.serializers import IngredientSerializer
 from rest_framework.response import Response
+from django.utils import timezone
 
 
 # Used for create request body (input)
@@ -70,6 +71,33 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
         return recipe
+
+    def update(self, instance, validated_data):
+        ingredients_data = validated_data.pop('ingredients', None)
+
+        # Update basic recipe fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if ingredients_data is not None:
+            # Hard delete all existing ingredients for this recipe
+            # It's a design choice to remove all ingredients and add new ones
+            # This can be changed to a soft delete if needed
+            # Done since o/w there will be many duplicate entries
+            RecipeIngredient.objects.filter(recipe=instance).delete()
+
+            # Add new ingredients
+            for item in ingredients_data:
+                ingredient = Ingredient.objects.get(id=item['ingredient_id'])
+                RecipeIngredient.objects.create(
+                    recipe=instance,
+                    ingredient=ingredient,
+                    quantity=item['quantity'],
+                    unit=item['unit']
+                )
+
+        return instance
 
     def get_ingredients_output(self, obj):
         ingredients = RecipeIngredient.objects.filter(recipe=obj)

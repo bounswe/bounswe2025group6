@@ -118,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         data['creator'] = instance.creator.id  # Re-assign the current creator ID
 
         # Pass the updated data to the serializer
-        serializer = self.get_serializer(instance, data=data, partial=False)
+        serializer = self.get_serializer(instance, data=data, partial=True)
 
         if serializer.is_valid():
             # Save the updated instance and return the response
