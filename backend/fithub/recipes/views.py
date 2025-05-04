@@ -3,12 +3,15 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RecipeSerializer
+from .serializers import RecipeIngredientInputSerializer, RecipeSerializer
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
-from .serializers import RecipePagination
+from rest_framework.pagination import PageNumberPagination
 from .models import Recipe
 from drf_yasg import openapi
+from rest_framework import viewsets
+from .serializers import RecipeListSerializer, RecipeDetailSerializer
+
 
 # Created for swagger documentation, paginate get request
 pagination_params = [
@@ -16,54 +19,82 @@ pagination_params = [
     openapi.Parameter('page_size', openapi.IN_QUERY, description="Number of items per page", type=openapi.TYPE_INTEGER),
 ]
 
-# Create a new recipe, get a list of all recipes
-@swagger_auto_schema( # swagger decorator for get request
-    method='get',
-    operation_description="Retrieve a paginated list of recipes.",
-    responses={200: RecipeSerializer(many=True)},
-    manual_parameters=pagination_params
-)
-@swagger_auto_schema( # swagger decorator for post request
-    method='post',
-    operation_description="Create a new recipe.",
-    request_body=RecipeSerializer,
-    responses={201: RecipeSerializer, 400: 'Bad Request'}
-)
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated]) # check if user is authenticated
-def recipes_view(request):
-    if request.method == 'GET':
-        recipes = Recipe.objects.all().order_by('id')
-        paginator = RecipePagination()
-        result_page = paginator.paginate_queryset(recipes, request)
-        serializer = RecipeSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+# Used for pagination (Get endpoint)
+class RecipePagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
-    elif request.method == 'POST':
+    def get_paginated_response(self, data):
+        return Response({
+            'page': self.page.number,
+            'page_size': self.page.paginator.per_page,
+            'total': self.page.paginator.count,
+            'results': data
+        })
+
+@permission_classes([IsAuthenticated])
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+
+    # Use the correct serializer class based on the action type
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return RecipeListSerializer
+        elif self.action == 'retrieve':
+            return RecipeDetailSerializer
+        return RecipeSerializer
+
+    # Use the custom pagination class
+    pagination_class = RecipePagination
+
+    def list(self, request, *args, **kwargs):
+        """
+        Custom list view to handle paginated response
+        """
+        page = self.paginate_queryset(self.get_queryset())
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination required
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve detailed view of a single recipe
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Create a new recipe",
+        request_body=RecipeSerializer,  # Use the correct serializer for the POST request
+        responses={201: RecipeSerializer},
+    )
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new recipe with ingredients
+        """
+        # Ensure the user is authenticated
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication is required."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Add the creator (user) to the validated data
         data = request.data.copy()
-        data['creator'] = request.user.id
-        serializer = RecipeSerializer(data=data)
+        data['creator'] = request.user.id  # Add the authenticated user's ID as the creator
+
+        # Pass the updated data to the serializer)
+        serializer = self.get_serializer(data=data)
+
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Create the recipe with ingredients
+            recipe = serializer.save()
+
+            # Use RecipeDetailSerializer for the created recipe response
+            detailed_serializer = RecipeDetailSerializer(recipe)
+            return Response(detailed_serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# Get details of a specific recipe by ID
-@swagger_auto_schema(
-    method='get',
-    operation_description="Get a specific recipe by ID.",
-    responses={
-        status.HTTP_200_OK: RecipeSerializer,
-        status.HTTP_404_NOT_FOUND: 'Recipe not found',
-    }
-)
-@api_view(['GET'])
-@permission_classes([IsAuthenticated]) # check if user is authenticated
-def recipe_detail(request, id):
-    try:
-        recipe = Recipe.objects.get(id=id)
-    except Recipe.DoesNotExist:
-        return Response({'detail': 'Recipe not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = RecipeSerializer(recipe)
-    return Response(serializer.data, status=status.HTTP_200_OK)

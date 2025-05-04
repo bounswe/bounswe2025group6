@@ -8,7 +8,6 @@ from rest_framework.exceptions import ValidationError
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from ingredients.serializers import IngredientSerializer
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 
@@ -31,7 +30,7 @@ class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = ['ingredient', 'quantity', 'unit']
 
-# Main serializer for Recipe
+# Updated RecipeSerializer
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = serializers.ListField(
         child=RecipeIngredientInputSerializer(), write_only=True
@@ -49,8 +48,10 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
+        # Create the Recipe instance
         recipe = Recipe.objects.create(**validated_data)
 
+        # Loop over ingredients data to create RecipeIngredient instances
         for item in ingredients_data:
             ingredient = Ingredient.objects.get(id=item['ingredient_id'])
             RecipeIngredient.objects.create(
@@ -66,25 +67,78 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients = RecipeIngredient.objects.filter(recipe=obj)
         return RecipeIngredientOutputSerializer(ingredients, many=True).data
 
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['ingredients'] = data.pop('ingredients_output')  # replace output name
         return data
 
-# Used for pagination (Get endpoint)
-class RecipePagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
-    def get_paginated_response(self, data):
-        return Response({
-            'page': self.page.number,
-            'page_size': self.page.paginator.per_page,
-            'total': self.page.paginator.count,
-            'results': data
-        })
+
+# Used for list view of Recipe (Response)
+class RecipeListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = [
+            'id',
+            'name',
+            'meal_type',
+            'creator',
+            'prep_time',
+            'cook_time',
+            'cost_per_serving',
+            'difficulty_rating',
+            'difficulty_rating_count',
+            'taste_rating',
+            'taste_rating_count',
+            'health_rating',
+            'health_rating_count',
+            'like_count',
+            'comment_count',
+            'is_approved',
+            'is_featured',
+            'total_time'  # This will be computed dynamically
+        ]
+
+# Used for detail view of Recipe (Response)
+class RecipeDetailSerializer(serializers.ModelSerializer):
+    alergens = serializers.SerializerMethodField()
+    dietary_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'id',
+            'name',
+            'steps',
+            'prep_time',
+            'cook_time',
+            'meal_type',
+            'creator',
+            'cost_per_serving',
+            'difficulty_rating',
+            'taste_rating',
+            'health_rating',
+            'like_count',
+            'comment_count',
+            'difficulty_rating_count',
+            'taste_rating_count',
+            'health_rating_count',
+            'is_approved',
+            'is_featured',
+            'created_at',
+            'updated_at',
+            'deleted_on',
+            'total_time',  # Computed dynamically
+            'total_user_ratings',  # Computed dynamically
+            'total_ratings',  # Computed dynamically
+            'alergens',  # Dynamically returns allergens
+            'dietary_info'  # Dynamically returns dietary info
+        ]
+
+    def get_alergens(self, obj):
+        return obj.check_allergens()
+    def get_dietary_info(self, obj):
+        return obj.check_dietary_info()
 
 
 
