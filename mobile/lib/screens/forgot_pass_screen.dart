@@ -1,3 +1,4 @@
+import 'package:fithub/screens/verify_code_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -98,6 +99,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SnackBar(
           content: Text('Password reset link sent to your email'),
           backgroundColor: AppTheme.primaryGreen,
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              VerifyCodeScreen(email: _emailController.text.trim()),
         ),
       );
     }

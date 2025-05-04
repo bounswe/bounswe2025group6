@@ -43,7 +43,6 @@ build/
 tmp/
 
 # MySQL
-*.sql
 *.dump
 *.mysql
 

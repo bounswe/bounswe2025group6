@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from .models import PasswordResetCode
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -71,13 +72,13 @@ class LoginSerializer(serializers.Serializer):
 
         if not user.check_password(password):
             raise serializers.ValidationError('Invalid email or password.')
-        
+
         if not user.is_active:
             raise serializers.ValidationError('User account is inactive.')
 
         attrs['user'] = user
         return attrs
-    
+
 
 class RequestPasswordResetCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -117,7 +118,7 @@ class VerifyPasswordResetCodeSerializer(serializers.Serializer):
 
         if record.is_expired():
             raise serializers.ValidationError("The code has expired.")
-        
+
         data['user'] = User.objects.get(email=data['email'])
         data['record'] = record
         return data

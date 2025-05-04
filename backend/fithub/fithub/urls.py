@@ -43,7 +43,11 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('api/', include('api.urls')),
-    path('recipes/', include('recipes.urls')),  # Include the recipes app URLs
+    path('', index, name='index_page'),  # Map the root URL to the index page view
+    path('api/token/',  TokenObtainPairView().as_view(), name='token_obtain_pair'), # JWT token generation
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    path('ingredients/', include('ingredients.urls')),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
