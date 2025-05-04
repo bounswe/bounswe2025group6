@@ -1,5 +1,16 @@
 # Backend Setup README
 
+## Before You Start:
+- This document is intended for developers who are new to the project and need to set up the backend environment.
+- It provides a step-by-step guide to set up the backend environment, including local and Docker setups.
+- The document assumes you have basic knowledge of Python, Django, and Docker.
+- It is important to follow the instructions carefully to avoid any issues during the setup process.
+- If you encounter any issues, please refer to the troubleshooting section or reach out to the backend team for assistance. @celilozknn, @cemsarpkaya, @OzgurSavascioglu
+
+- You can find many documentations about the endpoints in our `backend/docs` folder. We try to keep them up to date. If you find any missing or outdated documentation, please let us know.
+- There are also some other documents that we briefly explain some common problems and how we solve them, such as jwt-tokenazitaon, local database setup, etc. You can find them in the `backend/docs` folder as well.
+
+# FitHub Backend Setup Guide
 ## 0. Prerequisites
 
 Ensure the following are installed on your machine:
@@ -21,21 +32,21 @@ docker-compose --version
 ```
 
 > 💡 Note: If you are using Docker, you do not need to install Python, pip, or any Python dependencies. Docker handles everything in an isolated environment.
-    
+
 - **Setup Option**: After ensuring you have all the prerequisites, you can choose between two setup options: **Local Setup** or **Docker Setup**.
     - **Local Setup**: This option is for those who prefer to run the application locally without Docker. It requires installing dependencies directly on your machine.
     - **Docker Setup**: This option is for those who prefer to run the application inside a Docker container. It isolates the application and its dependencies from your local environment, making it easier to manage and deploy.
 
 
-## 1. Local Setup 
+## 1. Local Setup
 - **Move to the backend directory**:
     ```bash
     cd backend/fithub
     ```
 - **Create Environment Variables**:
-    Create a `.env` file in the `backend/fithub` directory. You can obtained necessary `.env` folder with the help of the backend team. 
+    Create a `.env` file in the `backend/fithub` directory. You can obtained necessary `.env` folder with the help of the backend team.
 
-- **Virtual Environment**: 
+- **Virtual Environment**:
     It's recommended to use a virtual environment to manage dependencies. You can create one using:
     - For Windows:
     ```bash
@@ -85,7 +96,7 @@ docker-compose --version
 
 - **NOTE**: If you encounter any issues during the setup process, please refer to the troubleshooting section or reach out to the backend team for assistance.
 
-## 2. Docker Setup 
+## 2. Docker Setup
 - **Move to the backend directory**:
     ```bash
     cd backend/fithub
