@@ -10,12 +10,3 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Required for the get_ingredient_id_by_name request
-class IngredientNameQuerySerializer(serializers.Serializer):
-    name = serializers.CharField(required=True, max_length=100)
-
-# Required for the get_ingredient_id_by_name response
-class IngredientIdSerializer(serializers.Serializer):
-    class Meta:
-        model = Ingredient
-        fields = ['id']
