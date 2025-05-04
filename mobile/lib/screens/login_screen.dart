@@ -2,18 +2,30 @@ import 'package:fithub/screens/forgot_pass_screen.dart';
 import 'package:fithub/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService? authService;
+  
+  const LoginScreen({this.authService, super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  late final AuthService _authService;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Email Field
                 TextFormField(
                   controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'EMAIL',
                     border: OutlineInputBorder(),
@@ -102,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Password Field
                 TextFormField(
                   controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'PASSWORD',
@@ -144,24 +158,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Login Button
                 Center(
-                  child: ElevatedButton(
-                    onPressed: logIn,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.buttonGrey,
-                      padding: const EdgeInsets.symmetric(horizontal: 70),
-                
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Log In',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                  child: Builder(
+                    builder: (buttonContext) => _isLoading
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton(
+                            onPressed: () => logIn(buttonContext),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.buttonGrey,
+                              padding: const EdgeInsets.symmetric(horizontal: 70),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Log In',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
                 
@@ -206,11 +223,46 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void logIn() {
+  Future<void> logIn(BuildContext contextForSnackBar) async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement login logic
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final response = await _authService.login(
+          _emailController.text,
+          _passwordController.text,
+        );
+
+        // Store the token securely
+        await StorageService.saveToken(response.token);
+
+        if (mounted) {
+          // TODO: Navigate to home screen
+          ScaffoldMessenger.of(contextForSnackBar).showSnackBar(
+            const SnackBar(
+              content: Text('Login successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(contextForSnackBar).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
