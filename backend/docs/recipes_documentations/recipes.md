@@ -482,7 +482,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   - **Success**: Status code 204 No Content (Deleted the recipe and also recipe ingredients)
   - **Failure**: Status code 404 Not Found (Object was not created or already deleted)
 
-#### 📍 Common Problems:
+## 📍 Common Problems:
 - **Missing Required Fields**: Ensure all required fields are included in the request body.
 - **Invalid Token**: Ensure the Bearer token is valid and not expired. Otherwise you will get a 401 error (Error: Unauthorized).
 ```json
