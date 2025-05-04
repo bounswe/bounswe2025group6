@@ -38,6 +38,7 @@ class RecipePagination(PageNumberPagination):
 @permission_classes([IsAuthenticated])
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.filter(deleted_on=None)  # Filter out soft-deleted recipes
+    http_method_names = ['get', 'post', 'put', 'delete'] # We don't need PATCH method (PUT can also be used for partial updates)
 
     # Use the correct serializer class based on the action type
     def get_serializer_class(self):
@@ -144,3 +145,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         instance.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def partial_update(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "PATCH method is not allowed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )

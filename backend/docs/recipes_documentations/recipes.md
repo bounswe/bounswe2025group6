@@ -11,17 +11,17 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 🔍 Request Format
 ```json
 {
-  * "name": "Veggie Omelette",
-  * "steps": [
+  "name": "Veggie Omelette",
+  "steps": [
     "Crack the eggs into a bowl and whisk them.",
     "Chop the vegetables finely.",
     "Heat oil in a pan, sauté vegetables, then pour in eggs.",
     "Cook until set and fold the omelette in half."
   ],
-  * "prep_time": 8,
-  * "cook_time": 7,
-  * "meal_type": "breakfast",
-  * "ingredients": [
+  "prep_time": 8,
+  "cook_time": 7,
+  "meal_type": "breakfast",
+  "ingredients": [
     {
       "ingredient_id": 4,
       "quantity": 3,
@@ -57,68 +57,71 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 26,
-  "name": "Pancakes",
+  "id": 12,
+  "name": "Veggie Omelette",
   "steps": [
-    "Mix the flour, sugar, and baking powder.",
-    "Add milk and eggs, stir well.",
-    "Heat a pan and cook the pancakes until golden brown on both sides."
+    "Crack the eggs into a bowl and whisk them.",
+    "Chop the vegetables finely.",
+    "Heat oil in a pan, sauté vegetables, then pour in eggs.",
+    "Cook until set and fold the omelette in half."
   ],
-  "prep_time": 10,
-  "cook_time": 15,
+  "prep_time": 8,
+  "cook_time": 7,
   "meal_type": "breakfast",
-  "creator_id": 3,
+  "creator_id": 1,
   "ingredients": [
     {
       "ingredient": {
-        "id": 1,
-        "created_at": "2025-05-03T22:02:12Z",
-        "updated_at": "2025-05-03T22:02:12Z",
+        "id": 4,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
         "deleted_on": null,
-        "name": "Chicken Breast",
-        "category": "proteins",
-        "allergens": [],
-        "dietary_info": [
-          "high-protein"
-        ]
-      },
-      "quantity": 1.5,
-      "unit": "cups"
-    },
-    {
-      "ingredient": {
-        "id": 2,
-        "created_at": "2025-05-03T22:02:12Z",
-        "updated_at": "2025-05-03T22:02:12Z",
-        "deleted_on": null,
-        "name": "Salmon Fillet",
+        "name": "Eggs",
         "category": "proteins",
         "allergens": [
-          "fish"
+          "egg"
         ],
         "dietary_info": [
-          "omega-3",
-          "keto-friendly"
+          "high-protein",
+          "gluten-free"
         ]
       },
-      "quantity": 2,
+      "quantity": 3,
       "unit": "pcs"
     },
     {
       "ingredient": {
-        "id": 3,
-        "created_at": "2025-05-03T22:02:12Z",
-        "updated_at": "2025-05-03T22:02:12Z",
+        "id": 5,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
         "deleted_on": null,
-        "name": "Ground Beef",
+        "name": "Tofu",
         "category": "proteins",
         "allergens": [],
         "dietary_info": [
-          "high-protein"
+          "vegan",
+          "soy-based"
+        ]
+      },
+      "quantity": 0.5,
+      "unit": "cup"
+    },
+    {
+      "ingredient": {
+        "id": 6,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
+        "deleted_on": null,
+        "name": "Spinach",
+        "category": "vegetables",
+        "allergens": [],
+        "dietary_info": [
+          "vegan",
+          "gluten-free"
         ]
       },
       "quantity": 1,
-      "unit": "cup"
+      "unit": "pcs"
     }
   ],
   "cost_per_serving": null,
@@ -132,19 +135,20 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-05-04T21:14:05.956932Z",
-  "updated_at": "2025-05-04T21:14:05.956962Z",
+  "created_at": "2025-05-04T22:24:17.814577Z",
+  "updated_at": "2025-05-04T22:24:17.814642Z",
   "deleted_on": null,
-  "total_time": 25,
+  "total_time": 15,
   "total_user_ratings": 0,
   "total_ratings": 0,
   "alergens": [
-    "fish"
+    "egg"
   ],
   "dietary_info": [
-    "keto-friendly",
     "high-protein",
-    "omega-3"
+    "gluten-free",
+    "soy-based",
+    "vegan"
   ]
 }
 ````
@@ -173,53 +177,53 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 {
   "page": 1,
   "page_size": 3,
-  "total": 10,
+  "total": 6,
   "results": [
     {
-      "id": 15,
-      "name": "Veggie Omelette",
-      "meal_type": "breakfast",
-      "creator_id": 3,
-      "prep_time": 8,
-      "cook_time": 7,
-      "cost_per_serving": null,
-      "difficulty_rating": null,
-      "difficulty_rating_count": 0,
-      "taste_rating": null,
-      "taste_rating_count": 0,
-      "health_rating": null,
-      "health_rating_count": 0,
-      "like_count": 0,
-      "comment_count": 0,
-      "is_approved": false,
-      "is_featured": false,
-      "total_time": 15
-    },
-    {
-      "id": 16,
-      "name": "Spaghetti Bolognese",
-      "meal_type": "dinner",
-      "creator_id": 3,
-      "prep_time": 15,
-      "cook_time": 45,
-      "cost_per_serving": null,
-      "difficulty_rating": null,
-      "difficulty_rating_count": 0,
-      "taste_rating": null,
-      "taste_rating_count": 0,
-      "health_rating": null,
-      "health_rating_count": 0,
-      "like_count": 0,
-      "comment_count": 0,
-      "is_approved": false,
-      "is_featured": false,
-      "total_time": 60
-    },
-    {
-      "id": 17,
+      "id": 1,
       "name": "Pancakes",
       "meal_type": "breakfast",
-      "creator_id": 3,
+      "creator_id": 1,
+      "prep_time": 10,
+      "cook_time": 15,
+      "cost_per_serving": null,
+      "difficulty_rating": null,
+      "difficulty_rating_count": 0,
+      "taste_rating": null,
+      "taste_rating_count": 0,
+      "health_rating": null,
+      "health_rating_count": 0,
+      "like_count": 0,
+      "comment_count": 0,
+      "is_approved": false,
+      "is_featured": false,
+      "total_time": 25
+    },
+    {
+      "id": 4,
+      "name": "Pancakes",
+      "meal_type": "breakfast",
+      "creator_id": 1,
+      "prep_time": 10,
+      "cook_time": 15,
+      "cost_per_serving": null,
+      "difficulty_rating": null,
+      "difficulty_rating_count": 0,
+      "taste_rating": null,
+      "taste_rating_count": 0,
+      "health_rating": null,
+      "health_rating_count": 0,
+      "like_count": 0,
+      "comment_count": 0,
+      "is_approved": false,
+      "is_featured": false,
+      "total_time": 25
+    },
+    {
+      "id": 5,
+      "name": "Pancakes",
+      "meal_type": "breakfast",
+      "creator_id": 1,
       "prep_time": 10,
       "cook_time": 15,
       "cost_per_serving": null,
@@ -247,7 +251,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 🔍 Request Format
 ```json
 {
-  * "recipe_id": 15
+  "recipe_id": 12
 }
 ```
 
@@ -258,68 +262,71 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 26,
-  "name": "Pancakes",
+  "id": 12,
+  "name": "Veggie Omelette",
   "steps": [
-    "Mix the flour, sugar, and baking powder.",
-    "Add milk and eggs, stir well.",
-    "Heat a pan and cook the pancakes until golden brown on both sides."
+    "Crack the eggs into a bowl and whisk them.",
+    "Chop the vegetables finely.",
+    "Heat oil in a pan, sauté vegetables, then pour in eggs.",
+    "Cook until set and fold the omelette in half."
   ],
-  "prep_time": 10,
-  "cook_time": 15,
+  "prep_time": 8,
+  "cook_time": 7,
   "meal_type": "breakfast",
-  "creator_id": 3,
+  "creator_id": 1,
   "ingredients": [
     {
       "ingredient": {
-        "id": 1,
-        "created_at": "2025-05-03T22:02:12Z",
-        "updated_at": "2025-05-03T22:02:12Z",
+        "id": 4,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
         "deleted_on": null,
-        "name": "Chicken Breast",
-        "category": "proteins",
-        "allergens": [],
-        "dietary_info": [
-          "high-protein"
-        ]
-      },
-      "quantity": 1.5,
-      "unit": "cups"
-    },
-    {
-      "ingredient": {
-        "id": 2,
-        "created_at": "2025-05-03T22:02:12Z",
-        "updated_at": "2025-05-03T22:02:12Z",
-        "deleted_on": null,
-        "name": "Salmon Fillet",
+        "name": "Eggs",
         "category": "proteins",
         "allergens": [
-          "fish"
+          "egg"
         ],
         "dietary_info": [
-          "omega-3",
-          "keto-friendly"
+          "high-protein",
+          "gluten-free"
         ]
       },
-      "quantity": 2,
+      "quantity": 3,
       "unit": "pcs"
     },
     {
       "ingredient": {
-        "id": 3,
-        "created_at": "2025-05-03T22:02:12Z",
-        "updated_at": "2025-05-03T22:02:12Z",
+        "id": 5,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
         "deleted_on": null,
-        "name": "Ground Beef",
+        "name": "Tofu",
         "category": "proteins",
         "allergens": [],
         "dietary_info": [
-          "high-protein"
+          "vegan",
+          "soy-based"
+        ]
+      },
+      "quantity": 0.5,
+      "unit": "cup"
+    },
+    {
+      "ingredient": {
+        "id": 6,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
+        "deleted_on": null,
+        "name": "Spinach",
+        "category": "vegetables",
+        "allergens": [],
+        "dietary_info": [
+          "vegan",
+          "gluten-free"
         ]
       },
       "quantity": 1,
-      "unit": "cup"
+      "unit": "pcs"
     }
   ],
   "cost_per_serving": null,
@@ -333,22 +340,147 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-05-04T21:14:05.956932Z",
-  "updated_at": "2025-05-04T21:14:05.956962Z",
+  "created_at": "2025-05-04T22:24:17.814577Z",
+  "updated_at": "2025-05-04T22:24:17.814642Z",
   "deleted_on": null,
-  "total_time": 25,
+  "total_time": 15,
   "total_user_ratings": 0,
   "total_ratings": 0,
   "alergens": [
-    "fish"
+    "egg"
   ],
   "dietary_info": [
-    "keto-friendly",
     "high-protein",
-    "omega-3"
+    "gluten-free",
+    "soy-based",
+    "vegan"
   ]
 }
 ```
+
+### 4. **PUT** `/recipes/{recipe_id}/`
+- Updates an existing recipe with the provided data.
+- Requires the user to be authenticated (via Bearer token).
+- The creator field is automatically assigned based on the logged-in user via Bearer token (JWT).
+
+#### 🔍 Request Format
+- Data:
+```json
+{
+  "name": "New Veggies Omelette",
+  "steps": [
+    "Crack the eggs into a bowl and whisk them.",
+    "Chop the vegetables finely."
+  ],
+  "prep_time": 12,
+  "cook_time": 15,
+  "meal_type": "dinner",
+  "ingredients": [
+    {
+      "ingredient_id": 4,
+      "quantity": 3,
+      "unit": "pcs"
+    }
+  ]
+}
+```
+- id:
+  - id = 12
+
+- Must be provided:
+  - `id`: The ID of the recipe to update.
+- Optional:
+  - `name`: The name of the recipe.
+  - `steps`: The steps to prepare the recipe. (Reminder: The steps should be in a list format, not a string. And can be empty string if the user not sure about the steps for now.)
+  - `prep_time`: Preparation time in minutes.
+  - `cook_time`: Cooking time in minutes.
+  - `meal_type`: Type of meal (e.g., breakfast, lunch, dinner).
+  - `ingredients`: List of ingredients with their IDs, quantities, and units.
+- **Note**: The `ingredients` field should contain a list of objects, each with `ingredient_id`, `quantity`, and `unit`.
+- The `creator` field is automatically set based on the authenticated user.
+- The `created_at`, `updated_at`, and `deleted_on` fields are managed by the database.
+
+#### 📦 Response Format
+```json
+{
+  "id": 12,
+  "name": "New Veggies Omelette",
+  "steps": [
+    "Crack the eggs into a bowl and whisk them.",
+    "Chop the vegetables finely."
+  ],
+  "prep_time": 12,
+  "cook_time": 15,
+  "meal_type": "dinner",
+  "creator_id": 1,
+  "ingredients": [
+    {
+      "ingredient": {
+        "id": 4,
+        "created_at": "2025-05-05T00:21:45Z",
+        "updated_at": "2025-05-05T00:21:45Z",
+        "deleted_on": null,
+        "name": "Eggs",
+        "category": "proteins",
+        "allergens": [
+          "egg"
+        ],
+        "dietary_info": [
+          "high-protein",
+          "gluten-free"
+        ]
+      },
+      "quantity": 3,
+      "unit": "pcs"
+    }
+  ],
+  "cost_per_serving": null,
+  "difficulty_rating": null,
+  "taste_rating": null,
+  "health_rating": null,
+  "like_count": 0,
+  "comment_count": 0,
+  "difficulty_rating_count": 0,
+  "taste_rating_count": 0,
+  "health_rating_count": 0,
+  "is_approved": false,
+  "is_featured": false,
+  "created_at": "2025-05-04T22:24:17.814577Z",
+  "updated_at": "2025-05-04T22:29:05.801015Z",
+  "deleted_on": null,
+  "total_time": 27,
+  "total_user_ratings": 0,
+  "total_ratings": 0,
+  "alergens": [
+    "egg"
+  ],
+  "dietary_info": [
+    "high-protein",
+    "gluten-free"
+  ]
+}
+```
+
+
+#### 5. **DELETE** `/recipes/{recipe_id}/`
+- Deletes a recipe by its ID.
+- Requires the user to be authenticated (via Bearer token).
+- The recipe is marked as deleted in the database (soft delete).
+
+#### 🔍 Request Format
+```json
+{
+  "recipe_id": 12
+}
+```
+
+- Must be provided:
+  - `recipe_id`: The ID of the recipe to delete.
+
+
+#### 📦 Response Format
+  - **Success**: Status code 204 No Content (Deleted the recipe and also recipe ingredients)
+  - **Failure**: Status code 404 Not Found (Object was not created or already deleted)
 
 #### 📍 Common Problems:
 - **Missing Required Fields**: Ensure all required fields are included in the request body.

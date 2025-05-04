@@ -57,8 +57,6 @@ class RecipeRating(TimestampedModel):
 
 - GET /recipes/<id>/ – get recipe details
 
-- GET /recipes/<id>/allergens/ – get all allergens for a recipe (optional, can be obtained with detailed get)
-
 - DELETE /recipes/<id>/ – delete recipe
 
 #### 💬 Recipe Comments Endpoints
