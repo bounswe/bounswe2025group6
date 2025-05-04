@@ -3,6 +3,7 @@ from api.models import TimestampedModel
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from ingredients.models import Ingredient  # Adjust the import path based on your project structure
+from django.utils import timezone
 
 # Recipe model that will be used for the recipe
 class Recipe(TimestampedModel):
@@ -60,6 +61,12 @@ class Recipe(TimestampedModel):
     def total_ratings(self):
         return (self.difficulty_rating or 0) + (self.taste_rating or 0) + (self.health_rating or 0)
 
+    # Crutial for soft delete (also affects the recipeIngredient cascade delete)
+    def delete(self, *args, **kwargs):
+        if self.deleted_on: # Fixes the issue of deleting already deleted recipes
+            return  # Already deleted
+        self.deleted_on = timezone.now()
+        self.save()
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
@@ -85,6 +92,8 @@ class Recipe(TimestampedModel):
             if rating_value is not None:
                 if rating_value < 0 or rating_value > 5:
                     raise ValidationError(f"{rating_field} must be between 0 and 5.")
+
+
 
 # RecipeIngredient model that will be used for the recipe (holds the relationship between Recipe and Ingredient)
 # Many-to-many relationship

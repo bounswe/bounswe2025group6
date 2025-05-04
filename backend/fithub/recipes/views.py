@@ -11,6 +11,7 @@ from .models import Recipe
 from drf_yasg import openapi
 from rest_framework import viewsets
 from .serializers import RecipeListSerializer, RecipeDetailSerializer
+from django.utils import timezone
 
 
 # Created for swagger documentation, paginate get request
@@ -35,7 +36,7 @@ class RecipePagination(PageNumberPagination):
 
 @permission_classes([IsAuthenticated])
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.filter(deleted_on=None)  # Filter out soft-deleted recipes
 
     # Use the correct serializer class based on the action type
     def get_serializer_class(self):
@@ -43,31 +44,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeListSerializer
         elif self.action == 'retrieve':
             return RecipeDetailSerializer
-        return RecipeSerializer
+        else: # For create, update, and destroy actions
+            return RecipeSerializer
 
     # Use the custom pagination class
     pagination_class = RecipePagination
-
-    def list(self, request, *args, **kwargs):
-        """
-        Custom list view to handle paginated response
-        """
-        page = self.paginate_queryset(self.get_queryset())
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        # If no pagination required
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, *args, **kwargs):
-        """
-        Retrieve detailed view of a single recipe
-        """
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_description="Create a new recipe",
@@ -76,7 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def create(self, request, *args, **kwargs):
         """
-        Create a new recipe with ingredients
+        Create a new recipe with ingredients (Post endpoint)
         """
         # Ensure the user is authenticated
         if not request.user.is_authenticated:
@@ -98,3 +79,61 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(detailed_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        """
+        Custom list view to handle paginated response (Get list endpoint)
+        """
+        page = self.paginate_queryset(self.get_queryset())
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination required
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve detailed view of a single recipe (Get detailed endpoint)
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Update an existing recipe",
+        request_body=RecipeSerializer,  # Use the correct serializer for the POST request
+        responses={200: RecipeSerializer},
+    )
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing recipe (Put endpoint)
+        """
+        instance = self.get_object()
+
+        # Ensure the creator cannot be updated (it's tied to the user)
+        data = request.data.copy()
+        data['creator'] = instance.creator.id  # Re-assign the current creator ID
+
+        # Pass the updated data to the serializer
+        serializer = self.get_serializer(instance, data=data, partial=False)
+
+        if serializer.is_valid():
+            # Save the updated instance and return the response
+            updated_recipe = serializer.save()
+            detailed_serializer = RecipeDetailSerializer(updated_recipe)
+            return Response(detailed_serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Object is already deleted before
+        if instance.deleted_on:  # We don't expect to be here, we use query set to filter out deleted recipes
+            return Response({"detail": "Recipe not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        instance.deleted_on = timezone.now()
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
