@@ -65,7 +65,3 @@ class IngredientModelTests(TestCase):
         """
         ingredient = Ingredient.objects.create(name="Tomato", category="vegetables")
         self.assertEqual(str(ingredient), "Tomato")
-
-
-
-"""Tests for the Recipe model"""

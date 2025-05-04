@@ -1,68 +1,174 @@
 # recipes/serializers.py
-from rest_framework import serializers
-from api.serializers import UserRegistrationSerializer
-from ingredients.serializers import IngredientSerializer
-from .models import Recipe, RecipeIngredient, RecipeLike
 
-class RecipeIngredientSerializer(serializers.ModelSerializer):
+import json
+from rest_framework import serializers
+from .models import Recipe, RecipeIngredient
+from ingredients.models import Ingredient
+from rest_framework.exceptions import ValidationError
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from ingredients.serializers import IngredientSerializer
+
+# Used for request body (input)
+class RecipeIngredientInputSerializer(serializers.Serializer):
+    ingredient_id = serializers.IntegerField()
+    quantity = serializers.FloatField()
+    unit = serializers.CharField()
+
+    def validate_ingredient_id(self, value):
+        if not Ingredient.objects.filter(id=value).exists():
+            raise serializers.ValidationError(f"Ingredient with ID {value} does not exist.")
+        return value
+
+# Used for response serialization (output)
+class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
+    ingredient = IngredientSerializer()
+
     class Meta:
         model = RecipeIngredient
         fields = ['ingredient', 'quantity', 'unit']
 
-    def create(self, validated_data):
-        # Extract recipe from context
-        recipe = self.context.get('recipe')
-
-        # Create the RecipeIngredient instance
-        return RecipeIngredient.objects.create(recipe=recipe, **validated_data)
-
+# Main serializer for Recipe
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientSerializer(many=True)  # Nested ingredients input
+    ingredients = serializers.ListField(
+        child=RecipeIngredientInputSerializer(), write_only=True
+    )
+    ingredients_output = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = [
-            'name', 'steps', 'prep_time', 'cook_time', 'meal_type', 'ingredients'
+            'id', 'name', 'steps', 'prep_time', 'cook_time',
+            'meal_type', 'creator',
+            'ingredients',        # for request (write_only)
+            'ingredients_output'  # for response (read_only)
         ]
 
     def create(self, validated_data):
-        # Extract ingredients data from validated_data
         ingredients_data = validated_data.pop('ingredients')
-
-        # Create the Recipe instance
         recipe = Recipe.objects.create(**validated_data)
 
-        # Now, create the related RecipeIngredient instances
-        for ingredient_data in ingredients_data:
-            ingredient_data['recipe'] = recipe  # Pass the created recipe to each ingredient
-            RecipeIngredientSerializer(context={'recipe': recipe}).create(ingredient_data)
+        for item in ingredients_data:
+            ingredient = Ingredient.objects.get(id=item['ingredient_id'])
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient=ingredient,
+                quantity=item['quantity'],
+                unit=item['unit']
+            )
 
         return recipe
 
+    def get_ingredients_output(self, obj):
+        ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        return RecipeIngredientOutputSerializer(ingredients, many=True).data
 
-class RecipeDetailSerializer(serializers.ModelSerializer):
-    creator = UserRegistrationSerializer(read_only=True)  # Or use a nested user serializer
-    recipe_ingredients = RecipeIngredientSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Recipe
-        fields = [
-            'id', 'name', 'steps', 'prep_time', 'cook_time', 'meal_type',
-            'creator', 'recipe_ingredients',
-            'cost_per_serving',
-            'difficulty_rating', 'taste_rating', 'health_rating',
-            'like_count', 'comment_count',
-            'difficulty_rating_count', 'taste_rating_count', 'health_rating_count',
-            'is_approved', 'is_featured',
-            'created_at', 'updated_at', 'deleted_on',
-            'total_time', 'total_user_ratings', 'total_ratings'
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['ingredients'] = data.pop('ingredients_output')  # replace output name
+        return data
+
+## MOCK DATA (Request, Response):
+
+"""
+
+{
+  "name": "Pancakes",
+  "steps": [
+    "Mix the flour, sugar, and baking powder.",
+    "Add milk and eggs, stir well.",
+    "Heat a pan and cook the pancakes until golden brown on both sides."
+  ],
+  "prep_time": 10,
+  "cook_time": 15,
+  "meal_type": "breakfast",
+  "ingredients": [
+    {
+      "ingredient_id": 1,
+      "quantity": 1.5,
+      "unit": "cups"
+    },
+    {
+      "ingredient_id": 2,
+      "quantity": 2,
+      "unit": "pcs"
+    },
+    {
+      "ingredient_id": 3,
+      "quantity": 1,
+      "unit": "cup"
+    }
+  ]
+}
+
+"""
+"""
+
+{
+  "id": 13,
+  "name": "Pancakes",
+  "steps": [
+    "Mix the flour, sugar, and baking powder.",
+    "Add milk and eggs, stir well.",
+    "Heat a pan and cook the pancakes until golden brown on both sides."
+  ],
+  "prep_time": 10,
+  "cook_time": 15,
+  "meal_type": "breakfast",
+  "creator": 3,
+  "ingredients": [
+    {
+      "ingredient": {
+        "id": 1,
+        "created_at": "2025-05-03T22:02:12Z",
+        "updated_at": "2025-05-03T22:02:12Z",
+        "deleted_on": null,
+        "name": "Chicken Breast",
+        "category": "proteins",
+        "allergens": [],
+        "dietary_info": [
+          "high-protein"
         ]
-        read_only_fields = fields  # Mark all as read-only for GET
-
-class RecipeLikeSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(source='user.id')  # Return the user ID
-    recipe = RecipeSerializer()  # Nested RecipeSerializer to show the full recipe info
-
-    class Meta:
-        model = RecipeLike
-        fields = ['id', 'user', 'recipe', 'created_at', 'updated_at', 'deleted_on']
+      },
+      "quantity": 1.5,
+      "unit": "cups"
+    },
+    {
+      "ingredient": {
+        "id": 2,
+        "created_at": "2025-05-03T22:02:12Z",
+        "updated_at": "2025-05-03T22:02:12Z",
+        "deleted_on": null,
+        "name": "Salmon Fillet",
+        "category": "proteins",
+        "allergens": [
+          "fish"
+        ],
+        "dietary_info": [
+          "omega-3",
+          "keto-friendly"
+        ]
+      },
+      "quantity": 2,
+      "unit": "pcs"
+    },
+    {
+      "ingredient": {
+        "id": 3,
+        "created_at": "2025-05-03T22:02:12Z",
+        "updated_at": "2025-05-03T22:02:12Z",
+        "deleted_on": null,
+        "name": "Ground Beef",
+        "category": "proteins",
+        "allergens": [],
+        "dietary_info": [
+          "high-protein"
+        ]
+      },
+      "quantity": 1,
+      "unit": "cup"
+    }
+  ]
+}
+"""
