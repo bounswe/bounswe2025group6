@@ -36,20 +36,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         child=RecipeIngredientInputSerializer(), write_only=True
     )
     ingredients_output = serializers.SerializerMethodField()
+    creator = serializers.IntegerField(read_only=True)
+    steps = serializers.ListField(
+        child=serializers.CharField(), allow_empty=False
+    )
 
     class Meta:
         model = Recipe
         fields = [
             'id', 'name', 'steps', 'prep_time', 'cook_time',
-            'meal_type', 'creator',
-            'ingredients',        # for request (write_only)
-            'ingredients_output'  # for response (read_only)
+            'meal_type',
+            'creator',             # for response (read_only)
+            'ingredients',         # for request (write_only)
+            'ingredients_output',  # for response (read_only)
         ]
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
+
         # Create the Recipe instance
-        recipe = Recipe.objects.create(**validated_data)
+        user = self.context['request'].user
+        recipe = Recipe.objects.create(creator=user, **validated_data)
+
 
         # Loop over ingredients data to create RecipeIngredient instances
         for item in ingredients_data:

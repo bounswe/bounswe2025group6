@@ -12,6 +12,7 @@ from drf_yasg import openapi
 from rest_framework import viewsets
 from .serializers import RecipeListSerializer, RecipeDetailSerializer
 from django.utils import timezone
+from .models import RecipeIngredient
 
 
 # Created for swagger documentation, paginate get request
@@ -131,9 +132,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
 
         # Object is already deleted before
-        if instance.deleted_on:  # We don't expect to be here, we use query set to filter out deleted recipes
+        # We don't expect to be here, we use query set to filter out deleted recipes
+        if instance.deleted_on:
             return Response({"detail": "Recipe not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Soft delete related ingredients
+        RecipeIngredient.objects.filter(recipe=instance, deleted_on__isnull=True).update(deleted_on=timezone.now())
+
+        # Soft delete the recipe
         instance.deleted_on = timezone.now()
         instance.save()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
