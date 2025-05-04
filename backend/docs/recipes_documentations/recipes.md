@@ -151,7 +151,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     "vegan"
   ]
 }
-````
+```
 
 ### 2. **GET** `/recipes/`
 - Retrieves a list of all recipes.
@@ -249,14 +249,11 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 - Useful for displaying detailed recipe information in a UI.
 
 #### 🔍 Request Format
-```json
-{
-  "recipe_id": 12
-}
-```
+- Path variable:
+  - "id": 12
 
 - Must be provided:
-  - `recipe_id`: The ID of the recipe to retrieve.
+  - `id`: The ID of the recipe to retrieve.
 
 
 #### 📦 Response Format
@@ -384,11 +381,12 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   ]
 }
 ```
-- id:
-  - id = 12
+- Path variable:
+  - "id": 12
 
 - Must be provided:
-  - `id`: The ID of the recipe to update.
+  - `id`: The ID of the recipe to retrieve.
+
 - Optional:
   - `name`: The name of the recipe.
   - `steps`: The steps to prepare the recipe. (Reminder: The steps should be in a list format, not a string. And can be empty string if the user not sure about the steps for now.)
@@ -462,21 +460,17 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 ```
 
 
-#### 5. **DELETE** `/recipes/{recipe_id}/`
+### 5. **DELETE** `/recipes/{recipe_id}/`
 - Deletes a recipe by its ID.
 - Requires the user to be authenticated (via Bearer token).
 - The recipe is marked as deleted in the database (soft delete).
 
 #### 🔍 Request Format
-```json
-{
-  "recipe_id": 12
-}
-```
+- Path variable:
+  - "id": 12
 
 - Must be provided:
-  - `recipe_id`: The ID of the recipe to delete.
-
+  - `id`: The ID of the recipe to retrieve.
 
 #### 📦 Response Format
   - **Success**: Status code 204 No Content (Deleted the recipe and also recipe ingredients)

@@ -130,6 +130,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Soft delete a recipe (Delete endpoint)
+        """
+
         instance = self.get_object()
 
         # Object is already deleted before
@@ -145,9 +149,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         instance.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(
-            {"detail": "PATCH method is not allowed."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
