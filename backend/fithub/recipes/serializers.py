@@ -76,13 +76,15 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 # Used for list view of Recipe (Response)
 class RecipeListSerializer(serializers.ModelSerializer):
+    creator_id = serializers.IntegerField(source='creator.id')
+
     class Meta:
         model = Recipe
         fields = [
             'id',
             'name',
             'meal_type',
-            'creator',
+            'creator_id',
             'prep_time',
             'cook_time',
             'cost_per_serving',
@@ -103,6 +105,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
 class RecipeDetailSerializer(serializers.ModelSerializer):
     alergens = serializers.SerializerMethodField()
     dietary_info = serializers.SerializerMethodField()
+    creator_id = serializers.IntegerField(source='creator.id')
+    ingredients = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -113,7 +117,8 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'prep_time',
             'cook_time',
             'meal_type',
-            'creator',
+            'creator_id',
+            'ingredients',
             'cost_per_serving',
             'difficulty_rating',
             'taste_rating',
@@ -134,6 +139,10 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'alergens',  # Dynamically returns allergens
             'dietary_info'  # Dynamically returns dietary info
         ]
+
+    def get_ingredients(self, obj):
+        ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        return RecipeIngredientOutputSerializer(ingredients, many=True).data
 
     def get_alergens(self, obj):
         return obj.check_allergens()
