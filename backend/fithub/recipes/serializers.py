@@ -8,8 +8,11 @@ from rest_framework.exceptions import ValidationError
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from ingredients.serializers import IngredientSerializer
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
-# Used for request body (input)
+
+# Used for create request body (input)
 class RecipeIngredientInputSerializer(serializers.Serializer):
     ingredient_id = serializers.IntegerField()
     quantity = serializers.FloatField()
@@ -20,7 +23,7 @@ class RecipeIngredientInputSerializer(serializers.Serializer):
             raise serializers.ValidationError(f"Ingredient with ID {value} does not exist.")
         return value
 
-# Used for response serialization (output)
+# Used for create response serialization (output)
 class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer()
 
@@ -68,6 +71,22 @@ class RecipeSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['ingredients'] = data.pop('ingredients_output')  # replace output name
         return data
+
+# Used for pagination (Get endpoint)
+class RecipePagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            'page': self.page.number,
+            'page_size': self.page.paginator.per_page,
+            'total': self.page.paginator.count,
+            'results': data
+        })
+
+
 
 ## MOCK DATA (Request, Response):
 

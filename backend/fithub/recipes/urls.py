@@ -2,10 +2,11 @@
 
 from django.urls import path
 from .views import (
-    create_recipe,
-
+    recipe_detail,
+    recipes_view,
 )
 
 urlpatterns = [
-    path('', create_recipe, name='create_recipe'),
+    path('', recipes_view, name='recipes'),
+    path('<int:id>/', recipe_detail, name='recipe-detail'),
 ]
