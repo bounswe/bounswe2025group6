@@ -1,39 +1,28 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Outlet } from 'react-router-dom';
+// src/App.jsx
 
-// Only include the pages that are done
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { MealPlanProvider } from './contexts/MealPlanContext';
+import { ToastProvider } from './components/ui/Toast';
+import AppRoutes from './routes';
+import './styles/index.css';
 
-function Layout() {
+/**
+ * Main App component that sets up providers and routing
+ */
+const App = () => {
   return (
-    <>     
-      <main className="min-h-screen px-4 py-6">
-        <Outlet />
-      </main>
-    </>
-  );
-}
-
-function App() {
-  return (
-
-  <BrowserRouter>
-    <Routes>
-
-    <Route element={<Layout />}>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-    </Route>
-
-    </Routes>
+    <BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <MealPlanProvider>
+            <AppRoutes />
+          </MealPlanProvider>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
-}
-
+};
 
 export default App;
