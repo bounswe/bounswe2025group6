@@ -42,7 +42,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 #### 🔍 Request Format
 ```json
 {
-  * "id": 3
+  "id": 3
 }
 ```
 
@@ -162,7 +162,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 {
   "page": 1,
   "page_size": 10,
-  * "name": "Ground Beef"
+  "name": "Ground Beef"
 }
 ```
 
@@ -190,7 +190,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 {
   "page": 1,
   "page_size": 10,
-  * "name": "Ground Beef"
+  "name": "Ground Beef"
 }
 ```
 

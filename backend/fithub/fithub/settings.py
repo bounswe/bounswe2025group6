@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'drf_yasg', # Swagger and ReDoc
     'api',      # Our main api
     'ingredients', # Ingredients app
+    'recipes',  # Recipes app
 ]
 
 REST_FRAMEWORK = {

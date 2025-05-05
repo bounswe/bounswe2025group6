@@ -35,7 +35,6 @@ def index(request):
     method='post',
     request_body=UserRegistrationSerializer(),
 )
-
 @api_view(['POST'])
 def register_user(request):
     serializer = UserRegistrationSerializer(data=request.data)

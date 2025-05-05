@@ -27,11 +27,15 @@ class IngredientModelTests(TestCase):
         """
         Test that an invalid category raises a validation error.
         """
+
+        ingredient =Ingredient.objects.create(
+            name="Invalid Ingredient",
+            category="invalid_category"  # Invalid category not in CATEGORY_CHOICES
+        )
+
+        # first full clean and check for validation error
         with self.assertRaises(ValueError):
-            Ingredient.objects.create(
-                name="Invalid Ingredient",
-                category="invalid_category"  # Invalid category not in CATEGORY_CHOICES
-            )
+            ingredient.full_clean()
 
     def test_create_ingredient_with_nullable_allergens_and_dietary_info(self):
         """
@@ -65,7 +69,3 @@ class IngredientModelTests(TestCase):
         """
         ingredient = Ingredient.objects.create(name="Tomato", category="vegetables")
         self.assertEqual(str(ingredient), "Tomato")
-
-
-
-"""Tests for the Recipe model"""
