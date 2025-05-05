@@ -1,183 +1,125 @@
 /* src/styles/ProfilePage.css */
-
-.profile-page {
-  min-height: 100vh;
-  background-color: #f0f4f8;
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
 .profile-container {
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 1rem;
   max-width: 800px;
-  width: 100%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
 }
 
 .profile-header {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
-.profile-photo {
-  width: 120px;
-  height: 120px;
-  border-radius: 9999px;
+@media (min-width: 768px) {
+  .profile-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #22c55e;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: #a0aec0;
+}
+
+@media (min-width: 768px) {
+  .profile-avatar {
+    margin-right: 2rem;
+    margin-bottom: 0;
+  }
+}
+
+.profile-info {
+  flex-grow: 1;
 }
 
 .profile-name {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #1e293b;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
 .profile-email {
-  color: #475569;
+  color: #718096;
+  margin-bottom: 0.5rem;
 }
 
-.profile-meta {
-  font-size: 0.875rem;
-  color: #94a3b8;
-}
-
-.profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.profile-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #bee3f8; /* Light blue */
+  color: #2c5282; /* Dark blue */
 }
 
 .profile-section {
+  margin-bottom: 2rem;
+}
+
+.profile-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
   margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.section-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 0.75rem;
-  color: #1e293b;
+.preferences-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-.badge-group {
+@media (min-width: 768px) {
+  .preferences-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.preference-group {
+  margin-bottom: 1.5rem;
+}
+
+.preference-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.preference-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.badge-btn {
-  padding: 0.5rem 1rem;
-  background-color: #e2e8f0;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  transition: 0.3s;
-}
-
-.badge-btn.selected {
-  background-color: #22c55e;
-  color: white;
-}
-
-.badge-btn.red.selected {
-  background-color: #ef4444;
-  color: white;
-}
-
-.input-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #475569;
-}
-
-.profile-input {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid #cbd5e1;
-  background-color: #f9fafb;
-}
-
-.checkbox-label {
-  font-size: 0.95rem;
-  color: #475569;
-  display: flex;
-  align-items: center;
-}
-
-.checkbox-input {
-  margin-right: 0.5rem;
-}
-
-.primary-btn {
-  background-color: #22c55e;
-  color: white;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: background-color 0.3s;
-  margin-top: 1rem;
-}
-
-.primary-btn:hover {
-  background-color: #16a34a;
-}
-
-.secondary-btn {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  transition: 0.3s;
-}
-
-.secondary-btn:hover {
-  background-color: #2563eb;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.profile-mealplans {
-  margin-top: 2rem;
-}
-
-.mealplan-list {
-  margin-top: 1rem;
-}
-
-.mealplan-card {
-  background-color: #ecfdf5;
-  border-left: 4px solid #22c55e;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  position: relative;
   margin-bottom: 1rem;
 }
 
-.mealplan-date {
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
-.delete-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background-color: transparent;
-  color: #ef4444;
-  font-size: 0.9rem;
-  font-weight: bold;
+.preference-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
   cursor: pointer;
+  background-color: #edf2f7;
+  color: #4a5568;
 }
 
-.delete-btn:hover {
-  color: #b91c1c;
+.preference-tag.active {
+  background-color: #38a169; /* Green */
+  color: white;
+}
+
+.allergen-tag.active {
+  background-color: #f56565; /* Red */
+  color: white;
 }

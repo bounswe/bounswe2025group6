@@ -1,0 +1,42 @@
+/* styles/RatingStars.css */
+.rating-stars {
+    display: flex;
+    align-items: center;
+  }
+  
+  .star {
+    margin-right: 0.25rem;
+  }
+  
+  .star.interactive {
+    cursor: pointer;
+  }
+  
+  .star-filled {
+    color: #facc15; /* yellow-400 */
+  }
+  
+  .star-empty {
+    color: #d1d5db; /* gray-300 */
+  }
+  
+  /* Sizes */
+  .star-xs svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+  
+  .star-sm svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .star-md svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  .star-lg svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
