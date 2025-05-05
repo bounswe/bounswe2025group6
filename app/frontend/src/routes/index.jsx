@@ -1,0 +1,169 @@
+// src/routes/index.jsx
+
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import AuthLayout from '../layouts/AuthLayout';
+import MainLayout from '../layouts/MainLayout';
+import ProtectedRoute from '../components/auth/ProtectedRoute';
+
+// Auth pages
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+
+// Public pages
+import HomePage from '../pages/HomePage';
+
+// Protected pages
+import DashboardPage from '../pages/DashboardPage';
+import MealPlannerPage from '../pages/meal-planner/MealPlannerPage';
+import SavedMealPlansPage from '../pages/meal-planner/SavedMealPlansPage';
+import ShoppingListPage from '../pages/shopping/ShoppingListPage';
+import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
+import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
+import UploadRecipePage from '../pages/recipes/UploadRecipePage';
+import ProfilePage from '../pages/meal-planner/ProfilePage';
+import CommunityPage from '../pages/community/CommunityPage';
+import PostDetailPage from '../pages/community/PostDetailPage';
+import CreatePostPage from '../pages/community/CreatePostPage';
+import UserProfilePage from '../pages/community/UserProfilePage';
+
+import '../styles/index.css';
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public home page */}
+      <Route path="/" element={<HomePage />} />
+      
+      {/* Auth routes with AuthLayout */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      </Route>
+      
+      {/* Protected routes with MainLayout */}
+      <Route element={<MainLayout />}>
+        {/* Dashboard */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Meal Planner */}
+        <Route 
+          path="/meal-planner" 
+          element={
+            <ProtectedRoute>
+              <MealPlannerPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/saved-meal-plans" 
+          element={
+            <ProtectedRoute>
+              <SavedMealPlansPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Shopping List */}
+        <Route 
+          path="/shopping-list" 
+          element={
+            <ProtectedRoute>
+              <ShoppingListPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Recipes */}
+        <Route 
+          path="/recipes" 
+          element={
+            <ProtectedRoute>
+              <RecipeDiscoveryPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/recipes/:id" 
+          element={
+            <ProtectedRoute>
+              <RecipeDetailPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/upload" 
+          element={
+            <ProtectedRoute>
+              <UploadRecipePage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Profile */}
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/community" 
+          element={
+            <ProtectedRoute>
+              <CommunityPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/community/post/:id" 
+          element={
+            <ProtectedRoute>
+              <PostDetailPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/community/create" 
+          element={
+            <ProtectedRoute>
+              <CreatePostPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/community/profile/:id" 
+          element={
+            <ProtectedRoute>
+              <UserProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+      </Route>
+
+      
+      {/* Catch all route - redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
+
+export default AppRoutes;
