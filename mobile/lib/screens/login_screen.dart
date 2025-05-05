@@ -28,6 +28,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
@@ -158,28 +165,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Login Button
                 Center(
-                  child: Builder(
-                    builder: (buttonContext) => _isLoading
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                            onPressed: () => logIn(buttonContext),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.buttonGrey,
-                              padding: const EdgeInsets.symmetric(horizontal: 70),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Log In',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                  child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: () => logIn(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.buttonGrey,
+                          padding: const EdgeInsets.symmetric(horizontal: 70),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                  ),
+                        ),
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                 ),
                 
                 const SizedBox(height: 24),
@@ -223,53 +228,53 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> logIn(BuildContext contextForSnackBar) async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  void _showSuccessMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Login successful!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
 
-      try {
-        final response = await _authService.login(
-          _emailController.text,
-          _passwordController.text,
-        );
+  void _showErrorMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login failed: $message'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
-        // Store the token securely
-        await StorageService.saveToken(response.token);
+  Future<void> logIn(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
 
-        if (mounted) {
-          // TODO: Navigate to home screen
-          ScaffoldMessenger.of(contextForSnackBar).showSnackBar(
-            const SnackBar(
-              content: Text('Login successful!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(contextForSnackBar).showSnackBar(
-            SnackBar(
-              content: Text('Login failed: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _authService.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      // Store the token securely
+      await StorageService.saveToken(response.token);
+
+      if (!mounted) return;
+
+      _showSuccessMessage(context);
+      // TODO: Navigate to home screen
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorMessage(context, e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-}
+} // End of class
