@@ -1,0 +1,131 @@
+.recipe-detail-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.recipe-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  .recipe-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+}
+
+.recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #475569;
+  margin-bottom: 1rem;
+
+  .icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.25rem;
+  }
+}
+
+.recipe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+
+  .tag {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+  }
+}
+
+.recipe-nutrition {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  .nutrition-item {
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+
+    .nutrition-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .nutrition-label {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+  }
+}
+
+.instruction-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+
+  .instruction-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    background-color: #e0f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #0369a1;
+  }
+
+  .instruction-text {
+    flex: 1;
+  }
+}
+
+.comment-section {
+  margin-top: 2rem;
+
+  .comment-card {
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+
+    .comment-text {
+      font-size: 0.875rem;
+      color: #1e293b;
+      margin-top: 0.5rem;
+    }
+  }
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}

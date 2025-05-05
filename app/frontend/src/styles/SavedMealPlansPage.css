@@ -1,0 +1,137 @@
+/* src/styles/SavedMealPlansPage.css */
+
+.saved-plans-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.saved-plans-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.saved-plans-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.saved-plans-subtitle {
+  color: #475569;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.saved-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.plan-card {
+  background-color: #ffffff;
+  border-radius: 0.5rem;         /* smaller corners for a more rectangular shape */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 0.75rem 1rem;         /* tighter padding */
+  transition: transform 0.2s, box-shadow 0.2s;
+  min-height: 180px;             /* you can adjust this */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 50%;
+
+}
+
+.plan-card:hover {
+  background-color: #f9fafb;     /* slightly off-white on hover */
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+}
+
+.plan-card-body {
+  padding: 0.75rem 0;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.plan-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.plan-header p {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.plan-header-actions button {
+  margin-left: 0.5rem;
+}
+
+.plan-meals {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: #334155;
+}
+
+.plan-meals .meal-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.plan-meals .meal-entry:last-child {
+  border-bottom: none;
+}
+
+.plan-summary {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.plan-summary span {
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.spinner {
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.no-plans {
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.no-plans .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-plans .text {
+  color: #64748b;
+  margin-bottom: 1.25rem;
+}
