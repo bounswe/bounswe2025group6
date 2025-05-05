@@ -1,95 +1,137 @@
 /* src/styles/AuthPages.css */
 
-.auth-page {
-    min-height: 100vh;
-    background: linear-gradient(to right, #a7f3d0, #60a5fa);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-  }
-  
-  .auth-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    width: 100%;
-    max-width: 450px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-  
-  .auth-title {
-    font-size: 2rem;
-    text-align: center;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-  }
-  
-  .auth-input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-  }
-  
-  .auth-button {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    font-weight: bold;
-    margin-top: 1rem;
-    transition: background 0.3s;
-  }
-  
-  .auth-button.green {
-    background-color: #10b981;
-    color: white;
-  }
-  
-  .auth-button.green:hover {
-    background-color: #059669;
-  }
-  
-  .auth-footer {
-    text-align: center;
-    font-size: 0.9rem;
-    margin-top: 1rem;
-  }
-  
-  .auth-link {
-    color: #2563eb;
-    font-weight: 500;
-  }
-  
-  .auth-link:hover {
-    text-decoration: underline;
-  }
-  
-  .auth-error {
-    color: #ef4444;
-    font-size: 0.8rem;
-    margin-top: -0.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  /* Toggle User Type Buttons */
-  .user-type-toggle {
-    display: flex;
-    margin-bottom: 1rem;
-  }
-  
-  .user-type-toggle button {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    background: #f3f4f6;
-    color: #4b5563;
-    font-weight: 500;
-    border-radius: 0.5rem;
-  }
-  
-  .user-type-toggle button.active {
-    background: #3b82f6;
-    color: white;
-  }
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #38a169, #2b6cb0);
+  padding: 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 450px;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.auth-header {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.auth-title {
+  color: #2d3748;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #718096;
+  font-size: 1rem;
+}
+
+.auth-form {
+  padding: 1.5rem;
+}
+
+.auth-form label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.auth-form input,
+.auth-form select,
+.auth-form textarea {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e0;
+  background-color: #f9fafb;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.3s ease;
+}
+
+.auth-form input:focus,
+.auth-form select:focus,
+.auth-form textarea:focus {
+  outline: none;
+  border-color: #2b6cb0;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.4);
+}
+
+.auth-checkbox {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.auth-checkbox input {
+  margin-right: 0.5rem;
+}
+
+.auth-submit {
+  width: 100%;
+  background-color: #2b6cb0;
+  color: white;
+  padding: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.auth-submit:hover {
+  background-color: #2c5282;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: #4a5568;
+}
+
+.auth-link a {
+  color: #2b6cb0;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+.auth-demo {
+  margin-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.5rem;
+}
+
+.auth-demo p {
+  text-align: center;
+  color: #718096;
+  margin-bottom: 0.75rem;
+}
+
+.auth-demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.auth-demo-box {
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
