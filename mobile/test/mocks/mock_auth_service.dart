@@ -6,6 +6,7 @@ import 'package:fithub/models/login_response.dart';
 class MockAuthService extends Fake implements AuthService {
   Future<void>? _forgotPasswordResponse;
   Completer<LoginResponse>? _loginCompleter;
+  dynamic _registerResponse; // Can be success (void) or an Exception
 
   void setForgotPasswordResponse(Future<void> response) {
     _forgotPasswordResponse = response;
@@ -15,19 +16,20 @@ class MockAuthService extends Fake implements AuthService {
     _loginCompleter = completer;
   }
 
+  void setRegisterResponse(dynamic response) {
+    _registerResponse = response;
+  }
+
   @override
   Future<LoginResponse> login(String email, String password) async {
     if (_loginCompleter != null) {
       return await _loginCompleter!.future;
     }
-    
+
     await Future.delayed(const Duration(milliseconds: 300));
-    
+
     if (email == 'test@example.com' && password == 'password123') {
-      return LoginResponse(
-        email: email,
-        token: 'mock_token',
-      );
+      return LoginResponse(email: email, token: 'mock_token');
     }
     throw AuthenticationException('Invalid credentials');
   }
@@ -39,9 +41,31 @@ class MockAuthService extends Fake implements AuthService {
     }
 
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     if (email != 'test@example.com') {
       throw AuthenticationException('Invalid email address.');
+    }
+  }
+
+  @override
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+    required String usertype,
+    String? certificationUrl,
+  }) async {
+    await Future.delayed(
+      const Duration(milliseconds: 100),
+    ); // Short delay to simulate network
+    if (_registerResponse != null) {
+      if (_registerResponse is Exception) {
+        throw _registerResponse;
+      }
+      return;
+    }
+    if (email == 'existing@example.com') {
+      throw AuthenticationException('Email already in use by default mock.');
     }
   }
 }

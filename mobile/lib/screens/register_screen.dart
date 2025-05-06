@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fithub/theme/app_theme.dart';
+import '../services/auth_service.dart'; // Import AuthService
+import 'login_screen.dart'; // Import LoginScreen
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final AuthService? authService; // Allow injecting AuthService for testing
+
+  const RegisterPage({super.key, this.authService});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -11,30 +15,90 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _passwordController = TextEditingController(); // Added controller
+  final _passwordController = TextEditingController();
 
   String _username = '';
   String _email = '';
   String _password = '';
-  String _userType = 'User';
+  String _userType = 'User'; // Default to 'User'
   PlatformFile? _pdfFile;
+  bool _isLoading = false; // Loading state
+  late final AuthService _authService; // Declare AuthService
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+  @override
+  void initState() {
+    super.initState();
+    _authService =
+        widget.authService ?? AuthService(); // Initialize AuthService
+  }
 
-      if (_userType == 'Dietitian' && _pdfFile == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please upload a PDF certificate')),
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _formKey.currentState!.save();
+
+    if (_userType == 'Dietitian' && _pdfFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dietitians must upload a PDF certificate.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      String apiUserType = _userType.toLowerCase();
+
+      String? certificationUrl = null;
+      // if (_pdfFile != null) {
+      //   // This is a placeholder.
+      //   // certificationUrl = "url_to_uploaded_pdf/${_pdfFile!.name}";
+      // }
+
+      await _authService.register(
+        username: _username,
+        email: _email,
+        password: _password,
+        usertype: apiUserType,
+        certificationUrl: certificationUrl, // Pass null for now
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Registration successful! Please check your email to verify.',
+          ),
+        ),
+      );
+      // Navigate to login page or a "check your email" page
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ), // Corrected to LoginScreen
         );
-        return;
       }
-
-      debugPrint('Username : $_username');
-      debugPrint('Email    : $_email');
-      debugPrint('Password : $_password');
-      debugPrint('UserType : $_userType');
-      if (_pdfFile != null) debugPrint('PDF      : ${_pdfFile!.name}');
+    } on AuthenticationException catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: ${e.toString()}'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -196,11 +260,27 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: _submitForm,
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
+                        onPressed:
+                            _isLoading
+                                ? null
+                                : _submitForm, // Disable button when loading
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.0,
+                                  ),
+                                )
+                                : const Text(
+                                  'Register',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
                       ),
                     ),
                   ],
@@ -218,4 +298,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordController.dispose(); // Dispose controller
     super.dispose();
   }
+
+  // End of _RegisterPageState class
 }
