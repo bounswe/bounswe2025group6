@@ -14,13 +14,14 @@ from django.utils import timezone
 
 # Used for create request body (input)
 class RecipeIngredientInputSerializer(serializers.Serializer):
-    ingredient_id = serializers.IntegerField()
+    ingredient_name = serializers.CharField()
     quantity = serializers.FloatField()
     unit = serializers.CharField()
 
-    def validate_ingredient_id(self, value):
-        if not Ingredient.objects.filter(id=value).exists():
-            raise serializers.ValidationError(f"Ingredient with ID {value} does not exist.")
+    # Custom validation for ingredient_name
+    def validate_ingredient_name(self, value):
+        if not Ingredient.objects.filter(name=value).exists():
+            raise serializers.ValidationError(f"Ingredient with name {value} does not exist.")
         return value
 
 # Used for create response serialization (output)
@@ -62,7 +63,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         # Loop over ingredients data to create RecipeIngredient instances
         for item in ingredients_data:
-            ingredient = Ingredient.objects.get(id=item['ingredient_id'])
+            ingredient_name = item['ingredient_name']
+
+            # Check if the ingredient exists
+            if not Ingredient.objects.filter(name=ingredient_name).exists():
+                raise ValidationError(f"Ingredient with name {ingredient_name} does not exist.")
+
+            ingredient = Ingredient.objects.get(name=ingredient_name)
             RecipeIngredient.objects.create(
                 recipe=recipe,
                 ingredient=ingredient,
@@ -89,7 +96,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
             # Add new ingredients
             for item in ingredients_data:
-                ingredient = Ingredient.objects.get(id=item['ingredient_id'])
+                ingredient_name = item['ingredient_name']
+
+                # Check if the ingredient exists
+                if not Ingredient.objects.filter(name=ingredient_name).exists():
+                    raise ValidationError(f"Ingredient with name {ingredient_name} does not exist.")
+
+                ingredient = Ingredient.objects.get(name=ingredient_name)
                 RecipeIngredient.objects.create(
                     recipe=instance,
                     ingredient=ingredient,
@@ -184,4 +197,3 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
         return obj.check_allergens()
     def get_dietary_info(self, obj):
         return obj.check_dietary_info()
-
