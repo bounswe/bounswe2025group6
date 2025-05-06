@@ -1,9 +1,12 @@
 import 'package:fithub/screens/verify_code_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+  final AuthService? authService;
+  
+  const ForgotPasswordScreen({this.authService, super.key});
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -12,6 +15,14 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  late final AuthService _authService;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +59,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 32),
               TextFormField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'EMAIL',
                   border: OutlineInputBorder(),
@@ -65,24 +77,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 24),
               Center(
-                child: ElevatedButton(
-                  onPressed: forgotPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.buttonGrey,
-                    padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: forgotPassword,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.buttonGrey,
+                        padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Send Reset Link',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -91,23 +105,45 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  void forgotPassword() {
+  Future<void> forgotPassword() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement password reset logic
-      // This should connect to your backend API
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset link sent to your email'),
-          backgroundColor: AppTheme.primaryGreen,
-        ),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              VerifyCodeScreen(email: _emailController.text.trim()),
-        ),
-      );
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await _authService.forgotPassword(_emailController.text.trim());
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Password reset link sent to your email'),
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VerifyCodeScreen(email: _emailController.text.trim()),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 

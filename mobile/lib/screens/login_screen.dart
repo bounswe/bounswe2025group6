@@ -2,18 +2,37 @@ import 'package:fithub/screens/forgot_pass_screen.dart';
 import 'package:fithub/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService? authService;
+  
+  const LoginScreen({this.authService, super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  late final AuthService _authService;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Email Field
                 TextFormField(
                   controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'EMAIL',
                     border: OutlineInputBorder(),
@@ -102,6 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Password Field
                 TextFormField(
                   controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'PASSWORD',
@@ -144,25 +165,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Login Button
                 Center(
-                  child: ElevatedButton(
-                    onPressed: logIn,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.buttonGrey,
-                      padding: const EdgeInsets.symmetric(horizontal: 70),
-                
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: () => logIn(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.buttonGrey,
+                          padding: const EdgeInsets.symmetric(horizontal: 70),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Log In',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
                 ),
                 
                 const SizedBox(height: 24),
@@ -206,18 +228,53 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void logIn() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement login logic
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
-    }
+  void _showSuccessMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Login successful!'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  void _showErrorMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login failed: $message'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
-}
+
+  Future<void> logIn(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _authService.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      // Store the token securely
+      await StorageService.saveToken(response.token);
+
+      if (!mounted) return;
+
+      _showSuccessMessage(context);
+      // TODO: Navigate to home screen
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorMessage(context, e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+} // End of class
