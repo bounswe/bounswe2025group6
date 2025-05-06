@@ -5,7 +5,9 @@ import '../services/auth_service.dart'; // Import AuthService
 import 'login_screen.dart'; // Import LoginScreen
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final AuthService? authService; // Allow injecting AuthService for testing
+
+  const RegisterPage({super.key, this.authService});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -21,7 +23,14 @@ class _RegisterPageState extends State<RegisterPage> {
   String _userType = 'User'; // Default to 'User'
   PlatformFile? _pdfFile;
   bool _isLoading = false; // Loading state
-  final AuthService _authService = AuthService(); // AuthService instance
+  late final AuthService _authService; // Declare AuthService
+
+  @override
+  void initState() {
+    super.initState();
+    _authService =
+        widget.authService ?? AuthService(); // Initialize AuthService
+  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
