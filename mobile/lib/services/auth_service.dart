@@ -120,7 +120,7 @@ class AuthService {
   Future<void> forgotPassword(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/forgot-password'),
+        Uri.parse('$baseUrl/forgot-password/'), // Added trailing slash
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
