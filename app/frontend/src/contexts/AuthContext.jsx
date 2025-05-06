@@ -6,7 +6,12 @@ import {
   loginUser, 
   logoutUser, 
   getCurrentUser, 
-  isAuthenticated 
+  isAuthenticated,
+  verifyEmail,
+  requestPasswordReset,
+  resetPassword,
+  requestPasswordResetCode,
+  verifyResetCode
 } from '../services/authService';
 
 // Create the context
@@ -19,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userType, setUserType] = useState(null);
 
   // Load user on mount
   useEffect(() => {
@@ -29,6 +35,7 @@ export const AuthProvider = ({ children }) => {
         if (isAuthenticated()) {
           const user = await getCurrentUser();
           setCurrentUser(user);
+          setUserType(user.userType);
         }
       } catch (err) {
         console.error('Error loading user:', err);
@@ -50,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const user = await registerUser(userData);
-      setCurrentUser(user);
+      // Don't set current user since email verification is required
       return user;
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -70,6 +77,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const user = await loginUser(credentials);
       setCurrentUser(user);
+      setUserType(user.userType);
       return user;
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -88,8 +96,101 @@ export const AuthProvider = ({ children }) => {
     try {
       await logoutUser();
       setCurrentUser(null);
+      setUserType(null);
     } catch (err) {
       setError(err.message || 'Logout failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Verify user email
+   * @param {string} token - Email verification token
+   */
+  const handleVerifyEmail = async (token) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await verifyEmail(token);
+      return result;
+    } catch (err) {
+      setError(err.message || 'Email verification failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Request password reset (email link method)
+   * @param {string} email - User email
+   */
+  const handlePasswordReset = async (email) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await requestPasswordReset(email);
+      return result;
+    } catch (err) {
+      setError(err.message || 'Password reset request failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Reset password with token
+   * @param {string} token - Reset token
+   * @param {string} newPassword - New password
+   */
+  const handleResetPassword = async (token, newPassword) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await resetPassword(token, newPassword);
+      return result;
+    } catch (err) {
+      setError(err.message || 'Password reset failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Request password reset code (6-digit method)
+   * @param {string} email - User email
+   */
+  const handleRequestResetCode = async (email) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await requestPasswordResetCode(email);
+      return result;
+    } catch (err) {
+      setError(err.message || 'Reset code request failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Verify password reset code
+   * @param {string} email - User email
+   * @param {string} resetCode - 6-digit reset code
+   */
+  const handleVerifyResetCode = async (email, resetCode) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await verifyResetCode(email, resetCode);
+      return result;
+    } catch (err) {
+      setError(err.message || 'Code verification failed');
       throw err;
     } finally {
       setIsLoading(false);
@@ -99,12 +200,18 @@ export const AuthProvider = ({ children }) => {
   // Context value
   const value = {
     currentUser,
+    userType,
     isAuthenticated: !!currentUser,
     isLoading,
     error,
     register,
     login,
-    logout
+    logout,
+    verifyEmail: handleVerifyEmail,
+    requestPasswordReset: handlePasswordReset,
+    resetPassword: handleResetPassword,
+    requestResetCode: handleRequestResetCode,
+    verifyResetCode: handleVerifyResetCode
   };
 
   return (
