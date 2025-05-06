@@ -1,7 +1,5 @@
 from django.db import models
 from api.models import TimestampedModel
-from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
 
 # Ingredient model that will be used for the recipe
 class Ingredient(TimestampedModel):

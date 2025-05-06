@@ -2,8 +2,7 @@
 from pyexpat import model
 from rest_framework import serializers
 from .models import Ingredient
-from api.serializers import UserRegistrationSerializer  # Import UserSerializer from the appropriate module
-from rest_framework.pagination import PageNumberPagination  # Import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination  
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:

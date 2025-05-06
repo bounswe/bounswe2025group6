@@ -1,16 +1,11 @@
 # recipes/serializers.py
 
-import json
 from rest_framework import serializers
 from .models import Recipe, RecipeIngredient
 from ingredients.models import Ingredient
 from rest_framework.exceptions import ValidationError
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from ingredients.serializers import IngredientSerializer
 from rest_framework.response import Response
-from django.utils import timezone
-
 
 # Used for create request body (input)
 class RecipeIngredientInputSerializer(serializers.Serializer):
