@@ -4,22 +4,18 @@ from rest_framework import serializers
 from forum.models import ForumPost
 
 class ForumPostSerializer(serializers.ModelSerializer):
-    tag_names = serializers.ListField(
-        child=serializers.CharField(),
-        write_only=True
-    )
-    tags = serializers.ListField(child=serializers.CharField(), read_only=True)
+    tags = serializers.ListField(child=serializers.CharField())
 
     class Meta:
         model = ForumPost
         fields = [
             'id', 'title', 'content', 'is_commentable',
             'author', 'view_count', 'like_count',
-            'tags', 'tag_names', 'created_at', 'updated_at', 'deleted_on'
+            'tags', 'created_at', 'updated_at', 'deleted_on'
         ]
         read_only_fields = ['author', 'view_count', 'like_count', 'created_at', 'updated_at', 'deleted_on']
 
-    def validate_tag_names(self, value):
+    def validate_tags(self, value):
         """Validate that all tag names are valid choices."""
         valid_tag_names = [choice.value.lower() for choice in ForumPost.TagChoices]  # Convert to lowercase
         invalid_tags = [name.lower() for name in value if name.lower() not in valid_tag_names]
@@ -32,7 +28,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        tag_names = validated_data.pop('tag_names', [])
+        tag_names = validated_data.pop('tags', [])
         user = self.context['request'].user
         post = ForumPost.objects.create(author=user, **validated_data)
 
