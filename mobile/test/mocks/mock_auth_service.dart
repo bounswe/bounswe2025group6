@@ -34,7 +34,7 @@ class MockAuthService extends Fake implements AuthService {
     throw AuthenticationException('Invalid credentials');
   }
 
-  @override
+  
   Future<void> forgotPassword(String email) async {
     if (_forgotPasswordResponse != null) {
       return await _forgotPasswordResponse!;
