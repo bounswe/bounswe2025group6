@@ -1,5 +1,6 @@
 # forum/serializers.py
 from random import choice
+from django.forms import ValidationError
 from rest_framework import serializers
 from forum.models import ForumPost, ForumPostComment
 import re
@@ -63,9 +64,38 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ForumPostComment
         fields = ['id', 'content', 'author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at']
-        read_only_fields = ['author', 'created_at', 'updated_at']
+        read_only_fields = ['author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at', 'deleted_on']
 
     def create(self, validated_data):
-        post = self.context['view'].kwargs['post_id']  # Get the post id from the URL
-        comment = ForumPostComment.objects.create(post_id=post, **validated_data)
-        return comment
+        # Initialize the comment with zero counts for upvotes, downvotes, and reports
+        validated_data['upvote_count'] = 0
+        validated_data['downvote_count'] = 0
+        validated_data['reported_count'] = 0
+        return super().create(validated_data)
+
+    def perform_create(self, serializer):
+        """
+        This method creates a new comment associated with a post and user.
+        """
+        post = ForumPost.objects.get(id=self.context['view'].kwargs['post_id'])
+
+        # Check if the post is commentable before saving the comment
+        if not post.is_commentable:
+            raise serializers.ValidationError("Cannot comment on a non-commentable post")
+
+        # Save the comment with the associated post and user
+        serializer.save(author=self.context['request'].user, post=post)
+
+    def save(self, *args, **kwargs):
+        # Check if the post is commentable before saving the comment
+        if not self.post.is_commentable:
+            raise ValueError("Cannot comment on a non-commentable post")
+        super().save(*args, **kwargs)
+
+    def update(self, instance, validated_data):
+        # Ensure that upvote_count, downvote_count, and reported_count cannot be updated
+        validated_data.pop('upvote_count', None)
+        validated_data.pop('downvote_count', None)
+        validated_data.pop('reported_count', None)
+
+        return super().update(instance, validated_data)

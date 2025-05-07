@@ -5,6 +5,7 @@ from forum.models import ForumPost, ForumPostComment
 from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes
@@ -54,14 +55,13 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         Create a new comment associated with a post and user.
         """
         post = ForumPost.objects.get(id=self.kwargs['post_id'])
-        serializer.save(author=self.request.user, post=post)
 
-    def create(self, request, *args, **kwargs):
-        """
-        Handle the creation of a comment.
-        """
-        kwargs['post_id'] = self.kwargs['post_id']
-        return super().create(request, *args, **kwargs)
+        # Check if the post is commentable before saving the comment
+        if not post.is_commentable:
+            raise serializers.ValidationError("Cannot comment on a non-commentable post")
+
+        # Save the comment with the associated post and user
+        serializer.save(author=self.request.user, post=post)
 
     def list(self, request, *args, **kwargs):
         """
