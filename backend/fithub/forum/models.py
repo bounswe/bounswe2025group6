@@ -35,5 +35,11 @@ class ForumPost(PostModel):
 class ForumPostComment(CommentModel):
     post = models.ForeignKey('ForumPost', related_name='comments', on_delete=models.CASCADE)
 
+    def save(self, *args, **kwargs):
+        # Check if the post is commentable before saving the comment
+        if not self.post.is_commentable:
+            raise ValueError("Cannot comment on a non-commentable post")
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Comment by {self.author} on Post {self.post.id}"
