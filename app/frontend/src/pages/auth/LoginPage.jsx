@@ -5,7 +5,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
 import '../../styles/AuthPages.css';
 
 const LoginPage = () => {
@@ -57,7 +56,7 @@ const LoginPage = () => {
       <div className="auth-card">
         <div className="auth-header">
           <h1 className="auth-title">Login to Your Account</h1>
-          <p className="auth-subtitle">Welcome back to Meal Planner</p>
+          <p className="auth-subtitle">Welcome back to FitHub</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
           <div>

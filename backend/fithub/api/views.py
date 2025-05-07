@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -8,15 +8,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
-
 from django.contrib.auth.hashers import make_password
-
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
-from drf_spectacular.utils import extend_schema
 from drf_yasg import openapi
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token

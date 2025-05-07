@@ -1,10 +1,10 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework import mixins, viewsets  # Import mixins and viewsets
+from rest_framework import mixins, viewsets
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from .models import Ingredient  # Import the Ingredient model
+from .models import Ingredient
 from .serializers import IngredientSerializer, IngredientPagination
 
 class IngredientViewSet(mixins.ListModelMixin,

@@ -10,6 +10,8 @@ import ProtectedRoute from '../components/auth/ProtectedRoute';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
+import EmailVerificationPage from '../pages/auth/EmailVerificationPage';
 
 // Public pages
 import HomePage from '../pages/HomePage';
@@ -41,6 +43,9 @@ const AppRoutes = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        {/* New auth routes */}
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
       </Route>
       
       {/* Protected routes with MainLayout */}
@@ -158,7 +163,6 @@ const AppRoutes = () => {
           } 
         />
       </Route>
-
       
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />

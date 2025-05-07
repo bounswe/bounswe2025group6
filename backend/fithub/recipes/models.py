@@ -2,7 +2,7 @@ from django.db import models
 from api.models import TimestampedModel
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from ingredients.models import Ingredient  # Adjust the import path based on your project structure
+from ingredients.models import Ingredient 
 from django.utils import timezone
 
 # Recipe model that will be used for the recipe
