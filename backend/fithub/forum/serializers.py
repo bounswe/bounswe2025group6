@@ -60,11 +60,35 @@ class ForumPostSerializer(serializers.ModelSerializer):
 # Serializer for ForumPostComment
 class ForumPostCommentSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)  # This will show the author's username or any string representation of the user
+    queryset = ForumPostComment.objects.filter(deleted_on__isnull=True)
+
+    # Set the lookup_field to post_id to align with the URL pattern
+    lookup_field = 'post_id'  # Set this to match the URL keyword argument
 
     class Meta:
         model = ForumPostComment
         fields = ['id', 'content', 'author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at']
         read_only_fields = ['author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at', 'deleted_on']
+
+    # Make sure the URL passes post_id (not pk)
+    def get_queryset(self):
+        # Get the post_id from URL kwargs
+        post_id = self.kwargs.get('post_id')
+        if not post_id:
+            raise ValidationError("Post ID not provided.")
+
+        # Return comments for the specified post
+        return ForumPostComment.objects.filter(post_id=post_id)
+
+    def perform_create(self, serializer):
+        # Use the post_id from URL kwargs to get the associated ForumPost
+        post = ForumPost.objects.get(id=self.kwargs['post_id'])
+
+        if not post.is_commentable:
+            raise ValidationError("Cannot comment on a non-commentable post.")
+
+        # Create the comment associated with the post and user
+        serializer.save(author=self.request.user, post=post)
 
     def create(self, validated_data):
         # Initialize the comment with zero counts for upvotes, downvotes, and reports
@@ -73,23 +97,14 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
         validated_data['reported_count'] = 0
         return super().create(validated_data)
 
-    def perform_create(self, serializer):
-        """
-        This method creates a new comment associated with a post and user.
-        """
-        post = ForumPost.objects.get(id=self.context['view'].kwargs['post_id'])
+    def save(self, *args, **kwargs):
+        # Access the post from context instead of directly through `self`
+        post = self.context['view'].get_object()
 
         # Check if the post is commentable before saving the comment
         if not post.is_commentable:
-            raise serializers.ValidationError("Cannot comment on a non-commentable post")
-
-        # Save the comment with the associated post and user
-        serializer.save(author=self.context['request'].user, post=post)
-
-    def save(self, *args, **kwargs):
-        # Check if the post is commentable before saving the comment
-        if not self.post.is_commentable:
             raise ValueError("Cannot comment on a non-commentable post")
+
         super().save(*args, **kwargs)
 
     def update(self, instance, validated_data):
