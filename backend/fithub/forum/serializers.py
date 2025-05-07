@@ -1,9 +1,10 @@
 # forum/serializers.py
 from random import choice
 from rest_framework import serializers
-from forum.models import ForumPost
+from forum.models import ForumPost, ForumPostComment
 import re
 
+# Serializer for ForumPost
 class ForumPostSerializer(serializers.ModelSerializer):
     tags = serializers.ListField(child=serializers.CharField())
 
@@ -53,3 +54,18 @@ class ForumPostSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+# Serializer for ForumPostComment
+class ForumPostCommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)  # This will show the author's username or any string representation of the user
+
+    class Meta:
+        model = ForumPostComment
+        fields = ['id', 'content', 'author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at']
+        read_only_fields = ['author', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        post = self.context['view'].kwargs['post_id']  # Get the post id from the URL
+        comment = ForumPostComment.objects.create(post_id=post, **validated_data)
+        return comment
