@@ -1,5 +1,4 @@
 // src/contexts/AuthContext.jsx
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   registerUser, 
@@ -179,15 +178,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Verify password reset code
+   * Verify password reset code and optionally reset password
    * @param {string} email - User email
-   * @param {string} resetCode - 6-digit reset code
+   * @param {string} code - 6-digit reset code
+   * @param {string} newPassword - New password (optional)
    */
-  const handleVerifyResetCode = async (email, resetCode) => {
+  const handleVerifyResetCode = async (email, code, newPassword = null) => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await verifyResetCode(email, resetCode);
+      const result = await verifyResetCode(email, code, newPassword);
       return result;
     } catch (err) {
       setError(err.message || 'Code verification failed');

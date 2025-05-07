@@ -215,7 +215,10 @@ export const isAuthenticated = () => {
  */
 export const requestPasswordReset = async (email) => {
   try {
-    const response = await apiClient.post('/forgot-password/', { email });
+    const response = await apiClient.post(
+            '/request-password-reset-code/',     // ← exact path in urls.py
+            { email }
+          );
     return response.data;
   } catch (error) {
     console.error('Password reset request error:', error.response?.data || error.message);
@@ -258,7 +261,7 @@ export const resetPassword = async (token, newPassword) => {
  */
 export const requestPasswordResetCode = async (email) => {
   try {
-    const response = await apiClient.post('/request-password-reset-code/', { email });
+    const response = await apiClient.post('/request-reset-code/', { email });
     return response.data;
   } catch (error) {
     console.error('Password reset code request error:', error.response?.data || error.message);
@@ -271,23 +274,34 @@ export const requestPasswordResetCode = async (email) => {
 };
 
 /**
- * Verify reset code
+ * Verify reset code and optionally reset password
  * @param {string} email - User email
  * @param {string} resetCode - 6-digit reset code
+ * @param {string} newPassword - New password (optional)
  * @returns {Promise<Object>} Response data
  */
-export const verifyResetCode = async (email, resetCode) => {
+export const verifyResetCode = async (email, resetCode, newPassword = null) => {
   try {
-    const response = await apiClient.post('/verify-reset-code/', {
+    // Create the request data object
+    const requestData = {
       email,
-      reset_code: resetCode
-    });
+      code: resetCode
+    };
+    
+    // Add new password if provided
+    if (newPassword) {
+      requestData.new_password = newPassword;
+    }
+    const response = await apiClient.post(
+            '/verify-reset-code/',               // already correct
+            requestData
+          );
     return response.data;
   } catch (error) {
     console.error('Reset code verification error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail || 
-      error.response?.data?.reset_code?.[0] || 
+      error.response?.data?.code?.[0] || 
       'Invalid reset code. Please try again.'
     );
   }

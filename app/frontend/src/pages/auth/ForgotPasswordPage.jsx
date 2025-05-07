@@ -1,4 +1,4 @@
-// src/pages/auth/ForgotPasswordPage.jsx
+  // src/pages/auth/ForgotPasswordPage.jsx
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -95,6 +95,7 @@ const ForgotPasswordPage = () => {
     if (!validateCode()) return;
     
     try {
+      // Just verify the code without sending a password
       await verifyResetCode(email, resetCode);
       setIsCodeVerified(true);
       setCurrentStep(3);
@@ -105,7 +106,7 @@ const ForgotPasswordPage = () => {
       toast.error(error.message || 'Invalid verification code');
     }
   };
-  
+
   // Validate new password
   const validateNewPassword = () => {
     if (!newPassword) {
@@ -129,8 +130,8 @@ const ForgotPasswordPage = () => {
     if (!validateNewPassword()) return;
     
     try {
-      // In a real implementation, you would call an API endpoint to reset the password with the code
-      // For this example, we'll just show a success message
+      // Send both the code and the new password in the same request
+      await verifyResetCode(email, resetCode, newPassword);
       toast.success('Password has been reset successfully');
       setCurrentStep(4);
     } catch (error) {
@@ -345,8 +346,7 @@ const ForgotPasswordPage = () => {
       default:
         return null;
     }
-  };
-  
+  };  
   return (
     <div className="auth-container">
       <div className="auth-card">
