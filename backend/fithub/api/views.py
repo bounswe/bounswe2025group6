@@ -19,7 +19,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
-                           VerifyPasswordResetCodeSerializer)
+                           VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken)
 
 User = get_user_model()
 
@@ -172,17 +172,40 @@ class RequestResetCodeView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class VerifyResetCodeView(APIView):
     @swagger_auto_schema(
-        operation_description="Verify 6-digit code and reset password.",
+        operation_description="Verify 6-digit password reset code for the given email.",
         request_body=VerifyPasswordResetCodeSerializer,
-        responses={200: "Password reset", 400: "Validation error"}
+        responses={200: "Code verified and temporary token issued", 400: "Validation error"}
     )
     def post(self, request):
         serializer = VerifyPasswordResetCodeSerializer(data=request.data)
         if serializer.is_valid():
+            record = serializer.validated_data['record']
+            record.is_used = True
+            record.save()
+
+            # Create a temporary token
+            token = PasswordResetToken.objects.create(email=record.email)
+
+            return Response(
+                {"detail": "Code verified.", "token": str(token.token)},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class ResetPasswordView(APIView):
+    @swagger_auto_schema(
+        operation_description="Reset password using a temporary token and new password.",
+        request_body=ResetPasswordSerializer,
+        responses={200: "Password reset successful", 400: "Validation error"}
+    )
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
             serializer.save()
-            return Response({"detail": "Password has been successfully reset."})
+            return Response({"detail": "Password has been successfully reset."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class login_view(APIView):
