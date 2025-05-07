@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
+import 'package:fithub/screens/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -265,7 +266,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       _showSuccessMessage(context);
-      // TODO: Navigate to home screen
+      
+      // Navigate to dashboard and remove all previous routes
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const DashboardScreen(),
+        ),
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       _showErrorMessage(context, e.toString());
