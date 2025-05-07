@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:fithub/theme/app_theme.dart';
+import 'package:fithub/services/auth_service.dart';
 
 class CreateNewPasswordPage extends StatefulWidget {
-  const CreateNewPasswordPage({super.key});
+  final String email;
+  final AuthService? authService;
+
+  const CreateNewPasswordPage({
+    required this.email,
+    this.authService,
+    super.key,
+  });
 
   @override
   State<CreateNewPasswordPage> createState() => _CreateNewPasswordPageState();

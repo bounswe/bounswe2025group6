@@ -39,6 +39,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   # Add keyboard_visibility for better keyboard handling
   flutter_keyboard_visibility: ^6.0.0
+  logging: ^1.2.0
 
 dev_dependencies:
   flutter_test:

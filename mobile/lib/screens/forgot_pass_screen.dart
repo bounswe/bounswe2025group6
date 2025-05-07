@@ -112,19 +112,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       });
 
       try {
-        await _authService.forgotPassword(_emailController.text.trim());
+        await _authService.requestPasswordResetCode(_emailController.text.trim());
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Password reset link sent to your email'),
+              content: Text('Password reset code has been sent to your email'),
               backgroundColor: AppTheme.primaryGreen,
             ),
           );
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => VerifyCodeScreen(email: _emailController.text.trim()),
+              builder: (_) => VerifyCodeScreen(
+                email: _emailController.text.trim(),
+                authService: _authService,
+              ),
             ),
           );
         }

@@ -68,4 +68,50 @@ class MockAuthService extends Fake implements AuthService {
       throw AuthenticationException('Email already in use by default mock.');
     }
   }
+
+  @override
+  Future<void> requestPasswordResetCode(String email) async {
+    if (_forgotPasswordResponse != null) {
+      return await _forgotPasswordResponse!;
+    }
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (email == 'test@example.com') {
+      return; // Success case
+    }
+    
+    throw AuthenticationException(
+      'This email address is not registered.',
+      statusCode: 400,
+    );
+  }
+
+  @override
+  Future<void> verifyResetCode(String email, String resetCode) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (email != 'test@example.com') {
+      throw AuthenticationException('Email address not registered.');
+    }
+    
+    if (resetCode != '123456') {
+      throw AuthenticationException(
+        'Invalid reset code.',
+        statusCode: 400,
+      );
+    }
+  }
+
+  Future<void> resetPassword(String email, String password) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (email != 'test@example.com') {
+      throw AuthenticationException('Email address not registered.');
+    }
+    
+    if (password.length < 6) {
+      throw AuthenticationException('Password must be at least 6 characters.');
+    }
+  }
 }
