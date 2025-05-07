@@ -28,8 +28,8 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
     def validate_tag_names(self, value):
         """Validate that all tag names are valid choices."""
-        valid_tag_names = [choice.value for choice in ForumTag.TagChoices]
-        invalid_tags = [name for name in value if name not in valid_tag_names]
+        valid_tag_names = [choice.value.lower() for choice in ForumTag.TagChoices]  # Convert to lowercase
+        invalid_tags = [name.lower() for name in value if name.lower() not in valid_tag_names]  # Compare in lowercase
 
         if invalid_tags:
             raise serializers.ValidationError(
@@ -41,10 +41,12 @@ class ForumPostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tag_names = validated_data.pop('tag_names', [])
         user = self.context['request'].user
-
         post = ForumPost.objects.create(author=user, **validated_data)
 
-        # Assign tags based on tag names
-        forum_tags = ForumTag.objects.filter(name__in=tag_names)
-        post.tags.set(forum_tags)
+        # Normalize tag names (capitalize each tag)
+        normalized_tag_names = [tag_name.strip().capitalize() for tag_name in tag_names]
+
+        # Assign tags based on normalized tag names
+        tags = ForumTag.objects.filter(name__in=normalized_tag_names)
+        post.tags.set(tags)
         return post
