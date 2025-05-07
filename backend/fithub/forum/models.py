@@ -1,6 +1,6 @@
 # forum/models.py
 from django.db import models
-from utils.models import PostModel
+from utils.models import PostModel, CommentModel
 from api.models import TimestampedModel
 
 class ForumPost(PostModel):
@@ -30,3 +30,10 @@ class ForumPost(PostModel):
 
     def __str__(self):
         return f"ForumPost #{self.pk}, {self.title}"
+
+
+class ForumPostComment(CommentModel):
+    post = models.ForeignKey('ForumPost', related_name='comments', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comment by {self.author} on Post {self.post.id}"
