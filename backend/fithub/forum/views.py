@@ -1,8 +1,7 @@
 # forum/views.py
 from rest_framework import viewsets
-from forum.models import ForumPost
-from utils.models import Tag
-from forum.serializers import ForumPostSerializer, TagSerializer
+from forum.models import ForumPost, ForumTag
+from forum.serializers import ForumPostSerializer, ForumTagSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.decorators import permission_classes
 
@@ -15,6 +14,6 @@ class ForumPostViewSet(viewsets.ModelViewSet):
 
 # Only get method is allowed for TagViewSet (ReadOnlyModelViewSet)
 @permission_classes([IsAuthenticatedOrReadOnly])
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
+class ForumTagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ForumTag.objects.all()
+    serializer_class = ForumTagSerializer
