@@ -3,7 +3,7 @@ from django.db import models
 from api.models import TimestampedModel
 
 # Abstract base class for posts, will be used in forum and q/a models
-class Post(TimestampedModel):
+class PostModel(TimestampedModel):
     author = models.ForeignKey('api.RegisteredUser', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     content = models.TextField(max_length=1000)

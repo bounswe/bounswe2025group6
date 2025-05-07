@@ -1,9 +1,9 @@
 # forum/models.py
 from django.db import models
-from utils.models import Post
+from utils.models import PostModel
 from api.models import TimestampedModel
 
-class ForumPost(Post):
+class ForumPost(PostModel):
     # The Post model already has all the necessary fields for a forum post
     # If you need to add any specific fields for ForumPost, you can do so here
 
