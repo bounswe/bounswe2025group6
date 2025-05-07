@@ -24,7 +24,7 @@ class Post(TimeStampedModel):
         return f"Post #{self.pk}, {self.title}"
 
 # Concrete Tag model to categorize posts
-class Tag(models.Model):
+class Tag(TimeStampedModel):
     class TagChoices(models.TextChoices):
         BUDGET = 'Budget'
         MEAL_PREP = 'MealPrep'
