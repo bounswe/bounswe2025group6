@@ -6,16 +6,8 @@ from api.models import TimestampedModel
 class ForumPost(Post):
     # The Post model already has all the necessary fields for a forum post
     # If you need to add any specific fields for ForumPost, you can do so here
-    tags = models.ManyToManyField(
-        'ForumTag',
-        related_name='forum_posts',
-        blank=True,
-    )
 
-    def __str__(self):
-        return f"ForumPost #{self.pk}, {self.title}"
-
-class ForumTag(TimestampedModel):
+    # Define choices for tags inside the ForumPost model
     class TagChoices(models.TextChoices):
         BUDGET = 'Budget'
         MEAL_PREP = 'MealPrep'
@@ -33,16 +25,8 @@ class ForumTag(TimestampedModel):
         HEALTHY_EATING = 'HealthyEating'
         SNACKS = 'Snacks'
 
-    name = models.CharField(
-        max_length=50,
-        choices=TagChoices.choices,
-        unique=True,
-    )
-
-    def save(self, *args, **kwargs):
-        # Normalize the tag name to have the first letter capitalized
-        self.name = self.name.capitalize()  # Ensure the format is consistent ("Tips", "Vegan", etc.)
-        super().save(*args, **kwargs)
+    # Store tags as a list of strings
+    tags = models.JSONField(default=list, blank=True)  # Django 3.1+ supports JSONField
 
     def __str__(self):
-        return self.name
+        return f"ForumPost #{self.pk}, {self.title}"

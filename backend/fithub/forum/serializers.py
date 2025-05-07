@@ -1,35 +1,28 @@
 # forum/serializers.py
+from random import choice
 from rest_framework import serializers
-from forum.models import ForumPost, ForumTag
-
-class ForumTagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ForumTag
-        fields = ['name']
+from forum.models import ForumPost
 
 class ForumPostSerializer(serializers.ModelSerializer):
-    tags = ForumTagSerializer(many=True, read_only=True)
     tag_names = serializers.ListField(
         child=serializers.CharField(),
         write_only=True
     )
+    tags = serializers.ListField(child=serializers.CharField(), read_only=True)
 
     class Meta:
         model = ForumPost
         fields = [
-            'id', 'title',
-            'content', 'is_commentable',
-            'author',
-            'view_count', 'like_count',
-            'tags', 'tag_names',
-            'created_at', 'updated_at', 'deleted_on'
+            'id', 'title', 'content', 'is_commentable',
+            'author', 'view_count', 'like_count',
+            'tags', 'tag_names', 'created_at', 'updated_at', 'deleted_on'
         ]
         read_only_fields = ['author', 'view_count', 'like_count', 'created_at', 'updated_at', 'deleted_on']
 
     def validate_tag_names(self, value):
         """Validate that all tag names are valid choices."""
-        valid_tag_names = [choice.value.lower() for choice in ForumTag.TagChoices]  # Convert to lowercase
-        invalid_tags = [name.lower() for name in value if name.lower() not in valid_tag_names]  # Compare in lowercase
+        valid_tag_names = [choice.value.lower() for choice in ForumPost.TagChoices]  # Convert to lowercase
+        invalid_tags = [name.lower() for name in value if name.lower() not in valid_tag_names]
 
         if invalid_tags:
             raise serializers.ValidationError(
@@ -43,10 +36,11 @@ class ForumPostSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         post = ForumPost.objects.create(author=user, **validated_data)
 
-        # Normalize tag names (capitalize each tag)
+        # Normalize and validate tag names
         normalized_tag_names = [tag_name.strip().capitalize() for tag_name in tag_names]
 
-        # Assign tags based on normalized tag names
-        tags = ForumTag.objects.filter(name__in=normalized_tag_names)
-        post.tags.set(tags)
+        # Assign tags directly as a list of strings (no need for ForumTag model)
+        post.tags = normalized_tag_names
+        post.save()
+
         return post
