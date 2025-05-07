@@ -10,19 +10,19 @@ class ForumPost(Post):
     # Define choices for tags inside the ForumPost model
     class TagChoices(models.TextChoices):
         BUDGET = 'Budget'
-        MEAL_PREP = 'MealPrep'
+        MEAL_PREP = 'Meal Prep'
         FAMILY = 'Family'
-        NO_WASTE = 'NoWaste'
+        NO_WASTE = 'No Waste'
         SUSTAINABILITY = 'Sustainability'
         TIPS = 'Tips'
-        GLUTEN_FREE = 'GlutenFree'
+        GLUTEN_FREE = 'Gluten Free'
         VEGAN = 'Vegan'
         VEGETARIAN = 'Vegetarian'
         QUICK = 'Quick'
         HEALTHY = 'Healthy'
         STUDENT = 'Student'
         NUTRITION = 'Nutrition'
-        HEALTHY_EATING = 'HealthyEating'
+        HEALTHY_EATING = 'Healthy Eating'
         SNACKS = 'Snacks'
 
     # Store tags as a list of strings

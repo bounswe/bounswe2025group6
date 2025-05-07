@@ -12,3 +12,10 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     queryset = ForumPost.objects.all().order_by('-created_at') # Order by created_at descending
     serializer_class = ForumPostSerializer
     pagination_class = StandardPagination
+
+    http_method_names = ['get', 'post', 'put', 'delete']  # Disable PATCH
+
+
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True  # Treat PUT as partial update
+        return super().update(request, *args, **kwargs)
