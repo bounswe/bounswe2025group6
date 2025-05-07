@@ -4,9 +4,11 @@ from utils.pagination import StandardPagination
 from forum.models import ForumPost, ForumPostComment
 from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
-
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import permission_classes
+from django.utils.timezone import now
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostViewSet(viewsets.ModelViewSet):
@@ -35,7 +37,6 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 @permission_classes([IsAuthenticatedOrReadOnly])
-permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostCommentViewSet(viewsets.ModelViewSet):
     serializer_class = ForumPostCommentSerializer
     pagination_class = StandardPagination  # Assuming you have a custom pagination class
@@ -44,8 +45,9 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         """
         Get the comments for a specific post.
         """
-        post = ForumPost.objects.get(id=self.kwargs['post_id'])
-        return post.comments.filter(is_deleted=False)  # Only return non-deleted comments
+        post_id = self.kwargs.get('post_id')
+        post = get_object_or_404(ForumPost, id=post_id)
+        return post.comments.filter(deleted_on__isnull=True)
 
     def perform_create(self, serializer):
         """
@@ -66,7 +68,7 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         List all comments for a specific post.
         """
         post = ForumPost.objects.get(id=self.kwargs['post_id'])
-        comments = post.comments.filter(is_deleted=False)
+        comments = post.comments.filter(deleted_on__isnull=True)
         page = self.paginate_queryset(comments)
         if page is not None:
             serializer = ForumPostCommentSerializer(page, many=True)
@@ -94,6 +96,6 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
             return Response({"detail": "You cannot delete a comment you did not create."}, status=status.HTTP_403_FORBIDDEN)
 
         # Perform soft delete (mark as deleted)
-        comment.is_deleted = True
+        comment.deleted_on = now()
         comment.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
