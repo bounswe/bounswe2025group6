@@ -2,7 +2,7 @@
 from django.test import TestCase
 from api.models import RegisteredUser
 from forum.models import ForumPost
-from api.models import Tag
+from utils.models import Tag
 
 class ForumPostModelTest(TestCase):
     def setUp(self):
