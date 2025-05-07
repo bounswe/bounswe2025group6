@@ -26,15 +26,24 @@ This document describes how to use the Forum API endpoint, which is used for cre
 }
 ```
 
+```json
+TagChoices:
+`Budget', 'Meal Prep',  'Family', 'No Waste',
+'Sustainability', 'Tips', 'Gluten Free',
+'Vegan', 'Vegetarian', 'Quick',
+'Healthy', 'Student', 'Nutrition',
+`Healthy Eating', 'Snacks
+```
+
 ### Fields
 - `id`: Unique identifier for the ingredient (integer).
 - `title`: Title of the post (string).
 - `content`: Content of the post (string).
 - `is_commentable`: Indicates if the post can be commented on (boolean).
 - `author`: ID of the author (integer).
-- `view_count`: Number of views (integer).
+- `view_count`: Number of views (integer). (updated on each detailed get request to that post)
 - `like_count`: Number of likes (integer).
-- `tags`: List of tags associated with the post (array of strings).
+- `tags`: List of tags associated with the post (array of strings) (enum)
 - `created_at`: Timestamp of when the post was created (datetime).
 - `updated_at`: Timestamp of when the post was last updated (datetime).
 - `deleted_on`: Timestamp of when the post was deleted (datetime, nullable).
@@ -89,7 +98,7 @@ This document describes how to use the Forum API endpoint, which is used for cre
 }
 ```
 
-- **Note:**: The `page` and `page_size` parameters are optional. If not provided, the default values are `1` and `10`, respectively.
+- **Note:** The `page` and `page_size` parameters are optional. If not provided, the default values are `1` and `10`, respectively.
 
 #### 📦 Response Format
 ```json
@@ -182,7 +191,7 @@ This document describes how to use the Forum API endpoint, which is used for cre
 }
 ```
 
-- **Note:**: Returns ordered by `created_at` in descending order. New posts appear first.
+- **Note:** Returns ordered by `created_at` in descending order. New posts appear first.
 
 
 ### 3. **GET** `/forum/posts/{id}/`
@@ -191,7 +200,7 @@ This document describes how to use the Forum API endpoint, which is used for cre
 
 Nothing required as a request body, just the URL with the post ID.
 
-- **Note:**: The `id` parameter is required in the URL path
+- **Note:** The `id` parameter is required in the URL path
 
 #### 📦 Response Format
 ```json
@@ -228,7 +237,7 @@ Nothing required as a request body, just the URL with the post ID.
 }
 ```
 
-- **Note:**: The `id` parameter is required in the URL path. All the fields are optional, you can give any number of fields to update. If a field is not provided, it will not be updated and will retain its previous value.
+- **Note:** The `id` parameter is required in the URL path. All the fields are optional, you can give any number of fields to update. If a field is not provided, it will not be updated and will retain its previous value.
 
 #### 📦 Response Format
 ```json
@@ -258,7 +267,7 @@ Nothing required as a request body, just the URL with the post ID.
 
 Nothing required as a request body, just the URL with the post ID.
 
-- **Note:**: The `id` parameter is required in the URL path.
+- **Note:** The `id` parameter is required in the URL path.
 
 #### 📦 Response Format
 ```json
