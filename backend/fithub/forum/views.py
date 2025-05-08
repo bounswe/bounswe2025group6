@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostViewSet(viewsets.ModelViewSet):
-    queryset = ForumPost.objects.all().order_by('-created_at') # Order by created_at descending
+    queryset = ForumPost.objects.filter(deleted_on__isnull=True).order_by('-created_at') # Order by created_at descending (only show non-deleted posts)
     serializer_class = ForumPostSerializer
     pagination_class = StandardPagination
 
