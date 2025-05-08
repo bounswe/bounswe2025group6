@@ -82,7 +82,7 @@ class CommentVote(models.Model):
 class CommentReport(models.Model):
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
     comment = models.ForeignKey(CommentModel, related_name='reports', on_delete=models.CASCADE)
-    reason = models.TextField()
+    reason = models.CharField(max_length=255)
 
     class Meta:
         abstract = True  # This class is abstract and won't create a table directly

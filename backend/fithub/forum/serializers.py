@@ -2,6 +2,7 @@
 from random import choice
 from django.forms import ValidationError
 from rest_framework import serializers
+from utils.models import CommentReport, CommentVote
 from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote, ForumPostCommentReport
 import re
 
@@ -83,24 +84,35 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
 
 # Serializer for ForumPostCommentVote
 class ForumPostCommentVoteSerializer(serializers.ModelSerializer):
+    vote_type = serializers.ChoiceField(choices=CommentVote.VOTE_CHOICES)
     class Meta:
         model = ForumPostCommentVote
         fields = ['user', 'comment', 'vote_type']
+        read_only_fields = ['user', 'comment']
 
-    def validate(self, attrs):
-        # Ensure a user can only vote once per comment
-        if ForumPostCommentVote.objects.filter(user=attrs['user'], comment=attrs['comment']).exists():
+    def create(self, validated_data):
+        user = self.context['user']
+        comment = self.context['comment']
+
+        # Duplicate check here instead of validate()
+        if ForumPostCommentVote.objects.filter(user=user, comment=comment).exists():
             raise serializers.ValidationError("You have already voted on this comment.")
-        return attrs
+
+        return ForumPostCommentVote.objects.create(user=user, comment=comment, **validated_data)
 
 # Serializer for ForumPostCommentReport
 class ForumPostCommentReportSerializer(serializers.ModelSerializer):
+    reason = serializers.CharField(max_length=255)
     class Meta:
         model = ForumPostCommentReport
         fields = ['user', 'comment', 'reason']
+        read_only_fields = ['user', 'comment']
 
-    def validate(self, attrs):
-        # Ensure a user can only report once per comment
-        if ForumPostCommentReport.objects.filter(user=attrs['user'], comment=attrs['comment']).exists():
+    def create(self, validated_data):
+        user = self.context['user']
+        comment = self.context['comment']
+
+        if ForumPostCommentReport.objects.filter(user=user, comment=comment).exists():
             raise serializers.ValidationError("You have already reported this comment.")
-        return attrs
+
+        return ForumPostCommentReport.objects.create(user=user, comment=comment, **validated_data)

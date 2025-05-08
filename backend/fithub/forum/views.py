@@ -2,12 +2,15 @@
 from rest_framework import viewsets
 from utils.pagination import StandardPagination
 from forum.models import ForumPost, ForumPostComment
-from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer
+from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer, ForumPostCommentVoteSerializer, ForumPostCommentReportSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.views import APIView
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes
 from django.utils.timezone import now
@@ -108,3 +111,51 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         comment.deleted_on = now()
         comment.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@permission_classes([IsAuthenticatedOrReadOnly])
+class ForumPostCommentVoteView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Submit a vote on a forum post comment.",
+        request_body=ForumPostCommentVoteSerializer,
+        responses={
+            201: openapi.Response(description="Vote recorded successfully!"),
+            400: openapi.Response(description="Bad request — validation error.")
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        comment_id = kwargs.get('comment_id')
+        comment = get_object_or_404(ForumPostComment, pk=comment_id)
+
+        serializer = ForumPostCommentVoteSerializer(
+            data=request.data,
+            context={'user': request.user, 'comment': comment}
+        )
+        if serializer.is_valid():
+            serializer.save() 
+            return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@permission_classes([IsAuthenticatedOrReadOnly])
+class ForumPostCommentReportView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Report a forum post comment for review.",
+        request_body=ForumPostCommentReportSerializer,
+        responses={
+            201: openapi.Response(description="Report submitted successfully!"),
+            400: openapi.Response(description="Bad request — validation error.")
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        comment_id = kwargs.get('comment_id')
+        comment = get_object_or_404(ForumPostComment, pk=comment_id)
+
+        serializer = ForumPostCommentReportSerializer(
+            data=request.data,
+            context={'user': request.user, 'comment': comment}
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Report submitted successfully!"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
