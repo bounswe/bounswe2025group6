@@ -1,8 +1,8 @@
 # forum/views.py
 from rest_framework import viewsets
 from utils.pagination import StandardPagination
-from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote
-from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer, ForumPostCommentVoteSerializer
+from forum.models import ForumPost, ForumPostVote, ForumPostComment, ForumPostCommentVote
+from forum.serializers import ForumPostSerializer, ForumPostVoteSerializer, ForumPostCommentSerializer, ForumPostCommentVoteSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import serializers
@@ -43,6 +43,75 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         # Serialize and return the post
         serializer = self.get_serializer(post)
         return Response(serializer.data)
+
+@permission_classes([IsAuthenticatedOrReadOnly])
+class ForumPostVoteView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Submit a vote on a forum post.",
+        request_body=ForumPostVoteSerializer,
+        responses={
+            201: openapi.Response(description="Vote recorded successfully!"),
+            400: openapi.Response(description="Bad request — validation error.")
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        post_id = kwargs.get('post_id')
+        post = get_object_or_404(ForumPost, pk=post_id)
+
+        serializer = ForumPostVoteSerializer(
+            data=request.data,
+            context={'user': request.user, 'post': post}
+        )
+        if serializer.is_valid():
+            serializer.save()
+
+            # Update vote count based on vote type
+            vote_type = request.data.get("vote_type")
+
+            if vote_type == 'up':
+                post.increment_upvote()
+            elif vote_type == 'down':
+                post.decrement_downvote()
+
+            return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
+
+        return Response({"message": "You have already voted on this post!"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Delete a vote on a forum post.",
+        request_body=ForumPostVoteSerializer,
+        responses={
+            204: openapi.Response(description="Vote deleted successfully!"),
+            400: openapi.Response(description="Bad request — validation error."),
+            404: openapi.Response(description="Vote or post not found."),
+        }
+    )
+    def delete(self, request, *args, **kwargs):
+        post_id = kwargs.get('post_id')
+        post = get_object_or_404(ForumPost, pk=post_id)
+
+        # Find the user's vote for the post
+        vote = ForumPostVote.objects.filter(user=request.user, post=post, deleted_on__isnull=True).first()  # Update filter to use post
+
+        if not vote:
+            return Response({"message": "No vote found to delete for this post."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Delete the vote
+        vote.delete()
+
+        # Update vote count based on vote type
+        vote_type = vote.vote_type
+
+        if vote_type == 'up':
+            post.decrement_upvote()
+        elif vote_type == 'down':
+            post.decrement_downvote()
+
+        return Response({"message": "Vote deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
+
+
+### VIEWS FOR COMMENTS ###
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostCommentViewSet(viewsets.ModelViewSet):

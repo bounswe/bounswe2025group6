@@ -2,7 +2,7 @@
 from random import choice
 from django.forms import ValidationError
 from rest_framework import serializers
-from utils.models import CommentVote
+from utils.models import CommentVoteModel, PostVoteModel
 from forum.models import ForumPost, ForumPostVote, ForumPostComment, ForumPostCommentVote
 import re
 
@@ -14,10 +14,10 @@ class ForumPostSerializer(serializers.ModelSerializer):
         model = ForumPost
         fields = [
             'id', 'title', 'content', 'is_commentable',
-            'author', 'view_count', 'like_count',
+            'author', 'view_count', 'upvote_count', 'downvote_count',
             'tags', 'created_at', 'updated_at', 'deleted_on'
         ]
-        read_only_fields = ['author', 'view_count', 'like_count', 'created_at', 'updated_at', 'deleted_on']
+        read_only_fields = ['author', 'view_count', 'upvote_count', 'downvote_count', 'created_at', 'updated_at', 'deleted_on']
 
     def normalize_tag(self, tag_name):
         """Normalize tag names by removing extra spaces and capitalizing."""
@@ -60,7 +60,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
 
 # Serializer for ForumPostVote
 class ForumPostVoteSerializer(serializers.ModelSerializer):
-    vote_type = serializers.ChoiceField(choices=CommentVote.VOTE_CHOICES)
+    vote_type = serializers.ChoiceField(choices=PostVoteModel.VOTE_CHOICES)
     class Meta:
         model = ForumPostVote
         fields = ['user', 'post', 'vote_type']
@@ -130,7 +130,7 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
 
 # Serializer for ForumPostCommentVote
 class ForumPostCommentVoteSerializer(serializers.ModelSerializer):
-    vote_type = serializers.ChoiceField(choices=CommentVote.VOTE_CHOICES)
+    vote_type = serializers.ChoiceField(choices=CommentVoteModel.VOTE_CHOICES)
     class Meta:
         model = ForumPostCommentVote
         fields = ['user', 'comment', 'vote_type']

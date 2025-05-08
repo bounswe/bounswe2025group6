@@ -9,13 +9,65 @@ class PostModel(TimestampedModel):
     content = models.TextField(max_length=1000)
     is_commentable = models.BooleanField(default=True)
     view_count = models.PositiveIntegerField(default=0)
-    like_count = models.PositiveIntegerField(default=0)
+    upvote_count = models.PositiveIntegerField(default=0)
+    downvote_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
 
+    def increment_upvote(self):
+        """Increase the upvote count when a user upvotes this post."""
+        self.upvote_count += 1
+        self.save()
+
+    def decrement_upvote(self):
+        """Decrease the upvote count when a user removes their upvote."""
+        self.upvote_count -= 1
+        self.save()
+
+    def increment_downvote(self):
+        """Increase the downvote count when a user downvotes this post."""
+        self.downvote_count += 1
+        self.save()
+
+    def decrement_downvote(self):
+        """Decrease the downvote count when a user removes their downvote."""
+        self.downvote_count -= 1
+        self.save()
+
+
+    def increment_reported(self):
+        """Increase the reported count when a user reports this post."""
+        self.reported_count += 1
+        self.save()
+
+    def decrement_reported(self):
+        """Decrease the reported count when a user removes their report."""
+        self.reported_count -= 1
+        self.save()
+
     def __str__(self):
         return f"Post #{self.pk}, {self.title}"
+
+# Abstract base class for Post Votes
+class PostVoteModel(TimestampedModel):
+    VOTE_CHOICES = [
+        ('up', 'Upvote'),
+        ('down', 'Downvote'),
+    ]
+
+    user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
+    post = models.ForeignKey(PostModel, related_name='votes', on_delete=models.CASCADE)
+    vote_type = models.CharField(max_length=5, choices=VOTE_CHOICES)
+
+    class Meta:
+        abstract = True  # This class is abstract and won't create a table directly
+
+    def __str__(self):
+        return f"Vote by {self.user} on post {self.post.id} with type {self.vote_type}"
+
+### MODELS FOR COMMENTS ###
+
 
 # Abstract base class for comments, will be used in forum and q/a models
 class CommentModel(TimestampedModel):
@@ -85,8 +137,9 @@ class CommentModel(TimestampedModel):
         """Get all replies (children) to this comment."""
         return self.replies.all()
 
+
 # Abstract base class for Comment Votes
-class CommentVote(TimestampedModel):
+class CommentVoteModel(TimestampedModel):
     VOTE_CHOICES = [
         ('up', 'Upvote'),
         ('down', 'Downvote'),
