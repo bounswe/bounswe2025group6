@@ -1,8 +1,7 @@
-# forum/tests.py
+# forum/tests/post_tests/test_posts.py
 from django.test import TestCase
 from api.models import RegisteredUser
-from forum.models import ForumPost
-from utils.models import Tag
+from forum.models import ForumPost, ForumPostComment
 
 class ForumPostModelTest(TestCase):
     def setUp(self):
@@ -13,10 +12,6 @@ class ForumPostModelTest(TestCase):
             password='testpassword'
         )
 
-        # Create some tags
-        self.tag1 = Tag.objects.create(name='Budget')
-        self.tag2 = Tag.objects.create(name='Vegan')
-
         # Create a forum post
         self.forum_post = ForumPost.objects.create(
             author=self.user,
@@ -24,33 +19,36 @@ class ForumPostModelTest(TestCase):
             content="This is a test content for the forum post."
         )
 
-        # Add tags to the forum post
-        self.forum_post.tags.add(self.tag1, self.tag2)
+        # Add tags directly to the forum post (using JSONField)
+        self.forum_post.tags = ["Budget", "Vegan"]
+        self.forum_post.save()
 
     def test_forum_post_creation(self):
-        # Test that the ForumPost was created successfully
+        """Test the creation of a ForumPost"""
         forum_post = self.forum_post
         self.assertEqual(forum_post.title, "Test Forum Post")
         self.assertEqual(forum_post.content, "This is a test content for the forum post.")
         self.assertEqual(forum_post.author, self.user)
         self.assertTrue(forum_post.is_commentable)  # By default is_commentable is True
         self.assertEqual(forum_post.view_count, 0)  # Default view_count
-        self.assertEqual(forum_post.like_count, 0)  # Default like_count
+        self.assertEqual(forum_post.upvote_count, 0)  # Default upvote_count
+        self.assertEqual(forum_post.downvote_count, 0)
 
     def test_forum_post_tags(self):
-        # Ensure that tags are added correctly to the ForumPost
+        """Ensure tags are added correctly to the ForumPost"""
         forum_post = self.forum_post
-        self.assertIn(self.tag1, forum_post.tags.all())
-        self.assertIn(self.tag2, forum_post.tags.all())
+        self.assertIn("Budget", forum_post.tags)
+        self.assertIn("Vegan", forum_post.tags)
 
     def test_forum_post_field_defaults(self):
-        # Test that default fields are set correctly
+        """Test that default fields are set correctly"""
         forum_post = self.forum_post
         self.assertTrue(forum_post.is_commentable)
         self.assertEqual(forum_post.view_count, 0)
-        self.assertEqual(forum_post.like_count, 0)
+        self.assertEqual(forum_post.upvote_count, 0)
+        self.assertEqual(forum_post.downvote_count, 0)
 
     def test_forum_post_str_method(self):
-        # Check that the string representation is correct
+        """Check that the string representation is correct"""
         forum_post = self.forum_post
         self.assertEqual(str(forum_post), f"ForumPost #{forum_post.pk}, {forum_post.title}")

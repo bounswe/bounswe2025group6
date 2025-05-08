@@ -1,7 +1,8 @@
 # forum/models.py
 from django.db import models
-from utils.models import PostModel
+from utils.models import PostModel, PostVoteModel, CommentModel, CommentVoteModel
 from api.models import TimestampedModel
+from django.utils.timezone import now
 
 class ForumPost(PostModel):
     # The Post model already has all the necessary fields for a forum post
@@ -30,3 +31,26 @@ class ForumPost(PostModel):
 
     def __str__(self):
         return f"ForumPost #{self.pk}, {self.title}"
+
+class ForumPostVote(PostVoteModel):
+    post = models.ForeignKey(ForumPost, related_name='votes', on_delete=models.CASCADE)
+    """Model for voting on forum posts. Extends PostVote."""
+    pass
+
+
+### MODELS FOR COMMENTS ###
+
+class ForumPostComment(CommentModel):
+    post = models.ForeignKey('ForumPost', related_name='comments', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comment by {self.author} on Post {self.post.id}"
+
+    def get_replies(self):
+        """Get all replies (children) to this comment."""
+        return self.replies.all()
+
+class ForumPostCommentVote(CommentVoteModel):
+    comment = models.ForeignKey(ForumPostComment, related_name='votes', on_delete=models.CASCADE)
+    """Model for voting on comments in forum posts. Extends CommentVote."""
+    pass
