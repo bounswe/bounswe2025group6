@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fithub/screens/register_screen.dart';
-import 'package:fithub/screens/login_screen.dart'; // Import LoginScreen
-import 'package:fithub/services/auth_service.dart'; // Import AuthenticationException
-import 'mocks/mock_auth_service.dart'; // Import MockAuthService
+import 'package:fithub/screens/login_screen.dart'; 
+import 'package:fithub/services/auth_service.dart'; 
+import 'mocks/mock_auth_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

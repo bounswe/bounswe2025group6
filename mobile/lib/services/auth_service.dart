@@ -117,25 +117,125 @@ class AuthService {
     }
   } // End of register method
 
-  Future<void> forgotPassword(String email) async {
+  Future<void> requestPasswordResetCode(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/forgot-password/'), // Added trailing slash
+        Uri.parse('$baseUrl/request-password-reset-code/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
 
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw AuthenticationException(
+          error['email']?[0] ?? error['detail'] ?? 'Failed to send reset code',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw AuthenticationException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<String> verifyResetCode(String email, String resetCode) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-reset-code/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': resetCode,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return data['token'];
+      } else {
+        // Handle specific error messages from the API
+        if (data.containsKey('non_field_errors')) {
+          throw AuthenticationException(
+            data['non_field_errors'][0],
+            statusCode: response.statusCode,
+          );
+        } else if (data.containsKey('email')) {
+          throw AuthenticationException(
+            data['email'][0],
+            statusCode: response.statusCode,
+          );
+        } else if (data.containsKey('code')) {
+          throw AuthenticationException(
+            data['code'][0],
+            statusCode: response.statusCode,
+          );
+        }
+        // Default error message
+        throw AuthenticationException(
+          data['detail'] ?? 'Invalid or expired code',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw AuthenticationException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<void> resetPassword(String token, String newPassword) async {
+    if (newPassword.length < 8) {  
+      throw AuthenticationException('Password must be at least 8 characters.');
+    }
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/reset-password/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': token,
+          'new_password': newPassword,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw AuthenticationException(
+          error['non_field_errors']?[0] ?? 'Failed to reset password',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw AuthenticationException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<void> logout(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/logout/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
       switch (response.statusCode) {
         case 200:
-          return; // Success, email sent
+          return; // Successful logout
         case 400:
-          throw AuthenticationException(
-            'Invalid email address.',
-            statusCode: 400,
-          );
+          throw AuthenticationException('Logout failed: No token found');
+        case 401:
+          throw AuthenticationException('Logout failed: User not authenticated');
         default:
           throw AuthenticationException(
-            'An error occurred. Please try again later.',
+            'An error occurred during logout. Please try again later.',
             statusCode: response.statusCode,
           );
       }
@@ -143,7 +243,7 @@ class AuthService {
       if (e is AuthenticationException) {
         rethrow;
       }
-      throw AuthenticationException('Network error: ${e.toString()}');
+      throw AuthenticationException('Network error during logout: ${e.toString()}');
     }
   }
 }

@@ -34,7 +34,7 @@ class MockAuthService extends Fake implements AuthService {
     throw AuthenticationException('Invalid credentials');
   }
 
-  @override
+  
   Future<void> forgotPassword(String email) async {
     if (_forgotPasswordResponse != null) {
       return await _forgotPasswordResponse!;
@@ -66,6 +66,36 @@ class MockAuthService extends Fake implements AuthService {
     }
     if (email == 'existing@example.com') {
       throw AuthenticationException('Email already in use by default mock.');
+    }
+  }
+
+  @override
+  Future<void> requestPasswordResetCode(String email) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (email != 'test@example.com') {
+      throw AuthenticationException('This email address is not registered.');
+    }
+  }
+
+  @override
+  Future<String> verifyResetCode(String email, String resetCode) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (resetCode != '123456') {
+      throw AuthenticationException('Invalid reset code.');
+    }
+    return 'mock-verification-token';
+  }
+
+  @override
+  Future<void> resetPassword(String email, String password) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (email != 'test@example.com') {
+      throw AuthenticationException('Email address not registered.');
+    }
+    
+    if (password.length < 6) {
+      throw AuthenticationException('Password must be at least 6 characters.');
     }
   }
 }

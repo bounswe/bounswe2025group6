@@ -6,6 +6,7 @@ import './mocks/mock_auth_service.dart';
 import 'dart:async';
 import 'package:fithub/models/login_response.dart';
 import 'package:fithub/services/auth_service.dart';
+import 'package:fithub/screens/dashboard_screen.dart';
 
 void main() {
   late MockAuthService mockAuthService;
@@ -154,6 +155,42 @@ void main() {
         find.text('Login failed: Invalid credentials'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('Successful login navigates to dashboard', (WidgetTester tester) async {
+      final loginCompleter = Completer<LoginResponse>();
+      mockAuthService.setLoginResponse(loginCompleter);
+
+      await tester.pumpWidget(MaterialApp(
+        home: LoginScreen(authService: mockAuthService),
+      ));
+
+      // Enter valid credentials
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'test@example.com',
+      );
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        'password123',
+      );
+
+      // Tap login button
+      await tester.tap(find.text('Log In'));
+      await tester.pump();
+
+      // Complete the API call
+      loginCompleter.complete(LoginResponse(
+        email: 'test@example.com',
+        token: 'mock_token',
+      ));
+
+      // Wait for navigation
+      await tester.pumpAndSettle();
+
+      // Verify navigation to dashboard
+      expect(find.byType(DashboardScreen), findsOneWidget);
+      expect(find.text('Welcome back!'), findsOneWidget);
     });
   });
 }
