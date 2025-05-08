@@ -14,12 +14,14 @@ from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
-
+from .models import RegisteredUser, RecipeRating
+from recipes.models import Recipe  # Import from recipes app
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
-                           VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken)
+                           VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
 
 User = get_user_model()
 
@@ -258,3 +260,92 @@ class logout_view(APIView):
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:
             return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class RegisteredUserViewSet(viewsets.ModelViewSet):
+    queryset = RegisteredUser.objects.all()
+    serializer_class = RegisteredUserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
+
+    # Custom action to follow/unfollow a user
+    @action(detail=True, methods=['post'])
+    def follow(self, request, pk=None):
+        user_to_follow = self.get_object()
+        current_user = request.user
+
+        if current_user == user_to_follow:
+            return Response(
+                {"error": "You cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if current_user.followedUsers.filter(pk=user_to_follow.pk).exists():
+            current_user.followedUsers.remove(user_to_follow)
+            return Response({"status": "unfollowed"})
+        else:
+            current_user.followedUsers.add(user_to_follow)
+            return Response({"status": "followed"})
+
+    # Custom action to bookmark a recipe
+    @action(detail=False, methods=['post'])
+    def bookmark_recipe(self, request):
+        recipe_id = request.data.get('recipe_id')
+        if not recipe_id:
+            return Response(
+                {"error": "recipe_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        current_user = request.user
+        current_user.bookmarkRecipes.add(recipe_id)
+        return Response({"status": "recipe bookmarked"})
+
+    # Custom action to rate a recipe
+    @action(detail=False, methods=['post'])
+    def rate_recipe(self, request):
+        serializer = RecipeRatingSerializer(data=request.data)
+        if serializer.is_valid():
+            recipe_id = serializer.validated_data['recipe_id']
+            rating = serializer.validated_data['rating']
+
+            # Prevent duplicate ratings
+            if RecipeRating.objects.filter(
+                user=request.user, 
+                recipe_id=recipe_id
+            ).exists():
+                return Response(
+                    {"error": "You have already rated this recipe."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Save the rating
+            RecipeRating.objects.create(
+                user=request.user,
+                recipe_id=recipe_id,
+                rating=rating,
+            )
+
+            # Update the user's avgRecipeRating (example logic)
+            self.update_avg_rating(request.user)
+            return Response({"status": "rating saved"})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update_avg_rating(self, user):
+        """Helper method to update a user's average recipe rating."""
+        ratings = RecipeRating.objects.filter(user=user)
+        if ratings.exists():
+            avg = sum(r.rating for r in ratings) / ratings.count()
+            user.avgRecipeRating = avg
+            user.save()
+
+
+# ViewSet for Recipe Ratings
+class RecipeRatingViewSet(viewsets.ModelViewSet):
+    queryset = RecipeRating.objects.all()
+    serializer_class = RecipeRatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

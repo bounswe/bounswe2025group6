@@ -1,7 +1,15 @@
 # myproject/urls.py
-from django.urls import path 
+from django.urls import path , include
 from . import views
+from rest_framework.routers import DefaultRouter
 from .views import register_user, forgot_password, password_reset, verify_email, login_view, logout_view, RequestResetCodeView, VerifyResetCodeView, ResetPasswordView
+from .views import RegisteredUserViewSet, RecipeRatingViewSet
+
+# Initialize the router
+router = DefaultRouter()
+router.register(r'users', RegisteredUserViewSet)
+router.register(r'recipe-ratings', RecipeRatingViewSet)
+
 
 urlpatterns = [
     path('register/', views.register_user, name='register_user'),
@@ -13,4 +21,5 @@ urlpatterns = [
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('login/', login_view.as_view(), name='login_view'),
     path('logout/', logout_view.as_view(), name='logout_view'),
+    path('', include(router.urls)),
 ]
