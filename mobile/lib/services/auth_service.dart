@@ -205,4 +205,35 @@ class AuthService {
       throw AuthenticationException('Network error: ${e.toString()}');
     }
   }
+
+  Future<void> logout(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/logout/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      switch (response.statusCode) {
+        case 200:
+          return; // Successful logout
+        case 400:
+          throw AuthenticationException('Logout failed: No token found');
+        case 401:
+          throw AuthenticationException('Logout failed: User not authenticated');
+        default:
+          throw AuthenticationException(
+            'An error occurred during logout. Please try again later.',
+            statusCode: response.statusCode,
+          );
+      }
+    } catch (e) {
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw AuthenticationException('Network error during logout: ${e.toString()}');
+    }
+  }
 }
