@@ -2,6 +2,7 @@
 from django.db import models
 from utils.models import PostModel, CommentModel, CommentVote
 from api.models import TimestampedModel
+from django.utils.timezone import now
 
 class ForumPost(PostModel):
     # The Post model already has all the necessary fields for a forum post
@@ -28,20 +29,19 @@ class ForumPost(PostModel):
     # Store tags as a list of strings
     tags = models.JSONField(default=list, blank=True)  # Django 3.1+ supports JSONField
 
+    def delete_comments(self):
+        """
+        Soft delete all comments related to this post.
+        """
+        comments = self.comments.filter(deleted_on__isnull=True)
+        comments.update(deleted_on=now())
+
     def __str__(self):
         return f"ForumPost #{self.pk}, {self.title}"
 
 
 class ForumPostComment(CommentModel):
     post = models.ForeignKey('ForumPost', related_name='comments', on_delete=models.CASCADE)
-
-    # Check if the post is commentable before saving the comment
-    def save(self, *args, **kwargs):
-        if self.parent_comment and not self.parent_comment.post == self.post:
-            raise ValueError("Cannot reply to a comment from a different post.")
-        if not self.post.is_commentable:
-            raise ValueError("Cannot comment on a non-commentable post.")
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Comment by {self.author} on Post {self.post.id}"

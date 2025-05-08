@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -38,10 +39,23 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(post)
         return Response(serializer.data)
 
+    def soft_delete_post(self, request, *args, **kwargs):
+        post_id = self.kwargs.get('post_id')
+        post = get_object_or_404(ForumPost, id=post_id)
+
+        # Mark the post as deleted (soft delete)
+        post.deleted_on = now()
+        post.save()
+
+        # Soft delete related comments
+        post.delete_comments()
+
+        return Response({"detail": "Post and associated comments have been soft-deleted."}, status=status.HTTP_204_NO_CONTENT)
+
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostCommentViewSet(viewsets.ModelViewSet):
     serializer_class = ForumPostCommentSerializer
-    pagination_class = StandardPagination  # Assuming you have a custom pagination class
+    pagination_class = StandardPagination
 
     def get_queryset(self):
         """
@@ -51,43 +65,65 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         post = get_object_or_404(ForumPost, id=post_id)
         return post.comments.filter(deleted_on__isnull=True)
 
+    def create(self, request, *args, **kwargs):
+        post = get_object_or_404(ForumPost, id=self.kwargs['post_id'])
+        serializer = self.get_serializer(data=request.data)
+        serializer.context['post'] = post
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save(author=request.user, post=post)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except ValidationError as e:
+            message = str(e.detail)
+
+            if "deleted post" in message.lower():
+                return Response({"detail": e.detail}, status=status.HTTP_404_NOT_FOUND)
+            elif "non-commentable" in message.lower():
+                return Response({"detail": e.detail}, status=status.HTTP_403_FORBIDDEN)
+            elif "reply to a comment from a different post" in message.lower():
+                return Response({"detail": e.detail}, status=status.HTTP_409_CONFLICT)
+            else:
+                return Response({"detail": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Leave perform_create clean
     def perform_create(self, serializer):
-        """
-        Create a new comment associated with a post and user.
-        """
-        post = ForumPost.objects.get(id=self.kwargs['post_id'])
-
-        # Check if the post is commentable before saving the comment
-        if not post.is_commentable:
-            raise serializers.ValidationError("Cannot comment on a non-commentable post")
-
-        # Save the comment with the associated post and user
+        post = self.serializer_context['post']
         serializer.save(author=self.request.user, post=post)
 
     def list(self, request, *args, **kwargs):
         """
         List all comments for a specific post.
         """
-        post = ForumPost.objects.get(id=self.kwargs['post_id'])
+        post_id = self.kwargs.get('post_id')
+        post = get_object_or_404(ForumPost, id=post_id)
+
+        if post.deleted_on:
+            return Response({"detail": "Post is deleted."}, status=status.HTTP_404_NOT_FOUND)
+        if not post.is_commentable:
+            return Response({"detail": "Comments are disabled for this post."}, status=status.HTTP_403_FORBIDDEN)
+
         comments = post.comments.filter(deleted_on__isnull=True)
         page = self.paginate_queryset(comments)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(page if page is not None else comments, many=True)
 
-        serializer = self.get_serializer(comments, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data) if page else Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         """
         Get a single comment's details.
         """
+        post_id = self.kwargs.get('post_id')
+        comment_id = self.kwargs.get('comment_id')
 
-        # Get the comment instance, if it exists
-        try:
-            comment = self.get_queryset().get(id=self.kwargs['comment_id'])
-        except ObjectDoesNotExist:
-            return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+        post = get_object_or_404(ForumPost, id=post_id)
+        if post.deleted_on:
+            return Response({"detail": "Post is deleted."}, status=status.HTTP_404_NOT_FOUND)
+        if not post.is_commentable:
+            return Response({"detail": "Comments are disabled for this post."}, status=status.HTTP_403_FORBIDDEN)
+
+        comment = get_object_or_404(post.comments.filter(deleted_on__isnull=True), id=comment_id)
 
         serializer = self.get_serializer(comment)
         return Response(serializer.data)
@@ -98,10 +134,7 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         Only the author can delete their comment.
         """
         # Get the comment instance, if it exists
-        try:
-            comment = self.get_queryset().get(id=self.kwargs['comment_id'])
-        except ObjectDoesNotExist:
-            return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+        comment = get_object_or_404(self.get_queryset(), id=self.kwargs['comment_id'])
 
         # Check if the user is the author of the comment
         if comment.author != request.user:

@@ -67,6 +67,20 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'content', 'author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at', 'deleted_on']
         read_only_fields = ['author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at', 'deleted_on']
 
+    def validate(self, data):
+        post = self.context.get('post')
+        parent_comment = data.get('parent_comment')
+
+        if post is None:
+            raise serializers.ValidationError("Post is not found.")
+        if post.deleted_on:
+            raise serializers.ValidationError("Cannot comment on a deleted post.")
+        if not post.is_commentable:
+            raise serializers.ValidationError("Cannot comment on a non-commentable post.")
+        if parent_comment and parent_comment.post != post:
+            raise serializers.ValidationError("Cannot reply to a comment from a different post.")
+        return data
+
     def create(self, validated_data):
         # Initialize the comment with zero counts for upvotes, downvotes, and reports
         validated_data['upvote_count'] = 0
