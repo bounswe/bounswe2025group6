@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from .models import RegisteredUser, Dietitian
 from django.contrib.auth.models import User
-from .models import PasswordResetCode
+from .models import PasswordResetCode, PasswordResetToken
 from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -105,7 +105,6 @@ class RequestPasswordResetCodeSerializer(serializers.Serializer):
 class VerifyPasswordResetCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(min_length=6, max_length=6)
-    new_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate(self, data):
         try:
@@ -120,13 +119,32 @@ class VerifyPasswordResetCodeSerializer(serializers.Serializer):
         data['record'] = record
         return data
 
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, data):
+        try:
+            reset_token = PasswordResetToken.objects.get(token=data['token'])
+        except PasswordResetToken.DoesNotExist:
+            raise serializers.ValidationError("Invalid or expired token.")
+
+        if reset_token.is_expired():
+            raise serializers.ValidationError("The token has expired.")
+
+        try:
+            user = User.objects.get(email=reset_token.email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
+
+        data['user'] = user
+        data['reset_token'] = reset_token
+        return data
+
     def save(self):
         user = self.validated_data['user']
-        new_password = self.validated_data['new_password']
-        record = self.validated_data['record']
-
-        user.set_password(new_password)
+        user.set_password(self.validated_data['new_password'])
         user.save()
 
-        record.is_used = True
-        record.save()
+        self.validated_data['reset_token'].delete()
