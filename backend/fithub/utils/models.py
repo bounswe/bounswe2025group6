@@ -73,6 +73,7 @@ class CommentVote(models.Model):
 
     class Meta:
         abstract = True  # This class is abstract and won't create a table directly
+        unique_together = ('user', 'comment')  # Ensure one vote per user per comment
 
     def __str__(self):
         return f"Vote by {self.user} on comment {self.comment.id} with type {self.vote_type}"
@@ -85,6 +86,7 @@ class CommentReport(models.Model):
 
     class Meta:
         abstract = True  # This class is abstract and won't create a table directly
+        unique_together = ('user', 'comment') # Ensure one report per user per comment
 
     def __str__(self):
         return f"Report by {self.user} on comment {self.comment.id}"

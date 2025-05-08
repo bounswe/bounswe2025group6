@@ -1,6 +1,6 @@
 # forum/models.py
 from django.db import models
-from utils.models import PostModel, CommentModel
+from utils.models import PostModel, CommentModel, CommentVote, CommentReport
 from api.models import TimestampedModel
 
 class ForumPost(PostModel):
@@ -49,3 +49,14 @@ class ForumPostComment(CommentModel):
     def get_replies(self):
         """Get all replies (children) to this comment."""
         return self.replies.all()
+
+class ForumPostCommentVote(CommentVote):
+    comment = models.ForeignKey(ForumPostComment, related_name='votes', on_delete=models.CASCADE)
+    """Model for voting on comments in forum posts. Extends CommentVote."""
+    pass
+
+
+class ForumPostCommentReport(CommentReport):
+    comment = models.ForeignKey(ForumPostComment, related_name='reports', on_delete=models.CASCADE)
+    """Model for reporting comments on forum posts. Extends CommentReport."""
+    pass
