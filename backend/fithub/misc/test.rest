@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
   "username": "ozgur2",
-  "email": "savascio@unhcr.com",
+  "email": "savascio@unhcr.org",
   "password": "123",
   "usertype": "user"
 }

@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from api.models import RegisteredUser
 from recipes.models import Recipe
 from datetime import datetime
@@ -154,3 +155,27 @@ class RegisteredUserModelTest(TestCase):
         """Test string representation"""
         user = RegisteredUser.objects.create(**self.user_data)
         self.assertEqual(str(user), user.username)
+
+class UserIdLookupTests(TestCase):
+    def setUp(self):
+        self.user = RegisteredUser.objects.create_user(
+            email='test@example.com',
+            username='testuser',
+            password='testpass123'
+        )
+
+    def test_valid_email_lookup(self):
+        url = reverse('get-user-id') + '?email=test@example.com'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['id'], self.user.id)
+
+    def test_missing_email(self):
+        url = reverse('get-user-id')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_email(self):
+        url = reverse('get-user-id') + '?email=wrong@example.com'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)

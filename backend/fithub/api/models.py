@@ -116,7 +116,7 @@ class RecipeRating(models.Model):
         on_delete=models.CASCADE,
         related_name='ratings'
     )
-    rating = models.FloatField(
+    taste_rating = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
     )
     timestamp = models.DateTimeField(auto_now_add=True)

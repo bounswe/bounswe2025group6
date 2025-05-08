@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 from recipes.models import Recipe  # Import from recipes app
+from .models import RegisteredUser, RecipeRating
 
 User = get_user_model()
 
@@ -152,7 +153,6 @@ class ResetPasswordSerializer(serializers.Serializer):
         self.validated_data['reset_token'].delete()
 
 
-from .models import RegisteredUser, RecipeRating
 
 class RegisteredUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -172,10 +172,11 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Rating must be between 0.0 and 5.0.")
         return value
 
+#UNDER CONSTRUCTION
 class RecipeRatingSerializer(serializers.ModelSerializer):
     recipe_id = serializers.PrimaryKeyRelatedField(
         queryset=Recipe.objects.all(),
-        source='recipe',
+        source='recipe.id',
         write_only=True
     )
     recipe_title = serializers.CharField(
@@ -185,5 +186,5 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeRating
-        fields = ['id', 'user', 'recipe', 'recipe_id', 'recipe_title', 'rating', 'timestamp']
+        fields = ['id', 'user', 'recipe', 'recipe_id', 'recipe_title', 'taste_rating', 'timestamp']
         read_only_fields = ['user', 'timestamp', 'recipe', 'recipe_title']

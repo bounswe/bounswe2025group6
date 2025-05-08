@@ -88,7 +88,7 @@ send_mail(
     'Test Email',
     'This is a test email.',
     settings.DEFAULT_FROM_EMAIL,
-    ['savasciogluozgur@gmail.com'],
+    [''],
     fail_silently=False,
 )
 
@@ -262,6 +262,66 @@ class logout_view(APIView):
             return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get user ID by email address",
+    manual_parameters=[
+        openapi.Parameter(
+            name='email',
+            in_=openapi.IN_QUERY,
+            description="User's email address",
+            type=openapi.TYPE_STRING,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="Successfully found user",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID')
+                }
+            )
+        ),
+        400: openapi.Response(
+            description="Bad request - missing email parameter",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+
+@api_view(['GET'])
+def get_user_id_by_email(request):
+    email = request.query_params.get('email')
+    if not email:
+        return Response(
+            {"error": "Email parameter is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user = RegisteredUser.objects.get(email=email)
+        return Response({"id": user.id}, status=status.HTTP_200_OK)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 class RegisteredUserViewSet(viewsets.ModelViewSet):
     queryset = RegisteredUser.objects.all()
@@ -287,9 +347,65 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             current_user.followedUsers.add(user_to_follow)
             return Response({"status": "followed"})
 
-    # Custom action to bookmark a recipe
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Bookmark a recipe for the current user",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['recipe_id'],
+            properties={
+                'recipe_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the recipe to bookmark"
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Recipe bookmarked successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Confirmation message"
+                        )
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "status": "recipe bookmarked"
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Bad request - missing recipe_id",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "error": "recipe_id is required."
+                    }
+                }
+            ),
+            401: openapi.Response(
+                description="Unauthorized - user not authenticated"
+            )
+        },
+        security=[{"Bearer": []}]
+    )
     @action(detail=False, methods=['post'])
     def bookmark_recipe(self, request):
+        """
+        Bookmark a recipe for the currently authenticated user.
+        
+        This endpoint allows users to save recipes to their bookmark list for
+        easy access later. Each user can bookmark multiple recipes.
+        """
         recipe_id = request.data.get('recipe_id')
         if not recipe_id:
             return Response(
@@ -300,14 +416,94 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
         current_user = request.user
         current_user.bookmarkRecipes.add(recipe_id)
         return Response({"status": "recipe bookmarked"})
+    
+    #UNDER CONSTRUCTION
+    #RATE RECIPE
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Rate a recipe (1-5 stars)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['recipe_id', 'taste_rating'],
+            properties={
+                'recipe_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the recipe being rated",
+                    example=42
+                ),
+                'taste_rating': openapi.Schema(
+                    type=openapi.TYPE_NUMBER,
+                    description="Rating value (0.0 to 5.0)",
+                    minimum=0.0,
+                    maximum=5.0,
+                    example=4.5
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Rating saved successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="rating saved"
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="You have already rated this recipe."
+                        ),
+                        # For serializer errors
+                        'taste_rating': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING),
+                            example=["Ensure this value is less than or equal to 5.0."]
+                        ),
+                        'recipe_id': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING)
+                        )
+                    }
+                )
+            ),
+            401: openapi.Response(
+                description="Unauthorized - authentication required"
+            ),
+            404: openapi.Response(
+                description="Recipe not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            )
+        },
+        security=[{"Bearer": []}],
+        tags=['Recipe Ratings']
+    )
 
-    # Custom action to rate a recipe
     @action(detail=False, methods=['post'])
     def rate_recipe(self, request):
+        """
+        Submit a rating for a specific recipe.
+        
+        Users can rate recipes on a scale of 0.0 to 5.0 stars.
+        Each user can only rate a recipe once.
+        """
         serializer = RecipeRatingSerializer(data=request.data)
         if serializer.is_valid():
             recipe_id = serializer.validated_data['recipe_id']
-            rating = serializer.validated_data['rating']
+            taste_rating = serializer.validated_data['taste_rating']
 
             # Prevent duplicate ratings
             if RecipeRating.objects.filter(
@@ -323,15 +519,14 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             RecipeRating.objects.create(
                 user=request.user,
                 recipe_id=recipe_id,
-                rating=rating,
+                taste_rating=taste_rating,
             )
 
-            # Update the user's avgRecipeRating (example logic)
             self.update_avg_rating(request.user)
             return Response({"status": "rating saved"})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        
     def update_avg_rating(self, user):
         """Helper method to update a user's average recipe rating."""
         ratings = RecipeRating.objects.filter(user=user)
@@ -340,7 +535,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             user.avgRecipeRating = avg
             user.save()
 
-
+#UNDER CONSTRUCTION
 # ViewSet for Recipe Ratings
 class RecipeRatingViewSet(viewsets.ModelViewSet):
     queryset = RecipeRating.objects.all()
