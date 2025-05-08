@@ -2,7 +2,7 @@
 from random import choice
 from django.forms import ValidationError
 from rest_framework import serializers
-from forum.models import ForumPost, ForumPostComment
+from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote, ForumPostCommentReport
 import re
 
 # Serializer for ForumPost
@@ -80,3 +80,27 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
         validated_data.pop('reported_count', None)
 
         return super().update(instance, validated_data)
+
+# Serializer for ForumPostCommentVote
+class ForumPostCommentVoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForumPostCommentVote
+        fields = ['user', 'comment', 'vote_type']
+
+    def validate(self, attrs):
+        # Ensure a user can only vote once per comment
+        if ForumPostCommentVote.objects.filter(user=attrs['user'], comment=attrs['comment']).exists():
+            raise serializers.ValidationError("You have already voted on this comment.")
+        return attrs
+
+# Serializer for ForumPostCommentReport
+class ForumPostCommentReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForumPostCommentReport
+        fields = ['user', 'comment', 'reason']
+
+    def validate(self, attrs):
+        # Ensure a user can only report once per comment
+        if ForumPostCommentReport.objects.filter(user=attrs['user'], comment=attrs['comment']).exists():
+            raise serializers.ValidationError("You have already reported this comment.")
+        return attrs
