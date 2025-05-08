@@ -1,8 +1,8 @@
 # forum/views.py
 from rest_framework import viewsets
 from utils.pagination import StandardPagination
-from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote, ForumPostCommentReport
-from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer, ForumPostCommentVoteSerializer, ForumPostCommentReportSerializer
+from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote
+from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer, ForumPostCommentVoteSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import serializers
@@ -175,27 +175,3 @@ class ForumPostCommentVoteView(APIView):
             comment.decrement_downvote()
 
         return Response({"message": "Vote deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
-
-@permission_classes([IsAuthenticatedOrReadOnly])
-class ForumPostCommentReportView(APIView):
-
-    @swagger_auto_schema(
-        operation_description="Report a forum post comment for review.",
-        request_body=ForumPostCommentReportSerializer,
-        responses={
-            201: openapi.Response(description="Report submitted successfully!"),
-            400: openapi.Response(description="Bad request — validation error.")
-        }
-    )
-    def post(self, request, *args, **kwargs):
-        comment_id = kwargs.get('comment_id')
-        comment = get_object_or_404(ForumPostComment, pk=comment_id)
-
-        serializer = ForumPostCommentReportSerializer(
-            data=request.data,
-            context={'user': request.user, 'comment': comment}
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Report submitted successfully!"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

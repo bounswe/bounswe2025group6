@@ -86,7 +86,7 @@ class CommentModel(TimestampedModel):
         return self.replies.all()
 
 # Abstract base class for Comment Votes
-class CommentVote(models.Model):
+class CommentVote(TimestampedModel):
     VOTE_CHOICES = [
         ('up', 'Upvote'),
         ('down', 'Downvote'),

@@ -54,9 +54,3 @@ class ForumPostCommentVote(CommentVote):
     comment = models.ForeignKey(ForumPostComment, related_name='votes', on_delete=models.CASCADE)
     """Model for voting on comments in forum posts. Extends CommentVote."""
     pass
-
-
-class ForumPostCommentReport(CommentReport):
-    comment = models.ForeignKey(ForumPostComment, related_name='reports', on_delete=models.CASCADE)
-    """Model for reporting comments on forum posts. Extends CommentReport."""
-    pass

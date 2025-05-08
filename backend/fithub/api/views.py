@@ -81,7 +81,6 @@ def verify_email(request, uidb64, token):
     else:
         return Response({'error': 'Verification link is invalid or has expired.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
 send_mail(
     'Test Email',
     'This is a test email.',
@@ -194,7 +193,7 @@ class VerifyResetCodeView(APIView):
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 class ResetPasswordView(APIView):
     @swagger_auto_schema(
         operation_description="Reset password using a temporary token and new password.",
