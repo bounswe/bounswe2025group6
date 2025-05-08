@@ -1,0 +1,55 @@
+# forum/serializers.py
+from random import choice
+from rest_framework import serializers
+from forum.models import ForumPost
+import re
+
+class ForumPostSerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(child=serializers.CharField())
+
+    class Meta:
+        model = ForumPost
+        fields = [
+            'id', 'title', 'content', 'is_commentable',
+            'author', 'view_count', 'like_count',
+            'tags', 'created_at', 'updated_at', 'deleted_on'
+        ]
+        read_only_fields = ['author', 'view_count', 'like_count', 'created_at', 'updated_at', 'deleted_on']
+
+    def normalize_tag(self, tag_name):
+        """Normalize tag names by removing extra spaces and capitalizing."""
+        # no   waste -> No Waste
+        # no waste -> No Waste
+        # No Waste -> No Waste
+        # Remove extra spaces and capitalize
+        return re.sub(r'\s+', ' ', tag_name).strip().title()
+
+    def validate_tags(self, value):
+        """Validate that all tag names are valid choices."""
+        normalized_tags = [self.normalize_tag(tag) for tag in value]
+        valid_tags = [choice.value for choice in ForumPost.TagChoices]
+
+        invalid_tags = [tag for tag in normalized_tags if tag not in valid_tags]
+        if invalid_tags:
+            raise serializers.ValidationError(
+                f"Invalid tag names: {', '.join(invalid_tags)}. "
+                f"Valid tags are: {', '.join(valid_tags)}."
+            )
+        return normalized_tags
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')  # already validated & normalized
+        user = self.context['request'].user
+        post = ForumPost.objects.create(author=user, **validated_data)
+        post.tags = tags
+        post.save()
+        return post
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags', None)  # optional in PUT hence can be None
+        if tags is not None:
+            instance.tags = tags  # already validated & normalized
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance

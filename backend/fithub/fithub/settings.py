@@ -47,9 +47,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', # Token authentication
     'corsheaders', # CORS headers (for cross-origin requests from frontend)
     'drf_yasg', # Swagger and ReDoc
+    'utils',    # Utility functions and classes
+
     'api',      # Our main api
     'ingredients', # Ingredients app
     'recipes',  # Recipes app
+    'forum',    # Forum app
 ]
 
 REST_FRAMEWORK = {
