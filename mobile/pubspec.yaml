@@ -46,6 +46,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   mockito: ^5.4.4
+  mocktail: ^1.0.0
   build_runner: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
@@ -64,7 +65,8 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - assets/images/
+    - assets/images/ # General images folder
+    - assets/avatars/ # For predefined avatars
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
