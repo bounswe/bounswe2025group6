@@ -328,24 +328,150 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     serializer_class = RegisteredUserSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
 
-    # Custom action to follow/unfollow a user
-    @action(detail=True, methods=['post'])
-    def follow(self, request, pk=None):
-        user_to_follow = self.get_object()
-        current_user = request.user
-
-        if current_user == user_to_follow:
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Follow or unfollow another user by ID",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['user_id'],
+            properties={
+                'user_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the user to follow/unfollow"
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Successfully followed/unfollowed",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            enum=['followed', 'unfollowed'],
+                            description="Indicates whether the user was followed or unfollowed"
+                        ),
+                        'target_user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description="ID of the user that was followed/unfollowed"
+                        ),
+                        'current_followers_count': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description="Updated count of the target user's followers"
+                        )
+                    },
+                    examples={
+                        "application/json": {
+                            "status": "followed",
+                            "target_user_id": 123,
+                            "current_followers_count": 42
+                        }
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            examples=[
+                                "You cannot follow yourself.",
+                                "user_id is required."
+                            ]
+                        )
+                    }
+                )
+            ),
+            401: openapi.Response(
+                description="Unauthorized - authentication required"
+            ),
+            404: openapi.Response(
+                description="User not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="Target user not found"
+                        )
+                    }
+                )
+            )
+        },
+        security=[{"Bearer": []}],
+        tags=['User Relationships']
+    )
+    @action(detail=False, methods=['post'])
+    def follow(self, request):
+        """
+        Toggle follow status for another user by providing their user ID.
+        
+        This endpoint:
+        - Creates a mutual follow relationship if not already following
+        - Removes the mutual follow relationship if already following
+        - Automatically maintains both followedUsers and followers lists
+        - Prevents users from following themselves
+        
+        Requires:
+        - Authentication via Bearer token
+        - user_id in request body
+        
+        Returns:
+            Success: {
+                'status': 'followed/unfollowed', 
+                'target_user_id': <id>,
+                'current_followers_count': <count>
+            }
+            Error: {'error': <message>}
+        """
+        user_id = request.data.get('user_id')
+        if not user_id:
             return Response(
-                {"error": "You cannot follow yourself."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"error": "user_id is required."},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-        if current_user.followedUsers.filter(pk=user_to_follow.pk).exists():
-            current_user.followedUsers.remove(user_to_follow)
-            return Response({"status": "unfollowed"})
+        try:
+            target_user = RegisteredUser.objects.get(pk=user_id)
+        except RegisteredUser.DoesNotExist:
+            return Response(
+                {"error": "Target user not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        current_user = request.user
+
+        if current_user.id == target_user.id:
+            return Response(
+                {"error": "You cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if already following (using either side of the relationship)
+        already_following = current_user.followedUsers.filter(pk=target_user.pk).exists()
+
+        if already_following:
+            # Remove from both sides of the relationship
+            current_user.followedUsers.remove(target_user)
+            target_user.followers.remove(current_user)
+            status_msg = "unfollowed"
         else:
-            current_user.followedUsers.add(user_to_follow)
-            return Response({"status": "followed"})
+            # Add to both sides of the relationship
+            current_user.followedUsers.add(target_user)
+            target_user.followers.add(current_user)
+            status_msg = "followed"
+
+        # Refresh to get updated count
+        target_user.refresh_from_db()
+        
+        return Response({
+            "status": status_msg,
+            "target_user_id": target_user.id,
+            "current_followers_count": target_user.followers.count()
+        })
 
     @swagger_auto_schema(
         method='post',
