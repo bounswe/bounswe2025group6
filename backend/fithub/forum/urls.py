@@ -22,5 +22,6 @@ urlpatterns = [
     ),
 
     path('comment/<int:comment_id>/vote/', ForumPostCommentVoteView.as_view(), name='comment-vote'),
+
     path('comment/<int:comment_id>/report/', ForumPostCommentReportView.as_view(), name='comment-report'),
 ]

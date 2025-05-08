@@ -1,7 +1,7 @@
 # forum/views.py
 from rest_framework import viewsets
 from utils.pagination import StandardPagination
-from forum.models import ForumPost, ForumPostComment
+from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote, ForumPostCommentReport
 from forum.serializers import ForumPostSerializer, ForumPostCommentSerializer, ForumPostCommentVoteSerializer, ForumPostCommentReportSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -132,9 +132,49 @@ class ForumPostCommentVoteView(APIView):
             context={'user': request.user, 'comment': comment}
         )
         if serializer.is_valid():
-            serializer.save() 
+            serializer.save()
+
+            # Update vote count based on vote type
+            vote_type = request.data.get("vote_type")
+
+            if vote_type == 'up':
+                comment.increment_upvote()
+            elif vote_type == 'down':
+                comment.increment_downvote()
+
             return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Delete a vote on a forum post comment.",
+        responses={
+            204: openapi.Response(description="Vote deleted successfully!"),
+            400: openapi.Response(description="Bad request — validation error."),
+            404: openapi.Response(description="Vote or comment not found."),
+        }
+    )
+    def delete(self, request, *args, **kwargs):
+        comment_id = kwargs.get('comment_id')
+        comment = get_object_or_404(ForumPostComment, pk=comment_id)
+
+        # Find the user's vote for the comment
+        vote = ForumPostCommentVote.objects.filter(user=request.user, comment=comment).first()
+
+        if not vote:
+            return Response({"message": "No vote found to delete for this comment."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Delete the vote
+        vote.delete()
+
+        # Update vote count based on vote type
+        vote_type = vote.vote_type
+
+        if vote_type == 'up':
+            comment.decrement_upvote()
+        elif vote_type == 'down':
+            comment.decrement_downvote()
+
+        return Response({"message": "Vote deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostCommentReportView(APIView):
