@@ -117,20 +117,79 @@ class AuthService {
     }
   } // End of register method
 
-  Future<void> forgotPassword(String email) async {
+  Future<void> requestPasswordResetCode(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/forgot-password/'), // Added trailing slash
+        Uri.parse('$baseUrl/request-password-reset-code/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
 
       switch (response.statusCode) {
         case 200:
-          return; // Success, email sent
+          return; // Success, code sent
         case 400:
+          final responseBody = jsonDecode(response.body);
+          if (responseBody['email'] != null) {
+            throw AuthenticationException(
+              responseBody['email'][0],
+              statusCode: 400,
+            );
+          }
           throw AuthenticationException(
             'Invalid email address.',
+            statusCode: 400,
+          );
+        case 500:
+          final responseBody = jsonDecode(response.body);
+          throw AuthenticationException(
+            responseBody['detail'] ?? 'Server error occurred.',
+            statusCode: 500,
+          );
+        default:
+          throw AuthenticationException(
+            'An error occurred. Please try again later.',
+            statusCode: response.statusCode,
+          );
+      }
+    } catch (e) {
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw AuthenticationException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<void> verifyResetCode(String email, String resetCode) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-reset-code/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'reset_code': resetCode,
+        }),
+      );
+
+      switch (response.statusCode) {
+        case 200:
+          return; // Success, code verified
+        case 400:
+          final responseBody = jsonDecode(response.body);
+          if (responseBody['reset_code'] != null) {
+            throw AuthenticationException(
+              responseBody['reset_code'][0],
+              statusCode: 400,
+            );
+          }
+          if (responseBody['email'] != null) {
+            throw AuthenticationException(
+              responseBody['email'][0],
+              statusCode: 400,
+            );
+          }
+          throw AuthenticationException(
+            'Invalid verification attempt.',
             statusCode: 400,
           );
         default:
