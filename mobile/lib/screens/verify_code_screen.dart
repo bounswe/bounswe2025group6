@@ -120,7 +120,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       });
 
       try {
-        await _authService.verifyResetCode(
+        final token = await _authService.verifyResetCode(
           widget.email,
           _resetCodeController.text.trim(),
         );
@@ -133,12 +133,13 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
             ),
           );
           
-          // Navigate to new password screen
+          // Navigate to new password screen with token
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (_) => CreateNewPasswordPage(
                 email: widget.email,
+                token: token,
                 authService: _authService,
               ),
             ),
