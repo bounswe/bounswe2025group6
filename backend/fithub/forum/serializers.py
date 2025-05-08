@@ -2,7 +2,7 @@
 from random import choice
 from django.forms import ValidationError
 from rest_framework import serializers
-from utils.models import CommentReport, CommentVote
+from utils.models import CommentVote
 from forum.models import ForumPost, ForumPostComment, ForumPostCommentVote
 import re
 
@@ -90,12 +90,23 @@ class ForumPostCommentVoteSerializer(serializers.ModelSerializer):
         fields = ['user', 'comment', 'vote_type']
         read_only_fields = ['user', 'comment']
 
-    def create(self, validated_data):
+    # Enforce that the user and comment are unique together (soft delete checked one can delete and re-vote)
+    def validate(self, attrs):
         user = self.context['user']
         comment = self.context['comment']
 
-        # Duplicate check here instead of validate()
-        if ForumPostCommentVote.objects.filter(user=user, comment=comment).exists():
-            raise serializers.ValidationError("You have already voted on this comment.")
+        if ForumPostCommentVote.objects.filter(
+            user=user,
+            comment=comment,
+            deleted_on__isnull=True
+        ).exists():
+            raise serializers.ValidationError({
+                'vote_type': "You have already voted on this comment."
+            })
 
-        return ForumPostCommentVote.objects.create(user=user, comment=comment, **validated_data)
+        return attrs
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['user']
+        validated_data['comment'] = self.context['comment']
+        return ForumPostCommentVote.objects.create(**validated_data)

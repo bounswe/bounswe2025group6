@@ -1,6 +1,6 @@
 # forum/models.py
 from django.db import models
-from utils.models import PostModel, CommentModel, CommentVote, CommentReport
+from utils.models import PostModel, CommentModel, CommentVote
 from api.models import TimestampedModel
 
 class ForumPost(PostModel):

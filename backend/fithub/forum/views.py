@@ -143,7 +143,8 @@ class ForumPostCommentVoteView(APIView):
                 comment.increment_downvote()
 
             return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "You have already voted on this comment!"}, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Delete a vote on a forum post comment.",
@@ -158,7 +159,7 @@ class ForumPostCommentVoteView(APIView):
         comment = get_object_or_404(ForumPostComment, pk=comment_id)
 
         # Find the user's vote for the comment
-        vote = ForumPostCommentVote.objects.filter(user=request.user, comment=comment).first()
+        vote = ForumPostCommentVote.objects.filter(user=request.user, comment=comment, deleted_on__isnull=True).first()
 
         if not vote:
             return Response({"message": "No vote found to delete for this comment."}, status=status.HTTP_404_NOT_FOUND)
