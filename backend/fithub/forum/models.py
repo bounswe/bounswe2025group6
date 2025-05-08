@@ -29,13 +29,6 @@ class ForumPost(PostModel):
     # Store tags as a list of strings
     tags = models.JSONField(default=list, blank=True)  # Django 3.1+ supports JSONField
 
-    def delete_comments(self):
-        """
-        Soft delete all comments related to this post.
-        """
-        comments = self.comments.filter(deleted_on__isnull=True)
-        comments.update(deleted_on=now())
-
     def __str__(self):
         return f"ForumPost #{self.pk}, {self.title}"
 

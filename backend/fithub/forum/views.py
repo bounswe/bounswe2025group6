@@ -13,8 +13,13 @@ from rest_framework.views import APIView
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, action
 from django.utils.timezone import now
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostViewSet(viewsets.ModelViewSet):
@@ -38,19 +43,6 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         # Serialize and return the post
         serializer = self.get_serializer(post)
         return Response(serializer.data)
-
-    def soft_delete_post(self, request, *args, **kwargs):
-        post_id = self.kwargs.get('post_id')
-        post = get_object_or_404(ForumPost, id=post_id)
-
-        # Mark the post as deleted (soft delete)
-        post.deleted_on = now()
-        post.save()
-
-        # Soft delete related comments
-        post.delete_comments()
-
-        return Response({"detail": "Post and associated comments have been soft-deleted."}, status=status.HTTP_204_NO_CONTENT)
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostCommentViewSet(viewsets.ModelViewSet):
