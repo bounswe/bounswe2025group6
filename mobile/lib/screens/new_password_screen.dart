@@ -4,10 +4,12 @@ import 'package:fithub/services/auth_service.dart';
 
 class CreateNewPasswordPage extends StatefulWidget {
   final String email;
+  final String token;
   final AuthService? authService;
 
   const CreateNewPasswordPage({
     required this.email,
+    required this.token,
     this.authService,
     super.key,
   });
@@ -20,12 +22,52 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _newPasswordController = TextEditingController();
   final _repeatPasswordController = TextEditingController();
+  bool _isLoading = false;
+  late final AuthService _authService;
 
-  void _submitForm() {
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
+  }
+
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final newPassword = _newPasswordController.text;
-      debugPrint("New password: $newPassword");
-      // TODO: Send password to backend
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final newPassword = _newPasswordController.text;
+        await _authService.resetPassword(widget.token, newPassword);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Password reset successful'),
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+          );
+          
+          // Navigate to login screen
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -34,6 +76,16 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
     _newPasswordController.dispose();
     _repeatPasswordController.dispose();
     super.dispose();
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password is required';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    return null;
   }
 
   @override
@@ -59,10 +111,7 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
                   labelText: 'New Password',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                value != null && value.length >= 6
-                    ? null
-                    : 'Enter at least 6 characters',
+                validator: _validatePassword,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -81,15 +130,24 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: _isLoading ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryGreen,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
-                child: const Text(
-                  'Save Password',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Save Password',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
               ),
             ],
           ),

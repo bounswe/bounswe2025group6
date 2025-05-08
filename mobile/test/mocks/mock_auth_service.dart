@@ -71,38 +71,22 @@ class MockAuthService extends Fake implements AuthService {
 
   @override
   Future<void> requestPasswordResetCode(String email) async {
-    if (_forgotPasswordResponse != null) {
-      return await _forgotPasswordResponse!;
-    }
-
     await Future.delayed(const Duration(milliseconds: 100));
-    
-    if (email == 'test@example.com') {
-      return; // Success case
+    if (email != 'test@example.com') {
+      throw AuthenticationException('This email address is not registered.');
     }
-    
-    throw AuthenticationException(
-      'This email address is not registered.',
-      statusCode: 400,
-    );
   }
 
   @override
-  Future<void> verifyResetCode(String email, String resetCode) async {
+  Future<String> verifyResetCode(String email, String resetCode) async {
     await Future.delayed(const Duration(milliseconds: 100));
-    
-    if (email != 'test@example.com') {
-      throw AuthenticationException('Email address not registered.');
-    }
-    
     if (resetCode != '123456') {
-      throw AuthenticationException(
-        'Invalid reset code.',
-        statusCode: 400,
-      );
+      throw AuthenticationException('Invalid reset code.');
     }
+    return 'mock-verification-token';
   }
 
+  @override
   Future<void> resetPassword(String email, String password) async {
     await Future.delayed(const Duration(milliseconds: 100));
     
