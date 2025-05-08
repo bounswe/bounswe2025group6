@@ -14,12 +14,14 @@ from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
-
+from .models import RegisteredUser, RecipeRating
+from recipes.models import Recipe  # Import from recipes app
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
-                           VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken)
+                           VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
 
 User = get_user_model()
 
@@ -85,7 +87,7 @@ send_mail(
     'Test Email',
     'This is a test email.',
     settings.DEFAULT_FROM_EMAIL,
-    ['savasciogluozgur@gmail.com'],
+    [''],
     fail_silently=False,
 )
 
@@ -257,3 +259,413 @@ class logout_view(APIView):
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:
             return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get user ID by email address",
+    manual_parameters=[
+        openapi.Parameter(
+            name='email',
+            in_=openapi.IN_QUERY,
+            description="User's email address",
+            type=openapi.TYPE_STRING,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="Successfully found user",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID')
+                }
+            )
+        ),
+        400: openapi.Response(
+            description="Bad request - missing email parameter",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+
+@api_view(['GET'])
+def get_user_id_by_email(request):
+    email = request.query_params.get('email')
+    if not email:
+        return Response(
+            {"error": "Email parameter is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user = RegisteredUser.objects.get(email=email)
+        return Response({"id": user.id}, status=status.HTTP_200_OK)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+class RegisteredUserViewSet(viewsets.ModelViewSet):
+    queryset = RegisteredUser.objects.all()
+    serializer_class = RegisteredUserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
+
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Follow or unfollow another user by ID",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['user_id'],
+            properties={
+                'user_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the user to follow/unfollow"
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Successfully followed/unfollowed",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            enum=['followed', 'unfollowed'],
+                            description="Indicates whether the user was followed or unfollowed"
+                        ),
+                        'target_user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description="ID of the user that was followed/unfollowed"
+                        ),
+                        'current_followers_count': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description="Updated count of the target user's followers"
+                        )
+                    },
+                    examples={
+                        "application/json": {
+                            "status": "followed",
+                            "target_user_id": 123,
+                            "current_followers_count": 42
+                        }
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            examples=[
+                                "You cannot follow yourself.",
+                                "user_id is required."
+                            ]
+                        )
+                    }
+                )
+            ),
+            401: openapi.Response(
+                description="Unauthorized - authentication required"
+            ),
+            404: openapi.Response(
+                description="User not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="Target user not found"
+                        )
+                    }
+                )
+            )
+        },
+        security=[{"Bearer": []}],
+        tags=['User Relationships']
+    )
+    @action(detail=False, methods=['post'])
+    def follow(self, request):
+        """
+        Toggle follow status for another user by providing their user ID.
+        
+        This endpoint:
+        - Creates a mutual follow relationship if not already following
+        - Removes the mutual follow relationship if already following
+        - Automatically maintains both followedUsers and followers lists
+        - Prevents users from following themselves
+        
+        Requires:
+        - Authentication via Bearer token
+        - user_id in request body
+        
+        Returns:
+            Success: {
+                'status': 'followed/unfollowed', 
+                'target_user_id': <id>,
+                'current_followers_count': <count>
+            }
+            Error: {'error': <message>}
+        """
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response(
+                {"error": "user_id is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            target_user = RegisteredUser.objects.get(pk=user_id)
+        except RegisteredUser.DoesNotExist:
+            return Response(
+                {"error": "Target user not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        current_user = request.user
+
+        if current_user.id == target_user.id:
+            return Response(
+                {"error": "You cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if already following (using either side of the relationship)
+        already_following = current_user.followedUsers.filter(pk=target_user.pk).exists()
+
+        if already_following:
+            # Remove from both sides of the relationship
+            current_user.followedUsers.remove(target_user)
+            target_user.followers.remove(current_user)
+            status_msg = "unfollowed"
+        else:
+            # Add to both sides of the relationship
+            current_user.followedUsers.add(target_user)
+            target_user.followers.add(current_user)
+            status_msg = "followed"
+
+        # Refresh to get updated count
+        target_user.refresh_from_db()
+        
+        return Response({
+            "status": status_msg,
+            "target_user_id": target_user.id,
+            "current_followers_count": target_user.followers.count()
+        })
+
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Bookmark a recipe for the current user",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['recipe_id'],
+            properties={
+                'recipe_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the recipe to bookmark"
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Recipe bookmarked successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Confirmation message"
+                        )
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "status": "recipe bookmarked"
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Bad request - missing recipe_id",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "error": "recipe_id is required."
+                    }
+                }
+            ),
+            401: openapi.Response(
+                description="Unauthorized - user not authenticated"
+            )
+        },
+        security=[{"Bearer": []}]
+    )
+    @action(detail=False, methods=['post'])
+    def bookmark_recipe(self, request):
+        """
+        Bookmark a recipe for the currently authenticated user.
+        
+        This endpoint allows users to save recipes to their bookmark list for
+        easy access later. Each user can bookmark multiple recipes.
+        """
+        recipe_id = request.data.get('recipe_id')
+        if not recipe_id:
+            return Response(
+                {"error": "recipe_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        current_user = request.user
+        current_user.bookmarkRecipes.add(recipe_id)
+        return Response({"status": "recipe bookmarked"})
+    
+    #UNDER CONSTRUCTION
+    #RATE RECIPE
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Rate a recipe (1-5 stars)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['recipe_id', 'taste_rating'],
+            properties={
+                'recipe_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the recipe being rated",
+                    example=42
+                ),
+                'taste_rating': openapi.Schema(
+                    type=openapi.TYPE_NUMBER,
+                    description="Rating value (0.0 to 5.0)",
+                    minimum=0.0,
+                    maximum=5.0,
+                    example=4.5
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Rating saved successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="rating saved"
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Bad request",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="You have already rated this recipe."
+                        ),
+                        # For serializer errors
+                        'taste_rating': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING),
+                            example=["Ensure this value is less than or equal to 5.0."]
+                        ),
+                        'recipe_id': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING)
+                        )
+                    }
+                )
+            ),
+            401: openapi.Response(
+                description="Unauthorized - authentication required"
+            ),
+            404: openapi.Response(
+                description="Recipe not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            )
+        },
+        security=[{"Bearer": []}],
+        tags=['Recipe Ratings']
+    )
+
+    @action(detail=False, methods=['post'])
+    def rate_recipe(self, request):
+        """
+        Submit a rating for a specific recipe.
+        
+        Users can rate recipes on a scale of 0.0 to 5.0 stars.
+        Each user can only rate a recipe once.
+        """
+        serializer = RecipeRatingSerializer(data=request.data)
+        if serializer.is_valid():
+            recipe_id = serializer.validated_data['recipe_id']
+            taste_rating = serializer.validated_data['taste_rating']
+
+            # Prevent duplicate ratings
+            if RecipeRating.objects.filter(
+                user=request.user, 
+                recipe_id=recipe_id
+            ).exists():
+                return Response(
+                    {"error": "You have already rated this recipe."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Save the rating
+            RecipeRating.objects.create(
+                user=request.user,
+                recipe_id=recipe_id,
+                taste_rating=taste_rating,
+            )
+
+            self.update_avg_rating(request.user)
+            return Response({"status": "rating saved"})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def update_avg_rating(self, user):
+        """Helper method to update a user's average recipe rating."""
+        ratings = RecipeRating.objects.filter(user=user)
+        if ratings.exists():
+            avg = sum(r.rating for r in ratings) / ratings.count()
+            user.avgRecipeRating = avg
+            user.save()
+
+#UNDER CONSTRUCTION
+# ViewSet for Recipe Ratings
+class RecipeRatingViewSet(viewsets.ModelViewSet):
+    queryset = RecipeRating.objects.all()
+    serializer_class = RecipeRatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

@@ -1,9 +1,11 @@
 from django.db import models
-from api.models import TimestampedModel
+# from api.models import TimestampedModel
+from core.models import TimestampedModel  # New import path
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from ingredients.models import Ingredient 
 from django.utils import timezone
+
 
 # Recipe model that will be used for the recipe
 class Recipe(TimestampedModel):
