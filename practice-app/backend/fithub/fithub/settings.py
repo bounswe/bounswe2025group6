@@ -47,9 +47,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', # Token authentication
     'corsheaders', # CORS headers (for cross-origin requests from frontend)
     'drf_yasg', # Swagger and ReDoc
+    'utils',    # Utility functions and classes
+
     'api',      # Our main api
     'ingredients', # Ingredients app
     'recipes',  # Recipes app
+    'forum',    # Forum app
 ]
 
 REST_FRAMEWORK = {
@@ -160,7 +163,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -186,7 +188,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Log in cookies, and email settings must be imlemented here later
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# TODO: Remove the below line in production and use the SMTP backend instead
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True

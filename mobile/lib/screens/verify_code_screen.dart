@@ -1,101 +1,172 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fithub/theme/app_theme.dart';
-import 'package:fithub/screens/new_password_screen.dart';
+import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
+import './new_password_screen.dart'; 
 
 class VerifyCodeScreen extends StatefulWidget {
   final String email;
+  final AuthService? authService;
 
-  const VerifyCodeScreen({super.key, required this.email});
+  const VerifyCodeScreen({
+    required this.email,
+    this.authService,
+    super.key,
+  });
 
   @override
   State<VerifyCodeScreen> createState() => _VerifyCodeScreenState();
 }
 
 class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
+  final _resetCodeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _codeController = TextEditingController();
-
-  Future<bool> _validateCode(String code) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return code == '123456'; // DEMO: accept 123456 as valid
-  }
-
-  void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      final ok = await _validateCode(_codeController.text);
-      if (!ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid code. Please try again.')),
-        );
-        return;
-      }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const CreateNewPasswordPage()),
-      );
-    }
-  }
+  late final AuthService _authService;
+  bool _isLoading = false;
 
   @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundGrey,
       appBar: AppBar(
         title: const Text('Verify Code'),
-        centerTitle: true,
-        backgroundColor: AppTheme.primaryGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppTheme.primaryGreen),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Enter the 6-digit code sent to ${widget.email}:',
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _codeController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Code',
-                  border: OutlineInputBorder(),
-                  counterText: '',
+              const Text(
+                'Verify Reset Code',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryGreen,
                 ),
-                validator: (v) =>
-                (v != null && v.length == 6) ? null : 'Enter 6-digit code',
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Enter the 6-digit code sent to ${widget.email}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 40, vertical: 12),
+              TextFormField(
+                controller: _resetCodeController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: const InputDecoration(
+                  labelText: 'Reset Code',
+                  border: OutlineInputBorder(),
                 ),
-                child: const Text(
-                  'Verify',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the reset code';
+                  }
+                  if (value.length != 6) {
+                    return 'Reset code must be 6 digits';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _verifyCode,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.buttonGrey,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 70,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Verify Code',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _verifyCode() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final token = await _authService.verifyResetCode(
+          widget.email,
+          _resetCodeController.text.trim(),
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Code verified successfully'),
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+          );
+          
+          // Navigate to new password screen with token
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CreateNewPasswordPage(
+                email: widget.email,
+                token: token,
+                authService: _authService,
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _resetCodeController.dispose();
+    super.dispose();
   }
 }

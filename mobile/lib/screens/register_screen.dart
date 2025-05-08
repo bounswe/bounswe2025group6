@@ -178,11 +178,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: true,
                       controller: _passwordController, // Assign controller
                       onSaved: (v) => _password = v ?? '',
-                      validator:
-                          (v) =>
-                              v != null && v.length >= 6
-                                  ? null
-                                  : 'Enter at least 6 characters',
+                      validator: (v) =>
+                          v != null && v.length >= 8  
+                              ? null
+                              : 'Enter at least 8 characters',  
                     ),
                     const SizedBox(height: 16),
                     TextFormField(

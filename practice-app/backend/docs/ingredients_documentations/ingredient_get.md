@@ -225,3 +225,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 #### 🔗 Related
 - Related model: Ingredient (inherits from TimestampedModel)
 - Will be used in: recipes app for creating and managing recipes ingredients.
+
+### Quick Reminder:
+- It's almost certain that I've made some mistakes or inconsistencies in the above documentation. Please review our swagger documentation and the code itself to ensure everything is accurate and up-to-date. If you find any discrepancies, please correct the documentation accordingly. Thank you for your understanding and cooperation!
+- You can easily find the working endpoints and their request/response formats in the swagger documentation. Just run backend locally and go to `http://127.0.0.1:8000/swagger/` to access the swagger UI. You can also use the Postman collection provided in the repository for testing the endpoints but I strongly suggest using the swagger UI for better understanding and testing.
