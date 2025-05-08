@@ -13,21 +13,18 @@ from django.utils.timezone import now
 
 @permission_classes([IsAuthenticatedOrReadOnly])
 class ForumPostViewSet(viewsets.ModelViewSet):
-    queryset = ForumPost.objects.filter(deleted_on__isnull=True).order_by('-created_at') # Order by created_at descending (only show non-deleted posts)
+    queryset = ForumPost.objects.filter(deleted_on__isnull=True).order_by('-created_at') # Order by created_at descending (only non-deleted posts)
     serializer_class = ForumPostSerializer
     pagination_class = StandardPagination
 
     http_method_names = ['get', 'post', 'put', 'delete']  # Disable PATCH
-
 
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True  # Treat PUT as partial update
         return super().update(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-
-        # Get the post instance
-        post = self.get_object()
+        post = self.get_object() # Get the post instance
 
         # Increment view count whenever a post is viewed
         post.view_count += 1
@@ -71,10 +68,10 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         comments = post.comments.filter(deleted_on__isnull=True)
         page = self.paginate_queryset(comments)
         if page is not None:
-            serializer = ForumPostCommentSerializer(page, many=True)
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = ForumPostCommentSerializer(comments, many=True)
+        serializer = self.get_serializer(comments, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -82,7 +79,7 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         Get a single comment's details.
         """
         comment = self.get_object()
-        serializer = ForumPostCommentSerializer(comment)
+        serializer = self.get_serializer(comment)
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
