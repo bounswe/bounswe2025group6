@@ -37,9 +37,15 @@ class ForumPostComment(CommentModel):
 
     # Check if the post is commentable before saving the comment
     def save(self, *args, **kwargs):
+        if self.parent_comment and not self.parent_comment.post == self.post:
+            raise ValueError("Cannot reply to a comment from a different post.")
         if not self.post.is_commentable:
-            raise ValueError("Cannot comment on a non-commentable post")
+            raise ValueError("Cannot comment on a non-commentable post.")
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Comment by {self.author} on Post {self.post.id}"
+
+    def get_replies(self):
+        """Get all replies (children) to this comment."""
+        return self.replies.all()

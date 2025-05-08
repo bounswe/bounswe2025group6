@@ -1,6 +1,6 @@
 # utils/models.py
 from django.db import models
-from api.models import TimestampedModel
+from api.models import TimestampedModel, RegisteredUser
 
 # Abstract base class for posts, will be used in forum and q/a models
 class PostModel(TimestampedModel):
@@ -28,6 +28,8 @@ class CommentModel(TimestampedModel):
         null=True,
         blank=True
     )
+    # To store depth or nesting level, was a reply to another comment or was a post comment
+    level = models.PositiveIntegerField(default=0)
     upvote_count = models.PositiveIntegerField(default=0)
     downvote_count = models.PositiveIntegerField(default=0)
     reported_count = models.PositiveIntegerField(default=0)
@@ -37,6 +39,11 @@ class CommentModel(TimestampedModel):
     # We don't want to create a table for this class
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        if self.parent_comment:
+            self.level = self.parent_comment.level + 1
+        super().save(*args, **kwargs)
 
     def upvote(self):
         """Increment the upvote count"""
@@ -52,3 +59,32 @@ class CommentModel(TimestampedModel):
         """Increment the report count for the comment"""
         self.reported_count += 1
         self.save()
+
+# Abstract base class for Comment Votes
+class CommentVote(models.Model):
+    VOTE_CHOICES = [
+        ('up', 'Upvote'),
+        ('down', 'Downvote'),
+    ]
+
+    user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
+    comment = models.ForeignKey(CommentModel, related_name='votes', on_delete=models.CASCADE)
+    vote_type = models.CharField(max_length=5, choices=VOTE_CHOICES)
+
+    class Meta:
+        abstract = True  # This class is abstract and won't create a table directly
+
+    def __str__(self):
+        return f"Vote by {self.user} on comment {self.comment.id} with type {self.vote_type}"
+
+# Abstract base class for Comment Reports
+class CommentReport(models.Model):
+    user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
+    comment = models.ForeignKey(CommentModel, related_name='reports', on_delete=models.CASCADE)
+    reason = models.TextField()
+
+    class Meta:
+        abstract = True  # This class is abstract and won't create a table directly
+
+    def __str__(self):
+        return f"Report by {self.user} on comment {self.comment.id}"
