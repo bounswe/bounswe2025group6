@@ -80,7 +80,6 @@ class ForumPostVoteView(APIView):
 
     @swagger_auto_schema(
         operation_description="Delete a vote on a forum post.",
-        request_body=ForumPostVoteSerializer,
         responses={
             204: openapi.Response(description="Vote deleted successfully!"),
             400: openapi.Response(description="Bad request — validation error."),

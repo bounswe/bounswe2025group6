@@ -8,20 +8,20 @@ This document describes how to use the Forum API endpoint, which is used for cre
 
 ```json
 {
-  "id": 14,
-  "title": "How to make a Budget-friendly meal?",
-  "content": "Here are some tips on how to make a delicious and budget-friendly meal...",
+  "id": 45,
+  "title": "Sample Post Title",
+  "content": "This is a sample content for the forum post.",
   "is_commentable": true,
   "author": 1,
   "view_count": 0,
-  "like_count": 0,
+  "upvote_count": 0,
+  "downvote_count": 0,
   "tags": [
-    "Budget",
     "Healthy",
     "Quick"
   ],
-  "created_at": "2025-05-07T20:54:23.037658Z",
-  "updated_at": "2025-05-07T20:54:23.040858Z",
+  "created_at": "2025-05-08T17:24:04.561597Z",
+  "updated_at": "2025-05-08T17:24:04.563531Z",
   "deleted_on": null
 }
 ```
@@ -42,7 +42,8 @@ TagChoices:
 - `is_commentable`: Indicates if the post can be commented on (boolean).
 - `author`: ID of the author (integer).
 - `view_count`: Number of views (integer). (updated on each detailed get request to that post)
-- `like_count`: Number of likes (integer).
+- `upvote_count`: Number of upvotes (integer).
+- `downvote_count`: Number of downvotes (integer).
 - `tags`: List of tags associated with the post (array of strings) (enum)
 - `created_at`: Timestamp of when the post was created (datetime).
 - `updated_at`: Timestamp of when the post was last updated (datetime).
@@ -57,10 +58,13 @@ TagChoices:
 
 ```json
 {
-  "title": "How to make a Budget-friendly meal?",
-  "content": "Here are some tips on how to make a delicious and budget-friendly meal...",
+  "title": "Sample Post Title",
+  "content": "This is a sample content for the forum post.",
   "is_commentable": true,
-  "tags": ["Budget", "Healthy", "Quick"]
+  "tags": [
+    "Healthy",
+    "Quick"
+  ]
 }
 ```
 
@@ -69,20 +73,20 @@ TagChoices:
 #### 📦 Response Format
 ```json
 {
-  "id": 14,
-  "title": "How to make a Budget-friendly meal?",
-  "content": "Here are some tips on how to make a delicious and budget-friendly meal...",
+  "id": 45,
+  "title": "Sample Post Title",
+  "content": "This is a sample content for the forum post.",
   "is_commentable": true,
   "author": 1,
   "view_count": 0,
-  "like_count": 0,
+  "upvote_count": 0,
+  "downvote_count": 0,
   "tags": [
-    "Budget",
     "Healthy",
     "Quick"
   ],
-  "created_at": "2025-05-07T20:54:23.037658Z",
-  "updated_at": "2025-05-07T20:54:23.040858Z",
+  "created_at": "2025-05-08T17:24:04.561597Z",
+  "updated_at": "2025-05-08T17:24:04.563531Z",
   "deleted_on": null
 }
 ```
@@ -104,87 +108,58 @@ TagChoices:
 ```json
 {
   "page": 1,
-  "page_size": 5,
-  "total": 10,
+  "page_size": 3,
+  "total": 20,
   "results": [
     {
-      "id": 23,
-      "title": "How meal?",
-      "content": "Here is  a delicious and budget-friendly meal...",
-      "is_commentable": false,
+      "id": 45,
+      "title": "Sample Post Title",
+      "content": "This is a sample content for the forum post.",
+      "is_commentable": true,
       "author": 1,
       "view_count": 0,
-      "like_count": 0,
+      "upvote_count": 0,
+      "downvote_count": 0,
       "tags": [
         "Healthy",
         "Quick"
       ],
-      "created_at": "2025-05-07T21:02:41.254344Z",
-      "updated_at": "2025-05-07T21:02:41.255472Z",
+      "created_at": "2025-05-08T17:24:04.561597Z",
+      "updated_at": "2025-05-08T17:24:04.563531Z",
       "deleted_on": null
     },
     {
-      "id": 22,
-      "title": "How meal?",
-      "content": "Here is  a delicious and budget-friendly meal...",
+      "id": 44,
+      "title": "Sample Post Title",
+      "content": "This is a sample content for the forum post.",
       "is_commentable": false,
       "author": 1,
       "view_count": 0,
-      "like_count": 0,
+      "upvote_count": 0,
+      "downvote_count": 0,
       "tags": [
         "Healthy",
         "Quick"
       ],
-      "created_at": "2025-05-07T21:02:41.133570Z",
-      "updated_at": "2025-05-07T21:02:41.135065Z",
+      "created_at": "2025-05-08T17:23:50.461145Z",
+      "updated_at": "2025-05-08T17:23:50.462824Z",
       "deleted_on": null
     },
     {
-      "id": 21,
-      "title": "How meal?",
-      "content": "Here is  a delicious and budget-friendly meal...",
-      "is_commentable": false,
+      "id": 43,
+      "title": "Sample Post Title",
+      "content": "This is a sample content for the forum post.",
+      "is_commentable": true,
       "author": 1,
       "view_count": 0,
-      "like_count": 0,
+      "upvote_count": 0,
+      "downvote_count": 0,
       "tags": [
         "Healthy",
         "Quick"
       ],
-      "created_at": "2025-05-07T21:02:38.869082Z",
-      "updated_at": "2025-05-07T21:02:38.871334Z",
-      "deleted_on": null
-    },
-    {
-      "id": 20,
-      "title": "How to make a Budget-friendly meal?",
-      "content": "Here are some tips on how to make a delicious and budget-friendly meal...",
-      "is_commentable": false,
-      "author": 1,
-      "view_count": 0,
-      "like_count": 0,
-      "tags": [
-        "Healthy",
-        "Quick"
-      ],
-      "created_at": "2025-05-07T21:02:27.374686Z",
-      "updated_at": "2025-05-07T21:02:27.376405Z",
-      "deleted_on": null
-    },
-    {
-      "id": 19,
-      "title": "How to make a Budget-friendly meal?",
-      "content": "Here are some tips on how to make a delicious and budget-friendly meal...",
-      "is_commentable": false,
-      "author": 1,
-      "view_count": 0,
-      "like_count": 0,
-      "tags": [
-        "Healthy",
-        "Quick"
-      ],
-      "created_at": "2025-05-07T21:02:27.090421Z",
-      "updated_at": "2025-05-07T21:02:27.098239Z",
+      "created_at": "2025-05-08T17:23:46.653863Z",
+      "updated_at": "2025-05-08T17:23:46.655832Z",
       "deleted_on": null
     }
   ]
@@ -205,24 +180,24 @@ Nothing required as a request body, just the URL with the post ID.
 #### 📦 Response Format
 ```json
 {
-  "id": 24,
-  "title": "Healthy Meal Prep for Students",
-  "content": "Let's share our best meal prep strategies that are healthy and budget-friendly.",
+  "id": 42,
+  "title": "Sample Post Title",
+  "content": "This is a sample content for the forum post.",
   "is_commentable": true,
   "author": 1,
-  "view_count": 0,
-  "like_count": 0,
+  "view_count": 1,
+  "upvote_count": 0,
+  "downvote_count": 0,
   "tags": [
-    "Meal Prep",
     "Healthy",
-    "Student",
-    "Tips"
+    "Quick"
   ],
-  "created_at": "2025-05-07T21:20:43.079422Z",
-  "updated_at": "2025-05-07T21:20:43.092132Z",
+  "created_at": "2025-05-08T17:23:45.383180Z",
+  "updated_at": "2025-05-08T17:25:37.551355Z",
   "deleted_on": null
 }
 ```
+- **Note:** The `view_count` is updated each time this endpoint is accessed.
 
 ### 4. **PUT** `/forum/posts/{id}/`
 
@@ -242,21 +217,22 @@ Nothing required as a request body, just the URL with the post ID.
 #### 📦 Response Format
 ```json
 {
-  "id": 23,
+  "id": 42,
   "title": "Updated Healthy Meal Prep for Students",
   "content": "Updated tips and tricks for meal prepping on a student budget.",
   "is_commentable": false,
   "author": 1,
-  "view_count": 0,
-  "like_count": 0,
+  "view_count": 1,
+  "upvote_count": 0,
+  "downvote_count": 0,
   "tags": [
     "Healthy Eating",
     "Student",
     "Quick",
     "Nutrition"
   ],
-  "created_at": "2025-05-07T21:02:41.254344Z",
-  "updated_at": "2025-05-07T21:21:26.342611Z",
+  "created_at": "2025-05-08T17:23:45.383180Z",
+  "updated_at": "2025-05-08T17:26:00.371097Z",
   "deleted_on": null
 }
 ```
@@ -276,7 +252,53 @@ Nothing required as a request body, just the URL with the post ID.
 }
 ```
 
+### 6. **POST** `/forum/posts/{post_id}/vote/`
+#### 🔍 Request Format
 
+```json
+{
+  "vote_type": "up"
+}
+```
+- **Note:** The `id` parameter is required in the URL path. The `vote_type` field is required in the request body.
+- **Note:** The `vote_type` can be either `up` or `down`.
+
+#### 📦 Response Format
+```json
+{
+  "message": "Vote recorded successfully!"
+}
+```
+#### 📦 Response Format (failed)
+```json
+{
+  "message": "You have already voted on this post!"
+}
+```
+- Status code: 400 Bad Request
+
+- **Note:** The `upvote_count` and `downvote_count` fields are updated accordingly. Only one vote is allowed per user per post. A user cannot vote again on the same post until they remove their previous vote.
+- **Note:** If a user tries to vote again, they will receive a message indicating that they have already voted.
+
+### 7. **DELETE** `/forum/posts/{post_id}/vote/`
+#### 🔍 Request Format
+- Nothing required as a request body, just the URL with the post ID.
+- **Note:** The `post_id` parameter is required in the URL path.
+#### 📦 Response Format
+```json
+{
+  "message": "Vote removed successfully!"
+}
+```
+#### 📦 Response Format (failed)
+```json
+{
+  "message": "No vote found to delete for this post."
+}
+```
+- Status code: 404 Not Found
+- **Note:** The `upvote_count` and `downvote_count` fields are updated accordingly. The user can remove their vote at any time.
+- **Note:** If the user tries to remove a vote that they haven't cast, they will receive a message indicating that they have not voted on this post.
 
 #### 🔒 Permissions
 - Authentication is required for all endpoints. Please refer to jwt token documentation for details.
@@ -284,3 +306,7 @@ Nothing required as a request body, just the URL with the post ID.
 #### 🔗 Related
 - Related model: Forum Post (inherits from TimestampedModel, PostModel)
 - Will be used in: forum app for creating and managing forum posts.
+
+### Quick Reminder:
+- It's almost certain that I've made some mistakes or inconsistencies in the above documentation. Please review our swagger documentation and the code itself to ensure everything is accurate and up-to-date. If you find any discrepancies, please correct the documentation accordingly. Thank you for your understanding and cooperation!
+- You can easily find the working endpoints and their request/response formats in the swagger documentation. Just run backend locally and go to `http://127.0.0.1:8000/swagger/` to access the swagger UI. You can also use the Postman collection provided in the repository for testing the endpoints but I strongly suggest using the swagger UI for better understanding and testing.

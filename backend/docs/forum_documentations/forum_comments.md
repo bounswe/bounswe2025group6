@@ -195,12 +195,12 @@ Nothing required as a request body, just the URL with the post ID.
 
 ```json
 {
-  "vote_type": "upvote"
+  "vote_type": "up"
 }
 ```
 
 - **Note:** The `comment_id` parameter is required in the URL path. The `vote_type` field is required in the request body.
-- **Note:** The `vote_type` can be either `upvote` or `downvote`.
+- **Note:** The `vote_type` can be either `up` or `down`.
 
 #### 📦 Response Format
 ```json
@@ -227,3 +227,7 @@ Nothing required as a request body, just the URL with the post ID.
 #### 🔗 Related
 - Related model: Forum Post Comments (inherits from TimestampedModel, PostModel)
 - Will be used in: forum app for creating and managing forum post comments.
+
+### Quick Reminder:
+- It's almost certain that I've made some mistakes or inconsistencies in the above documentation. Please review our swagger documentation and the code itself to ensure everything is accurate and up-to-date. If you find any discrepancies, please correct the documentation accordingly. Thank you for your understanding and cooperation!
+- You can easily find the working endpoints and their request/response formats in the swagger documentation. Just run backend locally and go to `http://127.0.0.1:8000/swagger/` to access the swagger UI. You can also use the Postman collection provided in the repository for testing the endpoints but I strongly suggest using the swagger UI for better understanding and testing.
