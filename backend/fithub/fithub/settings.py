@@ -186,7 +186,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Log in cookies, and email settings must be imlemented here later
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # for email
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" # for console
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True

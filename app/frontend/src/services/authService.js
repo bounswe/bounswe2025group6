@@ -276,18 +276,18 @@ export const requestPasswordResetCode = async (email) => {
  * @param {string} resetCode - 6-digit reset code
  * @returns {Promise<Object>} Response data
  */
-export const verifyResetCode = async (email, resetCode) => {
+export const verifyResetCode = async (email, code) => {
   try {
     const response = await apiClient.post('/verify-reset-code/', {
       email,
-      reset_code: resetCode
+      code: code,
     });
     return response.data;
   } catch (error) {
     console.error('Reset code verification error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail || 
-      error.response?.data?.reset_code?.[0] || 
+      error.response?.data?.code?.[0] || 
       'Invalid reset code. Please try again.'
     );
   }
