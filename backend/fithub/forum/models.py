@@ -32,6 +32,13 @@ class ForumPost(PostModel):
     def __str__(self):
         return f"ForumPost #{self.pk}, {self.title}"
 
+class ForumPostVote(CommentVote):
+    post = models.ForeignKey(ForumPost, related_name='votes', on_delete=models.CASCADE)
+    """Model for voting on forum posts. Extends CommentVote."""
+    pass
+
+
+### MODELS FOR COMMENTS ###
 
 class ForumPostComment(CommentModel):
     post = models.ForeignKey('ForumPost', related_name='comments', on_delete=models.CASCADE)
