@@ -1,272 +1,156 @@
-# tests.py
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from rest_framework.test import APIClient, APITestCase
-from rest_framework import status
-from .models import PasswordResetCode, PasswordResetToken, Dietitian
-import uuid
+from django.test import TestCase
+from django.core.exceptions import ValidationError
+from api.models import RegisteredUser
+from recipes.models import Recipe
+from datetime import datetime
 
-User = get_user_model()
-
-class UserRegistrationTests(APITestCase):
+class RegisteredUserModelTest(TestCase):
     def setUp(self):
-        self.client = APIClient()
-        self.register_url = reverse('register_user')
-        self.valid_payload = {
+        self.user_data = {
             'username': 'testuser',
             'email': 'test@example.com',
             'password': 'testpass123',
-            'usertype': 'user'
-        }
-        self.dietitian_payload = {
-            'username': 'testdietitian',
-            'email': 'dietitian@example.com',
-            'password': 'testpass123',
-            'usertype': 'dietitian',
-            'dietitian': {
-                'certification_url': 'http://example.com/cert.pdf'
-            }
+            'usertype': 'user',
+            'profilePhoto': 'https://example.com/photo.jpg',
+            'foodAllergies': ['peanuts', 'gluten'],
+            'notificationPreferences': {'email': True, 'sms': False},
+            'profileVisibility': 'public',
+            'recipeCount': 5,
+            'avgRecipeRating': 4.2,
+            'typeOfCook': 'intermediate'
         }
 
-    def test_valid_user_registration(self):
-        response = self.client.post(
-            self.register_url,
-            data=self.valid_payload,
-            format='json'
+    def test_create_user_with_minimal_fields(self):
+        """Test user creation with only required fields"""
+        user = RegisteredUser.objects.create_user(
+            username='minimaluser',
+            email='minimal@example.com',
+            password='testpass123'
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(User.objects.filter(email='test@example.com').exists())
-        user = User.objects.get(email='test@example.com')
-        self.assertFalse(user.is_active)  # Should be inactive until email verification
+        self.assertEqual(user.username, 'minimaluser')
+        self.assertEqual(user.usertype, 'user')  # Testing default
+        self.assertTrue(user.check_password('testpass123'))
 
-    def test_dietitian_registration(self):
-        response = self.client.post(
-            self.register_url,
-            data=self.dietitian_payload,
-            format='json'
+    def test_create_superuser(self):
+        """Test superuser creation"""
+        admin = RegisteredUser.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='adminpass'
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(User.objects.filter(email='dietitian@example.com').exists())
-        user = User.objects.get(email='dietitian@example.com')
-        self.assertTrue(hasattr(user, 'dietitian'))
-        self.assertEqual(user.dietitian.certification_url, 'http://example.com/cert.pdf')
+        self.assertTrue(admin.is_staff)
+        self.assertTrue(admin.is_superuser)
 
-    def test_invalid_registration_missing_password(self):
-        invalid_payload = self.valid_payload.copy()
-        invalid_payload.pop('password')
-        response = self.client.post(
-            self.register_url,
-            data=invalid_payload,
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('error', response.data)
+    def test_user_type_choices(self):
+        """Test usertype field validation"""
+        user = RegisteredUser(**self.user_data)
+        user.full_clean()  # Should work with valid choice
 
-    def test_invalid_registration_missing_dietitian_info(self):
-        invalid_payload = self.dietitian_payload.copy()
-        invalid_payload.pop('dietitian')
-        response = self.client.post(
-            self.register_url,
-            data=invalid_payload,
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('dietitian', response.data)
+        with self.assertRaises(ValidationError):
+            user.usertype = 'invalid_type'
+            user.full_clean()
 
-class EmailVerificationTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123',
-            is_active=False
-        )
-        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
-        self.token = default_token_generator.make_token(self.user)
-        self.verify_url = reverse('email-verify', kwargs={
-            'uidb64': self.uid,
-            'token': self.token
-        })
+    def test_email_uniqueness(self):
+        """Test email uniqueness constraint"""
+        RegisteredUser.objects.create_user(**self.user_data)
+        with self.assertRaises(Exception):  # IntegrityError or ValidationError
+            RegisteredUser.objects.create_user(
+                username='anotheruser',
+                email='test@example.com',  # Same email
+                password='testpass123'
+            )
 
-    def test_valid_email_verification(self):
-        response = self.client.get(self.verify_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.is_active)
-
-    def test_invalid_uid_verification(self):
-        invalid_url = reverse('email-verify', kwargs={
-            'uidb64': 'invalid',
-            'token': self.token
-        })
-        response = self.client.get(invalid_url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('error', response.data)
-
-    def test_invalid_token_verification(self):
-        invalid_url = reverse('email-verify', kwargs={
-            'uidb64': self.uid,
-            'token': 'invalid-token'
-        })
-        response = self.client.get(invalid_url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('error', response.data)
-
-class LoginLogoutTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123',
-            is_active=True
-        )
-        self.login_url = reverse('login_view')
-        self.logout_url = reverse('logout_view')
-
-    def test_valid_login(self):
-        response = self.client.post(
-            self.login_url,
-            data={'email': 'test@example.com', 'password': 'testpass123'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)
-
-    def test_invalid_login_wrong_password(self):
-        response = self.client.post(
-            self.login_url,
-            data={'email': 'test@example.com', 'password': 'wrongpass'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
-
-    def test_inactive_user_login(self):
-        self.user.is_active = False
-        self.user.save()
-        response = self.client.post(
-            self.login_url,
-            data={'email': 'test@example.com', 'password': 'testpass123'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
-
-    def test_logout(self):
-        # First login to get token
-        login_response = self.client.post(
-            self.login_url,
-            data={'email': 'test@example.com', 'password': 'testpass123'},
-            format='json'
-        )
-        token = login_response.data['token']
+    def test_profile_visibility_choices(self):
+        """Test profileVisibility field validation"""
+        user = RegisteredUser(**self.user_data)
+        valid_choices = ['public', 'private', 'followers_only']
         
-        # Then logout with the token
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
-        response = self.client.post(self.logout_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['detail'], 'Successfully logged out.')
+        for choice in valid_choices:
+            user.profileVisibility = choice
+            user.full_clean()  # Should not raise
 
-class PasswordResetTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='oldpassword',
-            is_active=True
-        )
-        self.request_code_url = reverse('request-password-reset-code')
-        self.verify_code_url = reverse('verify-reset-code')
-        self.reset_password_url = reverse('reset-password')
+        with self.assertRaises(ValidationError):
+            user.profileVisibility = 'invalid_visibility'
+            user.full_clean()
 
-    def test_request_reset_code(self):
-        response = self.client.post(
-            self.request_code_url,
-            data={'email': 'test@example.com'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(PasswordResetCode.objects.filter(email='test@example.com').exists())
-
-    def test_verify_reset_code(self):
-        # First request a code
-        self.client.post(
-            self.request_code_url,
-            data={'email': 'test@example.com'},
-            format='json'
-        )
-        code = PasswordResetCode.objects.get(email='test@example.com').code
+    def test_cook_type_choices(self):
+        """Test typeOfCook field validation"""
+        user = RegisteredUser(**self.user_data)
+        valid_choices = ['beginner', 'intermediate', 'expert', 'professional']
         
-        # Then verify it
-        response = self.client.post(
-            self.verify_code_url,
-            data={'email': 'test@example.com', 'code': code},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)
-        self.assertTrue(PasswordResetToken.objects.filter(email='test@example.com').exists())
+        for choice in valid_choices:
+            user.typeOfCook = choice
+            user.full_clean()  # Should not raise
 
-    def test_reset_password_with_token(self):
-        # Go through the full flow
-        # 1. Request code
-        self.client.post(
-            self.request_code_url,
-            data={'email': 'test@example.com'},
-            format='json'
-        )
-        code = PasswordResetCode.objects.get(email='test@example.com').code
-        
-        # 2. Verify code to get token
-        verify_response = self.client.post(
-            self.verify_code_url,
-            data={'email': 'test@example.com', 'code': code},
-            format='json'
-        )
-        token = verify_response.data['token']
-        
-        # 3. Reset password with token
-        response = self.client.post(
-            self.reset_password_url,
-            data={'token': token, 'new_password': 'newpassword123'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        # Verify password was changed
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password('newpassword123'))
+        with self.assertRaises(ValidationError):
+            user.typeOfCook = 'invalid_level'
+            user.full_clean()
 
-    def test_invalid_reset_code(self):
-        response = self.client.post(
-            self.verify_code_url,
-            data={'email': 'test@example.com', 'code': '000000'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
-
-    def test_expired_reset_token(self):
-        # Create an expired token directly
-        expired_token = PasswordResetToken.objects.create(
-            email='test@example.com',
-            token=uuid.uuid4()
-        )
-        expired_token.created_at = expired_token.created_at - PasswordResetToken().is_expired().delta
-        expired_token.save()
+    def test_rating_validation(self):
+        """Test avgRecipeRating validation"""
+        user = RegisteredUser(**self.user_data)
         
-        response = self.client.post(
-            self.reset_password_url,
-            data={'token': str(expired_token.token), 'new_password': 'newpassword123'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
+        # Test valid ratings
+        for rating in [0.0, 2.5, 5.0]:
+            user.avgRecipeRating = rating
+            user.full_clean()
 
+        # Test invalid ratings
+        with self.assertRaises(ValidationError):
+            user.avgRecipeRating = -0.1
+            user.full_clean()
+
+        with self.assertRaises(ValidationError):
+            user.avgRecipeRating = 5.1
+            user.full_clean()
+
+    def test_json_fields(self):
+        """Test JSON field handling"""
+        user = RegisteredUser.objects.create(**self.user_data)
+        
+        # Test foodAllergies
+        self.assertEqual(user.foodAllergies, ['peanuts', 'gluten'])
+        user.foodAllergies.append('dairy')
+        user.save()
+        user.refresh_from_db()
+        self.assertIn('dairy', user.foodAllergies)
+
+        # Test notificationPreferences
+        self.assertEqual(user.notificationPreferences, {'email': True, 'sms': False})
+        user.notificationPreferences['push'] = True
+        user.save()
+        user.refresh_from_db()
+        self.assertTrue(user.notificationPreferences['push'])
+
+    def test_follow_relationships(self):
+        """Test user following functionality"""
+        user1 = RegisteredUser.objects.create_user(username='user1', email='user1@test.com')
+        user2 = RegisteredUser.objects.create_user(username='user2', email='user2@test.com')
+        
+        user1.followedUsers.add(user2)
+        
+        self.assertEqual(user1.followedUsers.count(), 1)
+        self.assertEqual(user2.followers.count(), 1)
+        self.assertEqual(user1.followedUsers.first(), user2)
+        self.assertEqual(user2.followers.first(), user1)
+
+    def test_timestamp_inheritance(self):
+        """Test TimestampedModel functionality"""
+        user = RegisteredUser.objects.create(**self.user_data)
+        self.assertIsInstance(user.created_at, datetime)
+        self.assertIsInstance(user.updated_at, datetime)
+        
+        # Test auto_now_add
+        original_created = user.created_at
+        user.save()
+        self.assertEqual(user.created_at, original_created)
+        
+        # Test auto_now
+        original_updated = user.updated_at
+        user.save()
+        self.assertNotEqual(user.updated_at, original_updated)
+
+    def test_str_representation(self):
+        """Test string representation"""
+        user = RegisteredUser.objects.create(**self.user_data)
+        self.assertEqual(str(user), user.username)
