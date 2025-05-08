@@ -2,8 +2,6 @@ from django.test import TestCase
 from api.models import RegisteredUser
 from forum.models import ForumPost, ForumPostComment
 
-
-
 # ForumPostComment Model Tests
 class ForumPostCommentTestCase(TestCase):
     def setUp(self):
@@ -31,37 +29,26 @@ class ForumPostCommentTestCase(TestCase):
         self.assertEqual(comment.post, self.forum_post)
         self.assertEqual(comment.upvote_count, 0)
         self.assertEqual(comment.downvote_count, 0)
-        self.assertEqual(comment.reported_count, 0)
 
-    def test_upvote_comment(self):
+    def test_inc_upvote_comment(self):
         """Test the upvote functionality of a comment"""
         comment = ForumPostComment.objects.create(
             author=self.user,
             content="This is a comment on the forum post.",
             post=self.forum_post
         )
-        comment.upvote()
+        comment.increment_upvote()
         self.assertEqual(comment.upvote_count, 1)
 
-    def test_downvote_comment(self):
+    def test_inc_downvote_comment(self):
         """Test the downvote functionality of a comment"""
         comment = ForumPostComment.objects.create(
             author=self.user,
             content="This is a comment on the forum post.",
             post=self.forum_post
         )
-        comment.downvote()
+        comment.increment_downvote()
         self.assertEqual(comment.downvote_count, 1)
-
-    def test_report_comment(self):
-        """Test reporting a comment"""
-        comment = ForumPostComment.objects.create(
-            author=self.user,
-            content="This is a comment on the forum post.",
-            post=self.forum_post
-        )
-        comment.report()
-        self.assertEqual(comment.reported_count, 1)
 
     def test_reply_to_comment(self):
         """Test creating a reply to an existing comment"""

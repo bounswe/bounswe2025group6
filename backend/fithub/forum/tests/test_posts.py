@@ -31,7 +31,8 @@ class ForumPostModelTest(TestCase):
         self.assertEqual(forum_post.author, self.user)
         self.assertTrue(forum_post.is_commentable)  # By default is_commentable is True
         self.assertEqual(forum_post.view_count, 0)  # Default view_count
-        self.assertEqual(forum_post.like_count, 0)  # Default like_count
+        self.assertEqual(forum_post.upvote_count, 0)  # Default upvote_count
+        self.assertEqual(forum_post.downvote_count, 0)
 
     def test_forum_post_tags(self):
         """Ensure tags are added correctly to the ForumPost"""
@@ -44,7 +45,8 @@ class ForumPostModelTest(TestCase):
         forum_post = self.forum_post
         self.assertTrue(forum_post.is_commentable)
         self.assertEqual(forum_post.view_count, 0)
-        self.assertEqual(forum_post.like_count, 0)
+        self.assertEqual(forum_post.upvote_count, 0)
+        self.assertEqual(forum_post.downvote_count, 0)
 
     def test_forum_post_str_method(self):
         """Check that the string representation is correct"""
