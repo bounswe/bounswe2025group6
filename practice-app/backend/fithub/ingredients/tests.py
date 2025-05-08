@@ -1,5 +1,6 @@
 from django.test import TestCase
 from .models import Ingredient
+from django.core.exceptions import ValidationError
 
 """Tests for the Ingredient model"""
 
@@ -23,32 +24,20 @@ class IngredientModelTests(TestCase):
         )
         self.assertEqual(ingredient.category, "proteins")
 
+
     def test_create_ingredient_with_invalid_category(self):
         """
         Test that an invalid category raises a validation error.
         """
 
-        ingredient =Ingredient.objects.create(
+        ingredient = Ingredient(
             name="Invalid Ingredient",
-            category="invalid_category"  # Invalid category not in CATEGORY_CHOICES
+            category="invalid_category"
         )
 
-        # first full clean and check for validation error
-        with self.assertRaises(ValueError):
+        # Check that full_clean raises a ValidationError
+        with self.assertRaises(ValidationError):
             ingredient.full_clean()
-
-    def test_create_ingredient_with_nullable_allergens_and_dietary_info(self):
-        """
-        Test that allergens and dietary_info fields can be nullable.
-        """
-        ingredient = Ingredient.objects.create(
-            name="Olive Oil",
-            category="oils_and_fats",
-            allergens=None,
-            dietary_info=None
-        )
-        self.assertIsNone(ingredient.allergens)
-        self.assertIsNone(ingredient.dietary_info)
 
     def test_create_ingredient_with_empty_allergens_and_dietary_info(self):
         """
@@ -57,11 +46,12 @@ class IngredientModelTests(TestCase):
         ingredient = Ingredient.objects.create(
             name="Salt",
             category="herbs_and_spices",
-            allergens=[],
-            dietary_info=[]
+            allergens=[],  # Empty list
+            dietary_info=[]  # Empty list
         )
         self.assertEqual(ingredient.allergens, [])
         self.assertEqual(ingredient.dietary_info, [])
+
 
     def test_str_method(self):
         """

@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import now
+import uuid
 
 class TimestampedModel(models.Model):
 
@@ -42,6 +43,7 @@ class Dietitian(TimestampedModel, models.Model):
     registered_user = models.OneToOneField(RegisteredUser, on_delete=models.CASCADE, related_name='dietitian')
     certification_url = models.URLField()
 
+# the 6 digit reset token sent to user email
 class PasswordResetCode(models.Model):
     email = models.EmailField()
     code = models.CharField(max_length=6)
@@ -50,3 +52,12 @@ class PasswordResetCode(models.Model):
 
     def is_expired(self):
         return self.created_at + timedelta(minutes=10) < timezone.now()
+
+# the reset token generated after user provides a verified six-digit code
+class PasswordResetToken(models.Model):
+    email = models.EmailField()
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=15)
