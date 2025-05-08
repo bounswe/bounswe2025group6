@@ -16,7 +16,7 @@ urlpatterns = [
         name='forumpostcomment-list-create'
     ),
     path(
-        'posts/<int:post_id>/comments/<int:pk>/',
+        'posts/<int:post_id>/comments/<int:comment_id>/',
         ForumPostCommentViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'}),
         name='forumpostcomment-detail'
     ),

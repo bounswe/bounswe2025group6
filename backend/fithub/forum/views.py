@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes
 from django.utils.timezone import now
@@ -78,7 +79,13 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         """
         Get a single comment's details.
         """
-        comment = self.get_object()
+
+        # Get the comment instance, if it exists
+        try:
+            comment = self.get_queryset().get(id=self.kwargs['comment_id'])
+        except ObjectDoesNotExist:
+            return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = self.get_serializer(comment)
         return Response(serializer.data)
 
@@ -87,8 +94,13 @@ class ForumPostCommentViewSet(viewsets.ModelViewSet):
         Delete (soft delete) a comment.
         Only the author can delete their comment.
         """
-        comment = self.get_object()
+        # Get the comment instance, if it exists
+        try:
+            comment = self.get_queryset().get(id=self.kwargs['comment_id'])
+        except ObjectDoesNotExist:
+            return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Check if the user is the author of the comment
         if comment.author != request.user:
             return Response({"detail": "You cannot delete a comment you did not create."}, status=status.HTTP_403_FORBIDDEN)
 

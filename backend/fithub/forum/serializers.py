@@ -63,7 +63,7 @@ class ForumPostCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ForumPostComment
-        fields = ['id', 'content', 'author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at']
+        fields = ['id', 'content', 'author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at', 'deleted_on']
         read_only_fields = ['author', 'upvote_count', 'downvote_count', 'reported_count', 'created_at', 'updated_at', 'deleted_on']
 
     def create(self, validated_data):
