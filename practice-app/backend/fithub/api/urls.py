@@ -8,7 +8,7 @@ from .views import RegisteredUserViewSet, RecipeRatingViewSet, get_user_id_by_em
 # Initialize the router
 router = DefaultRouter()
 router.register(r'users', RegisteredUserViewSet)
-# router.register(r'recipe-ratings', RecipeRatingViewSet)
+router.register(r'recipe-ratings', RecipeRatingViewSet)
 
 
 urlpatterns = [
