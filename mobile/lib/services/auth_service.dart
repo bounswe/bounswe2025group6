@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'storage_service.dart';
 import '../models/login_response.dart';
 
 class AuthenticationException implements Exception {
@@ -13,42 +14,50 @@ class AuthenticationException implements Exception {
 }
 
 class AuthService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'http://10.0.2.2:8000';
 
-  Future<LoginResponse> login(String email, String password) async {
+  Future<void> login(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login/'),
+      // First, authenticate user with login endpoint
+      final loginResponse = await http.post(
+        Uri.parse('$baseUrl/api/login/'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
       );
 
-      switch (response.statusCode) {
-        case 200:
-          return LoginResponse.fromJson(jsonDecode(response.body));
-        case 400:
-          throw AuthenticationException(
-            'Invalid email or password.',
-            statusCode: 400,
-          );
-        case 401:
-          throw AuthenticationException(
-            'Invalid credentials. Please check your email and password.',
-            statusCode: 401,
-          );
-        default:
-          throw AuthenticationException(
-            'An error occurred. Please try again later.',
-            statusCode: response.statusCode,
-          );
+      if (loginResponse.statusCode != 200) {
+        final error = jsonDecode(loginResponse.body);
+        throw Exception(error['detail'] ?? 'Login failed');
       }
+
+      // Then, get JWT tokens
+      final tokenResponse = await http.post(
+        Uri.parse('$baseUrl/api/token/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': email,
+          'password': password,
+        }),
+      );
+
+      if (tokenResponse.statusCode != 200) {
+        final error = jsonDecode(tokenResponse.body);
+        throw Exception(error['detail'] ?? 'Token generation failed');
+      }
+
+      final tokenData = jsonDecode(tokenResponse.body);
+      
+      // Store both access and refresh tokens
+      await StorageService.saveAccessToken(tokenData['access']);
+      await StorageService.saveRefreshToken(tokenData['refresh']);
+
     } catch (e) {
-      if (e is AuthenticationException) {
-        rethrow;
-      }
-      throw AuthenticationException('Network error: ${e.toString()}');
+      throw Exception(e.toString());
     }
-  } // End of login method
+  }
 
   Future<void> register({
     required String username,
@@ -72,7 +81,7 @@ class AuthService {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/register/'), // Corrected endpoint
+        Uri.parse('$baseUrl/api/register/'), // Corrected endpoint
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -120,7 +129,7 @@ class AuthService {
   Future<void> requestPasswordResetCode(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/request-password-reset-code/'),
+        Uri.parse('$baseUrl/api/request-password-reset-code/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
@@ -143,7 +152,7 @@ class AuthService {
   Future<String> verifyResetCode(String email, String resetCode) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/verify-reset-code/'),
+        Uri.parse('$baseUrl/api/verify-reset-code/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -193,7 +202,7 @@ class AuthService {
     }
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/reset-password/'),
+        Uri.parse('$baseUrl/api/reset-password/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': token,
@@ -219,7 +228,7 @@ class AuthService {
   Future<void> logout(String token) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/logout/'),
+        Uri.parse('$baseUrl/api/logout/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

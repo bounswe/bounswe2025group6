@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/community_service.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -10,18 +11,36 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-  final List<Map<String, dynamic>> _posts = [
-    {
-      'id': '1',
-      'title': 'Best Pre-workout Meals',
-      'content': 'What do you eat before working out?',
-      'author': 'JohnDoe',
-      'likes': 15,
-      'comments': 5,
-      'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
-    },
-    // Add more mock posts here
-  ];
+  final CommunityService _communityService = CommunityService();
+  List<Map<String, dynamic>> _posts = [];
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPosts();
+  }
+
+  Future<void> _loadPosts() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await _communityService.getPosts();
+      setState(() {
+        _posts = List<Map<String, dynamic>>.from(response['results']);
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +50,24 @@ class _CommunityScreenState extends State<CommunityScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => Navigator.pushNamed(context, '/community/create'),
+            onPressed: () => Navigator.pushNamed(context, '/community/create')
+                .then((_) => _loadPosts()),
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _posts.length,
-        itemBuilder: (context, index) {
-          final post = _posts[index];
-          return PostCard(post: post);
-        },
+      body: RefreshIndicator(
+        onRefresh: _loadPosts,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!))
+                : ListView.builder(
+                    itemCount: _posts.length,
+                    itemBuilder: (context, index) {
+                      final post = _posts[index];
+                      return PostCard(post: post);
+                    },
+                  ),
       ),
     );
   }

@@ -59,14 +59,8 @@ class DashboardScreen extends StatelessWidget {
 
               if (confirm == true && context.mounted) {
                 try {
-                  // Get the stored token
-                  final token = await StorageService.getToken();
-                  if (token != null) {
-                    // Call the logout API
-                    //await AuthService().logout(token);
-                  }
-                  // Delete the token locally
-                  await StorageService.deleteToken();
+                  // Delete both tokens locally
+                  await StorageService.deleteTokens();
 
                   if (!context.mounted) return;
 

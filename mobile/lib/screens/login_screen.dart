@@ -255,13 +255,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final response = await _authService.login(
+      await _authService.login(
         _emailController.text,
         _passwordController.text,
       );
-
-      // Store the token securely
-      await StorageService.saveToken(response.token);
 
       if (!mounted) return;
 
