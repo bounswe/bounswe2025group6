@@ -3,7 +3,11 @@
 import axios from 'axios';
 
 // API base URL
-const API_URL = 'http://localhost:8000/api';
+const apiHost = import.meta.env.VITE_API_HOST;
+
+console.log(apiHost);
+
+const API_URL = `http://${apiHost}:8000/api`;
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'fithub_access_token';

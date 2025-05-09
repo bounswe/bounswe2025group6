@@ -25,4 +25,4 @@ RUN pip install -r requirements.txt
 
 # Run the server. "0.0.0.0" is to make the server be able to listen from anywhere, not just from within the container.
 
-CMD [ "python", "manage.py", "runserver", "0.0.0.0:8000" ]
+#CMD [ "python", "manage.py", "runserver", "0.0.0.0:8000" ]
