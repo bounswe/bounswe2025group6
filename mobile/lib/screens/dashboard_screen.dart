@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/storage_service.dart';
 import 'login_screen.dart';
+import 'profile_screen.dart';
 import '../services/auth_service.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AuthService? authService;
-  
+
   const DashboardScreen({this.authService, super.key});
 
   @override
@@ -61,13 +62,13 @@ class DashboardScreen extends StatelessWidget {
                   final token = await StorageService.getToken();
                   if (token != null) {
                     // Call the logout API
-                    await AuthService().logout(token);
+                    //await AuthService().logout(token);
                   }
                   // Delete the token locally
                   await StorageService.deleteToken();
-                  
+
                   if (!context.mounted) return;
-                  
+
                   // Navigate to login screen
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
@@ -77,7 +78,7 @@ class DashboardScreen extends StatelessWidget {
                   );
                 } catch (e) {
                   if (!context.mounted) return;
-                  
+
                   // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -93,7 +94,7 @@ class DashboardScreen extends StatelessWidget {
             icon: const Icon(Icons.person_outline),
             color: AppTheme.primaryGreen,
             onPressed: () {
-              // TODO: Navigate to profile
+              Navigator.pushNamed(context, ProfileScreen.routeName);
             },
           ),
           IconButton(
@@ -114,17 +115,11 @@ class DashboardScreen extends StatelessWidget {
               // Welcome section
               const Text(
                 'Welcome back!',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const Text(
                 'Manage your meals, recipes, and plans here.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 24),
 
@@ -177,9 +172,7 @@ class DashboardScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -188,11 +181,7 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 40,
-                color: color,
-              ),
+              Icon(icon, size: 40, color: color),
               const SizedBox(height: 12),
               Text(
                 title,
