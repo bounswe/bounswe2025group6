@@ -1,9 +1,11 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from api.models import RegisteredUser
+from api.models import RegisteredUser, RecipeRating
 from recipes.models import Recipe
 from datetime import datetime
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 class RegisteredUserModelTest(TestCase):
     def setUp(self):
