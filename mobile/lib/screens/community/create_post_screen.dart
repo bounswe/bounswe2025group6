@@ -194,12 +194,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _submitPost() async {
-    if (_tags.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least one tag is required')),
-      );
-      return;
-    }
 
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
