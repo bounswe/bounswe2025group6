@@ -326,5 +326,6 @@ export default {
   resetPassword,
   requestPasswordResetCode,
   verifyResetCode,
-  verifyEmail
+  verifyEmail,
+  apiClient
 };

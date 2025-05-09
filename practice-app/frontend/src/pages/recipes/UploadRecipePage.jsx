@@ -15,14 +15,16 @@ const UploadRecipePage = () => {
   const toast = useToast();
   const [recipeData, setRecipeData] = useState({
     title: '',
-    description: '',
-    imageUrl: '',
-    ingredients: [{ name: '', quantity: '' }],
+    description: '', // This field is not in the POST /recipes/ API
+    imageUrl: '', // This field is not in the POST /recipes/ API
+    ingredients: [{ name: '', quantity: '', unit: 'pcs' }],
     instructions: '',
-    badges: [],
-    costPerServing: '',
-    preparationTime: '',
-    nutrition: { calories: '', protein: '', carbs: '', fat: '' }
+    badges: [], // This field is not in the POST /recipes/ API
+    costPerServing: '', // This field is not in the POST /recipes/ API
+    preparationTime: '', // Will be prep_time
+    cookTime: '', // New field for cook_time
+    mealType: 'breakfast', // New field for meal_type, with default
+    nutrition: { calories: '', protein: '', carbs: '', fat: '' } // This field is not in the POST /recipes/ API
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const badgeOptions = ['High Protein', 'Low Carbohydrate', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Quick', 'Budget-Friendly'];
@@ -52,7 +54,7 @@ const UploadRecipePage = () => {
   const handleAddIngredient = () => {
     setRecipeData(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, { name: '', quantity: '' }]
+      ingredients: [...prev.ingredients, { name: '', quantity: '', unit: 'pcs' }]
     }));
   };
 
@@ -73,12 +75,14 @@ const UploadRecipePage = () => {
 
   const validateForm = () => {
     if (!recipeData.title.trim()) return toast.error('Please provide a recipe title'), false;
-    if (!recipeData.description.trim()) return toast.error('Please provide a recipe description'), false;
+    // description is not sent to API
     if (!recipeData.instructions.trim()) return toast.error('Please provide recipe instructions'), false;
-    if (!recipeData.costPerServing) return toast.error('Please provide cost per serving'), false;
+    // costPerServing is not sent to API
     if (!recipeData.preparationTime) return toast.error('Please provide preparation time'), false;
-    if (recipeData.ingredients.some(ing => !ing.name.trim() || !ing.quantity.trim())) {
-      toast.error('Please complete all ingredient fields');
+    if (!recipeData.cookTime) return toast.error('Please provide cooking time'), false;
+    if (!recipeData.mealType) return toast.error('Please select a meal type'), false;
+    if (recipeData.ingredients.some(ing => !ing.name.trim() || !ing.quantity.trim() || !ing.unit.trim())) {
+      toast.error('Please complete all ingredient fields, including units');
       return false;
     }
     return true;
@@ -90,16 +94,19 @@ const UploadRecipePage = () => {
     setIsSubmitting(true);
     try {
       const recipeToSubmit = {
-        ...recipeData,
-        costPerServing: parseFloat(recipeData.costPerServing),
-        preparationTime: parseInt(recipeData.preparationTime, 10),
-        nutrition: {
-          calories: parseInt(recipeData.nutrition.calories, 10) || 0,
-          protein: parseInt(recipeData.nutrition.protein, 10) || 0,
-          carbs: parseInt(recipeData.nutrition.carbs, 10) || 0,
-          fat: parseInt(recipeData.nutrition.fat, 10) || 0
-        },
-        createdBy: 'CurrentUser'
+        name: recipeData.title,
+        steps: recipeData.instructions.split('\n').filter(step => step.trim() !== ''),
+        prep_time: parseInt(recipeData.preparationTime, 10),
+        cook_time: parseInt(recipeData.cookTime, 10),
+        meal_type: recipeData.mealType,
+        ingredients: recipeData.ingredients.map(ing => ({
+          ingredient_name: ing.name,
+          quantity: parseFloat(ing.quantity) || 0, // Ensure quantity is a number
+          unit: ing.unit
+        })),
+        // Fields like description, imageUrl, badges, costPerServing, nutrition are not sent
+        // as they are not in the POST /recipes/ API documentation.
+        // The 'creator' field is handled by the backend.
       };
       const newRecipe = await addRecipe(recipeToSubmit);
       toast.success('Recipe uploaded successfully!');
@@ -122,8 +129,8 @@ const UploadRecipePage = () => {
           <form onSubmit={handleSubmit} className="upload-form">
             <div className="upload-section">
               <label htmlFor="title">Recipe Title *</label>
-              <input id="title" name="title" value={recipeData.title} onChange={handleChange} />
-              <label htmlFor="description">Description *</label>
+              <input id="title" name="title" value={recipeData.title} onChange={handleChange} required />
+              <label htmlFor="description">Description</label>
               <textarea id="description" name="description" value={recipeData.description} onChange={handleChange} />
               <label htmlFor="imageUrl">Image URL</label>
               <input id="imageUrl" name="imageUrl" value={recipeData.imageUrl} onChange={handleChange} />
@@ -131,13 +138,23 @@ const UploadRecipePage = () => {
             </div>
             <div className="upload-section grid-2">
               <div>
-                <label htmlFor="costPerServing">Cost per Serving (₺) *</label>
-                <input id="costPerServing" name="costPerServing" type="number" value={recipeData.costPerServing} onChange={handleChange} />
+                <label htmlFor="preparationTime">Preparation Time (minutes) *</label>
+                <input id="preparationTime" name="preparationTime" type="number" value={recipeData.preparationTime} onChange={handleChange} required />
               </div>
               <div>
-                <label htmlFor="preparationTime">Preparation Time (minutes) *</label>
-                <input id="preparationTime" name="preparationTime" type="number" value={recipeData.preparationTime} onChange={handleChange} />
+                <label htmlFor="cookTime">Cooking Time (minutes) *</label>
+                <input id="cookTime" name="cookTime" type="number" value={recipeData.cookTime} onChange={handleChange} required />
               </div>
+            </div>
+            <div className="upload-section">
+              <label htmlFor="mealType">Meal Type *</label>
+              <select id="mealType" name="mealType" value={recipeData.mealType} onChange={handleChange} required>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option> 
+                {/* Add other meal types if supported by backend */}
+              </select>
             </div>
             <div className="upload-section">
               <label>Dietary Information & Tags</label>
@@ -153,7 +170,7 @@ const UploadRecipePage = () => {
             </div>
             <div className="upload-section">
               <label htmlFor="instructions">Instructions *</label>
-              <textarea id="instructions" name="instructions" value={recipeData.instructions} onChange={handleChange} />
+              <textarea id="instructions" name="instructions" value={recipeData.instructions} onChange={handleChange} required />
               <p className="tip">Tip: Number your steps for clarity (e.g., "1. Preheat oven...")</p>
             </div>
             <div className="upload-section">

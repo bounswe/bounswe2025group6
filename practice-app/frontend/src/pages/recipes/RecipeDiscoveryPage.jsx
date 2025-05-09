@@ -27,29 +27,50 @@ const RecipeDiscoveryPage = () => {
     const loadRecipes = async () => {
       setIsLoading(true);
       try {
-        const allRecipes = await getAllRecipes();
-        setRecipes(allRecipes);
-        setFilteredRecipes(allRecipes);
+        const fetchedData = await getAllRecipes();
+        console.log('Fetched recipes data from service:', fetchedData); // For debugging
+
+        if (Array.isArray(fetchedData)) {
+          setRecipes(fetchedData);
+          setFilteredRecipes(fetchedData); // Initialize filteredRecipes with all recipes
+          if (fetchedData.length === 0) {
+            toast.info('No recipes found.'); // Inform user if API returns empty list
+          }
+        } else {
+          // This case handles if getAllRecipes returns something unexpected (not an array)
+          console.error('getAllRecipes did not return an array:', fetchedData);
+          setRecipes([]); 
+          setFilteredRecipes([]);
+          toast.error('Failed to load recipes: Unexpected data format from server.');
+        }
       } catch (error) {
-        console.error('Error loading recipes:', error);
-        toast.error('Failed to load recipes');
+        console.error('Error in loadRecipes:', error);
+        toast.error(error.message || 'Failed to load recipes. Please check console for details.');
+        setRecipes([]); // Ensure recipes is an empty array on error
+        setFilteredRecipes([]);
       } finally {
         setIsLoading(false);
       }
     };
     loadRecipes();
-  }, [toast]);
+  }, [toast]); // Keep toast if it's stable, or use [] if toast causes re-runs. If toast is unstable and causes loops, [] is safer for initial load.
 
   useEffect(() => {
-    try {
-      const filtered = filterRecipes(filters);
-      const sorted = sortRecipes(filtered, sortBy, sortOrder);
-      setFilteredRecipes(sorted);
-    } catch (error) {
-      console.error('Filtering error:', error);
-      toast.error('Failed to filter recipes');
+    // Only filter if recipes have been loaded and are not null/undefined
+    if (recipes && recipes.length > 0) {
+      try {
+        const filtered = filterRecipes(recipes, filters);
+        const sorted = sortRecipes(filtered, sortBy, sortOrder);
+        setFilteredRecipes(sorted);
+      } catch (error) {
+        console.error('Filtering/sorting error:', error);
+        toast.error('Failed to apply filters or sort recipes');
+      }
+    } else if (!isLoading) {
+      // Handle case where recipes might be empty after loading (e.g., no recipes from API)
+      setFilteredRecipes([]);
     }
-  }, [filters, sortBy, sortOrder, toast]);
+  }, [recipes, filters, sortBy, sortOrder, toast, isLoading]); // Add `recipes` and `isLoading` to dependencies
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

@@ -18,12 +18,16 @@ const IngredientList = ({
     if (onUpdate) onUpdate(index, { quantity: value });
   };
 
+  const handleUnitChange = (index, value) => {
+    if (onUpdate) onUpdate(index, { unit: value });
+  };
+
   const handleDelete = (index) => {
     if (onDelete) onDelete(index);
   };
 
   const handleAddIngredient = () => {
-    if (onAdd) onAdd({ name: '', quantity: '' });
+    if (onAdd) onAdd({ name: '', quantity: '', unit: 'pcs' });
   };
 
   if (!editable) {
@@ -32,7 +36,7 @@ const IngredientList = ({
         {ingredients.map((ingredient, index) => (
           <li key={index} className="ingredient-item">
             <span className="bullet">•</span>
-            <span className="quantity">{ingredient.quantity}</span>
+            <span className="quantity">{ingredient.quantity} {ingredient.unit}</span>
             <span className="separator">-</span>
             <span className="name">{ingredient.name}</span>
           </li>
@@ -57,15 +61,16 @@ const IngredientList = ({
             value={ingredient.quantity}
             onChange={(e) => handleQuantityChange(index, e.target.value)}
             placeholder="Qty"
-            className="ingredient-input"
+            className="ingredient-input ingredient-input-qty"
           />
-          <button
-            type="button"
-            onClick={() => handleDelete(index)}
-            className="ingredient-delete"
-          >
-            ✕
-          </button>
+          <input
+            type="text"
+            value={ingredient.unit}
+            onChange={(e) => handleUnitChange(index, e.target.value)}
+            placeholder="Unit (e.g., pcs, g, ml)"
+            className="ingredient-input ingredient-input-unit"
+          />
+          <button></button>
         </div>
       ))}
 
