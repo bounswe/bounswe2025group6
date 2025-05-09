@@ -116,14 +116,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ? const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: CircularProgressIndicator(color: Colors.white),
+                    child: CircularProgressIndicator(color: Colors.black),
                   ),
                 )
               : TextButton(
                   onPressed: _submitPost,
                   child: const Text(
                     'Post',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
         ],

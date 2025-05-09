@@ -4,6 +4,7 @@ import 'screens/profile_screen.dart';
 import 'screens/community/community_screen.dart';
 import 'screens/community/create_post_screen.dart';
 import 'screens/community/post_detail_screen.dart';
+import 'screens/community/edit_post_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -24,6 +25,9 @@ class MyApp extends StatelessWidget {
         '/community': (context) => const CommunityScreen(),
         '/community/create': (context) => const CreatePostScreen(),
         '/community/detail': (context) => const PostDetailScreen(),
+        '/community/edit': (context) => EditPostScreen(
+          post: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>,
+        ),
       },
     );
   }

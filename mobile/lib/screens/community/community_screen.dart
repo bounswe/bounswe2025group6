@@ -86,7 +86,7 @@ class PostCard extends StatelessWidget {
         onTap: () => Navigator.pushNamed(
           context,
           '/community/detail',
-          arguments: post,
+          arguments: post['id'], // Pass post ID
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -94,23 +94,39 @@ class PostCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                post['title'],
+                post['title'] ?? '',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
-              Text(post['content']),
+              Text(
+                post['content'] ?? '',
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              // Tags section
+              if (post['tags'] != null && (post['tags'] as List).isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  children: (post['tags'] as List)
+                      .map((tag) => Chip(
+                            label: Text(tag.toString()),
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ))
+                      .toList(),
+                ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('By ${post['author']}'),
+                  Text('By ${post['author']?.toString() ?? 'Unknown'}'),
                   Row(
                     children: [
-                      Icon(Icons.favorite, size: 16),
-                      Text('${post['likes']}'),
-                      const SizedBox(width: 8),
-                      Icon(Icons.comment, size: 16),
-                      Text('${post['comments']}'),
+                      const Icon(Icons.favorite, size: 16),
+                      Text('${post['upvote_count'] ?? 0}'),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.thumb_down, size: 16),
+                      Text('${post['downvote_count'] ?? 0}'),
                     ],
                   ),
                 ],
