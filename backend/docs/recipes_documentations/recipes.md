@@ -489,3 +489,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 - **Invalid Ingredient ID**: Ensure the ingredient IDs provided in the request exist in the database. We have only populated the db with some number of ingredients, for now up to 47.
 - **Invalid Meal Type**: Ensure the meal type is one of the allowed values (breakfast, lunch, dinner).
 - **Invalid Quantity or Unit**: Ensure the quantity is a positive number and the unit is a valid string. We don't have any enum for the unit.
+
+### Quick Reminder:
+- It's almost certain that I've made some mistakes or inconsistencies in the above documentation. Please review our swagger documentation and the code itself to ensure everything is accurate and up-to-date. If you find any discrepancies, please correct the documentation accordingly. Thank you for your understanding and cooperation!
+- You can easily find the working endpoints and their request/response formats in the swagger documentation. Just run backend locally and go to `http://127.0.0.1:8000/swagger/` to access the swagger UI. You can also use the Postman collection provided in the repository for testing the endpoints but I strongly suggest using the swagger UI for better understanding and testing.

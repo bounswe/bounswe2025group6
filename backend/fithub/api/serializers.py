@@ -7,6 +7,8 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
+from recipes.models import Recipe  # Import from recipes app
+from .models import RegisteredUser, RecipeRating
 
 User = get_user_model()
 
@@ -33,6 +35,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             })
 
         return attrs
+    
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -148,3 +151,40 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.save()
 
         self.validated_data['reset_token'].delete()
+
+
+
+class RegisteredUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegisteredUser
+        fields = [
+            'id', 'username', 'email', 'usertype', 
+            'profilePhoto', 'foodAllergies', 'notificationPreferences',
+            'profileVisibility', 'recipeCount', 'avgRecipeRating',
+            'typeOfCook', 'followedUsers', 'bookmarkRecipes', 'likedRecipes',
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True},  # Hide password in responses
+        }
+
+    def validate_avgRecipeRating(self, value):
+        if value < 0.0 or value > 5.0:
+            raise serializers.ValidationError("Rating must be between 0.0 and 5.0.")
+        return value
+
+#UNDER CONSTRUCTION
+class RecipeRatingSerializer(serializers.ModelSerializer):
+    recipe_id = serializers.PrimaryKeyRelatedField(
+        queryset=Recipe.objects.all(),
+        source='recipe.id',
+        write_only=True
+    )
+    recipe_title = serializers.CharField(
+        source='recipe.title',
+        read_only=True
+    )
+
+    class Meta:
+        model = RecipeRating
+        fields = ['id', 'user', 'recipe', 'recipe_id', 'recipe_title', 'taste_rating', 'timestamp']
+        read_only_fields = ['user', 'timestamp', 'recipe', 'recipe_title']

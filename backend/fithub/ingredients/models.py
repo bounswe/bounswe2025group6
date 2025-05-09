@@ -1,5 +1,7 @@
 from django.db import models
-from api.models import TimestampedModel
+# from api.models import TimestampedModel
+from core.models import TimestampedModel  # New import path
+
 
 # Ingredient model that will be used for the recipe
 class Ingredient(TimestampedModel):

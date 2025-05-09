@@ -50,6 +50,6 @@ urlpatterns = [
 
     path('ingredients/', include('ingredients.urls')),
     path('recipes/', include('recipes.urls')),
-
+    path('forum/', include('forum.urls')),
 
 ]
