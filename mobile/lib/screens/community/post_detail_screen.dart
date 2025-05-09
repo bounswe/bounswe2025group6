@@ -11,16 +11,18 @@ class PostDetailScreen extends StatefulWidget {
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
   final _commentController = TextEditingController();
-  late Map<String, dynamic> post;
+  Map<String, dynamic>? post; 
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      setState(() {
-        post = args;
-      });
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        setState(() {
+          post = args;
+        });
+      }
     });
   }
 
@@ -32,6 +34,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (post == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Post Detail'),
@@ -43,16 +53,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               padding: const EdgeInsets.all(16.0),
               children: [
                 Text(
-                  post['title'] ?? '',
+                  post!['title'] ?? '',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
-                Text(post['content'] ?? ''),
+                Text(post!['content'] ?? ''),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('By ${post['author'] ?? ''}'),
+                    Text('By ${post!['author'] ?? ''}'),
                     Row(
                       children: [
                         IconButton(
@@ -61,7 +71,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             // TODO: Implement like functionality
                           },
                         ),
-                        Text('${post['likes'] ?? 0}'),
+                        Text('${post!['likes'] ?? 0}'),
                       ],
                     ),
                   ],
