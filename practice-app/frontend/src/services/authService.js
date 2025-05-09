@@ -3,8 +3,9 @@
 import axios from 'axios';
 
 // API base URL
-
 const apiHost = import.meta.env.VITE_API_HOST;
+
+console.log(apiHost);
 
 const API_URL = `http://${apiHost}:8000/api`;
 

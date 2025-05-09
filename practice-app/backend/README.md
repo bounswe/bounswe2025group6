@@ -164,14 +164,6 @@ python manage.py migrate
 
 - **Migration errors**: If you encounter migration errors, try deleting the migration files and running `makemigrations` and `migrate` again. Each folder in our backend folder (except fithub) MUST HAVE a folder named `migrations` with an empty `__init__.py` file inside. If you don't have it, please create it. After that, open your db manager app and remove all of your tables. Then run `python manage.py makemigrations` and `python manage.py migrate` commands again. Problem should be solved in most cases. If not the problem is more complicated and we have some other solutions. Please reach out to the backend team. We won't have any such problems after we deploy our application to the production server.
 
-<<<<<<< HEAD:practice-app/backend/README.md
-## 4. **Common Problems**:
-- **Database connection issues**: Ensure your database is running and the connection settings in `.env` are correct.
-
-- **Migration errors**: If you encounter migration errors, try deleting the migration files and running `makemigrations` and `migrate` again. Each folder in our backend folder (except fithub) MUST HAVE a folder named `migrations` with an empty `__init__.py` file inside. If you don't have it, please create it. After that, open your db manager and remove all of your tables. Then run `python manage.py makemigrations` and `python manage.py migrate` commands again. Problem should be solved in most cases. If not the problem is more complicated and we have some other solutions. Please reach out to the backend team. We won't have any such problems after we deploy our application to the production server.
-
-=======
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/README.md
 - **Code uppdates**: It's really common that one of the member of the backend team will update main branch. Hence before starting to work on anything please try to run these commands:
 ```bash
 git checkout main
@@ -180,11 +172,7 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 ```
-<<<<<<< HEAD:practice-app/backend/README.md
-    - We first get the updated code from the main branch. Then we install the new dependencies if there are any. After that we run the migrations to update our database. (Just as we suggested above using a venv is highly recommended)
-=======
 - We first get the updated code from the main branch. Then we install the new dependencies if there are any. After that we run the migrations to update our database. (Just as we suggested above using a venv is highly recommended)
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/README.md
 
 ## Further Questions
 If you have any questions or need further assistance, please reach out to the backend team. We are here to help you with any issues you may encounter during the setup process.

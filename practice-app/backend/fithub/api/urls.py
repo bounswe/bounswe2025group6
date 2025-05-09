@@ -1,9 +1,6 @@
 # myproject/urls.py
 from django.urls import path , include
 from . import views
-<<<<<<< HEAD:practice-app/backend/fithub/api/urls.py
-from .views import register_user, forgot_password, password_reset, verify_email, login_view, logout_view, RequestResetCodeView, VerifyResetCodeView, ResetPasswordView
-=======
 from rest_framework.routers import DefaultRouter
 from .views import register_user, forgot_password, password_reset, verify_email, login_view, logout_view, RequestResetCodeView, VerifyResetCodeView, ResetPasswordView
 from .views import RegisteredUserViewSet, RecipeRatingViewSet, get_user_id_by_email
@@ -13,7 +10,6 @@ router = DefaultRouter()
 router.register(r'users', RegisteredUserViewSet)
 # router.register(r'recipe-ratings', RecipeRatingViewSet)
 
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/urls.py
 
 urlpatterns = [
     path('register/', views.register_user, name='register_user'),

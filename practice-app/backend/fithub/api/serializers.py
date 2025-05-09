@@ -150,9 +150,6 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data['new_password'])
         user.save()
 
-<<<<<<< HEAD:practice-app/backend/fithub/api/serializers.py
-        self.validated_data['reset_token'].delete()
-=======
         self.validated_data['reset_token'].delete()
 
 
@@ -191,4 +188,3 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
         model = RecipeRating
         fields = ['id', 'user', 'recipe', 'recipe_id', 'recipe_title', 'taste_rating', 'timestamp']
         read_only_fields = ['user', 'timestamp', 'recipe', 'recipe_title']
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/serializers.py

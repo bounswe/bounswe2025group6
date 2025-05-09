@@ -21,11 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import RegisteredUser, RecipeRating
 from recipes.models import Recipe  # Import from recipes app
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
-<<<<<<< HEAD:practice-app/backend/fithub/api/views.py
-                           VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken)
-=======
                            VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/views.py
 
 User = get_user_model()
 
@@ -199,11 +195,7 @@ class VerifyResetCodeView(APIView):
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-<<<<<<< HEAD:practice-app/backend/fithub/api/views.py
-    
-=======
 
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/views.py
 class ResetPasswordView(APIView):
     @swagger_auto_schema(
         operation_description="Reset password using a temporary token and new password.",
@@ -266,9 +258,6 @@ class logout_view(APIView):
             token.delete()  # Delete the token to log out the user
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:
-<<<<<<< HEAD:practice-app/backend/fithub/api/views.py
-            return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
-=======
             return Response({"detail": "No token found."}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -680,4 +669,3 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/views.py

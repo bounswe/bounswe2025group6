@@ -4,12 +4,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import now
 import uuid
-<<<<<<< HEAD:practice-app/backend/fithub/api/models.py
-=======
 from django.core.validators import MinValueValidator, MaxValueValidator
 from recipes.models import Recipe  # Import from the recipes app
 from core.models import TimestampedModel  # New import path
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/models.py
 
 
 class RegisteredUser(AbstractUser, TimestampedModel):
@@ -134,8 +131,4 @@ class PasswordResetToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def is_expired(self):
-<<<<<<< HEAD:practice-app/backend/fithub/api/models.py
         return timezone.now() > self.created_at + timedelta(minutes=15)
-=======
-        return timezone.now() > self.created_at + timedelta(minutes=15)
->>>>>>> 66e3e130c9fd1d887cca478b273c3111c4d460b2:backend/fithub/api/models.py

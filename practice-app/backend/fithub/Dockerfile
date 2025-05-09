@@ -19,7 +19,7 @@ WORKDIR /fithub
 
 EXPOSE 8000
 
-# Run the preperations.
+# Install the requirements.
 
 RUN pip install -r requirements.txt
 
