@@ -79,6 +79,7 @@ const UploadRecipePage = () => {
     };
   }, []);
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name.startsWith('nutrition.')) {
@@ -105,6 +106,7 @@ const UploadRecipePage = () => {
     setRecipeData((prev) => ({
       ...prev,
       ingredients: [...prev.ingredients, { name: ingredient.name, quantity: '' }]
+
     }));
   };
 
@@ -157,6 +159,7 @@ const UploadRecipePage = () => {
       toast.success('Recipe uploaded successfully!');
       navigate(`/recipes/${newRecipe.id}`);
     } catch (error) {
+
       toast.error('Failed to upload recipe');
     } finally {
       setIsSubmitting(false);
@@ -225,6 +228,7 @@ const UploadRecipePage = () => {
               )}
             </div>
             <div className="upload-section">
+
               <IngredientList ingredients={recipeData.ingredients} editable onAdd={handleAddIngredient} onUpdate={handleUpdateIngredient} onDelete={handleDeleteIngredient} />
             </div>
             <div className="upload-section">

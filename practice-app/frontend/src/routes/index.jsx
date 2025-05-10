@@ -165,12 +165,10 @@ const AppRoutes = () => {
         />
         <Route path="/ingredients" element={<IngredientsPage />} />
         <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
-
       </Route>
       
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
-      
 
     </Routes>
   );

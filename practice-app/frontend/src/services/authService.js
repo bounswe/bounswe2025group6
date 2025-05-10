@@ -284,7 +284,8 @@ export const verifyResetCode = async (email, resetCode) => {
   try {
     const response = await apiClient.post('/verify-reset-code/', {
       email,
-      reset_code: resetCode
+      code: resetCode
+
     });
     return response.data;
   } catch (error) {

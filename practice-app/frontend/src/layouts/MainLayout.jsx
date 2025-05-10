@@ -7,7 +7,7 @@ import { useToast } from '../components/ui/Toast';
 import '../styles/Layout.css';
 
 const MainLayout = () => {
-  const { logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
@@ -24,11 +24,13 @@ const MainLayout = () => {
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
+    { path: '/meal-planner', label: 'Meal Planner', icon: '🍽️' },
     { path: '/recipes', label: 'Recipes', icon: '📖' },
     { path: '/shopping-list', label: 'Shopping List', icon: '🛒' },
     { path: '/ingredients', label: 'Ingredients', icon: '🥕' },
     { path: '/community', label: 'Community', icon: '💬' },
     { path: '/profile', label: 'Profile', icon: '👤' },
+
   ];
 
   const isActive = (path) => {
@@ -68,6 +70,7 @@ const MainLayout = () => {
             </Link>
           ))}
         </nav>
+
       </header>
 
       <main className="layout-main">
@@ -79,6 +82,7 @@ const MainLayout = () => {
       <footer className="layout-footer">
         <div className="layout-footer-inner">
           <p>© {new Date().getFullYear()} FitHub </p>
+
           <div className="layout-footer-links">
             <a href="#">About</a>
             <a href="#">Terms</a>

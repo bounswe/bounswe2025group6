@@ -10,7 +10,7 @@ import { Link, Outlet } from 'react-router-dom';
 const AuthLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-r from-green-300 to-blue-400">
-      
+        {/* Header with logo */}
         <header className="py-6 px-4">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
             <Link to="/dashboard" className="layout-logo">
