@@ -84,7 +84,7 @@ Allows authenticated users to submit ratings for recipes. Each user can rate a r
     
 2.  Ratings must be between 0.0 and 5.0 (inclusive)
     
-3.  At least one rating (taste or difficulty) must be provided
+3.  Both ratings (taste or difficulty) must be provided
     
 4.  The authenticated user will be automatically associated with the rating
     

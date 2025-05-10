@@ -277,28 +277,6 @@ class RateRecipeTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_rate_recipe_missing_ratings(self):
-        """Test submitting with only one rating"""
-        url = reverse('registereduser-rate-recipe')
-        client = self.get_authenticated_client(self.other_user_token)
-        
-        # Only taste rating
-        data = {
-            'recipe_id': self.recipe.id,
-            'taste_rating': 4.0,
-        }
-
-        response = client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        client = self.get_authenticated_client(self.third_user_token)
-        # Only difficulty rating
-        data = {
-            'recipe_id': self.recipe.id,
-            'difficulty_rating': 3.0
-        }
-        response = client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_rate_recipe_minimum_values(self):
         """Test minimum allowed rating values"""
