@@ -1,6 +1,6 @@
 // src/pages/recipes/UploadRecipePage.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addRecipe } from '../../services/recipeService';
 import IngredientList from '../../components/recipe/IngredientList';
@@ -26,6 +26,59 @@ const UploadRecipePage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const badgeOptions = ['High Protein', 'Low Carbohydrate', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Quick', 'Budget-Friendly'];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredIngredients, setFilteredIngredients] = useState([]);
+  const [allIngredients, setAllIngredients] = useState([]);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const fetchAllIngredients = async () => {
+      try {
+        let allData = [];
+        let nextUrl = 'http://localhost:8000/ingredients/';
+
+        while (nextUrl) {
+          const res = await fetch(nextUrl);
+          if (!res.ok) {
+            throw new Error(`API Error: ${res.status} ${res.statusText}`);
+          }
+          const data = await res.json();
+          allData = [...allData, ...data.results];
+          nextUrl = data.next;
+        }
+        setAllIngredients(allData);
+      } catch (error) {
+        console.error('Error fetching all ingredients:', error);
+      }
+    };
+
+    fetchAllIngredients();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredIngredients([]); // Arama kutusu boşsa hiçbir şey gösterme
+    } else {
+      const filtered = allIngredients.filter((ingredient) =>
+        ingredient.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredIngredients(filtered);
+    }
+  }, [searchQuery, allIngredients]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setFilteredIngredients([]);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,10 +102,11 @@ const UploadRecipePage = () => {
     });
   };
 
-  const handleAddIngredient = () => {
-    setRecipeData(prev => ({
+  const handleAddIngredient = (ingredient) => {
+    setRecipeData((prev) => ({
       ...prev,
-      ingredients: [...prev.ingredients, { name: '', quantity: '' }]
+      ingredients: [...prev.ingredients, { name: ingredient.name, quantity: '' }]
+
     }));
   };
 
@@ -105,7 +159,7 @@ const UploadRecipePage = () => {
       toast.success('Recipe uploaded successfully!');
       navigate(`/recipes/${newRecipe.id}`);
     } catch (error) {
-      console.error('Error uploading recipe:', error);
+
       toast.error('Failed to upload recipe');
     } finally {
       setIsSubmitting(false);
@@ -149,6 +203,32 @@ const UploadRecipePage = () => {
             </div>
             <div className="upload-section">
               <label>Ingredients *</label>
+              <input
+                type="text"
+                placeholder="Add ingredients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="searchboxUpload"
+              />
+              {filteredIngredients.length > 0 && (
+                <ul className="dropdown" ref={dropdownRef}>
+                  {filteredIngredients.map((ingredient) => (
+                    <li
+                      key={ingredient.id}
+                      onClick={() => {
+                        handleAddIngredient(ingredient);
+                        setSearchQuery('');
+                        setFilteredIngredients([]);
+                      }}
+                    >
+                      {ingredient.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="upload-section">
+
               <IngredientList ingredients={recipeData.ingredients} editable onAdd={handleAddIngredient} onUpdate={handleUpdateIngredient} onDelete={handleDeleteIngredient} />
             </div>
             <div className="upload-section">

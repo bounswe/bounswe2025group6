@@ -29,7 +29,8 @@ import CommunityPage from '../pages/community/CommunityPage';
 import PostDetailPage from '../pages/community/PostDetailPage';
 import CreatePostPage from '../pages/community/CreatePostPage';
 import UserProfilePage from '../pages/community/UserProfilePage';
-
+import IngredientsPage from '../pages/ingredients/IngredientsPage'
+import IngredientDetailPage from '../pages/ingredients/IngredientDetailPage';
 import '../styles/index.css';
 
 const AppRoutes = () => {
@@ -162,10 +163,13 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
+        <Route path="/ingredients" element={<IngredientsPage />} />
+        <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
       </Route>
       
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 };

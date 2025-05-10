@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button';
 import '../../styles/AuthPages.css';
 
 const ForgotPasswordPage = () => {
+
   const { requestPasswordReset, requestResetCode, verifyResetCode, resetPassword, isLoading } = useAuth();
   const toast = useToast();
   
@@ -25,9 +26,11 @@ const ForgotPasswordPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [resetCode, setResetCode] = useState('');
   const [isCodeVerified, setIsCodeVerified] = useState(false);
+
   const [verifiedResetToken, setVerifiedResetToken] = useState(''); 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState(''); 
+
   
   // Handle reset method change
   const handleMethodChange = (method) => {
@@ -96,8 +99,10 @@ const ForgotPasswordPage = () => {
     if (!validateCode()) return;
     
     try {
+
       const result = await verifyResetCode(email, resetCode);
       setVerifiedResetToken(result.token); // Store the token from the verification response
+
       setIsCodeVerified(true);
       setCurrentStep(3);
       toast.success('Code verified successfully');
@@ -131,7 +136,9 @@ const ForgotPasswordPage = () => {
     if (!validateNewPassword()) return;
     
     try {
+
       await resetPassword(verifiedResetToken, newPassword); // Call the resetPassword service
+
 
       toast.success('Password has been reset successfully');
       setCurrentStep(4);
