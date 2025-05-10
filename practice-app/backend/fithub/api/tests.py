@@ -365,3 +365,84 @@ class RateRecipeTests(APITestCase):
         self.recipe.refresh_from_db()
         self.assertEqual(self.recipe.taste_rating_count, 2)
         self.assertEqual(self.recipe.difficulty_rating_count, 2)
+
+
+#TESTS FOR RECIPE RATING VIEW SET
+
+class RecipeRatingViewSetTests(APITestCase):
+    def setUp(self):
+        # Create test users
+        self.user1 = RegisteredUser.objects.create_user(
+            username='chef123',
+            email='chef@test.com',
+            password='testpass123'
+        )
+        self.user2 = RegisteredUser.objects.create_user(
+            username='foodie456',
+            email='foodie@test.com',
+            password='testpass123'
+        )
+        
+        # Create test recipe
+        self.recipe = Recipe.objects.create(
+            name="Tomato Sandwich",
+            steps=json.dumps(["Spread butter", "Add tomato slices", "Serve"]),
+            prep_time=10,
+            cook_time=0,
+            meal_type="lunch",
+            creator=self.user1
+        )
+        
+        # Create test rating
+        self.rating = RecipeRating.objects.create(
+            user=self.user1,
+            recipe=self.recipe,
+            taste_rating=4.0,
+            difficulty_rating=3.0
+        )
+        
+        # Generate JWT tokens
+        self.user1_token = str(RefreshToken.for_user(self.user1).access_token)
+        self.user2_token = str(RefreshToken.for_user(self.user2).access_token)
+
+    def get_authenticated_client(self, token):
+        client = self.client
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        return client
+
+    # CREATE TESTS
+    def test_create_rating_success(self):
+        """User can create a new rating with both taste and difficulty"""
+        url = reverse('reciperating-list')
+        client = self.get_authenticated_client(self.user2_token)
+        
+        data = {
+            'recipe_id': self.recipe.id,
+            'taste_rating': 5.0,
+            'difficulty_rating': 2.0
+        }
+        
+        response = client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(RecipeRating.objects.count(), 2)
+   
+
+
+    # VALIDATION TESTS
+    def test_create_rating_invalid_values(self):
+        """Test rating value validation for both fields"""
+        url = reverse('reciperating-list')
+        client = self.get_authenticated_client(self.user1_token)
+        
+        test_cases = [
+            {'taste_rating': -1.0, 'difficulty_rating': 3.0},
+        ]
+        
+        for case in test_cases:
+            data = {'recipe_id': self.recipe.id, **case}
+            response = client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertTrue(
+                'taste_rating' in response.data or 
+                'difficulty_rating' in response.data
+            )

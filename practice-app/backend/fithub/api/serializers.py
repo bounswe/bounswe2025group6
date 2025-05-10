@@ -188,4 +188,6 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
         model = RecipeRating
         fields = ['id', 'user', 'recipe_id', 'recipe_title', 'taste_rating', 'difficulty_rating', 'timestamp']
         read_only_fields = ['user', 'timestamp', 'recipe', 'recipe_title']
+
+        
         
