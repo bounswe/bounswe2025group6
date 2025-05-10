@@ -1,0 +1,26 @@
+INSERT INTO `recipes_recipe` (
+  `id`, `created_at`, `updated_at`, `deleted_on`, `name`, `steps`, `prep_time`, `cook_time`,
+  `meal_type`, `cost_per_serving`, `difficulty_rating`, `taste_rating`, `health_rating`,
+  `like_count`, `comment_count`, `difficulty_rating_count`, `taste_rating_count`,
+  `health_rating_count`, `is_approved`, `is_featured`, `creator_id`
+) VALUES
+(1, '2025-05-09 00:41:02.009122', '2025-05-09 00:41:02.009122', NULL, 'Omlet', '["Yunurtayı çıkar.", "Pişir"]', 1, 1, 'breakfast', 5.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(2, '2025-05-10 01:12:51.341073', '2025-05-10 01:12:51.341073', NULL, 'Tost', '["2 tane Ekmek al", "Tost makinesine yerleştir"]', 300, 300, 'breakfast', 10.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(3, '2025-05-10 01:21:05.661204', '2025-05-10 01:21:05.661204', NULL, 'Easy Egg Toast', '["2 dilim ekmek al", "Tavada yumurtayı pişir, üzerine koy"]', 300, 240, 'breakfast', 23.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(4, '2025-05-10 01:21:55.844448', '2025-05-10 01:21:55.844448', NULL, 'Grilled Chicken Salad', '["Tavuk göğsünü ızgarada pişir", "Yeşilliklerle karıştır"]', 600, 900, 'lunch', 45.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(5, '2025-05-10 01:22:06.299891', '2025-05-10 01:22:06.299891', NULL, 'Tofu Stir Fry', '["Tofu\'yu küp kes", "Sebzelerle sotele"]', 420, 600, 'dinner', 66.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(6, '2025-05-10 01:22:14.682282', '2025-05-10 01:22:14.682282', NULL, 'Basil Omelette', '["Yumurtaları çırp", "Tavada fesleğenle pişir"]', 180, 240, 'breakfast', 11.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(7, '2025-05-10 01:22:23.547994', '2025-05-10 01:22:23.547994', NULL, 'Beef Rice Bowl', '["Kıymayı kavur", "Pirinçle karıştır"]', 300, 900, 'lunch', 22.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(8, '2025-05-10 01:22:31.889867', '2025-05-10 01:22:31.889867', NULL, 'Quinoa Veggie Mix', '["Kinoayı haşla", "Sebzelerle karıştır"]', 600, 900, 'dinner', 33.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(9, '2025-05-10 01:22:40.534120', '2025-05-10 01:22:40.534120', NULL, 'Greek Yogurt Bowl', '["Yoğurdu kaseye al", "Meyveleri ekle"]', 120, 0, 'breakfast', 44.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(10, '2025-05-10 01:22:47.829395', '2025-05-10 01:22:47.829395', NULL, 'Oven Baked Salmon', '["Somonu baharatla", "Fırında pişir"]', 300, 1200, 'dinner', 55.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(13, '2025-05-10 01:23:33.685162', '2025-05-10 01:23:33.685162', NULL, 'Cheesy Zucchini Bake', '["Kabakları dilimle", "Peynirle fırınla"]', 420, 900, 'dinner', 88.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(14, '2025-05-10 01:23:44.726764', '2025-05-10 01:23:44.726764', NULL, 'Butter Garlic Pasta', '["Makarna haşla", "Sarımsak ve tereyağıyla sotele"]', 600, 600, 'dinner', 99.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(15, '2025-05-10 01:23:57.349355', '2025-05-10 01:23:57.349355', NULL, 'Apple Cinnamon Oats', '["Yulafı pişir", "Elma ve tarçın ekle"]', 300, 480, 'breakfast', 12.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(16, '2025-05-10 01:24:06.882505', '2025-05-10 01:24:06.882505', NULL, 'Veggie Frittata', '["Yumurtaları çırp", "Sebzelerle pişir"]', 300, 600, 'lunch', 13.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(17, '2025-05-10 01:24:15.983252', '2025-05-10 01:24:15.983252', NULL, 'Rice & Beans Bowl', '["Pirinç pişir", "Fasulye ve baharatla karıştır"]', 600, 900, 'dinner', 14.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(18, '2025-05-10 01:24:24.710186', '2025-05-10 01:24:24.710186', NULL, 'Broccoli Cheese Bake', '["Brokoliyi haşla", "Peynirle fırına ver"]', 420, 780, 'dinner', 15.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(19, '2025-05-10 01:24:33.097103', '2025-05-10 01:24:33.097103', NULL, 'Eggplant Parmesan', '["Patlıcanları kızart", "Parmesanla kat kat diz"]', 600, 1200, 'dinner', 16.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(20, '2025-05-10 01:24:41.376878', '2025-05-10 01:24:41.376878', NULL, 'Simple BLT', '["Malzemeleri ekmeğe koy", "Servis et"]', 300, 300, 'lunch', 17.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(21, '2025-05-10 01:24:48.882459', '2025-05-10 01:24:48.882459', NULL, 'Mashed Sweet Potato', '["Tatlı patatesi haşla", "Ezerek tereyağı ile karıştır"]', 600, 900, 'dinner', 18.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1),
+(22, '2025-05-10 01:24:57.806766', '2025-05-10 01:24:57.806766', NULL, 'Turkey Wrap', '["Malzemeleri lavaşa sar", "Soğuk servis yap"]', 300, 0, 'lunch', 19.00, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 1);
