@@ -1,6 +1,6 @@
 // src/pages/auth/LoginPage.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
@@ -50,7 +50,9 @@ const LoginPage = () => {
       else if (error.message.toLowerCase().includes('password')) setErrors(prev => ({ ...prev, password: error.message }));
     }
   };
-
+  useEffect(() => {
+    document.title = "Login - FitHub";
+  }, []);
   return (
     <div className="auth-container">
       <div className="auth-card">

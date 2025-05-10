@@ -22,7 +22,9 @@ const ShoppingListPage = () => {
     'Migros': 1.12, // 12% more expensive
     'CarrefourSA': 1.15, // 15% more expensive
   };
-
+  useEffect(() => {
+    document.title = "Shopping List";
+  }, []);
   useEffect(() => {
     // Generate shopping list from active meal plan
     const generateList = async () => {

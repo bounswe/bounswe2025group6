@@ -4,60 +4,48 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addRecipe } from '../../services/recipeService';
 import IngredientList from '../../components/recipe/IngredientList';
-import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
 import { useToast } from '../../components/ui/Toast';
-import '../../styles/RecipePages.css';
 import '../../styles/UploadRecipePage.scss';
 
 const UploadRecipePage = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const [recipeData, setRecipeData] = useState({
-    title: '',
-    description: '',
-    imageUrl: '',
-    ingredients: [{ name: '', quantity: '' }],
-    instructions: '',
-    badges: [],
-    costPerServing: '',
-    preparationTime: '',
-    nutrition: { calories: '', protein: '', carbs: '', fat: '' }
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const badgeOptions = ['High Protein', 'Low Carbohydrate', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Quick', 'Budget-Friendly'];
+  
+  const [recipeData, setRecipeData] = useState({
+    name: '',
+    image_url: '',
+    cooking_time: '',
+    prep_time: '',
+    meal_type: '',
+    ingredients: [],
+    steps: [], // This will hold the final array
+    stepsText: '' // This will hold the raw textarea input
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredIngredients, setFilteredIngredients] = useState([]);
   const [allIngredients, setAllIngredients] = useState([]);
   const dropdownRef = useRef(null);
 
+  // Fetch ingredients
   useEffect(() => {
     const fetchAllIngredients = async () => {
       try {
-        let allData = [];
-        let nextUrl = 'http://localhost:8000/ingredients/';
-
-        while (nextUrl) {
-          const res = await fetch(nextUrl);
-          if (!res.ok) {
-            throw new Error(`API Error: ${res.status} ${res.statusText}`);
-          }
-          const data = await res.json();
-          allData = [...allData, ...data.results];
-          nextUrl = data.next;
-        }
-        setAllIngredients(allData);
+        const response = await fetch('http://localhost:8000/ingredients/');
+        const data = await response.json();
+        setAllIngredients(data.results);
       } catch (error) {
-        console.error('Error fetching all ingredients:', error);
+        console.error('Error fetching ingredients:', error);
       }
     };
-
     fetchAllIngredients();
   }, []);
 
+  // Filter ingredients based on search
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      setFilteredIngredients([]); // Arama kutusu boşsa hiçbir şey gösterme
+      setFilteredIngredients([]);
     } else {
       const filtered = allIngredients.filter((ingredient) =>
         ingredient.name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -66,101 +54,66 @@ const UploadRecipePage = () => {
     }
   }, [searchQuery, allIngredients]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setFilteredIngredients([]);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name.startsWith('nutrition.')) {
-      const nutritionField = name.split('.')[1];
-      setRecipeData(prev => ({
-        ...prev,
-        nutrition: { ...prev.nutrition, [nutritionField]: value }
-      }));
-    } else {
-      setRecipeData(prev => ({ ...prev, [name]: value }));
+    
+    // Validate time inputs (cooking_time and prep_time)
+    if (name === 'cooking_time' || name === 'prep_time') {
+      // Only allow numbers and decimal points
+      if (!/^\d*\.?\d*$/.test(value)) {
+        return; // Don't update if input contains non-numeric characters
+      }
+      
+      // Prevent negative values
+      if (parseFloat(value) < 0) {
+        return;
+      }
     }
-  };
-
-  const toggleBadge = (badge) => {
-    setRecipeData(prev => {
-      const badges = prev.badges.includes(badge)
-        ? prev.badges.filter(b => b !== badge)
-        : [...prev.badges, badge];
-      return { ...prev, badges };
-    });
+    
+    setRecipeData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAddIngredient = (ingredient) => {
-    setRecipeData((prev) => ({
-      ...prev,
-      ingredients: [...prev.ingredients, { name: ingredient.name, quantity: '' }]
-
-    }));
-  };
-
-  const handleUpdateIngredient = (index, data) => {
-    setRecipeData(prev => {
-      const updatedIngredients = [...prev.ingredients];
-      updatedIngredients[index] = { ...updatedIngredients[index], ...data };
-      return { ...prev, ingredients: updatedIngredients };
-    });
-  };
-
-  const handleDeleteIngredient = (index) => {
-    setRecipeData(prev => {
-      const updatedIngredients = prev.ingredients.filter((_, i) => i !== index);
-      return { ...prev, ingredients: updatedIngredients };
-    });
-  };
-
-  const validateForm = () => {
-    if (!recipeData.title.trim()) return toast.error('Please provide a recipe title'), false;
-    if (!recipeData.description.trim()) return toast.error('Please provide a recipe description'), false;
-    if (!recipeData.instructions.trim()) return toast.error('Please provide recipe instructions'), false;
-    if (!recipeData.costPerServing) return toast.error('Please provide cost per serving'), false;
-    if (!recipeData.preparationTime) return toast.error('Please provide preparation time'), false;
-    if (recipeData.ingredients.some(ing => !ing.name.trim() || !ing.quantity.trim())) {
-      toast.error('Please complete all ingredient fields');
-      return false;
+    if (!ingredient || !ingredient.id) return;
+    
+    if (recipeData.ingredients.some(ing => ing.id === ingredient.id)) {
+      toast.error('This ingredient is already added');
+      return;
     }
-    return true;
+
+    setRecipeData(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, { 
+        ingredient_name: ingredient.name,
+        id: ingredient.id,
+        quantity: '1',
+        unit: 'pcs'
+      }]
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
     setIsSubmitting(true);
+
     try {
-      const recipeToSubmit = {
+      // Process steps text into array
+      const processedSteps = recipeData.stepsText
+        .split('\n')
+        .map(step => step.trim())
+        .filter(step => step.length > 0);
+
+      // Create submission data with processed steps
+      const submissionData = {
         ...recipeData,
-        costPerServing: parseFloat(recipeData.costPerServing),
-        preparationTime: parseInt(recipeData.preparationTime, 10),
-        nutrition: {
-          calories: parseInt(recipeData.nutrition.calories, 10) || 0,
-          protein: parseInt(recipeData.nutrition.protein, 10) || 0,
-          carbs: parseInt(recipeData.nutrition.carbs, 10) || 0,
-          fat: parseInt(recipeData.nutrition.fat, 10) || 0
-        },
-        createdBy: 'CurrentUser'
+        steps: processedSteps
       };
-      const newRecipe = await addRecipe(recipeToSubmit);
+
+      const newRecipe = await addRecipe(submissionData);
       toast.success('Recipe uploaded successfully!');
       navigate(`/recipes/${newRecipe.id}`);
     } catch (error) {
-
-      toast.error('Failed to upload recipe');
+      toast.error(error.message || 'Failed to upload recipe');
     } finally {
       setIsSubmitting(false);
     }
@@ -168,92 +121,221 @@ const UploadRecipePage = () => {
 
   return (
     <div className="upload-page-container">
-      <Card>
-        <Card.Header>
-          <h1 className="upload-title">Upload a New Recipe</h1>
-        </Card.Header>
-        <Card.Body>
-          <form onSubmit={handleSubmit} className="upload-form">
-            <div className="upload-section">
-              <label htmlFor="title">Recipe Title *</label>
-              <input id="title" name="title" value={recipeData.title} onChange={handleChange} />
-              <label htmlFor="description">Description *</label>
-              <textarea id="description" name="description" value={recipeData.description} onChange={handleChange} />
-              <label htmlFor="imageUrl">Image URL</label>
-              <input id="imageUrl" name="imageUrl" value={recipeData.imageUrl} onChange={handleChange} />
-              {recipeData.imageUrl && <img src={recipeData.imageUrl} alt="Preview" className="upload-image-preview" onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Invalid+Image+URL'; }} />}
-            </div>
-            <div className="upload-section grid-2">
-              <div>
-                <label htmlFor="costPerServing">Cost per Serving (₺) *</label>
-                <input id="costPerServing" name="costPerServing" type="number" value={recipeData.costPerServing} onChange={handleChange} />
-              </div>
-              <div>
-                <label htmlFor="preparationTime">Preparation Time (minutes) *</label>
-                <input id="preparationTime" name="preparationTime" type="number" value={recipeData.preparationTime} onChange={handleChange} />
-              </div>
-            </div>
-            <div className="upload-section">
-              <label>Dietary Information & Tags</label>
-              <div className="upload-tags">
-                {badgeOptions.map(badge => (
-                  <button type="button" key={badge} onClick={() => toggleBadge(badge)} className={`tag-button ${recipeData.badges.includes(badge) ? 'selected' : ''}`}>{badge}</button>
-                ))}
-              </div>
-            </div>
-            <div className="upload-section">
-              <label>Ingredients *</label>
-              <input
-                type="text"
-                placeholder="Add ingredients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="searchboxUpload"
-              />
-              {filteredIngredients.length > 0 && (
-                <ul className="dropdown" ref={dropdownRef}>
-                  {filteredIngredients.map((ingredient) => (
-                    <li
-                      key={ingredient.id}
-                      onClick={() => {
-                        handleAddIngredient(ingredient);
-                        setSearchQuery('');
-                        setFilteredIngredients([]);
-                      }}
-                    >
-                      {ingredient.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div className="upload-section">
+      <h1>Upload a New Recipe</h1>
+      <form onSubmit={handleSubmit} className="upload-form">
+        <div className="form-group">
+          <label htmlFor="name">Recipe Name *</label>
+          <input 
+            id="name" 
+            name="name" 
+            value={recipeData.name} 
+            onChange={handleChange} 
+            required 
+          />
+        </div>
 
-              <IngredientList ingredients={recipeData.ingredients} editable onAdd={handleAddIngredient} onUpdate={handleUpdateIngredient} onDelete={handleDeleteIngredient} />
-            </div>
-            <div className="upload-section">
-              <label htmlFor="instructions">Instructions *</label>
-              <textarea id="instructions" name="instructions" value={recipeData.instructions} onChange={handleChange} />
-              <p className="tip">Tip: Number your steps for clarity (e.g., "1. Preheat oven...")</p>
-            </div>
-            <div className="upload-section">
-              <h3>Nutrition Information (per serving)</h3>
-              <div className="nutrition-grid">
-                {['calories', 'protein', 'carbs', 'fat'].map(nutrient => (
-                  <div key={nutrient}>
-                    <label htmlFor={nutrient}>{nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}</label>
-                    <input type="number" id={nutrient} name={`nutrition.${nutrient}`} value={recipeData.nutrition[nutrient]} onChange={handleChange} />
-                  </div>
+        <div className="form-group">
+          <label htmlFor="image_url">Image URL</label>
+          <input 
+            id="image_url" 
+            name="image_url" 
+            value={recipeData.image_url} 
+            onChange={handleChange} 
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="cooking_time">Cooking Time (minutes) *</label>
+          <input 
+            id="cooking_time" 
+            name="cooking_time" 
+            type="number" 
+            value={recipeData.cooking_time} 
+            onChange={handleChange} 
+            required 
+            min="0"
+            step="0.1"
+            pattern="[0-9]*\.?[0-9]*"
+            onKeyPress={(e) => {
+              if (!/[\d.]/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="prep_time">Prep Time (minutes) *</label>
+          <input 
+            id="prep_time" 
+            name="prep_time" 
+            type="number" 
+            value={recipeData.prep_time} 
+            onChange={handleChange} 
+            required 
+            min="0"
+            step="0.1"
+            pattern="[0-9]*\.?[0-9]*"
+            onKeyPress={(e) => {
+              if (!/[\d.]/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="meal_type">Meal Type *</label>
+          <select 
+            id="meal_type" 
+            name="meal_type" 
+            value={recipeData.meal_type} 
+            onChange={handleChange} 
+            required
+          >
+            <option value="">Select meal type</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+          </select>
+        </div>
+
+        <div className="form-group ingredients-section">
+          <label>Ingredients *</label>
+          <div className="ingredient-search">
+            <input
+              type="text"
+              placeholder="Search ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            {filteredIngredients.length > 0 && (
+              <ul className="ingredients-dropdown" ref={dropdownRef}>
+                {filteredIngredients.map((ingredient) => (
+                  <li
+                    key={ingredient.id}
+                    onClick={() => {
+                      handleAddIngredient(ingredient);
+                      setSearchQuery('');
+                      setFilteredIngredients([]);
+                    }}
+                    className="ingredient-option"
+                  >
+                    {ingredient.name}
+                  </li>
                 ))}
-              </div>
+              </ul>
+            )}
+          </div>
+          
+          {recipeData.ingredients.length > 0 && (
+            <div className="selected-ingredients">
+              {recipeData.ingredients.map((ing, index) => (
+                <div key={ing.id} className="ingredient-item">
+                  <span className="ingredient-name">{ing.ingredient_name}</span>
+                  <input
+                    type="number"
+                    value={ing.quantity}
+                    onChange={(e) => {
+                      // Only allow numbers and decimal points
+                      if (!/^\d*\.?\d*$/.test(e.target.value)) {
+                        return;
+                      }
+                      
+                      // Prevent negative values
+                      if (parseFloat(e.target.value) < 0) {
+                        return;
+                      }
+
+                      const newIngredients = [...recipeData.ingredients];
+                      newIngredients[index] = {
+                        ...ing,
+                        quantity: e.target.value
+                      };
+                      setRecipeData(prev => ({
+                        ...prev,
+                        ingredients: newIngredients
+                      }));
+                    }}
+                    onKeyPress={(e) => {
+                      if (!/[\d.]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="quantity-input"
+                    min="0"
+                    step="0.1"
+                    pattern="[0-9]*\.?[0-9]*"
+                  />
+                  <select
+                    value={ing.unit}
+                    onChange={(e) => {
+                      const newIngredients = [...recipeData.ingredients];
+                      newIngredients[index] = {
+                        ...ing,
+                        unit: e.target.value
+                      };
+                      setRecipeData(prev => ({
+                        ...prev,
+                        ingredients: newIngredients
+                      }));
+                    }}
+                    className="unit-select"
+                  >
+                    <option value="pcs">pcs</option>
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="l">l</option>
+                    <option value="cup">cup</option>
+                    <option value="tbsp">tbsp</option>
+                    <option value="tsp">tsp</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRecipeData(prev => ({
+                        ...prev,
+                        ingredients: prev.ingredients.filter(i => i.id !== ing.id)
+                      }));
+                    }}
+                    className="remove-ingredient"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
-            <div className="upload-buttons">
-              <Button type="button" variant="secondary" onClick={() => navigate('/recipes')}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Uploading...' : 'Upload Recipe'}</Button>
-            </div>
-          </form>
-        </Card.Body>
-      </Card>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="steps">Recipe Steps *</label>
+          <textarea
+            id="steps"
+            name="stepsText" // Changed from steps to stepsText
+            value={recipeData.stepsText}
+            onChange={(e) => {
+              setRecipeData(prev => ({
+                ...prev,
+                stepsText: e.target.value
+              }));
+            }}
+            placeholder="Enter each step on a new line"
+            required
+            rows={5}
+            className="steps-input"
+          />
+        </div>
+
+        <div className="form-actions">
+          <button type="button" onClick={() => navigate('/recipes')}>Cancel</button>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Uploading...' : 'Upload Recipe'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

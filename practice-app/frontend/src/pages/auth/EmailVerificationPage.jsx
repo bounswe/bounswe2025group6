@@ -37,7 +37,9 @@ const EmailVerificationPage = () => {
     
     verifyEmailToken();
   }, [token, verifyEmail, toast]);
-  
+  useEffect(() => {
+      document.title = "Email Verification - FitHub";
+    }, []);
   // Render based on verification status
   const renderContent = () => {
     switch (verificationStatus) {

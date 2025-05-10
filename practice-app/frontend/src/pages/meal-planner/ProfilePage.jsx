@@ -87,6 +87,10 @@ const ProfilePage = () => {
 
   console.log(profileData)
   // Load profile data on component mount
+
+  useEffect(() => {
+    document.title = "Profile";
+  }, []);
   useEffect(() => {
     const loadProfile = async () => {
       setIsLoading(true);

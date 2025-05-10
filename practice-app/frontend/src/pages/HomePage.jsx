@@ -1,6 +1,6 @@
 // src/pages/HomePage.jsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/HomePage.css';
@@ -16,7 +16,9 @@ const HomePage = () => {
     { icon: '👨‍👩‍👧‍👦', title: 'Family Friendly', desc: 'Easily scale meals for different household sizes.' },
     { icon: '🥦', title: 'Dietary Preferences', desc: 'Filter meals by vegetarian, vegan, keto and more.' },
   ];
-
+  useEffect(() => {
+    document.title = "Home - FitHub";
+  }, []);
   return (
     <div className="homepage">
       {/* Hero */}

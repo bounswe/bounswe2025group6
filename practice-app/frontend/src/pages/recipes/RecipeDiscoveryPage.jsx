@@ -17,6 +17,10 @@ const RecipeDiscoveryPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    document.title = "Recipe Discovery";
+  }, []);
+
+  useEffect(() => {
     const loadRecipes = async () => {
       try {
         setLoading(true);
@@ -72,6 +76,7 @@ const RecipeDiscoveryPage = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="searchbox"
         />
+
       </div>
 
       <div className="recipe-list">
