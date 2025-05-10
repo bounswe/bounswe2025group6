@@ -95,7 +95,34 @@ class Recipe(TimestampedModel):
                 if rating_value < 0 or rating_value > 5:
                     raise ValidationError(f"{rating_field} must be between 0 and 5.")
 
+    #added to update relevant rating types after users provide ratings
+    def update_ratings(self, rating_type, rating_value):
+        """
+        Update the appropriate rating and the rating count.
+        """
+        if rating_type == 'difficulty':
+            if self.difficulty_rating is None:
+                self.difficulty_rating = rating_value
+            else:
+                # Recalculate the average
+                self.difficulty_rating = ((self.difficulty_rating * self.difficulty_rating_count) + rating_value) / (self.difficulty_rating_count + 1)
+            self.difficulty_rating_count += 1
 
+        elif rating_type == 'taste':
+            if self.taste_rating is None:
+                self.taste_rating = rating_value
+            else:
+                self.taste_rating = ((self.taste_rating * self.taste_rating_count) + rating_value) / (self.taste_rating_count + 1)
+            self.taste_rating_count += 1
+
+        elif rating_type == 'health':
+            if self.health_rating is None:
+                self.health_rating = rating_value
+            else:
+                self.health_rating = ((self.health_rating * self.health_rating_count) + rating_value) / (self.health_rating_count + 1)
+            self.health_rating_count += 1
+
+        self.save()
 
 # RecipeIngredient model that will be used for the recipe (holds the relationship between Recipe and Ingredient)
 # Many-to-many relationship

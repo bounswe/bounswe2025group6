@@ -542,79 +542,16 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
         current_user.bookmarkRecipes.add(recipe_id)
         return Response({"status": "recipe bookmarked"})
     
-    #UNDER CONSTRUCTION
-    #RATE RECIPE
+    #RATE RECIPE SWAGGER
     @swagger_auto_schema(
-        method='post',
-        operation_description="Rate a recipe (1-5 stars)",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['recipe_id', 'taste_rating'],
-            properties={
-                'recipe_id': openapi.Schema(
-                    type=openapi.TYPE_INTEGER,
-                    description="ID of the recipe being rated",
-                    example=42
-                ),
-                'taste_rating': openapi.Schema(
-                    type=openapi.TYPE_NUMBER,
-                    description="Rating value (0.0 to 5.0)",
-                    minimum=0.0,
-                    maximum=5.0,
-                    example=4.5
-                )
-            }
-        ),
+        operation_description="Submit a rating for a specific recipe",
+        request_body=RecipeRatingSerializer,
         responses={
-            200: openapi.Response(
-                description="Rating saved successfully",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'status': openapi.Schema(
-                            type=openapi.TYPE_STRING,
-                            example="rating saved"
-                        )
-                    }
-                )
-            ),
-            400: openapi.Response(
-                description="Bad request",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'error': openapi.Schema(
-                            type=openapi.TYPE_STRING,
-                            example="You have already rated this recipe."
-                        ),
-                        # For serializer errors
-                        'taste_rating': openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(type=openapi.TYPE_STRING),
-                            example=["Ensure this value is less than or equal to 5.0."]
-                        ),
-                        'recipe_id': openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(type=openapi.TYPE_STRING)
-                        )
-                    }
-                )
-            ),
-            401: openapi.Response(
-                description="Unauthorized - authentication required"
-            ),
-            404: openapi.Response(
-                description="Recipe not found",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'error': openapi.Schema(type=openapi.TYPE_STRING)
-                    }
-                )
-            )
-        },
-        security=[{"Bearer": []}],
-        tags=['Recipe Ratings']
+            200: openapi.Response("Rating saved", RecipeRatingSerializer),
+            400: openapi.Response("Error", openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                'error': openapi.Schema(type=openapi.TYPE_STRING, description='Error message')
+            })),
+        }
     )
 
     @action(detail=False, methods=['post'])
@@ -627,13 +564,14 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
         """
         serializer = RecipeRatingSerializer(data=request.data)
         if serializer.is_valid():
-            recipe_id = serializer.validated_data['recipe_id']
+            recipe = serializer.validated_data['recipe']  # This is the Recipe object
             taste_rating = serializer.validated_data['taste_rating']
+            difficulty_rating = serializer.validated_data['difficulty_rating']
 
             # Prevent duplicate ratings
             if RecipeRating.objects.filter(
                 user=request.user, 
-                recipe_id=recipe_id
+                recipe=recipe  # use recipe object, not ID
             ).exists():
                 return Response(
                     {"error": "You have already rated this recipe."},
@@ -643,24 +581,21 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             # Save the rating
             RecipeRating.objects.create(
                 user=request.user,
-                recipe_id=recipe_id,
+                recipe=recipe,
                 taste_rating=taste_rating,
+                difficulty_rating = difficulty_rating,
             )
 
-            self.update_avg_rating(request.user)
+            # Update the recipe's ratings and count
+            if taste_rating:
+                recipe.update_ratings('taste', taste_rating)
+            if difficulty_rating:
+                recipe.update_ratings('difficulty', difficulty_rating)
+
             return Response({"status": "rating saved"})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    def update_avg_rating(self, user):
-        """Helper method to update a user's average recipe rating."""
-        ratings = RecipeRating.objects.filter(user=user)
-        if ratings.exists():
-            avg = sum(r.rating for r in ratings) / ratings.count()
-            user.avgRecipeRating = avg
-            user.save()
-
-#UNDER CONSTRUCTION
+    
 # ViewSet for Recipe Ratings
 class RecipeRatingViewSet(viewsets.ModelViewSet):
     queryset = RecipeRating.objects.all()

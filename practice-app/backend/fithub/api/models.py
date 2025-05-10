@@ -103,6 +103,11 @@ class RecipeRating(models.Model):
         related_name='ratings'
     )
     taste_rating = models.FloatField(
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
+    )
+    difficulty_rating = models.FloatField(
+        blank=True,
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
     )
     timestamp = models.DateTimeField(auto_now_add=True)
