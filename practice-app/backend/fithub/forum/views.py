@@ -72,7 +72,7 @@ class ForumPostVoteView(APIView):
             if vote_type == 'up':
                 post.increment_upvote()
             elif vote_type == 'down':
-                post.decrement_downvote()
+                post.increment_downvote()
 
             return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
 
