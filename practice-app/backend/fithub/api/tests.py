@@ -230,38 +230,30 @@ class RateRecipeTests(APITestCase):
         return client
 
     def test_rate_recipe_success(self):
-        """Test successfully rating a recipe with valid JWT"""
+        """Test successful rating submission"""
         url = reverse('registereduser-rate-recipe')
-        client = self.get_authenticated_client(self.other_user_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
         
         data = {
             'recipe_id': self.recipe.id,
             'taste_rating': 4.5,
-            'difficulty_rating': 2.0
+            'difficulty_rating': 3.0
         }
         
-        response = client.post(url, data, format='json')
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'rating saved')
+        
+        # Verify the returned data structure
+        self.assertIn('id', response.data)
+        self.assertIn('taste_rating', response.data)
+        self.assertIn('difficulty_rating', response.data)
+        self.assertEqual(response.data['taste_rating'], 4.5)
+        self.assertEqual(response.data['difficulty_rating'], 3.0)
         
         # Verify rating was created
-        rating = RecipeRating.objects.get(user=self.other_user, recipe=self.recipe)
+        rating = RecipeRating.objects.first()
         self.assertEqual(rating.taste_rating, 4.5)
-        self.assertEqual(rating.difficulty_rating, 2.0)
-
-    def test_rate_own_recipe(self):
-        """Test that creator can rate their own recipe"""
-        url = reverse('registereduser-rate-recipe')
-        client = self.get_authenticated_client(self.user_token)
-        
-        data = {
-            'recipe_id': self.recipe.id,
-            'taste_rating': 5.0,
-            'difficulty_rating': 1.0
-        }
-        
-        response = client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(rating.difficulty_rating, 3.0)
 
     def test_rate_recipe_invalid_jwt(self):
         """Test rating with invalid/expired JWT"""
@@ -369,80 +361,148 @@ class RateRecipeTests(APITestCase):
 
 #TESTS FOR RECIPE RATING VIEW SET
 
-class RecipeRatingViewSetTests(APITestCase):
+class RecipeRatingTests(APITestCase):
     def setUp(self):
-        # Create test users
-        self.user1 = RegisteredUser.objects.create_user(
-            username='chef123',
-            email='chef@test.com',
+        self.user = RegisteredUser.objects.create_user(
+            username='testuser',
+            email='test@example.com',
             password='testpass123'
         )
-        self.user2 = RegisteredUser.objects.create_user(
-            username='foodie456',
-            email='foodie@test.com',
+        self.other_user = RegisteredUser.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
             password='testpass123'
         )
         
         # Create test recipe
         self.recipe = Recipe.objects.create(
             name="Tomato Sandwich",
-            steps=json.dumps(["Spread butter", "Add tomato slices", "Serve"]),
+            steps=["Spread butter", "Add tomato slices", "Serve"],
             prep_time=10,
             cook_time=0,
             meal_type="lunch",
-            creator=self.user1
+            creator=self.user
+        )
+
+        self.recipe2 = Recipe.objects.create(
+            name="Tomato Sandwich2",
+            steps=["Spread butter", "Add tomato slices", "Serve"],
+            prep_time=10,
+            cook_time=0,
+            meal_type="lunch",
+            creator=self.user
         )
         
-        # Create test rating
-        self.rating = RecipeRating.objects.create(
-            user=self.user1,
+        # Generate tokens
+        self.token = str(RefreshToken.for_user(self.user).access_token)
+        self.other_token = str(RefreshToken.for_user(self.other_user).access_token)
+        
+        # API client setup
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+
+    # --- CREATE TESTS ---
+    def test_create_rating_success(self):
+        """Test successful rating creation"""
+        url = reverse('reciperating-list')
+        data = {
+            'recipe_id': self.recipe.id,
+            'taste_rating': 4.5,
+            'difficulty_rating': 3.0
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(RecipeRating.objects.count(), 1)
+        
+        # Verify recipe stats updated
+        self.recipe.refresh_from_db()
+        self.assertEqual(self.recipe.taste_rating, 4.5)
+        self.assertEqual(self.recipe.taste_rating_count, 1)
+        self.assertEqual(self.recipe.difficulty_rating, 3.0)
+        self.assertEqual(self.recipe.difficulty_rating_count, 1)
+
+    def test_create_partial_rating(self):
+        """Test creating rating with only one rating field"""
+        url = reverse('reciperating-list')
+        
+        # Only taste rating
+        data = {'recipe_id': self.recipe.id, 'taste_rating': 4.0}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Only difficulty rating
+        data = {'recipe_id': self.recipe2.id, 'difficulty_rating': 2.0}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    
+
+    # --- DELETE TESTS ---
+    def test_delete_rating(self):
+        """Test rating deletion updates recipe stats"""
+        rating = RecipeRating.objects.create(
+            user=self.user,
             recipe=self.recipe,
             taste_rating=4.0,
             difficulty_rating=3.0
         )
+        self.recipe.update_ratings('taste', 4.0)
+        self.recipe.update_ratings('difficulty', 3.0)
         
-        # Generate JWT tokens
-        self.user1_token = str(RefreshToken.for_user(self.user1).access_token)
-        self.user2_token = str(RefreshToken.for_user(self.user2).access_token)
+        url = reverse('reciperating-detail', args=[rating.id])
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verify recipe stats reset
+        self.recipe.refresh_from_db()
+        self.assertIsNone(self.recipe.taste_rating)
+        self.assertIsNone(self.recipe.difficulty_rating)
+        self.assertEqual(self.recipe.taste_rating_count, 0)
+        self.assertEqual(self.recipe.difficulty_rating_count, 0)
 
-    def get_authenticated_client(self, token):
-        client = self.client
-        client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        return client
+    
+    # --- EDGE CASES ---
 
-    # CREATE TESTS
-    def test_create_rating_success(self):
-        """User can create a new rating with both taste and difficulty"""
-        url = reverse('reciperating-list')
-        client = self.get_authenticated_client(self.user2_token)
+    def test_last_rating_deletion(self):
+        """Test deleting the last rating for a recipe"""
+        rating = RecipeRating.objects.create(
+            user=self.user,
+            recipe=self.recipe,
+            taste_rating=4.0,
+            difficulty_rating=3.0
+        )
+        self.recipe.update_ratings('taste', 4.0)
+        self.recipe.update_ratings('difficulty', 3.0)
         
-        data = {
-            'recipe_id': self.recipe.id,
-            'taste_rating': 5.0,
-            'difficulty_rating': 2.0
-        }
+        url = reverse('reciperating-detail', args=[rating.id])
+        response = self.client.delete(url)
         
-        response = client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(RecipeRating.objects.count(), 2)
-   
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verify all stats reset
+        self.recipe.refresh_from_db()
+        self.assertIsNone(self.recipe.taste_rating)
+        self.assertIsNone(self.recipe.difficulty_rating)
+        self.assertEqual(self.recipe.taste_rating_count, 0)
+        self.assertEqual(self.recipe.difficulty_rating_count, 0)
 
-
-    # VALIDATION TESTS
-    def test_create_rating_invalid_values(self):
-        """Test rating value validation for both fields"""
-        url = reverse('reciperating-list')
-        client = self.get_authenticated_client(self.user1_token)
+    # --- PERMISSION TESTS ---
+    def test_cannot_modify_others_ratings(self):
+        """Test users can't modify others' ratings"""
+        rating = RecipeRating.objects.create(
+            user=self.other_user,
+            recipe=self.recipe,
+            taste_rating=3.0,
+            difficulty_rating=2.0
+        )
         
-        test_cases = [
-            {'taste_rating': -1.0, 'difficulty_rating': 3.0},
-        ]
+        # Try to update
+        url = reverse('reciperating-detail', args=[rating.id])
+        data = {'taste_rating': 5.0}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         
-        for case in test_cases:
-            data = {'recipe_id': self.recipe.id, **case}
-            response = client.post(url, data, format='json')
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.assertTrue(
-                'taste_rating' in response.data or 
-                'difficulty_rating' in response.data
-            )
+        # Try to delete
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

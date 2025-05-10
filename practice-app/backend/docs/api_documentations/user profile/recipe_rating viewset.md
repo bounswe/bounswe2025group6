@@ -185,6 +185,6 @@ No*
     
 3.  Ratings must be between 0.0 and 5.0
     
-4.  Both rating fields must be provided for creation/update
+4.  At least one rating field must be provided for creation/update
     
 5.  Timestamps are automatically managed

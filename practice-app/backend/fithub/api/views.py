@@ -590,7 +590,10 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             if rating.difficulty_rating is not None:
                 recipe.update_ratings('difficulty', rating.difficulty_rating)
 
-            return Response(RecipeRatingSerializer(rating).data)
+            return Response(
+            RecipeRatingSerializer(rating).data,
+            status=status.HTTP_200_OK
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # ViewSet for Recipe Ratings
@@ -609,30 +612,29 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
         self._update_recipe_stats(rating)
 
     def perform_update(self, serializer):
-        """Handle rating update by first removing old rating impact"""
+        """Handle rating update and update recipe stats"""
         old_rating = self.get_object()
-        recipe = old_rating.recipe
-        
-        # Remove old rating values from recipe totals
-        if old_rating.taste_rating is not None:
-            recipe.drop_rating('taste', old_rating.taste_rating)
-        if old_rating.difficulty_rating is not None:
-            recipe.drop_rating('difficulty', old_rating.difficulty_rating)
-        
-        # Save the new rating
-        new_rating = serializer.save()
-        
-        # Add new rating values to recipe totals
-        if new_rating.taste_rating is not None:
-            recipe.update_ratings('taste', new_rating.taste_rating)
-        if new_rating.difficulty_rating is not None:
-            recipe.update_ratings('difficulty', new_rating.difficulty_rating)
+        self._remove_old_rating_impact(old_rating)
+        rating = serializer.save()
+        self._update_recipe_stats(rating)
 
     def perform_destroy(self, instance):
-        """Handle rating deletion by removing its impact"""
-        recipe = instance.recipe
-        if instance.taste_rating is not None:
-            recipe.drop_rating('taste', instance.taste_rating)
-        if instance.difficulty_rating is not None:
-            recipe.drop_rating('difficulty', instance.difficulty_rating)
+        """Handle rating deletion and update recipe stats"""
+        self._remove_old_rating_impact(instance)
         instance.delete()
+
+    def _update_recipe_stats(self, rating):
+        """Update recipe stats with new rating values"""
+        recipe = rating.recipe
+        if rating.taste_rating is not None:
+            recipe.update_ratings('taste', rating.taste_rating)
+        if rating.difficulty_rating is not None:
+            recipe.update_ratings('difficulty', rating.difficulty_rating)
+
+    def _remove_old_rating_impact(self, rating):
+        """Remove the impact of an old rating before update/delete"""
+        recipe = rating.recipe
+        if rating.taste_rating is not None:
+            recipe.drop_rating('taste', rating.taste_rating)
+        if rating.difficulty_rating is not None:
+            recipe.drop_rating('difficulty', rating.difficulty_rating)
