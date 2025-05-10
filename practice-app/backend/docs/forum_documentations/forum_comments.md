@@ -221,6 +221,32 @@ Nothing required as a request body, just the URL with the post ID.
 
 - Nothing, just a 204 No Content response.
 
+
+### 8. **GET** `/forum/comment/{comment_id}/vote/`
+
+#### 🔍 Request Format
+
+- Nothing required as a request body, just the URL with the comment ID.
+- **Note:** The `comment_id` parameter is required in the URL path.
+
+#### 📦 Response Format (200 OK — Vote Found)
+
+```json
+{
+  "user_id": 1,
+  "comment_id": 12,
+  "vote_type": "down"
+}
+```
+
+- **Status code:** 200 OK
+- **Status code:** 204 Not Found (if no vote found)
+- **Status code:** 401 Unauthorized (if user not authenticated)
+- **Status code:** 404 Forbidden (if no comment found)
+
+- **Note:** This endpoint returns the current vote (if any) that the authenticated user has cast on the specified comment.
+
+
 #### 🔒 Permissions
 - Authentication is required for all endpoints. Please refer to jwt token documentation for details.
 

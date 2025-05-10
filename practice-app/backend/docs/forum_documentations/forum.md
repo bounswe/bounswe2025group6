@@ -300,6 +300,30 @@ Nothing required as a request body, just the URL with the post ID.
 - **Note:** The `upvote_count` and `downvote_count` fields are updated accordingly. The user can remove their vote at any time.
 - **Note:** If the user tries to remove a vote that they haven't cast, they will receive a message indicating that they have not voted on this post.
 
+### 8. **GET** `/forum/posts/{post_id}/vote/`
+
+#### 🔍 Request Format
+
+- Nothing required as a request body, just the URL with the post ID.
+- **Note:** The `post_id` parameter is required in the URL path.
+
+#### 📦 Response Format (200 OK — Vote Found)
+
+```json
+{
+  "user_id": 1,
+  "post_id": 42,
+  "vote_type": "up"
+}
+```
+
+- **Status code:** 200 OK
+- **Status code:** 204 Not Found (if no vote found)
+- **Status code:** 401 Unauthorized (if user not authenticated)
+- **Status code:** 404 Forbidden (if no post found)
+
+- **Note:** This endpoint returns the current vote (if any) that the authenticated user has cast on the specified post.
+
 #### 🔒 Permissions
 - Authentication is required for all endpoints. Please refer to jwt token documentation for details.
 
