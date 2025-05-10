@@ -18,6 +18,7 @@ import HomePage from '../pages/HomePage';
 
 // Protected pages
 import DashboardPage from '../pages/DashboardPage';
+
 import MealPlannerPage from '../pages/meal-planner/MealPlannerPage';
 import SavedMealPlansPage from '../pages/meal-planner/SavedMealPlansPage';
 import ShoppingListPage from '../pages/shopping/ShoppingListPage';
@@ -25,11 +26,15 @@ import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
 import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
 import UploadRecipePage from '../pages/recipes/UploadRecipePage';
 import ProfilePage from '../pages/meal-planner/ProfilePage';
+
 import CommunityPage from '../pages/community/CommunityPage';
 import PostDetailPage from '../pages/community/PostDetailPage';
 import CreatePostPage from '../pages/community/CreatePostPage';
 import UserProfilePage from '../pages/community/UserProfilePage';
+import EditPostPage from '../pages/community/EditPostPage';
 
+import IngredientsPage from '../pages/ingredients/IngredientsPage'
+import IngredientDetailPage from '../pages/ingredients/IngredientDetailPage';
 import '../styles/index.css';
 
 const AppRoutes = () => {
@@ -155,6 +160,15 @@ const AppRoutes = () => {
         />
 
         <Route 
+          path="/community/edit/:id" 
+          element={
+            <ProtectedRoute>
+              <EditPostPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
           path="/community/profile/:id" 
           element={
             <ProtectedRoute>
@@ -162,10 +176,13 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
+        <Route path="/ingredients" element={<IngredientsPage />} />
+        <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
       </Route>
       
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 };

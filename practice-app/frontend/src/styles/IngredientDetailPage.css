@@ -1,0 +1,47 @@
+.ingredient-detail-page {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, #c9e6ee, #caf3d9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.ingredient-detail-page h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.ingredient-detail-page p {
+  font-size: 1rem;
+  color: #555;
+  margin: 10px 0;
+  line-height: 1.5;
+}
+
+.ingredient-detail-page p strong {
+  color: #333;
+}
+
+.ingredient-detail-page p small {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.text-red-500 {
+  color: #ff0000;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+  margin-top: 20px;
+}

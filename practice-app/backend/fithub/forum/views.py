@@ -15,9 +15,6 @@ from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes, action
 from django.utils.timezone import now
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 
@@ -72,11 +69,45 @@ class ForumPostVoteView(APIView):
             if vote_type == 'up':
                 post.increment_upvote()
             elif vote_type == 'down':
-                post.decrement_downvote()
+                post.increment_downvote()
 
             return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
 
         return Response({"message": "You have already voted on this post!"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Check if the authenticated user has voted on a forum post.",
+        responses={
+            200: openapi.Response(description="Vote found", examples={
+                "application/json": {
+                    "user_id": 1,
+                    "post_id": 123,
+                    "vote_type": "up"
+                }
+            }),
+            204: openapi.Response(description="No vote found"),
+            401: openapi.Response(description="User not authenticated"),
+            404: openapi.Response(description="Post not found"),
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+        post_id = kwargs.get('post_id')
+        post = get_object_or_404(ForumPost, pk=post_id, deleted_on__isnull=True)
+
+        vote = ForumPostVote.objects.filter(user=request.user, post=post, deleted_on__isnull=True).first()
+
+        if vote:
+            return Response({
+                "user_id": request.user.id,
+                "post_id": post.id,
+                "vote_type": vote.vote_type,
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
         operation_description="Delete a vote on a forum post.",
@@ -238,6 +269,40 @@ class ForumPostCommentVoteView(APIView):
             return Response({"message": "Vote recorded successfully!"}, status=status.HTTP_201_CREATED)
 
         return Response({"message": "You have already voted on this comment!"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Check if the authenticated user has voted on a forum post comment.",
+        responses={
+            200: openapi.Response(description="Vote found", examples={
+                "application/json": {
+                    "user_id": 1,
+                    "comment_id": 456,
+                    "vote_type": "up"
+                }
+            }),
+            204: openapi.Response(description="No vote found"),
+            401: openapi.Response(description="User not authenticated"),
+            404: openapi.Response(description="Comment not found"),
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        comment_id = kwargs.get('comment_id')
+        comment = get_object_or_404(ForumPostComment, pk=comment_id, deleted_on__isnull=True)
+
+        vote = ForumPostCommentVote.objects.filter(user=request.user, comment=comment, deleted_on__isnull=True).first()
+
+        if vote:
+            return Response({
+                "user_id": request.user.id,
+                "comment_id": comment.id,
+                "vote_type": vote.vote_type,
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
 
     @swagger_auto_schema(
         operation_description="Delete a vote on a forum post comment.",

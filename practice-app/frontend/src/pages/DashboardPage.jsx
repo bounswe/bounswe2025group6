@@ -18,8 +18,8 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
+    <div className="dashboard-container dashboard-cards">
+      <div className="dashboard-header center">
         <div>
           <h1 className="dashboard-title">
             {getWelcomeMessage()}, {currentUser?.username || 'User'}!
@@ -128,25 +128,6 @@ const DashboardPage = () => {
             </ul>
           </Card.Body>
         </Card>
-      </div>
-
-      <div className="quick-links">
-        <Link to="/upload" className="quick-link">
-          <div className="quick-link-icon">📝</div>
-          <p>Upload Recipe</p>
-        </Link>
-        <Link to="/profile" className="quick-link">
-          <div className="quick-link-icon">👤</div>
-          <p>My Profile</p>
-        </Link>
-        <Link to="/recipes?filter=favorites" className="quick-link">
-          <div className="quick-link-icon">⭐</div>
-          <p>Favorites</p>
-        </Link>
-        <Link to="/recipes?filter=recent" className="quick-link">
-          <div className="quick-link-icon">🕒</div>
-          <p>Recent Recipes</p>
-        </Link>
       </div>
     </div>
   );
