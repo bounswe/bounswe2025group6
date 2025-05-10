@@ -145,6 +145,11 @@ const CommunityPage = () => {
     }
   };
 
+
+  useEffect(() => {
+    document.title = "Community";
+  }, []);
+
   return (
     <div className="forum-container">
       <div className="forum-header">

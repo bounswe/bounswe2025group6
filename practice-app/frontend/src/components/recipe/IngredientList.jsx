@@ -1,31 +1,58 @@
 // src/components/recipe/IngredientList.jsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import '../../styles/IngredientList.css';
 
 const IngredientList = ({ 
-  ingredients, 
+  ingredients = [], // Provide default empty array
   editable = false,
   onAdd,
   onUpdate,
-  onDelete
+  onDelete,
+  selectedIngredients = [], // Provide default empty array
+  onAddIngredient,
+  onRemoveIngredient
 }) => {
-  const handleNameChange = (index, value) => {
-    if (onUpdate) onUpdate(index, { name: value });
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const unitOptions = ['pcs', 'cup', 'tbsp', 'tsp', 'g', 'kg', 'ml', 'l'];
+
+  // Handle ingredient selection
+  const handleIngredientSelect = (ingredient) => {
+    if (!onAddIngredient) return;
+    
+    // Check if ingredient is already selected
+    const isSelected = selectedIngredients.some(
+      selected => selected.id === ingredient.id
+    );
+    
+    if (!isSelected) {
+      onAddIngredient(ingredient);
+    }
   };
 
-  const handleQuantityChange = (index, value) => {
-    if (onUpdate) onUpdate(index, { quantity: value });
+  // Render selected ingredients
+  const renderSelectedIngredients = () => {
+    if (!selectedIngredients?.length) return null;
+
+    return (
+      <div className="selected-ingredients">
+        {selectedIngredients.map(ingredient => (
+          <div key={ingredient.id} className="ingredient-item">
+            {ingredient.name}
+            <button 
+              onClick={() => onRemoveIngredient?.(ingredient.id)}
+              className="remove-btn"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const handleDelete = (index) => {
-    if (onDelete) onDelete(index);
-  };
-
-  const handleAddIngredient = () => {
-    if (onAdd) onAdd({ name: '', quantity: '' });
-  };
-
+  // Non-editable view
   if (!editable) {
     return (
       <ul className="ingredient-list">
@@ -41,45 +68,47 @@ const IngredientList = ({
     );
   }
 
+  // Editable view with controlled inputs
   return (
-    <div className="ingredient-editable">
+    <div className="ingredient-list">
+      {renderSelectedIngredients()}
       {ingredients.map((ingredient, index) => (
-        <div key={index} className="ingredient-row">
+        <div key={ingredient.id || index} className="ingredient-row">
+          <span className="ingredient-name">{ingredient.name}</span>
           <input
-            type="text"
-            value={ingredient.name}
-            onChange={(e) => handleNameChange(index, e.target.value)}
-            placeholder="Name"
-            className="ingredient-input"
-          />
-          <input
-            type="text"
-            value={ingredient.quantity}
-            onChange={(e) => handleQuantityChange(index, e.target.value)}
+            type="number"
+            value={ingredient.quantity || ''} // Add default empty string
+            onChange={(e) => onUpdate?.(index, { 
+              ...ingredient,
+              quantity: e.target.value 
+            })}
             placeholder="Qty"
-            className="ingredient-input"
+            className="ingredient-input quantity"
           />
+          <select
+            value={ingredient.unit || 'pcs'}
+            onChange={(e) => onUpdate?.(index, { 
+              ...ingredient,
+              unit: e.target.value 
+            })}
+            className="ingredient-input unit"
+          >
+            {unitOptions.map(unit => (
+              <option key={unit} value={unit}>{unit}</option>
+            ))}
+          </select>
           <button
             type="button"
-            onClick={() => handleDelete(index)}
+            onClick={() => onDelete?.(index)}
             className="ingredient-delete"
           >
-            ✕
+            ×
           </button>
         </div>
       ))}
-
-      <button
-        type="button"
-        onClick={handleAddIngredient}
-        className="ingredient-add"
-      >
-        + Add Ingredient
-      </button>
     </div>
   );
 };
-
 
 export default IngredientList;
 

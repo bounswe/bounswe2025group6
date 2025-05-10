@@ -1,6 +1,6 @@
 // src/pages/auth/ResetPasswordPage.jsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
@@ -86,7 +86,9 @@ const ResetPasswordPage = () => {
       }
     }
   };
-  
+  useEffect(() => {
+      document.title = "Reset Password - FitHub";
+    }, []);
   // Display error if no token
   if (!token) {
     return (

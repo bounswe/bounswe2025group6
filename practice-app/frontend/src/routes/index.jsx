@@ -112,7 +112,7 @@ const AppRoutes = () => {
         />
         
         <Route 
-          path="/upload" 
+          path="/uploadRecipe" 
           element={
             <ProtectedRoute>
               <UploadRecipePage />

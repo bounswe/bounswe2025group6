@@ -520,19 +520,8 @@ const PostDetailPage = () => {
       <React.Fragment key={i}>{line}<br /></React.Fragment>
     ));
 
-  const handlePageChange = (newPage) => {
-    if (newPage > 0 && newPage <= Math.ceil(commentPagination.total / commentPagination.page_size)) {
-      setCommentPagination(prev => ({ ...prev, page: newPage }));
-    }
-  };
-
-  if (isLoading) {
-    return <div className="post-detail-loading">Loading post...</div>;
-  }
-
-  if (!post) {
-    return <div className="post-detail-not-found">Post not found</div>;
-  }
+  if (isLoading) return <div className="post-detail-loading">Loading post...</div>;
+  if (!post) return <div className="post-detail-not-found">Post not found</div>;
 
   return (
     <div className="post-detail-container">

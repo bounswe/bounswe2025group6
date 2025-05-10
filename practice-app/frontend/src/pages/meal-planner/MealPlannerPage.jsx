@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useMealPlan } from '../../contexts/MealPlanContext';
 import { useToast } from '../../components/ui/Toast';
@@ -66,7 +66,9 @@ const MealPlannerPage = () => {
   const totalCost = calculateTotalCost();
   const totalNutrition = calculateTotalNutrition();
   const hasSelectedMeals = Object.values(activePlan).some(Boolean);
-
+  useEffect(() => {
+    document.title = "Meal Planner";
+  }, []);
   return (
     <div className="meal-planner-container">
       <div className="meal-planner-header">

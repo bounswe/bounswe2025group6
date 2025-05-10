@@ -41,16 +41,12 @@ const RecipeDetailPage = () => {
       setLoading(true);
       try {
         const recipeData = await getRecipeById(Number(id));
-        if (recipeData) {
-          setRecipe(recipeData);
-          setBookmarked(isBookmarked(recipeData.id));
-          setComments([
-            { id: 1, user: 'Hilal', text: 'Looks delicious!', date: new Date(Date.now() - 86400000).toISOString() },
-            { id: 2, user: 'Furkan', text: 'I tried and loved it.', date: new Date(Date.now() - 3600000).toISOString() },
-          ]);
-        } else {
-          setError('Recipe not found');
-        }
+        setRecipe(recipeData);
+        setBookmarked(isBookmarked(recipeData.id));
+        setComments([
+          { id: 1, user: 'Hilal', text: 'Looks delicious!', date: new Date(Date.now() - 86400000).toISOString() },
+          { id: 2, user: 'Furkan', text: 'I tried and loved it.', date: new Date(Date.now() - 3600000).toISOString() },
+        ]);
       } catch (err) {
         console.error('Error loading recipe:', err);
         setError('Failed to load recipe');
@@ -59,6 +55,7 @@ const RecipeDetailPage = () => {
         setLoading(false);
       }
     };
+    
     loadRecipe();
   }, [id, toast]);
 
@@ -172,12 +169,16 @@ const RecipeDetailPage = () => {
       <Card className="recipe-section">
         <Card.Header><h2>Instructions</h2></Card.Header>
         <Card.Body>
-          {recipe.instructions.split('\n').map((line, i) => (
-            <div key={i} className="instruction-step">
-              <span className="step-number">{i + 1}</span>
-              <p>{line}</p>
-            </div>
-          ))}
+          {recipe.instructions ? (
+            recipe.instructions.split('\n').map((line, i) => (
+              <div key={i} className="instruction-step">
+                <span className="step-number">{i + 1}</span>
+                <p>{line}</p>
+              </div>
+            ))
+          ) : (
+            <p>No instructions available</p>
+          )}
         </Card.Body>
       </Card>
 
