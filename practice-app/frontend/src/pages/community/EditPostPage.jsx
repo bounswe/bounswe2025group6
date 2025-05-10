@@ -1,14 +1,15 @@
-// src/pages/community/CreatePostPage.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/pages/community/EditPostPage.jsx
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
-import '../../styles/CreatePostPage.css';
+import '../../styles/CreatePostPage.css'; // Reuse the same CSS
 
-const CreatePostPage = () => {
+const EditPostPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const toast = useToast();
@@ -19,6 +20,7 @@ const CreatePostPage = () => {
     is_commentable: true,
     tags: []
   });
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Available tags from API documentation
@@ -27,6 +29,36 @@ const CreatePostPage = () => {
     'Tips', 'Gluten Free', 'Vegan', 'Vegetarian', 'Quick',
     'Healthy', 'Student', 'Nutrition', 'Healthy Eating', 'Snacks'
   ];
+
+  useEffect(() => {
+    loadPost();
+  }, [id]);
+
+  const loadPost = async () => {
+    setIsLoading(true);
+    try {
+      const post = await forumService.getPostById(id);
+      
+      // Check if the user is the author
+      if (currentUser && post.author !== currentUser.id) {
+        toast.error('You can only edit your own posts');
+        navigate(`/community/post/${id}`);
+        return;
+      }
+
+      setFormData({
+        title: post.title,
+        content: post.content,
+        is_commentable: post.is_commentable,
+        tags: post.tags
+      });
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading post:', error);
+      toast.error('Failed to load post for editing');
+      navigate('/community');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -60,7 +92,7 @@ const CreatePostPage = () => {
     e.preventDefault();
 
     if (!currentUser) {
-      toast.warning('Please log in to create a post');
+      toast.warning('Please log in to edit this post');
       navigate('/login');
       return;
     }
@@ -83,36 +115,39 @@ const CreatePostPage = () => {
     setIsSubmitting(true);
 
     try {
-      console.log("Submitting post data:", formData);
-      const response = await forumService.createPost({
+      await forumService.updatePost(id, {
         title: formData.title,
         content: formData.content,
         is_commentable: formData.is_commentable,
         tags: formData.tags
       });
 
-      toast.success('Post created successfully!');
-      navigate(`/community/post/${response.id}`);
+      toast.success('Post updated successfully!');
+      navigate(`/community/post/${id}`);
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error('Error updating post:', error);
       setIsSubmitting(false);
       
       if (error.response?.data) {
         const errorMsg = typeof error.response.data === 'object' ? 
           Object.values(error.response.data).flat().join(' ') : 
           error.response.data;
-        toast.error(`Failed to create post: ${errorMsg}`);
+        toast.error(`Failed to update post: ${errorMsg}`);
       } else {
-        toast.error('Failed to create post. Please try again.');
+        toast.error('Failed to update post. Please try again.');
       }
     }
   };
 
+  if (isLoading) {
+    return <div className="create-post-loading">Loading post data...</div>;
+  }
+
   return (
     <div className="create-post-container">
       <div className="create-post-header">
-        <h1 className="create-post-title">Create a Post</h1>
-        <p className="create-post-subtitle">Share your thoughts, questions, or ideas with the community</p>
+        <h1 className="create-post-title">Edit Post</h1>
+        <p className="create-post-subtitle">Update your post</p>
       </div>
 
       <Card>
@@ -182,13 +217,13 @@ const CreatePostPage = () => {
               <Button 
                 type="button"
                 variant="secondary"
-                onClick={() => navigate('/community')}
+                onClick={() => navigate(`/community/post/${id}`)}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Posting...' : 'Post'}
+                {isSubmitting ? 'Updating...' : 'Update Post'}
               </Button>
             </div>
           </form>
@@ -198,4 +233,4 @@ const CreatePostPage = () => {
   );
 };
 
-export default CreatePostPage;
+export default EditPostPage;
