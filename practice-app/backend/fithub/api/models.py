@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.utils.timezone import now
 import uuid
 from django.core.validators import MinValueValidator, MaxValueValidator
+from jsonschema import ValidationError
 from recipes.models import Recipe  # Import from the recipes app
 from core.models import TimestampedModel  # New import path
 
@@ -98,22 +99,29 @@ class RecipeRating(models.Model):
         related_name='rated_recipes'
     )
     recipe = models.ForeignKey(
-        Recipe,  # Direct reference to Recipe from recipes app
+        Recipe,
         on_delete=models.CASCADE,
         related_name='ratings'
     )
     taste_rating = models.FloatField(
-        blank=True,
+        null=True,  # Allow NULL in database
+        blank=True,  # Allow empty in forms
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
     )
     difficulty_rating = models.FloatField(
-        blank=True,
+        null=True,  # Allow NULL in database
+        blank=True,  # Allow empty in forms
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
     )
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'recipe')
+
+    def clean(self):
+        """Ensure at least one rating is provided"""
+        if self.taste_rating is None and self.difficulty_rating is None:
+            raise ValidationError("At least one rating (taste or difficulty) must be provided")
 
 class Dietitian(TimestampedModel, models.Model):
     registered_user = models.OneToOneField(RegisteredUser, on_delete=models.CASCADE, related_name='dietitian')

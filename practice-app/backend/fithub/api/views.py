@@ -20,6 +20,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .models import RegisteredUser, RecipeRating
 from recipes.models import Recipe  # Import from recipes app
+from rest_framework import serializers
+
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
                            VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
 
@@ -559,42 +561,37 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
         """
         Submit a rating for a specific recipe.
         
-        Users can rate recipes on a scale of 0.0 to 5.0 stars.
+        Users can rate recipes on taste and/or difficulty (0.0-5.0).
+        At least one rating must be provided.
         Each user can only rate a recipe once.
         """
         serializer = RecipeRatingSerializer(data=request.data)
         if serializer.is_valid():
-            recipe = serializer.validated_data['recipe']  # This is the Recipe object
-            taste_rating = serializer.validated_data['taste_rating']
-            difficulty_rating = serializer.validated_data['difficulty_rating']
-
-            # Prevent duplicate ratings
-            if RecipeRating.objects.filter(
-                user=request.user, 
-                recipe=recipe  # use recipe object, not ID
-            ).exists():
+            recipe = serializer.validated_data['recipe']
+            
+            # Check for existing rating
+            if RecipeRating.objects.filter(user=request.user, recipe=recipe).exists():
                 return Response(
                     {"error": "You have already rated this recipe."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Save the rating
-            RecipeRating.objects.create(
+            # Create rating with provided fields
+            rating = RecipeRating.objects.create(
                 user=request.user,
                 recipe=recipe,
-                taste_rating=taste_rating,
-                difficulty_rating = difficulty_rating,
+                taste_rating=serializer.validated_data.get('taste_rating'),
+                difficulty_rating=serializer.validated_data.get('difficulty_rating')
             )
 
-            # Update the recipe's ratings and count
-            if taste_rating:
-                recipe.update_ratings('taste', taste_rating)
-            if difficulty_rating:
-                recipe.update_ratings('difficulty', difficulty_rating)
+            # Update recipe stats for provided ratings
+            if rating.taste_rating is not None:
+                recipe.update_ratings('taste', rating.taste_rating)
+            if rating.difficulty_rating is not None:
+                recipe.update_ratings('difficulty', rating.difficulty_rating)
 
-            return Response({"status": "rating saved"})
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(RecipeRatingSerializer(rating).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # ViewSet for Recipe Ratings
 class RecipeRatingViewSet(viewsets.ModelViewSet):
@@ -602,5 +599,40 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeRatingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        """Only show ratings for the current user"""
+        return self.queryset.filter(user=self.request.user)
+
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        """Handle rating creation and update recipe stats"""
+        rating = serializer.save(user=self.request.user)
+        self._update_recipe_stats(rating)
+
+    def perform_update(self, serializer):
+        """Handle rating update by first removing old rating impact"""
+        old_rating = self.get_object()
+        recipe = old_rating.recipe
+        
+        # Remove old rating values from recipe totals
+        if old_rating.taste_rating is not None:
+            recipe.drop_rating('taste', old_rating.taste_rating)
+        if old_rating.difficulty_rating is not None:
+            recipe.drop_rating('difficulty', old_rating.difficulty_rating)
+        
+        # Save the new rating
+        new_rating = serializer.save()
+        
+        # Add new rating values to recipe totals
+        if new_rating.taste_rating is not None:
+            recipe.update_ratings('taste', new_rating.taste_rating)
+        if new_rating.difficulty_rating is not None:
+            recipe.update_ratings('difficulty', new_rating.difficulty_rating)
+
+    def perform_destroy(self, instance):
+        """Handle rating deletion by removing its impact"""
+        recipe = instance.recipe
+        if instance.taste_rating is not None:
+            recipe.drop_rating('taste', instance.taste_rating)
+        if instance.difficulty_rating is not None:
+            recipe.drop_rating('difficulty', instance.difficulty_rating)
+        instance.delete()

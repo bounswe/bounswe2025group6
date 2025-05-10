@@ -124,6 +124,30 @@ class Recipe(TimestampedModel):
 
         self.save()
 
+    def drop_rating(self, rating_type, rating_value):
+        """
+        Remove a rating from the calculated totals before updating
+        """
+        if rating_type == 'difficulty' and self.difficulty_rating is not None:
+            if self.difficulty_rating_count == 1:
+                self.difficulty_rating = None
+            else:
+                self.difficulty_rating = (
+                    (self.difficulty_rating * self.difficulty_rating_count) - rating_value
+                ) / (self.difficulty_rating_count - 1)
+            self.difficulty_rating_count -= 1
+
+        elif rating_type == 'taste' and self.taste_rating is not None:
+            if self.taste_rating_count == 1:
+                self.taste_rating = None
+            else:
+                self.taste_rating = (
+                    (self.taste_rating * self.taste_rating_count) - rating_value
+                ) / (self.taste_rating_count - 1)
+            self.taste_rating_count -= 1
+
+        self.save()
+
 # RecipeIngredient model that will be used for the recipe (holds the relationship between Recipe and Ingredient)
 # Many-to-many relationship
 class RecipeIngredient(TimestampedModel):
