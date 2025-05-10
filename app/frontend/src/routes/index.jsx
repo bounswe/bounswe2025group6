@@ -1,5 +1,3 @@
-// src/routes/index.jsx
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
@@ -21,7 +19,7 @@ import DashboardPage from '../pages/DashboardPage';
 import MealPlannerPage from '../pages/meal-planner/MealPlannerPage';
 import SavedMealPlansPage from '../pages/meal-planner/SavedMealPlansPage';
 import ShoppingListPage from '../pages/shopping/ShoppingListPage';
-import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
+import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage'; // Recipe discovery page
 import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
 import UploadRecipePage from '../pages/recipes/UploadRecipePage';
 import ProfilePage from '../pages/meal-planner/ProfilePage';
@@ -43,7 +41,6 @@ const AppRoutes = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        {/* New auth routes */}
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
       </Route>
@@ -93,9 +90,7 @@ const AppRoutes = () => {
         <Route 
           path="/recipes" 
           element={
-            <ProtectedRoute>
               <RecipeDiscoveryPage />
-            </ProtectedRoute>
           } 
         />
         
@@ -127,6 +122,7 @@ const AppRoutes = () => {
           } 
         />
 
+        {/* Community */}
         <Route 
           path="/community" 
           element={
