@@ -8,7 +8,7 @@ import Button from '../../components/ui/Button';
 import '../../styles/AuthPages.css';
 
 const ForgotPasswordPage = () => {
-  const { requestPasswordReset, requestResetCode, verifyResetCode, isLoading } = useAuth();
+  const { requestPasswordReset, requestResetCode, verifyResetCode, resetPassword, isLoading } = useAuth();
   const toast = useToast();
   
   // State for selected method
@@ -25,8 +25,9 @@ const ForgotPasswordPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [resetCode, setResetCode] = useState('');
   const [isCodeVerified, setIsCodeVerified] = useState(false);
+  const [verifiedResetToken, setVerifiedResetToken] = useState(''); 
   const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); 
   
   // Handle reset method change
   const handleMethodChange = (method) => {
@@ -95,7 +96,8 @@ const ForgotPasswordPage = () => {
     if (!validateCode()) return;
     
     try {
-      await verifyResetCode(email, resetCode);
+      const result = await verifyResetCode(email, resetCode);
+      setVerifiedResetToken(result.token); // Store the token from the verification response
       setIsCodeVerified(true);
       setCurrentStep(3);
       toast.success('Code verified successfully');
@@ -129,8 +131,8 @@ const ForgotPasswordPage = () => {
     if (!validateNewPassword()) return;
     
     try {
-      // In a real implementation, you would call an API endpoint to reset the password with the code
-      // For this example, we'll just show a success message
+      await resetPassword(verifiedResetToken, newPassword); // Call the resetPassword service
+
       toast.success('Password has been reset successfully');
       setCurrentStep(4);
     } catch (error) {
