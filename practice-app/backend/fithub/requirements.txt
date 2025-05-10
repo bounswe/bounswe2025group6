@@ -5,4 +5,5 @@ drf-yasg>=1.21.7                         # For swagger documentation
 djangorestframework_simplejwt==5.5.0     # For JWT authentication
 django-cors-headers==4.7.0               # For CORS headerspip install
 cryptography==44.0.3
+requests==2.28.1                         #for wikidata connection
 

@@ -188,6 +188,30 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
         model = RecipeRating
         fields = ['id', 'user', 'recipe_id', 'recipe_title', 'taste_rating', 'difficulty_rating', 'timestamp']
         read_only_fields = ['user', 'timestamp', 'recipe', 'recipe_title']
+        extra_kwargs = {
+            'taste_rating': {'required': False, 'allow_null': True},
+            'difficulty_rating': {'required': False, 'allow_null': True},
+        }
+
+    def validate(self, data):
+        """Ensure at least one rating is provided"""
+        if data.get('taste_rating') is None and data.get('difficulty_rating') is None:
+            raise serializers.ValidationError("At least one rating (taste or difficulty) must be provided")
+        return data
+
+    def create(self, validated_data):
+        """Override create to handle partial ratings"""
+        # Ensure at least one rating is provided
+        if validated_data.get('taste_rating') is None and validated_data.get('difficulty_rating') is None:
+            raise serializers.ValidationError("At least one rating must be provided")
+        
+        # Set default values if not provided
+        if validated_data.get('taste_rating') is None:
+            validated_data['taste_rating'] = None
+        if validated_data.get('difficulty_rating') is None:
+            validated_data['difficulty_rating'] = None
+            
+        return super().create(validated_data)
 
         
         

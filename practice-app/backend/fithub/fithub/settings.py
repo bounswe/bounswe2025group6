@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'ingredients', # Ingredients app
     'recipes',  # Recipes app
     'forum',    # Forum app
+    'wikidata',    # Wikidata app
 ]
 
 REST_FRAMEWORK = {
@@ -96,6 +97,13 @@ SWAGGER_SETTINGS = {
         }
     },
     'USE_SESSION_AUTH': False,  # Disable default BasicAuth
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # Example: Local memory cache
+        # Or use other backends like Redis, Memcached
+    }
 }
 
 MIDDLEWARE = [

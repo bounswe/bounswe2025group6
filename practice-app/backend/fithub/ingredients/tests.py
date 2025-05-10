@@ -2,6 +2,12 @@ from django.test import TestCase
 from .models import Ingredient
 from django.core.exceptions import ValidationError
 
+import json
+from unittest.mock import patch, Mock
+from rest_framework.test import APIClient
+from django.urls import reverse
+from django.core.cache import cache
+
 """Tests for the Ingredient model"""
 
 class IngredientModelTests(TestCase):
@@ -59,3 +65,46 @@ class IngredientModelTests(TestCase):
         """
         ingredient = Ingredient.objects.create(name="Tomato", category="vegetables")
         self.assertEqual(str(ingredient), "Tomato")
+
+
+# WIKIDATA API CONNECTION TO INGREDIENTS TESTS
+
+class ForcefulWikidataMockingTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.apple = Ingredient.objects.create(name="Apple", category="fruits")
+        cache.clear()  # Clear cache before each test
+
+    def test_forceful_wikidata_id_mocking_apple(self):
+        with patch("ingredients.views.get_wikidata_id", return_value="FORCED_Q89"):
+            with patch("wikidata.utils.get_wikidata_details", return_value={
+                "labels": {"en": {"value": "Apple"}},
+                "descriptions": {"en": {"value": "Edible fruit"}},
+                "claims": {},
+            }):
+                url = reverse("ingredient-detail", kwargs={"pk": self.apple.pk})
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                data = response.json()
+                self.assertEqual(data.get("wikidata_id"), "FORCED_Q89")
+                self.assertEqual(data.get("name"), "Apple")
+
+class ForcefulWikidataMockingTestBanana(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.banana = Ingredient.objects.create(name="Banana", category="fruits")
+        cache.clear()  # Clear cache before each test
+    
+    def test_forceful_wikidata_id_mocking_banana(self):
+        with patch("ingredients.views.get_wikidata_id", return_value="FORCED_Q217"):
+            with patch("wikidata.utils.get_wikidata_details", return_value={
+                "labels": {"en": {"value": "Banana"}},
+                "descriptions": {"en": {"value": "Tropical fruit"}},
+                "claims": {},
+            }):
+                url = reverse("ingredient-detail", kwargs={"pk": self.banana.pk})
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                data = response.json()
+                self.assertEqual(data.get("wikidata_id"), "FORCED_Q217")
+                self.assertEqual(data.get("name"), "Banana")
