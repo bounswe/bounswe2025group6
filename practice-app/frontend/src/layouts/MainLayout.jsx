@@ -7,12 +7,10 @@ import { useToast } from '../components/ui/Toast';
 import '../styles/Layout.css';
 
 const MainLayout = () => {
-  const { currentUser, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
-
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -26,12 +24,11 @@ const MainLayout = () => {
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/meal-planner', label: 'Meal Planner', icon: '🍽️' },
     { path: '/recipes', label: 'Recipes', icon: '📖' },
     { path: '/shopping-list', label: 'Shopping List', icon: '🛒' },
+    { path: '/ingredients', label: 'Ingredients', icon: '🥕' },
     { path: '/community', label: 'Community', icon: '💬' },
     { path: '/profile', label: 'Profile', icon: '👤' },
-
   ];
 
   const isActive = (path) => {
@@ -39,64 +36,38 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="layout-container">
+    <div className="layout-container" style={{ padding: '16px' }}>
       <header className="layout-header">
-        <div className="layout-header-inner">
+        <div className="layout-header-row margin-top-6">
           <div className="layout-header-left">
             <Link to="/dashboard" className="layout-logo">
-              <span className="layout-logo-icon">🍽️</span>
-              Meal Planner
+              <img
+                src={'../assets/fithub_small.png'}
+                alt="Logo"
+                className="layout-logo-img"
+                style={{ width: 32, height: 32, marginRight: 8, borderRadius: '50%' }}
+              />
+              FitHub
             </Link>
-            <nav className="layout-nav">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`layout-nav-link ${isActive(item.path) ? 'active' : ''}`}
-                >
-                  <span className="layout-nav-icon">{item.icon}</span>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
           </div>
-
           <div className="layout-header-right">
-            <button onClick={handleLogout} className="layout-logout">
-              Logout
-            </button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="layout-mobile-toggle md:hidden"
-            >
-              {mobileMenuOpen ? '✖' : '☰'}
+            <button className="layout-logout" onClick={handleLogout}>
+              Logout <span role="img" aria-label="logout">🚪</span>
             </button>
           </div>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="layout-mobile-menu">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`layout-mobile-link ${isActive(item.path) ? 'active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span>{item.icon}</span> {item.label}
-              </Link>
-            ))}
-            <button
-              onClick={() => {
-                handleLogout();
-                setMobileMenuOpen(false);
-              }}
-              className="layout-mobile-link"
+        <nav className="layout-nav">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`layout-nav-link ${isActive(item.path) ? 'active' : ''}`}
             >
-              <span>🚪</span> Logout
-            </button>
-          </div>
-        )}
+              <span className="layout-nav-icon">{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
       <main className="layout-main">
@@ -107,7 +78,7 @@ const MainLayout = () => {
 
       <footer className="layout-footer">
         <div className="layout-footer-inner">
-          <p>© {new Date().getFullYear()} Meal Planner App</p>
+          <p>© {new Date().getFullYear()} FitHub </p>
           <div className="layout-footer-links">
             <a href="#">About</a>
             <a href="#">Terms</a>
