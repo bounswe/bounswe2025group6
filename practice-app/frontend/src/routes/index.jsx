@@ -94,9 +94,7 @@ const AppRoutes = () => {
         <Route 
           path="/recipes" 
           element={
-            <ProtectedRoute>
               <RecipeDiscoveryPage />
-            </ProtectedRoute>
           } 
         />
         

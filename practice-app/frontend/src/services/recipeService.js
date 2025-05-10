@@ -1,166 +1,12 @@
 // src/services/recipeService.js
+import axios from 'axios';
 
 // Local storage key for saved recipes
 const STORAGE_KEY_RECIPES = 'mealPlanner_recipes';
 const STORAGE_KEY_BOOKMARKS = 'mealPlanner_bookmarkedRecipes';
+const API_BASE_URL = 'http://localhost:8000'; // Backend API'nin base URL'si
 
-// Mock data for recipes
-const mockRecipes = [
-  {
-    id: 1,
-    title: 'Chicken & Rice Bowl',
-    description: 'High-protein simple meal.',
-    ingredients: [
-      { name: "Chicken Breast", quantity: "150g" },
-      { name: "Brown Rice", quantity: "100g" },
-      { name: "Broccoli", quantity: "100g" },
-      { name: "Olive Oil", quantity: "1 tbsp" },
-      { name: "Soy Sauce", quantity: "1 tbsp" }
-    ],
-    instructions: "1. Cook rice according to package instructions.\n2. Season chicken with salt and pepper.\n3. Cook chicken in a pan with olive oil.\n4. Steam broccoli until tender.\n5. Combine all ingredients in a bowl and drizzle with soy sauce.",
-    costPerServing: 20,
-    preparationTime: 25,
-    badges: ['High Protein', 'Gluten-Free'],
-    createdBy: 'Hilal',
-    imageUrl: 'https://via.placeholder.com/600x400',
-    nutrition: {
-      calories: 420,
-      protein: 35,
-      carbs: 40,
-      fat: 12
-    }
-  },
-  {
-    id: 2,
-    title: 'Vegan Buddha Bowl',
-    description: 'Colorful vegan meal.',
-    ingredients: [
-      { name: "Quinoa", quantity: "100g" },
-      { name: "Chickpeas", quantity: "100g" },
-      { name: "Avocado", quantity: "1/2" },
-      { name: "Cherry Tomatoes", quantity: "100g" },
-      { name: "Spinach", quantity: "50g" },
-      { name: "Tahini", quantity: "2 tbsp" },
-      { name: "Lemon Juice", quantity: "1 tbsp" }
-    ],
-    instructions: "1. Cook quinoa according to package instructions.\n2. Rinse and drain chickpeas.\n3. Slice avocado and halve cherry tomatoes.\n4. Arrange all vegetables on top of quinoa.\n5. Mix tahini with lemon juice and drizzle over the bowl.",
-    costPerServing: 18,
-    preparationTime: 20,
-    badges: ['Vegan', 'Low Carbohydrate'],
-    createdBy: 'Furkan',
-    imageUrl: 'https://via.placeholder.com/600x400',
-    nutrition: {
-      calories: 380,
-      protein: 15,
-      carbs: 45,
-      fat: 16
-    }
-  },
-  {
-    id: 3,
-    title: 'Stuffed Eggplant',
-    description: 'Classic Turkish recipe.',
-    ingredients: [
-      { name: "Eggplants", quantity: "2 medium" },
-      { name: "Ground Beef", quantity: "150g" },
-      { name: "Onion", quantity: "1 medium" },
-      { name: "Rice", quantity: "1/2 cup" },
-      { name: "Tomato Paste", quantity: "2 tbsp" },
-      { name: "Parsley", quantity: "1/4 cup" },
-      { name: "Olive Oil", quantity: "2 tbsp" }
-    ],
-    instructions: "1. Cut eggplants in half and scoop out flesh, leaving a shell.\n2. Chop eggplant flesh and onions, and sauté with olive oil.\n3. Add ground beef and cook until browned.\n4. Add rice, tomato paste, and seasonings. Cook for a few minutes.\n5. Fill eggplant shells with the mixture.\n6. Bake at 180°C for 30 minutes.",
-    costPerServing: 15,
-    preparationTime: 45,
-    badges: ['Gluten-Free'],
-    createdBy: 'Canan',
-    imageUrl: 'https://via.placeholder.com/600x400',
-    nutrition: {
-      calories: 320,
-      protein: 18,
-      carbs: 30,
-      fat: 15
-    }
-  },
-  {
-    id: 4,
-    title: 'Mediterranean Salad',
-    description: 'Fresh and healthy Mediterranean salad.',
-    ingredients: [
-      { name: "Cucumber", quantity: "1 medium" },
-      { name: "Tomatoes", quantity: "2 medium" },
-      { name: "Red Onion", quantity: "1/2 small" },
-      { name: "Feta Cheese", quantity: "100g" },
-      { name: "Kalamata Olives", quantity: "50g" },
-      { name: "Olive Oil", quantity: "2 tbsp" },
-      { name: "Lemon Juice", quantity: "1 tbsp" },
-      { name: "Oregano", quantity: "1 tsp" }
-    ],
-    instructions: "1. Dice cucumber, tomatoes, and red onion.\n2. Crumble feta cheese.\n3. Combine all ingredients in a bowl.\n4. Mix olive oil, lemon juice, and oregano for dressing.\n5. Pour dressing over salad and toss gently.",
-    costPerServing: 12,
-    preparationTime: 15,
-    badges: ['Vegetarian', 'Quick'],
-    createdBy: 'Mehmet',
-    imageUrl: 'https://via.placeholder.com/600x400',
-    nutrition: {
-      calories: 250,
-      protein: 8,
-      carbs: 12,
-      fat: 18
-    }
-  },
-  {
-    id: 5,
-    title: 'Lentil Soup',
-    description: 'Hearty and nutritious Turkish lentil soup.',
-    ingredients: [
-      { name: "Red Lentils", quantity: "1 cup" },
-      { name: "Onion", quantity: "1 medium" },
-      { name: "Carrot", quantity: "1 medium" },
-      { name: "Potato", quantity: "1 small" },
-      { name: "Tomato Paste", quantity: "1 tbsp" },
-      { name: "Cumin", quantity: "1 tsp" },
-      { name: "Paprika", quantity: "1 tsp" },
-      { name: "Olive Oil", quantity: "2 tbsp" },
-      { name: "Lemon Wedges", quantity: "for serving" }
-    ],
-    instructions: "1. Chop onion, carrot, and potato.\n2. Sauté vegetables in olive oil until softened.\n3. Add lentils, tomato paste, spices, and 6 cups of water.\n4. Bring to a boil, then simmer for 30 minutes.\n5. Blend until smooth.\n6. Serve with lemon wedges.",
-    costPerServing: 8,
-    preparationTime: 40,
-    badges: ['Vegan', 'Budget-Friendly'],
-    createdBy: 'Ayşe',
-    imageUrl: 'https://via.placeholder.com/600x400',
-    nutrition: {
-      calories: 220,
-      protein: 12,
-      carbs: 35,
-      fat: 5
-    }
-  }
-];
 
-// Initialize local storage with mock data if empty
-const initRecipes = () => {
-  const recipes = localStorage.getItem(STORAGE_KEY_RECIPES);
-  if (!recipes) {
-    localStorage.setItem(STORAGE_KEY_RECIPES, JSON.stringify(mockRecipes));
-  }
-};
-
-/**
- * Get all recipes from localStorage
- * @returns {Array} Array of recipes
- */
-export const getAllRecipes = () => {
-  try {
-    initRecipes(); // Initialize if needed
-    const recipes = localStorage.getItem(STORAGE_KEY_RECIPES);
-    return recipes ? JSON.parse(recipes) : [];
-  } catch (error) {
-    console.error('Error fetching recipes:', error);
-    return [];
-  }
-};
 
 /**
  * Get a recipe by ID
@@ -178,29 +24,53 @@ export const getRecipeById = (id) => {
   }
 };
 
-/**
- * Add a new recipe
- * @param {Object} recipe Recipe object without ID
- * @returns {Object} Recipe object with ID
- */
-export const addRecipe = (recipe) => {
+
+export const fetchRecipes = async (page = 1, pageSize = 10) => {
   try {
-    const recipes = getAllRecipes();
-    const newId = recipes.length > 0 ? Math.max(...recipes.map(r => r.id)) + 1 : 1;
-    
-    const newRecipe = {
-      ...recipe,
-      id: newId,
-      createdAt: new Date().toISOString()
-    };
-    
-    const updatedRecipes = [...recipes, newRecipe];
-    localStorage.setItem(STORAGE_KEY_RECIPES, JSON.stringify(updatedRecipes));
-    
-    return newRecipe;
+    const token = localStorage.getItem('fithub_access_token'); // Token'ı localStorage'dan alın
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/recipes/`, {
+      params: { page, page_size: pageSize },
+      headers: {
+        Authorization: `Bearer ${token}`, // Token'ı Authorization başlığına ekle
+      },
+    });
+
+    return response.data; // Backend'den dönen veriyi döndür
+  } catch (error) {
+    console.error('Error fetching recipes:', error);
+    throw error;
+  }
+};
+
+
+/**
+ * Yeni bir tarif ekler
+ * @param {Object} recipe Tarif verisi
+ * @returns {Promise<Object>} Eklenen tarif
+ */
+export const addRecipe = async (recipe) => {
+  try {
+    // Backend'e uygun formatta POST isteği gönder
+    const response = await axios.post(`${API_BASE_URL}/recipes/`, {
+      name: recipe.name,
+      steps: recipe.steps,
+      prep_time: recipe.prep_time,
+      cook_time: recipe.cook_time,
+      meal_type: recipe.meal_type,
+      ingredients: recipe.ingredients.map((ingredient) => ({
+        ingredient_name: ingredient.ingredient_name,
+        quantity: ingredient.quantity,
+        unit: ingredient.unit,
+      })),
+    });
+    return response.data;
   } catch (error) {
     console.error('Error adding recipe:', error);
-    throw new Error('Failed to add recipe');
+    throw error;
   }
 };
 

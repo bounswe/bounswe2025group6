@@ -16,19 +16,21 @@ const RecipeCard = ({ recipe }) => {
     <div className="recipe-card" onClick={handleClick}>
       <img
         src={recipe.image || '/placeholder.jpg'}
-        alt={recipe.title}
+        alt={recipe.name}
         className="recipe-card-image"
       />
       <div className="recipe-card-body">
-        <h3 className="recipe-card-title">{recipe.title}</h3>
+        <h3 className="recipe-card-name">Recipe Name: {recipe.name}</h3>
         <p className="recipe-card-description line-clamp-2">
-          {recipe.description || 'No description provided.'}
+          Meal Type: {recipe.meal_type || 'No description provided.'}
         </p>
 
         <div className="recipe-card-meta">
-          <span className="meta-item">₺{recipe.cost}</span>
+          <span className="meta-item">Cost:{recipe.cost_per_serving}₺</span>
           <span className="meta-separator">•</span>
-          <span className="meta-item">{recipe.prepTime} min</span>
+          <span className="meta-item">Likes: {recipe.like_count}</span>
+          <span className="meta-separator">•</span>
+          <span className="meta-item">Prep Time: {recipe.prep_time} mins</span>
         </div>
 
         {recipe.tags && recipe.tags.length > 0 && (
