@@ -103,6 +103,7 @@ class RecipeRating(models.Model):
         related_name='ratings'
     )
     taste_rating = models.FloatField(
+        default=5.0,
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
     )
     difficulty_rating = models.FloatField(
