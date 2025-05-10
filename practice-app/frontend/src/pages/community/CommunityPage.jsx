@@ -1,9 +1,11 @@
+// src/pages/community/CommunityPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import forumService from '../../services/forumService';
 import '../../styles/CommunityPage.css';
 
 const CommunityPage = () => {
@@ -13,107 +15,103 @@ const CommunityPage = () => {
 
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    page_size: 10,
+    total: 0
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [sortBy, setSortBy] = useState('recent');
 
-  const mockPosts = [
-    {
-      id: 1,
-      userId: 101,
-      username: "HealthyEater",
-      title: "Weekly Meal Prep Under ₺100 Per Person",
-      content: "I've been meal prepping for a family of 4 on a budget...",
-      timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
-      likes: 15,
-      comments: 8,
-      tags: ["Budget", "MealPrep", "Family"],
-      userAvatar: "https://via.placeholder.com/40"
-    },
-    {
-      id: 2,
-      userId: 102,
-      username: "VeganChef",
-      title: "Creative Ways to Use Stale Bread?",
-      content: "I often have leftover bread that goes stale...",
-      timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),
-      likes: 23,
-      comments: 14,
-      tags: ["NoWaste", "Sustainability", "Tips"],
-      userAvatar: "https://via.placeholder.com/40"
-    },
-    {
-      id: 3,
-      userId: 103,
-      username: "MeatLover",
-      title: "Affordable Gluten-Free Snack Ideas",
-      content: "Finding affordable gluten-free snacks can be challenging...",
-      timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-      likes: 7,
-      comments: 3,
-      tags: ["GlutenFree", "Budget", "Snacks"],
-      userAvatar: "https://via.placeholder.com/40"
-    },
-    {
-      id: 4,
-      userId: 104,
-      username: "NutritionExpert",
-      title: "How to Balance Macros on a Budget",
-      content: "Balancing your macros doesn't have to be expensive...",
-      timestamp: new Date(Date.now() - 86400000 * 1).toISOString(),
-      likes: 31,
-      comments: 12,
-      tags: ["Nutrition", "Budget", "HealthyEating"],
-      userAvatar: "https://via.placeholder.com/40"
-    },
-    {
-      id: 5,
-      userId: 105,
-      username: "StudentCook",
-      title: "Quick Meals for Busy Students",
-      content: "As a student, I'm always short on time...",
-      timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),
-      likes: 42,
-      comments: 18,
-      tags: ["Student", "Quick", "Budget"],
-      userAvatar: "https://via.placeholder.com/40"
-    }
+  // Available tags from API documentation
+  const availableTags = [
+    'Budget', 'Meal Prep', 'Family', 'No Waste', 'Sustainability', 
+    'Tips', 'Gluten Free', 'Vegan', 'Vegetarian', 'Quick',
+    'Healthy', 'Student', 'Nutrition', 'Healthy Eating', 'Snacks'
   ];
 
-  const allTags = [...new Set(mockPosts.flatMap(post => post.tags))];
-
   useEffect(() => {
-    const loadPosts = async () => {
-      setIsLoading(true);
-      try {
-        setTimeout(() => {
-          setPosts(mockPosts);
-          setIsLoading(false);
-        }, 800);
-      } catch (error) {
-        console.error('Error loading posts:', error);
-        toast.error('Failed to load community posts');
-        setIsLoading(false);
-      }
-    };
     loadPosts();
-  }, [toast]);
+  }, [pagination.page]);
 
-  const handleLike = (postId) => {
+  const loadPosts = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log("Fetching posts with page:", pagination.page, "page_size:", pagination.page_size);
+      const data = await forumService.getPosts(pagination.page, pagination.page_size);
+      console.log("Response data:", data);
+      setPosts(data.results || []);
+      setPagination({
+        page: data.page || 1,
+        page_size: data.page_size || 10,
+        total: data.total || 0
+      });
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      setError('Failed to load forum posts');
+      toast.error('Failed to load forum posts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVote = async (postId, voteType) => {
     if (!currentUser) {
-      toast.info('Please log in to like posts');
+      toast.info('Please log in to vote on posts');
       return;
     }
-    setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likes: post.likes + 1 } : post));
-    toast.success('Post liked!');
+
+    try {
+      // Optimistic update
+      const updatedPosts = posts.map(post => {
+        if (post.id === postId) {
+          // Update vote count based on vote type
+          if (voteType === 'up') {
+            return { ...post, upvote_count: post.upvote_count + 1 };
+          } else {
+            return { ...post, downvote_count: post.downvote_count + 1 };
+          }
+        }
+        return post;
+      });
+      setPosts(updatedPosts);
+
+      await forumService.votePost(postId, voteType);
+      toast.success(`Post ${voteType}voted!`);
+    } catch (error) {
+      // Revert optimistic update on error
+      loadPosts();
+      if (error.response?.status === 400) {
+        toast.info('You have already voted on this post');
+      } else {
+        toast.error('Failed to vote on post');
+      }
+    }
+  };
+
+  const handleRemoveVote = async (postId) => {
+    if (!currentUser) {
+      toast.info('Please log in to manage your votes');
+      return;
+    }
+
+    try {
+      await forumService.deleteVotePost(postId);
+      toast.success('Vote removed successfully!');
+      loadPosts(); // Reload posts to get updated vote counts
+    } catch (error) {
+      if (error.response?.status === 404) {
+        toast.info('No vote found to remove');
+      } else {
+        toast.error('Failed to remove vote');
+      }
+    }
   };
 
   const goToPostDetail = (postId) => navigate(`/community/post/${postId}`);
-
-  const goToUserProfile = (e, userId, username) => {
-    e.stopPropagation();
-    navigate(`/community/profile/${userId}`, { state: { username } });
-  };
 
   const formatDate = (dateString) => {
     const now = new Date();
@@ -126,44 +124,52 @@ const CommunityPage = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  // Filter and sort posts
   const filteredAndSortedPosts = posts.filter(post => {
-    const matchSearch = searchTerm ? post.title.toLowerCase().includes(searchTerm.toLowerCase()) || post.content.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+    const matchSearch = searchTerm ? post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                      post.content.toLowerCase().includes(searchTerm.toLowerCase()) : true;
     const matchTag = selectedTag ? post.tags.includes(selectedTag) : true;
     return matchSearch && matchTag;
   }).sort((a, b) => {
     switch (sortBy) {
-      case 'recent': return new Date(b.timestamp) - new Date(a.timestamp);
-      case 'popular': return b.likes - a.likes;
-      case 'comments': return b.comments - a.comments;
-      default: return new Date(b.timestamp) - new Date(a.timestamp);
+      case 'recent': return new Date(b.created_at) - new Date(a.created_at);
+      case 'popular': return b.upvote_count - a.upvote_count;
+      case 'comments': return (b.comments_count || 0) - (a.comments_count || 0);
+      default: return new Date(b.created_at) - new Date(a.created_at);
     }
   });
 
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= Math.ceil(pagination.total / pagination.page_size)) {
+      setPagination(prev => ({ ...prev, page: newPage }));
+    }
+  };
+
   return (
-    <div className="community-container">
-      <div className="community-header">
+    <div className="forum-container">
+      <div className="forum-header">
         <div>
-          <h1 className="community-title">Community</h1>
-          <p className="community-subtitle">Join discussions, share ideas, and connect with others</p>
+          <h1 className="forum-title">Community Forum</h1>
+          <p className="forum-subtitle">Join discussions, share ideas, and connect with others</p>
         </div>
         <Button onClick={() => navigate('/community/create')}>Create Post</Button>
       </div>
 
-      <Card className="community-filters">
+      <Card className="forum-filters">
         <Card.Body>
-          <div className="community-filter-row">
+          <div className="forum-filter-row">
             <input
               type="text"
               placeholder="Search posts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="community-input"
+              className="forum-input"
             />
-            <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="community-select">
+            <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="forum-select">
               <option value="">All Tags</option>
-              {allTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+              {availableTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
             </select>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="community-select">
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="forum-select">
               <option value="recent">Most Recent</option>
               <option value="popular">Most Popular</option>
               <option value="comments">Most Comments</option>
@@ -172,43 +178,107 @@ const CommunityPage = () => {
         </Card.Body>
       </Card>
 
+      {error && (
+        <Card className="forum-error">
+          <Card.Body>
+            <h2>Error Loading Posts</h2>
+            <p>{error}</p>
+            <Button onClick={loadPosts}>Try Again</Button>
+          </Card.Body>
+        </Card>
+      )}
+
       {isLoading ? (
-        <div className="community-loading">Loading posts...</div>
+        <div className="forum-loading">Loading posts...</div>
       ) : filteredAndSortedPosts.length > 0 ? (
-        <div className="community-posts">
+        <div className="forum-posts">
           {filteredAndSortedPosts.map(post => (
-            <Card key={post.id} className="community-post-card" onClick={() => goToPostDetail(post.id)}>
+            <Card key={post.id} className="forum-post-card" onClick={() => goToPostDetail(post.id)}>
               <Card.Body>
-                <div className="community-post">
-                  <div className="community-avatar" onClick={(e) => goToUserProfile(e, post.userId, post.username)}>
-                    <img src={post.userAvatar} alt={post.username} />
-                  </div>
-                  <div className="community-post-content">
-                    <div className="community-post-header">
-                      <span onClick={(e) => goToUserProfile(e, post.userId, post.username)}>{post.username}</span>
-                      <span>{formatDate(post.timestamp)}</span>
+                <div className="forum-post">
+                  <div className="forum-post-content">
+                    <div className="forum-post-header">
+                      <span>Posted by User #{post.author}</span>
+                      <span>{formatDate(post.created_at)}</span>
                     </div>
                     <h2>{post.title}</h2>
-                    <p>{post.content}</p>
-                    <div className="community-tags">
+                    <p>{post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content}</p>
+                    <div className="forum-tags">
                       {post.tags.map((tag, idx) => <span key={idx}>#{tag}</span>)}
                     </div>
-                    <div className="community-actions">
-                      <button onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}>❤️ {post.likes}</button>
-                      <button onClick={(e) => { e.stopPropagation(); goToPostDetail(post.id); }}>💬 {post.comments}</button>
+                    <div className="forum-actions">
+                      <div className="vote-buttons">
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleVote(post.id, 'up'); 
+                          }}
+                          className="vote-button"
+                          aria-label="Upvote"
+                        >
+                          ▲ {post.upvote_count}
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleVote(post.id, 'down'); 
+                          }}
+                          className="vote-button"
+                          aria-label="Downvote"
+                        >
+                          ▼ {post.downvote_count}
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleRemoveVote(post.id); 
+                          }}
+                          className="vote-button"
+                          aria-label="Remove vote"
+                        >
+                          Remove Vote
+                        </button>
+                      </div>
+                      <div className="post-stats">
+                        <span>👁️ {post.view_count} views</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </Card.Body>
             </Card>
           ))}
+
+          {/* Pagination */}
+          {pagination.total > pagination.page_size && (
+            <div className="forum-pagination">
+              <button 
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="pagination-button"
+              >
+                Previous
+              </button>
+              <span className="pagination-info">
+                Page {pagination.page} of {Math.ceil(pagination.total / pagination.page_size)}
+              </span>
+              <button 
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= Math.ceil(pagination.total / pagination.page_size)}
+                className="pagination-button"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <Card>
-          <Card.Body className="community-empty">
+          <Card.Body className="forum-empty">
             <h2>No posts found</h2>
             <p>{searchTerm || selectedTag ? 'Try adjusting your search criteria' : 'Be the first to start a discussion!'}</p>
             {(searchTerm || selectedTag) && <Button onClick={() => { setSearchTerm(''); setSelectedTag(''); }}>Clear Filters</Button>}
+            <Button onClick={loadPosts} className="mt-2">Refresh</Button>
           </Card.Body>
         </Card>
       )}

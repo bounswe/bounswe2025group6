@@ -1,0 +1,32 @@
+/* src/styles/CommentForm.css */
+.comment-form-container {
+margin-bottom: 1.5rem;
+}
+
+.comment-form-container form {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+
+.comment-form-container textarea {
+width: 100%;
+padding: 0.75rem;
+border: 1px solid #ddd;
+border-radius: 0.25rem;
+min-height: 100px;
+resize: vertical;
+font-family: inherit;
+font-size: 0.875rem;
+}
+
+.comment-form-container textarea:focus {
+outline: none;
+border-color: #4CAF50;
+box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.comment-form-actions {
+display: flex;
+justify-content: flex-end;
+}
