@@ -36,7 +36,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
   }
 
   Future<void> _initializeCommunityService() async {
-    final token = await StorageService.getAccessToken();
+    final token = await StorageService.getJwtAccessToken();
     _communityService = CommunityService(token: token);
   }
 

@@ -2,20 +2,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class StorageService {
   static const _storage = FlutterSecureStorage();
-  static const _tokenKey = 'auth_token'; // For the original Django token
   static const _jwtAccessTokenKey = 'jwt_access_token'; // For JWT access token
   static const _userIdKey = 'user_id';
-
-  static Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: _accessTokenKey, value: token);
-  }
+  static const _refreshTokenKey = 'refresh_token';
 
   static Future<void> saveRefreshToken(String token) async {
     await _storage.write(key: _refreshTokenKey, value: token);
-  }
-
-  static Future<String?> getAccessToken() async {
-    return await _storage.read(key: _accessTokenKey);
   }
 
   static Future<String?> getRefreshToken() async {
@@ -23,7 +15,7 @@ class StorageService {
   }
 
   static Future<void> deleteTokens() async {
-    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _jwtAccessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
   }
 
@@ -41,8 +33,7 @@ class StorageService {
 
   // Helper to delete all user-specific data on logout
   static Future<void> deleteAllUserData() async {
-    await deleteToken();
-    await deleteJwtAccessToken(); // Also delete JWT token on logout
+    await deleteTokens();
     await deleteUserId();
   }
 

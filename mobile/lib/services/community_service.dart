@@ -29,7 +29,7 @@ class CommunityService {
       if (response.statusCode == 200) {
         final tokenData = jsonDecode(response.body);
         token = tokenData['access'];
-        await StorageService.saveAccessToken(token!);
+        await StorageService.saveJwtAccessToken(token!);
         return true;
       }
       return false;

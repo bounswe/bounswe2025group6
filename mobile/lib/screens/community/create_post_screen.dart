@@ -33,7 +33,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _initializeCommunityService() async {
-    final token = await StorageService.getAccessToken();
+    final token = await StorageService.getJwtAccessToken();
     
     if (token == null) {
       if (!mounted) return;
@@ -194,18 +194,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _submitPost() async {
-    if (_tags.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least one tag is required')),
-      );
-      return;
-    }
 
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
 
       try {
-        final token = await StorageService.getAccessToken();
+        final token = await StorageService.getJwtAccessToken();
         
         if (token == null) {
           throw Exception('Not authenticated');

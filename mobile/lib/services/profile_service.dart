@@ -15,11 +15,43 @@ class ProfileServiceException implements Exception {
 }
 
 class ProfileService {
-  static const String baseUrl =
-      'http://10.0.2.2:8000/api'; // Same as AuthService
+  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  String? token;
+
+  ProfileService({this.token});
+
+  Map<String, String> get headers {
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Future<bool> _refreshToken() async {
+    try {
+      final refreshToken = await StorageService.getRefreshToken();
+      if (refreshToken == null) return false;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/token/refresh/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final tokenData = jsonDecode(response.body);
+        token = tokenData['access'];
+        await StorageService.saveJwtAccessToken(token!);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
 
   Future<UserProfile> getUserProfile() async {
-    final token = await StorageService.getToken();
+    token = await StorageService.getJwtAccessToken();
     final userId = await StorageService.getUserId();
 
     if (token == null || userId == null) {
@@ -29,35 +61,46 @@ class ProfileService {
       );
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/users/$userId/'),
-      headers: {'Authorization': 'Token $token'},
-    );
+    try {
+      var response = await http.get(
+        Uri.parse('$baseUrl/users/$userId/'),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final responseBody = jsonDecode(response.body);
-      return UserProfile.fromJson(responseBody, int.parse(userId));
-    } else if (response.statusCode == 401) {
-      await StorageService.deleteAllUserData(); // Clear stale auth data
-      throw ProfileServiceException(
-        'Unauthorized. Please login again.',
-        statusCode: response.statusCode,
-      );
-    } else if (response.statusCode == 404) {
-      throw ProfileServiceException(
-        'User profile not found.',
-        statusCode: response.statusCode,
-      );
-    } else {
-      throw ProfileServiceException(
-        'Failed to load profile. Status: ${response.statusCode}',
-        statusCode: response.statusCode,
-      );
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException('Authentication failed', statusCode: 401);
+        }
+
+        response = await http.get(
+          Uri.parse('$baseUrl/users/$userId/'),
+          headers: headers,
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        return UserProfile.fromJson(responseBody, int.parse(userId));
+      } else if (response.statusCode == 404) {
+        throw ProfileServiceException(
+          'User profile not found.',
+          statusCode: response.statusCode,
+        );
+      } else {
+        throw ProfileServiceException(
+          'Failed to load profile. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw ProfileServiceException(e.toString());
     }
   }
 
   Future<UserProfile> updateUserProfile(UserProfile profileUpdates) async {
-    final token = await StorageService.getToken();
+    token = await StorageService.getJwtAccessToken();
     final userId = await StorageService.getUserId();
 
     if (token == null || userId == null) {
@@ -76,36 +119,44 @@ class ProfileService {
 
     final Map<String, dynamic> requestBody = profileUpdates.toJson();
 
-    final response = await http.patch(
-      Uri.parse('$baseUrl/users/$userId/'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Token $token',
-      },
-      body: jsonEncode(requestBody),
-    );
+    try {
+      var response = await http.patch(
+        Uri.parse('$baseUrl/users/$userId/'),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
 
-    if (response.statusCode == 200) {
-      final responseBody = jsonDecode(response.body);
-      // Return the updated profile from the server response
-      return UserProfile.fromJson(responseBody, int.parse(userId));
-    } else if (response.statusCode == 401) {
-      await StorageService.deleteAllUserData();
-      throw ProfileServiceException(
-        'Unauthorized. Please login again.',
-        statusCode: response.statusCode,
-      );
-    } else if (response.statusCode == 400) {
-      final errorBody = jsonDecode(response.body);
-      throw ProfileServiceException(
-        'Failed to update profile: ${errorBody.toString()}',
-        statusCode: response.statusCode,
-      );
-    } else {
-      throw ProfileServiceException(
-        'Failed to update profile. Status: ${response.statusCode}',
-        statusCode: response.statusCode,
-      );
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException('Authentication failed', statusCode: 401);
+        }
+
+        response = await http.patch(
+          Uri.parse('$baseUrl/users/$userId/'),
+          headers: headers,
+          body: jsonEncode(requestBody),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        return UserProfile.fromJson(responseBody, int.parse(userId));
+      } else if (response.statusCode == 400) {
+        final errorBody = jsonDecode(response.body);
+        throw ProfileServiceException(
+          'Failed to update profile: ${errorBody.toString()}',
+          statusCode: response.statusCode,
+        );
+      } else {
+        throw ProfileServiceException(
+          'Failed to update profile. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw ProfileServiceException(e.toString());
     }
   }
 }

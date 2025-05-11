@@ -5,6 +5,39 @@ import 'storage_service.dart'; // For JWT token
 
 class RecipeService {
   static const String _baseHost = 'http://10.0.2.2:8000';
+  String? token;
+
+  RecipeService({this.token});
+
+  Map<String, String> get headers {
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Future<bool> _refreshToken() async {
+    try {
+      final refreshToken = await StorageService.getRefreshToken();
+      if (refreshToken == null) return false;
+
+      final response = await http.post(
+        Uri.parse('$_baseHost/api/token/refresh/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final tokenData = jsonDecode(response.body);
+        token = tokenData['access'];
+        await StorageService.saveJwtAccessToken(token!);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
 
   Future<List<Recipe>> getAllRecipes({int? page, int? pageSize}) async {
     String url = '$_baseHost/recipes/'; // Removed /api prefix for recipes
@@ -19,20 +52,22 @@ class RecipeService {
       url += '?' + Uri(queryParameters: queryParams).query;
     }
 
-    final jwtAccessToken =
-        await StorageService.getJwtAccessToken(); // Use JWT access token
-    if (jwtAccessToken == null || jwtAccessToken.isEmpty) {
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
       throw Exception(
         'JWT Access token is not available. Please log in again.',
       );
     }
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $jwtAccessToken', // Use JWT access token
-    };
 
     try {
-      final response = await http.get(Uri.parse(url), headers: headers);
+      var response = await http.get(Uri.parse(url), headers: headers);
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.get(Uri.parse(url), headers: headers);
+      }
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -63,20 +98,22 @@ class RecipeService {
     final String url =
         '$_baseHost/recipes/$recipeId/'; // Removed /api prefix for recipes
 
-    final jwtAccessToken =
-        await StorageService.getJwtAccessToken(); // Use JWT access token
-    if (jwtAccessToken == null || jwtAccessToken.isEmpty) {
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
       throw Exception(
         'JWT Access token is not available. Please log in again.',
       );
     }
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $jwtAccessToken', // Use JWT access token
-    };
 
     try {
-      final response = await http.get(Uri.parse(url), headers: headers);
+      var response = await http.get(Uri.parse(url), headers: headers);
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.get(Uri.parse(url), headers: headers);
+      }
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -95,23 +132,30 @@ class RecipeService {
   Future<bool> createRecipe(Map<String, dynamic> recipeData) async {
     const String url = '$_baseHost/recipes/'; // Removed /api prefix for recipes
 
-    final jwtAccessToken = await StorageService.getJwtAccessToken();
-    if (jwtAccessToken == null || jwtAccessToken.isEmpty) {
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
       throw Exception(
         'JWT Access token is not available. Please log in again.',
       );
     }
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $jwtAccessToken',
-    };
 
     try {
-      final response = await http.post(
+      var response = await http.post(
         Uri.parse(url),
         headers: headers,
         body: json.encode(recipeData),
       );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.post(
+          Uri.parse(url),
+          headers: headers,
+          body: json.encode(recipeData),
+        );
+      }
 
       if (response.statusCode == 201) {
         // 201 Created for successful POST

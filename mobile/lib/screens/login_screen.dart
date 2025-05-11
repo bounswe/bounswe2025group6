@@ -251,27 +251,23 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authService.login(
+      // Call login method and get the LoginResponse
+      final loginResponse = await _authService.login(
         _emailController.text,
         _passwordController.text,
       );
 
-      // Store the original token (likely Django token)
-      await StorageService.saveToken(response.token);
-
       // Also fetch and store the JWT access token
       try {
-        final jwtAccessToken = await _authService.getJwtAccessToken(
+        final jwtTokens = await _authService.getJwtAccessToken(
           _emailController.text,
           _passwordController.text,
         );
-        await StorageService.saveJwtAccessToken(jwtAccessToken);
+        await StorageService.saveJwtAccessToken(jwtTokens['access']!);
+        await StorageService.saveRefreshToken(jwtTokens['refresh']!);
       } catch (e) {
         if (!mounted) return;
-        _showErrorMessage(
-          context,
-          'Failed to obtain JWT token: ${e.toString()}',
-        );
+        _showErrorMessage(context, 'Failed to obtain JWT tokens: ${e.toString()}');
       }
 
       if (!mounted) return;

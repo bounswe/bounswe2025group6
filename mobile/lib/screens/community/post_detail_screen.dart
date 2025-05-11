@@ -29,7 +29,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       final postId = ModalRoute.of(context)?.settings.arguments as int?;
       if (postId != null) {
         try {
-          final token = await StorageService.getAccessToken();
+          final token = await StorageService.getJwtAccessToken();
           _communityService.token = token;
           
           final postDetail = await _communityService.getPostDetail(postId);

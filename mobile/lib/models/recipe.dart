@@ -83,36 +83,45 @@ class Recipe {
             .toList();
 
     return Recipe(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      name: json['name']?.toString() ?? '',
       steps: stepsList,
-      prepTime: json['prep_time'] as int,
-      cookTime: json['cook_time'] as int,
-      mealType: json['meal_type'] as String,
-      creatorId: json['creator_id'] as int,
+      prepTime: int.tryParse(json['prep_time']?.toString() ?? '') ?? 0,
+      cookTime: int.tryParse(json['cook_time']?.toString() ?? '') ?? 0,
+      mealType: json['meal_type']?.toString() ?? '',
+      creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
       ingredients: ingredientsList,
-      costPerServing: (json['cost_per_serving'] as num?)?.toDouble(),
-      difficultyRating: (json['difficulty_rating'] as num?)?.toDouble(),
-      tasteRating: (json['taste_rating'] as num?)?.toDouble(),
-      healthRating: (json['health_rating'] as num?)?.toDouble(),
-      likeCount: json['like_count'] as int? ?? 0,
-      commentCount: json['comment_count'] as int? ?? 0,
-      difficultyRatingCount: json['difficulty_rating_count'] as int? ?? 0,
-      tasteRatingCount: json['taste_rating_count'] as int? ?? 0,
-      healthRatingCount: json['health_rating_count'] as int? ?? 0,
-      isApproved: json['is_approved'] as bool? ?? false,
-      isFeatured: json['is_featured'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedOn:
-          json['deleted_on'] == null
-              ? null
-              : DateTime.parse(json['deleted_on'] as String),
-      totalTime: json['total_time'] as int,
+      costPerServing:
+          double.tryParse(json['cost_per_serving']?.toString() ?? '') ?? null,
+      difficultyRating:
+          double.tryParse(json['difficulty_rating']?.toString() ?? '') ?? null,
+      tasteRating:
+          double.tryParse(json['taste_rating']?.toString() ?? '') ?? null,
+      healthRating:
+          double.tryParse(json['health_rating']?.toString() ?? '') ?? null,
+      likeCount: int.tryParse(json['like_count']?.toString() ?? '') ?? 0,
+      commentCount: int.tryParse(json['comment_count']?.toString() ?? '') ?? 0,
+      difficultyRatingCount:
+          int.tryParse(json['difficulty_rating_count']?.toString() ?? '') ?? 0,
+      tasteRatingCount:
+          int.tryParse(json['taste_rating_count']?.toString() ?? '') ?? 0,
+      healthRatingCount:
+          int.tryParse(json['health_rating_count']?.toString() ?? '') ?? 0,
+      isApproved: _parseBool(json['is_approved']) ?? false,
+      isFeatured: _parseBool(json['is_featured']) ?? false,
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+          DateTime.now(),
+      deletedOn: DateTime.tryParse(
+        json['deleted_on']?.toString() ?? '',
+      ), // Allows null if parsing fails or string is empty
+      totalTime: int.tryParse(json['total_time']?.toString() ?? '') ?? 0,
       totalUserRatings:
-          json['total_user_ratings'] as int? ?? 0, // From API response example
-      totalRatings:
-          json['total_ratings'] as int? ?? 0, // From API response example
+          int.tryParse(json['total_user_ratings']?.toString() ?? '') ?? 0,
+      totalRatings: int.tryParse(json['total_ratings']?.toString() ?? '') ?? 0,
       allergens: allergensList,
       dietaryInfo: dietaryInfoList,
     );
@@ -120,35 +129,61 @@ class Recipe {
 
   factory Recipe.fromListJson(Map<String, dynamic> json) {
     return Recipe(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      name: json['name']?.toString() ?? '',
       steps: [], // Not in list view
-      prepTime: json['prep_time'] as int,
-      cookTime: json['cook_time'] as int,
-      mealType: json['meal_type'] as String,
-      creatorId: json['creator_id'] as int,
+      prepTime: int.tryParse(json['prep_time']?.toString() ?? '') ?? 0,
+      cookTime: int.tryParse(json['cook_time']?.toString() ?? '') ?? 0,
+      mealType: json['meal_type']?.toString() ?? '',
+      creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
       ingredients: [], // Not in list view in detail
-      costPerServing: (json['cost_per_serving'] as num?)?.toDouble(),
-      difficultyRating: (json['difficulty_rating'] as num?)?.toDouble(),
-      tasteRating: (json['taste_rating'] as num?)?.toDouble(),
-      healthRating: (json['health_rating'] as num?)?.toDouble(),
-      likeCount: json['like_count'] as int? ?? 0,
-      commentCount: json['comment_count'] as int? ?? 0,
-      difficultyRatingCount: json['difficulty_rating_count'] as int? ?? 0,
-      tasteRatingCount: json['taste_rating_count'] as int? ?? 0,
-      healthRatingCount: json['health_rating_count'] as int? ?? 0,
-      isApproved: json['is_approved'] as bool? ?? false,
-      isFeatured: json['is_featured'] as bool? ?? false,
-      createdAt: DateTime.now(), // Placeholder
-      updatedAt: DateTime.now(), // Placeholder
-      deletedOn: null,
-      totalTime: json['total_time'] as int,
+      costPerServing:
+          double.tryParse(json['cost_per_serving']?.toString() ?? '') ?? null,
+      difficultyRating:
+          double.tryParse(json['difficulty_rating']?.toString() ?? '') ?? null,
+      tasteRating:
+          double.tryParse(json['taste_rating']?.toString() ?? '') ?? null,
+      healthRating:
+          double.tryParse(json['health_rating']?.toString() ?? '') ?? null,
+      likeCount: int.tryParse(json['like_count']?.toString() ?? '') ?? 0,
+      commentCount: int.tryParse(json['comment_count']?.toString() ?? '') ?? 0,
+      difficultyRatingCount:
+          int.tryParse(json['difficulty_rating_count']?.toString() ?? '') ?? 0,
+      tasteRatingCount:
+          int.tryParse(json['taste_rating_count']?.toString() ?? '') ?? 0,
+      healthRatingCount:
+          int.tryParse(json['health_rating_count']?.toString() ?? '') ?? 0,
+      isApproved: _parseBool(json['is_approved']) ?? false,
+      isFeatured: _parseBool(json['is_featured']) ?? false,
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(), // Placeholder if not available or parse fails
+      updatedAt:
+          DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+          DateTime.now(), // Placeholder if not available or parse fails
+      deletedOn: null, // Assuming not in list view
+      totalTime: int.tryParse(json['total_time']?.toString() ?? '') ?? 0,
       totalUserRatings: 0, // Not in list view example
       totalRatings: 0, // Not in list view example
       allergens: [], // Not in list view example
       dietaryInfo: [], // Not in list view example
     );
   }
+}
+
+// Helper function to parse boolean values that might come as bool, String, or num
+bool? _parseBool(dynamic value) {
+  if (value == null) return null;
+  if (value is bool) return value;
+  if (value is String) {
+    if (value.toLowerCase() == 'true') return true;
+    if (value.toLowerCase() == 'false') return false;
+  }
+  if (value is num) {
+    if (value == 1) return true;
+    if (value == 0) return false;
+  }
+  return null; // Or throw an error, or return a default
 }
 
 class IngredientQuantity {
