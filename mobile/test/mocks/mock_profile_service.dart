@@ -15,7 +15,7 @@ UserProfile getMockUserProfile({
   List<String> allergens = const ['Peanuts'],
   String dislikedFoods = 'Onions, Olives',
   double? monthlyBudget = 200.0,
-  int householdSize = 2,
+  // int householdSize = 2, // Removed
   bool publicProfile = true,
   String userType = 'Regular',
 }) {
@@ -28,7 +28,7 @@ UserProfile getMockUserProfile({
     allergens: List<String>.from(allergens),
     dislikedFoods: dislikedFoods,
     monthlyBudget: monthlyBudget,
-    householdSize: householdSize,
+    // householdSize: householdSize, // Removed
     publicProfile: publicProfile,
     userType: userType,
   );

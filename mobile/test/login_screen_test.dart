@@ -73,21 +73,20 @@ void main() {
       final loginCompleter = Completer<LoginResponse>();
       mockAuthService.setLoginResponse(loginCompleter);
 
-      await tester.pumpWidget(MaterialApp(
-        home: ScaffoldMessenger(
-          child: LoginScreen(authService: mockAuthService),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldMessenger(
+            child: LoginScreen(authService: mockAuthService),
+          ),
         ),
-      ));
+      );
 
       // Enter valid credentials
       await tester.enterText(
         find.byType(TextFormField).first,
         'test@example.com',
       );
-      await tester.enterText(
-        find.byType(TextFormField).last,
-        'password123',
-      );
+      await tester.enterText(find.byType(TextFormField).last, 'password123');
 
       // Tap login button
       await tester.tap(find.text('Log In'));
@@ -97,10 +96,14 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       // Complete the API call
-      loginCompleter.complete(LoginResponse(
-        email: 'test@example.com',
-        token: 'mock_token',
-      ));
+      loginCompleter.complete(
+        LoginResponse(
+          email: 'test@example.com',
+          token: 'mock_token',
+          userId: 1, // Added mock userId
+          usertype: 'user', // Added mock usertype
+        ),
+      );
 
       // Wait for all frame processing
       for (var i = 0; i < 10; i++) {
@@ -109,10 +112,7 @@ void main() {
 
       // Verify SnackBar and its content
       expect(find.byType(SnackBar), findsOneWidget);
-      expect(
-        find.text('Login successful!'),
-        findsOneWidget,
-      );
+      expect(find.text('Login successful!'), findsOneWidget);
     });
 
     testWidgets('Failed login shows error message', (
@@ -121,28 +121,29 @@ void main() {
       final loginCompleter = Completer<LoginResponse>();
       mockAuthService.setLoginResponse(loginCompleter);
 
-      await tester.pumpWidget(MaterialApp(
-        home: ScaffoldMessenger(
-          child: LoginScreen(authService: mockAuthService),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldMessenger(
+            child: LoginScreen(authService: mockAuthService),
+          ),
         ),
-      ));
+      );
 
       // Enter invalid credentials
       await tester.enterText(
         find.byType(TextFormField).first,
         'wrong@example.com',
       );
-      await tester.enterText(
-        find.byType(TextFormField).last,
-        'wrongpassword',
-      );
+      await tester.enterText(find.byType(TextFormField).last, 'wrongpassword');
 
       // Tap login button
       await tester.tap(find.text('Log In'));
       await tester.pump();
 
       // Complete with error
-      loginCompleter.completeError(AuthenticationException('Invalid credentials'));
+      loginCompleter.completeError(
+        AuthenticationException('Invalid credentials'),
+      );
 
       // Wait for all frame processing
       for (var i = 0; i < 10; i++) {
@@ -151,39 +152,39 @@ void main() {
 
       // Verify error message
       expect(find.byType(SnackBar), findsOneWidget);
-      expect(
-        find.text('Login failed: Invalid credentials'),
-        findsOneWidget,
-      );
+      expect(find.text('Login failed: Invalid credentials'), findsOneWidget);
     });
 
-    testWidgets('Successful login navigates to dashboard', (WidgetTester tester) async {
+    testWidgets('Successful login navigates to dashboard', (
+      WidgetTester tester,
+    ) async {
       final loginCompleter = Completer<LoginResponse>();
       mockAuthService.setLoginResponse(loginCompleter);
 
-      await tester.pumpWidget(MaterialApp(
-        home: LoginScreen(authService: mockAuthService),
-      ));
+      await tester.pumpWidget(
+        MaterialApp(home: LoginScreen(authService: mockAuthService)),
+      );
 
       // Enter valid credentials
       await tester.enterText(
         find.byType(TextFormField).first,
         'test@example.com',
       );
-      await tester.enterText(
-        find.byType(TextFormField).last,
-        'password123',
-      );
+      await tester.enterText(find.byType(TextFormField).last, 'password123');
 
       // Tap login button
       await tester.tap(find.text('Log In'));
       await tester.pump();
 
       // Complete the API call
-      loginCompleter.complete(LoginResponse(
-        email: 'test@example.com',
-        token: 'mock_token',
-      ));
+      loginCompleter.complete(
+        LoginResponse(
+          email: 'test@example.com',
+          token: 'mock_token',
+          userId: 1, // Added mock userId
+          usertype: 'user', // Added mock usertype
+        ),
+      );
 
       // Wait for navigation
       await tester.pumpAndSettle();

@@ -8,7 +8,7 @@ import 'package:fithub/screens/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
-  
+
   const LoginScreen({this.authService, super.key});
 
   @override
@@ -77,24 +77,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 50),
-                
+
                 // Title
                 const Text(
                   'Login',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryGreen, 
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
-                
+
                 // Subtitle
                 const Text(
                   'Sign in to continue',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppTheme.primaryGreen,
-                  ),
+                  style: TextStyle(fontSize: 16, color: AppTheme.primaryGreen),
                 ),
                 const SizedBox(height: 32),
 
@@ -116,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     return null;
                   },
-        
                 ),
                 const SizedBox(height: 16),
 
@@ -162,32 +158,35 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 24), 
+                const SizedBox(height: 24),
 
                 // Login Button
                 Center(
-                  child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: () => logIn(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.buttonGrey,
-                          padding: const EdgeInsets.symmetric(horizontal: 70),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                            onPressed: () => logIn(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.buttonGrey,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 70,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Log In',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
                 ),
-                
+
                 const SizedBox(height: 24),
 
                 // Create Account link
@@ -196,10 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Text(
                       "Don't have an account? ",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -260,15 +256,31 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
+      // Store the original token (likely Django token)
+      await StorageService.saveToken(response.token);
+
+      // Also fetch and store the JWT access token
+      try {
+        final jwtAccessToken = await _authService.getJwtAccessToken(
+          _emailController.text,
+          _passwordController.text,
+        );
+        await StorageService.saveJwtAccessToken(jwtAccessToken);
+      } catch (e) {
+        if (!mounted) return;
+        _showErrorMessage(
+          context,
+          'Failed to obtain JWT token: ${e.toString()}',
+        );
+      }
+
       if (!mounted) return;
 
       _showSuccessMessage(context);
-      
+
       // Navigate to dashboard and remove all previous routes
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const DashboardScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
         (route) => false,
       );
     } catch (e) {

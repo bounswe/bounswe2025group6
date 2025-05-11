@@ -1,0 +1,57 @@
+/* src/styles/VoteButtons.css */
+.vote-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .vote-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    font-size: 0.875rem;
+    color: #555;
+  }
+  
+  .vote-button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .vote-button.vote-active {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+  }
+  
+  .vote-button-remove {
+    color: #ff5252;
+  }
+  
+  .vote-button-remove:hover {
+    background-color: #ffebee;
+  }
+  
+  /* Sizes */
+  .vote-buttons-small .vote-button {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .vote-buttons-medium .vote-button {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+  
+  .vote-buttons-large .vote-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }

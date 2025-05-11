@@ -1,0 +1,30 @@
+.recipe-detail-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.recipe-detail-page h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.recipe-detail-page div {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.recipe-detail-page strong {
+  font-weight: bold;
+}
+
+.recipe-detail-page ul {
+  padding-left: 20px;
+  list-style-type: decimal;
+}
+
+.recipe-detail-page li {
+  margin-bottom: 5px;
+
+}

@@ -29,12 +29,16 @@ class MockAuthService extends Fake implements AuthService {
     await Future.delayed(const Duration(milliseconds: 300));
 
     if (email == 'test@example.com' && password == 'password123') {
-      return LoginResponse(email: email, token: 'mock_token');
+      return LoginResponse(
+        email: email,
+        token: 'mock_token',
+        userId: 1, //  Added mock userId
+        usertype: 'user', // Added mock usertype
+      );
     }
     throw AuthenticationException('Invalid credentials');
   }
 
-  
   Future<void> forgotPassword(String email) async {
     if (_forgotPasswordResponse != null) {
       return await _forgotPasswordResponse!;
@@ -89,11 +93,11 @@ class MockAuthService extends Fake implements AuthService {
   @override
   Future<void> resetPassword(String email, String password) async {
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     if (email != 'test@example.com') {
       throw AuthenticationException('Email address not registered.');
     }
-    
+
     if (password.length < 6) {
       throw AuthenticationException('Password must be at least 6 characters.');
     }

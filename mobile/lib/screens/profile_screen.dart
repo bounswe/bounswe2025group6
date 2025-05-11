@@ -210,11 +210,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _buildInfoCard([
           _buildInfoTile(Icons.person_outline, 'User Type', profile.userType),
           _buildInfoTile(
-            Icons.home_work_outlined,
-            'Household Size',
-            profile.householdSize.toString(),
-          ),
-          _buildInfoTile(
             Icons.public_outlined,
             'Profile Status',
             profile.publicProfile ? 'Public' : 'Private',
@@ -250,6 +245,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.monthlyBudget != null
                 ? '\$${profile.monthlyBudget!.toStringAsFixed(2)}'
                 : 'Not set',
+          ),
+        ]),
+        SizedBox(height: 20),
+        _buildSectionTitle(context, 'Activity Stats'),
+        _buildInfoCard([
+          _buildInfoTile(
+            Icons.receipt_long_outlined, // Changed icon
+            'Recipes Created',
+            profile.recipeCount?.toString() ?? 'N/A',
+          ),
+          _buildInfoTile(
+            Icons.star_border_outlined, // Changed icon
+            'Average Recipe Rating',
+            profile.avgRecipeRating != null
+                ? '${profile.avgRecipeRating!.toStringAsFixed(1)} ★'
+                : 'N/A',
+          ),
+          _buildInfoTile(
+            Icons.soup_kitchen_outlined, // Changed icon
+            'Cooking Skill',
+            profile.typeOfCook ?? 'N/A',
+          ),
+        ]),
+        SizedBox(height: 20),
+        _buildSectionTitle(context, 'Community'),
+        _buildInfoCard([
+          _buildInfoTile(
+            Icons.people_outline, // Changed icon
+            'Following',
+            profile.followedUsers != null
+                ? '${profile.followedUsers!.length} users'
+                : '0 users',
+          ),
+          _buildInfoTile(
+            Icons.bookmark_border_outlined, // Changed icon
+            'Bookmarked Recipes',
+            profile.bookmarkRecipes != null
+                ? '${profile.bookmarkRecipes!.length} recipes'
+                : '0 recipes',
+          ),
+          _buildInfoTile(
+            Icons.favorite_border_outlined, // Changed icon
+            'Liked Recipes',
+            profile.likedRecipes != null
+                ? '${profile.likedRecipes!.length} recipes'
+                : '0 recipes',
           ),
         ]),
         SizedBox(height: 40),
