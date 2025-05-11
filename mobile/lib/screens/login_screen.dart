@@ -267,17 +267,11 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         await StorageService.saveJwtAccessToken(jwtAccessToken);
       } catch (e) {
-        // Handle failure to get JWT token specifically, if needed
-        // For now, we can let the generic error handler catch it,
-        // or show a specific message.
-        // If JWT is critical for app function, this might be a hard error.
         if (!mounted) return;
         _showErrorMessage(
           context,
           'Failed to obtain JWT token: ${e.toString()}',
         );
-        // Optionally, do not proceed to dashboard if JWT is essential
-        // For now, we'll proceed with the original token saved.
       }
 
       if (!mounted) return;

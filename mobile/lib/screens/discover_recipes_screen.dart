@@ -287,10 +287,7 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                 } else if (snapshot.hasData && snapshot.data!.isEmpty) {
                   return const Center(child: Text('No recipes found.'));
                 } else if (snapshot.hasData) {
-                  // Use _filteredRecipes which is updated by _applyFiltersAndSort
-                  // For now, it's just all recipes until filter UI is added
                   if (_filteredRecipes.isEmpty && _allRecipes.isNotEmpty) {
-                    // This case can happen if filters result in no matches
                     return const Center(
                       child: Text('No recipes match your current filters.'),
                     );

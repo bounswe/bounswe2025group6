@@ -107,9 +107,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Settings saved!')));
-          // Return the local version of the profile which includes the asset path,
-          // not the one from the server response which would have profilePictureUrl as null
-          // if an asset was selected.
+
           Navigator.pop(context, finalProfileToSave);
         }
       } catch (e) {

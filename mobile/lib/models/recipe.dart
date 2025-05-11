@@ -118,13 +118,7 @@ class Recipe {
     );
   }
 
-  // For the GET /recipes/ (list view) which has a simpler ingredient structure in the response
   factory Recipe.fromListJson(Map<String, dynamic> json) {
-    // The list view from GET /recipes/ does not contain detailed ingredients, steps, allergens, dietary_info
-    // It only contains top-level fields. We will need to adjust if the actual API response for list differs.
-    // For now, assuming it's similar to the detailed view but with fewer fields or empty lists for complex ones.
-    // The provided API doc for GET /recipes/ (list) shows a much simpler structure per recipe.
-    // Let's adapt to that simpler structure for the list items.
     return Recipe(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -145,8 +139,6 @@ class Recipe {
       healthRatingCount: json['health_rating_count'] as int? ?? 0,
       isApproved: json['is_approved'] as bool? ?? false,
       isFeatured: json['is_featured'] as bool? ?? false,
-      // createdAt, updatedAt, deletedOn are not in the list view example
-      // We'll use current time as placeholder or make them nullable if not critical for list display
       createdAt: DateTime.now(), // Placeholder
       updatedAt: DateTime.now(), // Placeholder
       deletedOn: null,
@@ -159,7 +151,6 @@ class Recipe {
   }
 }
 
-// Helper class to represent an ingredient with its quantity and unit for a recipe
 class IngredientQuantity {
   final IngredientDetail
   ingredient; // This will be the detailed ingredient object

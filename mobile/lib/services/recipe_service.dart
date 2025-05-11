@@ -4,12 +4,8 @@ import '../models/recipe.dart';
 import 'storage_service.dart'; // For JWT token
 
 class RecipeService {
-  // For Android emulator, 10.0.2.2 typically maps to host's localhost.
-  // For iOS simulator, localhost or 127.0.0.1 should work.
-  // Replace with your actual backend URL if deployed.
   static const String _baseHost = 'http://10.0.2.2:8000';
 
-  // Fetches a list of all recipes, with optional pagination.
   Future<List<Recipe>> getAllRecipes({int? page, int? pageSize}) async {
     String url = '$_baseHost/recipes/'; // Removed /api prefix for recipes
     Map<String, String> queryParams = {};
