@@ -19,9 +19,12 @@
   font-weight: bold;
 }
 
+.recipe-detail-page ol {
+  padding-left: 20px;
+}
+
 .recipe-detail-page ul {
   padding-left: 20px;
-  list-style-type: decimal;
 }
 
 .recipe-detail-page li {
