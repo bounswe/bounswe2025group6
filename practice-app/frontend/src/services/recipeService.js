@@ -8,17 +8,9 @@ const API_BASE_URL = 'http://localhost:8000'; // Backend API'nin base URL'si
 
 
 
-/**
- * Get a recipe by ID
- * @param {number} id Recipe ID
- * @returns {Object|null} Recipe object or null if not found
- */
 export const getRecipeById = async (id) => {
   try {
-    const token = localStorage.getItem('fithub_access_token');
-    if (!token) {
-      throw new Error('Authentication token not found');
-    }
+    const token = localStorage.getItem('fithub_access_token'); // Take token
 
     const response = await axios.get(`${API_BASE_URL}/recipes/${id}/`, {
       headers: {

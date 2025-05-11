@@ -61,11 +61,18 @@ const RecipeDiscoveryPage = () => {
     }
   };
 
+  const handleNavigateToUpload = () => {
+    navigate('/upload-recipe'); // UploadRecipePage'e yönlendirme
+  };
+
   if (loading) return <div>Loading recipes...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
     <div className="recipe-discovery-page">
+      <button onClick={handleNavigateToUpload} className="upload-button">
+        Upload Recipe
+      </button>
       <h1 className="page-title">Discover Recipes</h1>
 
       <div className="searchbox-container">
