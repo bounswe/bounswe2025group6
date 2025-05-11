@@ -331,7 +331,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     queryset = RegisteredUser.objects.all()
     serializer_class = RegisteredUserSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
-
+    
     @swagger_auto_schema(
         method='post',
         operation_description="Follow or unfollow another user by ID",
@@ -406,7 +406,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             )
         },
         security=[{"Bearer": []}],
-        tags=['User Relationships']
+        tags=['Registered user viewset']
     )
     @action(detail=False, methods=['post'])
     def follow(self, request):
@@ -550,6 +550,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     #RATE RECIPE SWAGGER
     @swagger_auto_schema(
         operation_description="Submit a rating for a specific recipe",
+        tags=["Recipe Ratings"],
         request_body=RecipeRatingSerializer,
         responses={
             200: openapi.Response("Rating saved", RecipeRatingSerializer),
@@ -569,6 +570,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
         Each user can only rate a recipe once.
         """
         serializer = RecipeRatingSerializer(data=request.data)
+        
         if serializer.is_valid():
             recipe = serializer.validated_data['recipe']
             
@@ -647,6 +649,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Recipe Ratings
     """
+    swagger_tags = ['Recipe Ratings']
     queryset = RecipeRating.objects.all()
     serializer_class = RecipeRatingSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -659,6 +662,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="List your recipe ratings",
+        tags=["Recipe Ratings"],
         responses={200: RecipeRatingSerializer(many=True)}
     )
     def list(self, request, *args, **kwargs):
@@ -666,6 +670,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Retrieve a single recipe rating",
+        tags=["Recipe Ratings"],
         responses={200: RecipeRatingSerializer()}
     )
     def retrieve(self, request, *args, **kwargs):
@@ -673,6 +678,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Create a new recipe rating",
+        tags=["Recipe Ratings"],
         request_body=RecipeRatingSerializer,
         responses={201: RecipeRatingSerializer()}
     )
@@ -681,6 +687,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Replace an existing recipe rating",
+        tags=["Recipe Ratings"],
         request_body=RecipeRatingSerializer,
         responses={200: RecipeRatingSerializer()}
     )
@@ -689,6 +696,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Partially update a recipe rating",
+        tags=["Recipe Ratings"],
         request_body=RecipeRatingSerializer,
         responses={200: RecipeRatingSerializer()}
     )
@@ -697,6 +705,7 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Delete a recipe rating",
+        tags=["Recipe Ratings"],
         responses={204: None}
     )
     def destroy(self, request, *args, **kwargs):

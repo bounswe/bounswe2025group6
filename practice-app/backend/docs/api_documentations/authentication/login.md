@@ -32,6 +32,7 @@
     {
         "token": "6a4c4f4e3f3f2b2a1a1d1e1f0f0c0b0a12345678",
         "user_id": 12,
+        "username": john,
         "email": "dietitian.john@example.com",
         "usertype": "dietitian"
     }
