@@ -230,6 +230,7 @@ class login_view(APIView):
             return Response({
                 'token': token.key,
                 'user_id': user.id,
+                'username': user.username,
                 'email': user.email,
                 'usertype': user.usertype,
             })
