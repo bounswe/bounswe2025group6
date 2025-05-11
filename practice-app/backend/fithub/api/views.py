@@ -21,6 +21,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import RegisteredUser, RecipeRating
 from recipes.models import Recipe  # Import from recipes app
 from rest_framework import serializers
+import copy
+from django.db import transaction
 
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
                            VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
@@ -595,7 +597,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+'''
 # ViewSet for Recipe Ratings
 class RecipeRatingViewSet(viewsets.ModelViewSet):
     queryset = RecipeRating.objects.all()
@@ -638,3 +640,139 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
             recipe.drop_rating('taste', rating.taste_rating)
         if rating.difficulty_rating is not None:
             recipe.drop_rating('difficulty', rating.difficulty_rating)
+'''
+
+class RecipeRatingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Recipe Ratings
+    """
+    queryset = RecipeRating.objects.all()
+    serializer_class = RecipeRatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # short-circuit schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return RecipeRating.objects.none()
+        return self.queryset.filter(user=self.request.user)
+
+    @swagger_auto_schema(
+        operation_summary="List your recipe ratings",
+        responses={200: RecipeRatingSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve a single recipe rating",
+        responses={200: RecipeRatingSerializer()}
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Create a new recipe rating",
+        request_body=RecipeRatingSerializer,
+        responses={201: RecipeRatingSerializer()}
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Replace an existing recipe rating",
+        request_body=RecipeRatingSerializer,
+        responses={200: RecipeRatingSerializer()}
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Partially update a recipe rating",
+        request_body=RecipeRatingSerializer,
+        responses={200: RecipeRatingSerializer()}
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Delete a recipe rating",
+        responses={204: None}
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        rating = serializer.save(user=self.request.user)
+        self._update_recipe_stats(rating)
+    '''
+    def perform_update(self, serializer):
+        old_rating = self.get_object()
+        self._remove_old_rating_impact(old_rating)
+        rating = serializer.save()
+        self._update_recipe_stats(rating)
+    '''
+
+    def perform_update(self, serializer):
+        # 1) Snapshot the old rating from the database
+        old_rating = RecipeRating.objects.get(pk=serializer.instance.pk)
+
+        # 2) Atomically remove the old impact on the Recipe
+        with transaction.atomic():
+            recipe = Recipe.objects.select_for_update().get(pk=old_rating.recipe_id)
+            if old_rating.taste_rating is not None:
+                recipe.drop_rating('taste', old_rating.taste_rating)
+            if old_rating.difficulty_rating is not None:
+                recipe.drop_rating('difficulty', old_rating.difficulty_rating)
+
+        # 3) Save the new rating values
+        new_rating = serializer.save()
+
+        # 4) Atomically apply the new impact on the **same** Recipe row
+        with transaction.atomic():
+            recipe = Recipe.objects.select_for_update().get(pk=new_rating.recipe_id)
+            if new_rating.taste_rating is not None:
+                recipe.update_ratings('taste', new_rating.taste_rating)
+            if new_rating.difficulty_rating is not None:
+                recipe.update_ratings('difficulty', new_rating.difficulty_rating)
+
+    def perform_destroy(self, instance):
+        self._remove_old_rating_impact(instance)
+        instance.delete()
+
+    def _update_recipe_stats(self, rating):
+        recipe = rating.recipe
+        if rating.taste_rating is not None:
+            recipe.update_ratings('taste', rating.taste_rating)
+        if rating.difficulty_rating is not None:
+            recipe.update_ratings('difficulty', rating.difficulty_rating)
+
+    def _remove_old_rating_impact(self, rating):
+        print(f"Removing impact for taste={rating.taste_rating}, difficulty={rating.difficulty_rating}")
+        # 1. Grab a fresh copy of the recipe from the DB
+        recipe = Recipe.objects.get(pk=rating.recipe_id)
+        if rating.taste_rating is not None:
+            print(f"Removing impact for taste")
+            recipe.drop_rating('taste', rating.taste_rating)
+        if rating.difficulty_rating is not None:
+            print(f"Removing impact for difficulty")
+            recipe.drop_rating('difficulty', rating.difficulty_rating)
+    
+    def _apply_recipe_change(self, rating, *, old_taste, new_taste, old_diff, new_diff):
+        """
+        Re-fetch the Recipe once, then drop old and add new on that same object.
+        """
+        recipe = Recipe.objects.get(pk=rating.recipe_id)
+
+        # Drop old taste
+        if old_taste is not None:
+            recipe.drop_rating('taste', old_taste)
+        # Drop old difficulty
+        if old_diff is not None:
+            recipe.drop_rating('difficulty', old_diff)
+
+        # Apply new taste
+        if new_taste is not None:
+            recipe.update_ratings('taste', new_taste)
+        # Apply new difficulty
+        if new_diff is not None:
+            recipe.update_ratings('difficulty', new_diff)

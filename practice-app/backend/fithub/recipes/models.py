@@ -100,6 +100,7 @@ class Recipe(TimestampedModel):
         """
         Update the appropriate rating and the rating count.
         """
+        print(f"updating")
         if rating_type == 'difficulty':
             if self.difficulty_rating is None:
                 self.difficulty_rating = rating_value
@@ -128,22 +129,21 @@ class Recipe(TimestampedModel):
         """
         Remove a rating from the calculated totals before updating
         """
+        print(f"Dropping")
         if rating_type == 'difficulty' and self.difficulty_rating is not None:
             if self.difficulty_rating_count == 1:
                 self.difficulty_rating = None
             else:
-                self.difficulty_rating = (
-                    (self.difficulty_rating * self.difficulty_rating_count) - rating_value
-                ) / (self.difficulty_rating_count - 1)
+                self.difficulty_rating = ((self.difficulty_rating * self.difficulty_rating_count) - rating_value) / (self.difficulty_rating_count - 1)
+            print(f"Dropping diff")
             self.difficulty_rating_count -= 1
 
         elif rating_type == 'taste' and self.taste_rating is not None:
             if self.taste_rating_count == 1:
                 self.taste_rating = None
             else:
-                self.taste_rating = (
-                    (self.taste_rating * self.taste_rating_count) - rating_value
-                ) / (self.taste_rating_count - 1)
+                print(f"Dropping taste")
+                self.taste_rating = ((self.taste_rating * self.taste_rating_count) - rating_value) / (self.taste_rating_count - 1)
             self.taste_rating_count -= 1
 
         self.save()
