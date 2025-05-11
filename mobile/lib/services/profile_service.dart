@@ -1,59 +1,111 @@
 import 'dart:async';
+import 'dart:convert'; // Added for jsonEncode/Decode
+import 'package:http/http.dart' as http; // Added for http requests
 import '../models/user_profile.dart';
+import './storage_service.dart'; // Added for token and user ID
+
+class ProfileServiceException implements Exception {
+  final String message;
+  final int? statusCode;
+  ProfileServiceException(this.message, {this.statusCode});
+
+  @override
+  String toString() =>
+      'ProfileServiceException: $message (Status: $statusCode)';
+}
 
 class ProfileService {
-  // Simulate a delay for network requests
-  static const _simulatedDelay = Duration(milliseconds: 500);
-
-  UserProfile _currentUserProfile = UserProfile.placeholder();
+  static const String baseUrl =
+      'http://10.0.2.2:8000/api'; // Same as AuthService
 
   Future<UserProfile> getUserProfile() async {
-    await Future.delayed(_simulatedDelay);
-    return _currentUserProfile.copyWith();
-  }
+    final token = await StorageService.getToken();
+    final userId = await StorageService.getUserId();
 
-  Future<bool> updateUserProfile(UserProfile profileUpdates) async {
-    await Future.delayed(_simulatedDelay);
-    _currentUserProfile = _currentUserProfile.copyWith(
-      username: profileUpdates.username,
-      email: profileUpdates.email,
-      profilePictureUrl: profileUpdates.profilePictureUrl,
-      dietaryPreferences: profileUpdates.dietaryPreferences,
-      allergens: profileUpdates.allergens,
-      dislikedFoods: profileUpdates.dislikedFoods,
-      monthlyBudget: profileUpdates.monthlyBudget,
-      clearMonthlyBudget: profileUpdates.monthlyBudget == null,
-      householdSize: profileUpdates.householdSize,
-      publicProfile: profileUpdates.publicProfile,
-      userType: profileUpdates.userType,
+    if (token == null || userId == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token or User ID missing.',
+        statusCode: 401,
+      );
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
-    return true; // Simulate success
-  }
-
-  Future<bool> changePassword(
-    String currentPassword,
-    String newPassword,
-  ) async {
-    await Future.delayed(_simulatedDelay);
-    // Simulate password change logic
-    if (currentPassword == "oldpassword123") {
-      // Dummy check
-      return true;
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      return UserProfile.fromJson(responseBody, int.parse(userId));
+    } else if (response.statusCode == 401) {
+      await StorageService.deleteAllUserData(); // Clear stale auth data
+      throw ProfileServiceException(
+        'Unauthorized. Please login again.',
+        statusCode: response.statusCode,
+      );
+    } else if (response.statusCode == 404) {
+      throw ProfileServiceException(
+        'User profile not found.',
+        statusCode: response.statusCode,
+      );
     } else {
-      return false;
+      throw ProfileServiceException(
+        'Failed to load profile. Status: ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
     }
   }
 
-  Future<bool> deleteAccount(String password) async {
-    await Future.delayed(Duration(seconds: 1));
-    // Simulate account deletion logic
-    if (password == "deleteme123") {
-      // Dummy check
-      _currentUserProfile = UserProfile.placeholder();
-      return true;
+  Future<UserProfile> updateUserProfile(UserProfile profileUpdates) async {
+    final token = await StorageService.getToken();
+    final userId = await StorageService.getUserId();
+
+    if (token == null || userId == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token or User ID missing.',
+        statusCode: 401,
+      );
+    }
+
+    if (profileUpdates.id == null || profileUpdates.id.toString() != userId) {
+      throw ProfileServiceException(
+        'Profile ID mismatch or missing.',
+        statusCode: 400,
+      );
+    }
+
+    final Map<String, dynamic> requestBody = profileUpdates.toJson();
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl/users/$userId/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Token $token',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      // Return the updated profile from the server response
+      return UserProfile.fromJson(responseBody, int.parse(userId));
+    } else if (response.statusCode == 401) {
+      await StorageService.deleteAllUserData();
+      throw ProfileServiceException(
+        'Unauthorized. Please login again.',
+        statusCode: response.statusCode,
+      );
+    } else if (response.statusCode == 400) {
+      final errorBody = jsonDecode(response.body);
+      throw ProfileServiceException(
+        'Failed to update profile: ${errorBody.toString()}',
+        statusCode: response.statusCode,
+      );
     } else {
-      return false;
+      throw ProfileServiceException(
+        'Failed to update profile. Status: ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
     }
   }
 }

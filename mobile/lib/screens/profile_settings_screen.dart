@@ -92,164 +92,37 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       UserProfile finalProfileToSave = _editableProfile.copyWith(
+        id: _editableProfile.id, // Explicitly pass the ID
         username: _usernameController.text,
         dislikedFoods: _dislikedFoodsController.text,
         monthlyBudget: double.tryParse(_monthlyBudgetController.text),
         clearMonthlyBudget: _monthlyBudgetController.text.isEmpty,
       );
 
-      bool success = await _profileService.updateUserProfile(
-        finalProfileToSave,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? 'Settings saved!' : 'Failed to save settings.',
-            ),
-          ),
+      try {
+        UserProfile updatedProfile = await _profileService.updateUserProfile(
+          finalProfileToSave,
         );
-        if (success) {
-          Navigator.pop(
+        if (mounted) {
+          ScaffoldMessenger.of(
             context,
-            finalProfileToSave,
-          ); // Return the updated profile
+          ).showSnackBar(const SnackBar(content: Text('Settings saved!')));
+          // Return the local version of the profile which includes the asset path,
+          // not the one from the server response which would have profilePictureUrl as null
+          // if an asset was selected.
+          Navigator.pop(context, finalProfileToSave);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save settings: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     }
-  }
-
-  void _showChangePasswordDialog() {
-    final _currentPasswordController = TextEditingController();
-    final _newPasswordController = TextEditingController();
-    final _confirmNewPasswordController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Change Password'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _currentPasswordController,
-                  decoration: InputDecoration(labelText: 'Current Password'),
-                  obscureText: true,
-                ),
-                TextField(
-                  controller: _newPasswordController,
-                  decoration: InputDecoration(labelText: 'New Password'),
-                  obscureText: true,
-                ),
-                TextField(
-                  controller: _confirmNewPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                  ),
-                  obscureText: true,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(color: AppTheme.primaryGreen),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.buttonGrey,
-                ),
-                onPressed: () async {
-                  if (_newPasswordController.text !=
-                      _confirmNewPasswordController.text) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("New passwords don't match.")),
-                    );
-                    return;
-                  }
-                  bool success = await _profileService.changePassword(
-                    _currentPasswordController.text,
-                    _newPasswordController.text,
-                  );
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        success
-                            ? 'Password changed (simulated).'
-                            : 'Password change failed (simulated).',
-                      ),
-                    ),
-                  );
-                },
-                child: Text('Change', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showDeleteAccountDialog() {
-    final _passwordController = TextEditingController();
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Delete Account'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'This action is irreversible. Please enter your password to confirm.',
-                ),
-                TextField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(color: AppTheme.primaryGreen),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.buttonGrey,
-                ),
-                onPressed: () async {
-                  bool success = await _profileService.deleteAccount(
-                    _passwordController.text,
-                  );
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        success
-                            ? 'Account deleted (simulated).'
-                            : 'Account deletion failed (simulated).',
-                      ),
-                    ),
-                  );
-                  if (success) {
-                    Navigator.of(
-                      context,
-                    ).pushReplacementNamed('/'); // Navigate to login/home
-                  }
-                },
-                child: Text('Delete', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-    );
   }
 
   @override
@@ -408,33 +281,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               'Allergens',
               _availableAllergens,
               _editableProfile.allergens,
-            ),
-            Divider(height: 30, thickness: 1),
-            Text(
-              'Account Management',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.buttonGrey,
-              ),
-              onPressed: _showChangePasswordDialog,
-              child: Text(
-                'Change Password',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.buttonGrey,
-              ),
-              onPressed: _showDeleteAccountDialog,
-              child: Text(
-                'Delete Account',
-                style: TextStyle(color: Colors.white),
-              ),
             ),
           ],
         ),

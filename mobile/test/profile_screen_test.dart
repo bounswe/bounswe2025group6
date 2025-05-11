@@ -72,15 +72,15 @@ void main() {
     when(
       () => mockProfileService.getUserProfile(),
     ).thenAnswer((_) async => sampleUserProfile);
-    when(
-      () => mockProfileService.updateUserProfile(any()),
-    ).thenAnswer((_) async => true);
-    when(
-      () => mockProfileService.changePassword(any(), any()),
-    ).thenAnswer((_) async => true);
-    when(
-      () => mockProfileService.deleteAccount(any()),
-    ).thenAnswer((_) async => true);
+    when(() => mockProfileService.updateUserProfile(any())).thenAnswer(
+      (_) async => sampleUserProfile,
+    ); // Changed to return UserProfile
+    // when(
+    //   () => mockProfileService.changePassword(any(), any()),
+    // ).thenAnswer((_) async => true); // Commented out
+    // when(
+    //   () => mockProfileService.deleteAccount(any()),
+    // ).thenAnswer((_) async => true); // Commented out
   });
 
   Future<void> pumpProfileScreen(WidgetTester tester) async {

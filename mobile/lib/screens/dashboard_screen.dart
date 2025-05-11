@@ -3,6 +3,8 @@ import '../theme/app_theme.dart';
 import '../services/storage_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
+import 'discover_recipes_screen.dart';
+import 'upload_recipe_screen.dart'; // Added import for UploadRecipeScreen
 import '../services/auth_service.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -135,13 +137,27 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.restaurant_menu,
                     title: 'Discover Recipes',
                     color: Colors.blue,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DiscoverRecipesScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildDashboardCard(
                     icon: Icons.upload_file,
                     title: 'Upload Recipe',
                     color: AppTheme.primaryGreen,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UploadRecipeScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildDashboardCard(
                     icon: Icons.group,
