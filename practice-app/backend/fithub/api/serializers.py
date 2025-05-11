@@ -139,7 +139,12 @@ class ResetPasswordSerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=reset_token.email)
         except User.DoesNotExist:
+            # This case should ideally not happen if token is valid and tied to an email
             raise serializers.ValidationError("User not found.")
+
+        # Add validation for old password
+        if user.check_password(data['new_password']):
+            raise serializers.ValidationError({"new_password": "New password cannot be the same as your old password."})
 
         data['user'] = user
         data['reset_token'] = reset_token
@@ -147,11 +152,11 @@ class ResetPasswordSerializer(serializers.Serializer):
 
     def save(self):
         user = self.validated_data['user']
+        # The new_password has already been validated against the old one in the validate method
         user.set_password(self.validated_data['new_password'])
         user.save()
 
         self.validated_data['reset_token'].delete()
-
 
 
 class RegisteredUserSerializer(serializers.ModelSerializer):
@@ -213,5 +218,4 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
             
         return super().create(validated_data)
 
-        
-        
+

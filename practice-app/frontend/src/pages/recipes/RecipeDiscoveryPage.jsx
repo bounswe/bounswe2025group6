@@ -62,7 +62,7 @@ const RecipeDiscoveryPage = () => {
   };
 
   const handleNavigateToUpload = () => {
-    navigate('/upload-recipe'); // UploadRecipePage'e yönlendirme
+    navigate('/uploadRecipe'); // Directing UploadRecipes
   };
 
   if (loading) return <div>Loading recipes...</div>;

@@ -85,52 +85,6 @@ const DashboardPage = () => {
           </Card.Body>
         </Card>
       </div>
-
-      <div className="dashboard-sections">
-        <Card>
-          <Card.Header className="dashboard-section-header">
-            <h2 className="dashboard-section-title">Recent Activity</h2>
-          </Card.Header>
-          <Card.Body>
-            <ul className="dashboard-activity-list">
-              <li>
-                <span className="activity-time">Today</span>
-                <span className="activity-desc">Created a new meal plan</span>
-              </li>
-              <li>
-                <span className="activity-time">Yesterday</span>
-                <span className="activity-desc">Added 3 recipes to favorites</span>
-              </li>
-              <li>
-                <span className="activity-time">3 days ago</span>
-                <span className="activity-desc">Completed shopping list</span>
-              </li>
-            </ul>
-          </Card.Body>
-        </Card>
-        <br/>
-
-        <Card>
-          <Card.Header className="flex justify-between items-center">
-            <h2 className="dashboard-section-title">Saved Meal Plans</h2>
-            <Link to="/saved-meal-plans" className="dashboard-view-link">View All</Link>
-          </Card.Header>
-          <Card.Body>
-            <ul className="dashboard-plan-list">
-              <li className="dashboard-plan-item">
-                <h3 className="plan-title">Weekly Plan</h3>
-                <p className="plan-meta">Created 2 days ago</p>
-                <p className="plan-details">Breakfast, Lunch, and Dinner for 7 days</p>
-              </li>
-              <li className="dashboard-plan-item">
-                <h3 className="plan-title">Low Carb Plan</h3>
-                <p className="plan-meta">Created 1 week ago</p>
-                <p className="plan-details">High protein meals with minimal carbs</p>
-              </li>
-            </ul>
-          </Card.Body>
-        </Card>
-      </div>
     </div>
   );
 };
