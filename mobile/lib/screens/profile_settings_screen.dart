@@ -234,27 +234,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
             ),
-            SizedBox(height: 12),
-            TextFormField(
-              initialValue: _editableProfile.householdSize.toString(),
-              decoration: InputDecoration(
-                labelText: 'Household Size',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty)
-                  return 'Household size cannot be empty';
-                if (int.tryParse(value) == null || int.parse(value) <= 0)
-                  return 'Enter a valid number';
-                return null;
-              },
-              onSaved:
-                  (value) =>
-                      _editableProfile = _editableProfile.copyWith(
-                        householdSize: int.parse(value!),
-                      ),
-            ),
+
             SizedBox(height: 12),
             SwitchListTile(
               title: Text('Public Profile'),

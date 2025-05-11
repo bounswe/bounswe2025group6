@@ -26,7 +26,7 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
   bool _sortAscending = true;
 
   final List<String> _dietaryOptions = const [
-    'High Protein', 'Low Carbohydrate', 'Vegetarian', 'Vegan', 'Gluten-Free',
+    'High-Protein', 'Low-Carbohydrate', 'Vegetarian', 'Vegan', 'Gluten-Free',
     // 'Quick', 'Budget-Friendly' // These might need specific backend fields or logic
   ];
 

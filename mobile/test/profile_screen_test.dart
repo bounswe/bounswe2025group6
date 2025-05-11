@@ -24,7 +24,7 @@ UserProfile getMockUserProfile({
   List<String> allergens = const ['Nuts'],
   String dislikedFoods = 'Celery',
   double? monthlyBudget = 200.0,
-  int householdSize = 1,
+  // int householdSize = 1, // Removed
   bool publicProfile = false,
   String userType = 'Regular',
 }) {
@@ -37,7 +37,7 @@ UserProfile getMockUserProfile({
     allergens: List<String>.from(allergens),
     dislikedFoods: dislikedFoods,
     monthlyBudget: monthlyBudget,
-    householdSize: householdSize,
+    // householdSize: householdSize, // Removed
     publicProfile: publicProfile,
     userType: userType,
   );
@@ -194,10 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('UpdatedUser'), findsOneWidget);
-      expect(
-        find.text(sampleUserProfile.email),
-        findsOneWidget,
-      ); // Email shouldn't change here
+      expect(find.text(sampleUserProfile.email), findsOneWidget);
       verify(
         () => mockProfileService.getUserProfile(),
       ).called(1); // Not reloaded from service

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../screens/recipe_detail_screen.dart'; // Import the detail screen
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -16,10 +17,15 @@ class RecipeCard extends StatelessWidget {
           'Meal Type: ${recipe.mealType} | Total Time: ${recipe.totalTime} mins',
         ),
         // TODO: Add more details like image, cost, ratings
-        // onTap: () {
-        //   // Navigate to RecipeDetailScreen
-        //   // Navigator.push(context, MaterialPageRoute(builder: (context) => RecipeDetailScreen(recipeId: recipe.id)));
-        // },
+        onTap: () {
+          // Navigate to RecipeDetailScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecipeDetailScreen(recipeId: recipe.id),
+            ),
+          );
+        },
       ),
     );
   }
