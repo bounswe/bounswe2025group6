@@ -132,18 +132,14 @@ class Recipe(TimestampedModel):
             if self.difficulty_rating_count == 1:
                 self.difficulty_rating = None
             else:
-                self.difficulty_rating = (
-                    (self.difficulty_rating * self.difficulty_rating_count) - rating_value
-                ) / (self.difficulty_rating_count - 1)
+                self.difficulty_rating = ((self.difficulty_rating * self.difficulty_rating_count) - rating_value) / (self.difficulty_rating_count - 1)
             self.difficulty_rating_count -= 1
 
         elif rating_type == 'taste' and self.taste_rating is not None:
             if self.taste_rating_count == 1:
                 self.taste_rating = None
             else:
-                self.taste_rating = (
-                    (self.taste_rating * self.taste_rating_count) - rating_value
-                ) / (self.taste_rating_count - 1)
+                self.taste_rating = ((self.taste_rating * self.taste_rating_count) - rating_value) / (self.taste_rating_count - 1)
             self.taste_rating_count -= 1
 
         self.save()
