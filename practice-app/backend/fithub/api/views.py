@@ -35,6 +35,7 @@ def index(request):
 
 @swagger_auto_schema(
     method='post',
+    tags = ["Registration"],
     request_body=UserRegistrationSerializer(),
 )
 @api_view(['POST'])
@@ -72,6 +73,48 @@ def send_verification_email(user, request):
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
+@swagger_auto_schema(
+    method='GET',
+    tags=['Registration'],  # Assigns this endpoint to the "Authentication" tag
+    operation_summary="Verify user email",
+    operation_description="Verifies a user's email using a unique token and UID.",
+    manual_parameters=[
+        openapi.Parameter(
+            name='uidb64',
+            in_=openapi.IN_PATH,
+            type=openapi.TYPE_STRING,
+            description="Base64-encoded user ID",
+            required=True,
+        ),
+        openapi.Parameter(
+            name='token',
+            in_=openapi.IN_PATH,
+            type=openapi.TYPE_STRING,
+            description="Email verification token",
+            required=True,
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description="Email verified successfully",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Email successfully verified!"),
+                },
+            ),
+        ),
+        400: openapi.Response(
+            description="Invalid verification link",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING, example="Verification link is invalid or has expired."),
+                },
+            ),
+        ),
+    },
+)
 @api_view(['GET'])
 def verify_email(request, uidb64, token):
     try:
@@ -109,6 +152,7 @@ send_mail(
         400: openapi.Response(description="Invalid email."),
     }
 )
+
 @api_view(['POST'])
 def forgot_password(request):
     email = request.data.get('email')
@@ -165,6 +209,7 @@ def password_reset(request, uidb64, token):
 class RequestResetCodeView(APIView):
     @swagger_auto_schema(
         operation_description="Request a 6-digit password reset code to be sent to your email.",
+        tags = ["Password Reset"],
         request_body=RequestPasswordResetCodeSerializer,
         responses={200: "Code sent", 400: "Validation error"}
     )
@@ -181,6 +226,7 @@ class RequestResetCodeView(APIView):
 class VerifyResetCodeView(APIView):
     @swagger_auto_schema(
         operation_description="Verify 6-digit password reset code for the given email.",
+        tags = ["Password Reset"],
         request_body=VerifyPasswordResetCodeSerializer,
         responses={200: "Code verified and temporary token issued", 400: "Validation error"}
     )
@@ -203,6 +249,7 @@ class VerifyResetCodeView(APIView):
 class ResetPasswordView(APIView):
     @swagger_auto_schema(
         operation_description="Reset password using a temporary token and new password.",
+        tags = ["Password Reset"],
         request_body=ResetPasswordSerializer,
         responses={200: "Password reset successful", 400: "Validation error"}
     )
@@ -332,6 +379,30 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     serializer_class = RegisteredUserSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
     
+    @swagger_auto_schema(tags=["User Profile"])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["User Profile"])
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["User Profile"])
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["User Profile"])
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["User Profile"])
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=["User Profile"])
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+    
     @swagger_auto_schema(
         method='post',
         operation_description="Follow or unfollow another user by ID",
@@ -406,7 +477,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             )
         },
         security=[{"Bearer": []}],
-        tags=['Registered user viewset']
+        tags=['User Actions']
     )
     @action(detail=False, methods=['post'])
     def follow(self, request):
@@ -480,6 +551,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         method='post',
         operation_description="Bookmark a recipe for the current user",
+        tags=['User Actions'],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=['recipe_id'],
@@ -550,7 +622,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     #RATE RECIPE SWAGGER
     @swagger_auto_schema(
         operation_description="Submit a rating for a specific recipe",
-        tags=["Recipe Ratings"],
+        tags=["User Actions"],
         request_body=RecipeRatingSerializer,
         responses={
             200: openapi.Response("Rating saved", RecipeRatingSerializer),
@@ -600,50 +672,6 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-'''
-# ViewSet for Recipe Ratings
-class RecipeRatingViewSet(viewsets.ModelViewSet):
-    queryset = RecipeRating.objects.all()
-    serializer_class = RecipeRatingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        """Only show ratings for the current user"""
-        return self.queryset.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        """Handle rating creation and update recipe stats"""
-        rating = serializer.save(user=self.request.user)
-        self._update_recipe_stats(rating)
-
-    def perform_update(self, serializer):
-        """Handle rating update and update recipe stats"""
-        old_rating = self.get_object()
-        self._remove_old_rating_impact(old_rating)
-        rating = serializer.save()
-        self._update_recipe_stats(rating)
-
-    def perform_destroy(self, instance):
-        """Handle rating deletion and update recipe stats"""
-        self._remove_old_rating_impact(instance)
-        instance.delete()
-
-    def _update_recipe_stats(self, rating):
-        """Update recipe stats with new rating values"""
-        recipe = rating.recipe
-        if rating.taste_rating is not None:
-            recipe.update_ratings('taste', rating.taste_rating)
-        if rating.difficulty_rating is not None:
-            recipe.update_ratings('difficulty', rating.difficulty_rating)
-
-    def _remove_old_rating_impact(self, rating):
-        """Remove the impact of an old rating before update/delete"""
-        recipe = rating.recipe
-        if rating.taste_rating is not None:
-            recipe.drop_rating('taste', rating.taste_rating)
-        if rating.difficulty_rating is not None:
-            recipe.drop_rating('difficulty', rating.difficulty_rating)
-'''
 
 class RecipeRatingViewSet(viewsets.ModelViewSet):
     """
@@ -714,13 +742,6 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         rating = serializer.save(user=self.request.user)
         self._update_recipe_stats(rating)
-    '''
-    def perform_update(self, serializer):
-        old_rating = self.get_object()
-        self._remove_old_rating_impact(old_rating)
-        rating = serializer.save()
-        self._update_recipe_stats(rating)
-    '''
 
     def perform_update(self, serializer):
         # 1) Snapshot the old rating from the database
@@ -757,14 +778,11 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
             recipe.update_ratings('difficulty', rating.difficulty_rating)
 
     def _remove_old_rating_impact(self, rating):
-        print(f"Removing impact for taste={rating.taste_rating}, difficulty={rating.difficulty_rating}")
         # 1. Grab a fresh copy of the recipe from the DB
-        recipe = Recipe.objects.get(pk=rating.recipe_id)
+        recipe = rating.recipe
         if rating.taste_rating is not None:
-            print(f"Removing impact for taste")
             recipe.drop_rating('taste', rating.taste_rating)
         if rating.difficulty_rating is not None:
-            print(f"Removing impact for difficulty")
             recipe.drop_rating('difficulty', rating.difficulty_rating)
     
     def _apply_recipe_change(self, rating, *, old_taste, new_taste, old_diff, new_diff):
