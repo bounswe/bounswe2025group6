@@ -597,13 +597,14 @@ const PostDetailPage = () => {
   return (
     <div className="post-detail-container">
       <div className="post-detail-back">
+        
         <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => navigate('/community')} 
-          className="back-button"
-        >
-          ← Back to Forum
+                  variant="primary" 
+                  size="sm" 
+                  onClick={() => navigate('/community')}
+                  className="edit-button"
+                >
+                  ← Back to Forum
         </Button>
       </div>
 
@@ -628,7 +629,7 @@ const PostDetailPage = () => {
                   variant="danger" 
                   size="sm" 
                   onClick={handleDeletePost}
-                  className="delete-button"
+                  className='delete-button'
                 >
                   Delete
                 </Button>
@@ -646,7 +647,7 @@ const PostDetailPage = () => {
             <div className="vote-buttons">
               <button 
                 onClick={() => handleVote('up')} 
-                className={`vote-button ${userVote.hasVoted && userVote.voteType === 'up' ? 'active' : ''}`}
+                className={`vote-button ${userVote.hasVoted && userVote.voteType === 'up' ? 'active-up' : ''}`}
                 disabled={isVoting}
                 aria-label="Upvote"
                 style={{
@@ -658,7 +659,7 @@ const PostDetailPage = () => {
               </button>
               <button 
                 onClick={() => handleVote('down')} 
-                className={`vote-button ${userVote.hasVoted && userVote.voteType === 'down' ? 'active' : ''}`}
+                className={`vote-button ${userVote.hasVoted && userVote.voteType === 'down' ? 'active-down' : ''}`}
                 disabled={isVoting}
                 aria-label="Downvote"
                 style={{
@@ -682,7 +683,7 @@ const PostDetailPage = () => {
               </button>
             </div>
             {userVote.hasVoted && (
-              <div style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.9rem' }}>
+              <div style={{ marginLeft: '10px', fontSize: '0.9rem', color: userVote.voteType === 'up' ? 'green' : 'red' }}>
                 You voted {userVote.voteType}
               </div>
             )}
@@ -749,6 +750,7 @@ const PostDetailPage = () => {
                             variant="danger" 
                             size="sm" 
                             onClick={() => handleDeleteComment(comment.id)}
+                            className='delete-button'
                           >
                             Delete
                           </Button>
@@ -759,23 +761,15 @@ const PostDetailPage = () => {
                         <div className="vote-buttons">
                           <button 
                             onClick={() => handleVoteComment(comment.id, 'up')} 
-                            className={`vote-button ${comment.userVote?.hasVoted && comment.userVote?.voteType === 'up' ? 'active' : ''}`}
+                            className={`vote-button ${comment.userVote?.hasVoted && comment.userVote?.voteType === 'up' ? 'active-up' : ''}`}
                             aria-label="Upvote"
-                            style={{
-                              backgroundColor: comment.userVote?.hasVoted && comment.userVote?.voteType === 'up' ? '#4CAF50' : '',
-                              color: comment.userVote?.hasVoted && comment.userVote?.voteType === 'up' ? 'white' : ''
-                            }}
                           >
                             ▲ {comment.upvote_count || 0}
                           </button>
                           <button 
                             onClick={() => handleVoteComment(comment.id, 'down')} 
-                            className={`vote-button ${comment.userVote?.hasVoted && comment.userVote?.voteType === 'down' ? 'active' : ''}`}
+                            className={`vote-button ${comment.userVote?.hasVoted && comment.userVote?.voteType === 'down' ? 'active-down' : ''}`}
                             aria-label="Downvote"
-                            style={{
-                              backgroundColor: comment.userVote?.hasVoted && comment.userVote?.voteType === 'down' ? '#4CAF50' : '',
-                              color: comment.userVote?.hasVoted && comment.userVote?.voteType === 'down' ? 'white' : ''
-                            }}
                           >
                             ▼ {comment.downvote_count || 0}
                           </button>
@@ -793,7 +787,7 @@ const PostDetailPage = () => {
                           </button>
                         </div>
                         {comment.userVote?.hasVoted && (
-                          <div style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.9rem' }}>
+                          <div style={{ marginLeft: '10px', fontSize: '0.9rem', color: comment.userVote.voteType === 'up' ? 'green' : 'red' }}>
                             You voted {comment.userVote.voteType}
                           </div>
                         )}

@@ -26,6 +26,7 @@ const CommunityPage = () => {
   const [selectedTag, setSelectedTag] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [userMap, setUserMap] = useState({}); // Map to store user details
+  const [userVotes, setUserVotes] = useState({});  // { postId: 'up' | 'down' }
 
   // Available tags from API documentation
   const availableTags = [
@@ -116,10 +117,9 @@ const CommunityPage = () => {
     }
 
     try {
-      // Optimistic update
+      // Optimistic update for votes
       const updatedPosts = posts.map(post => {
         if (post.id === postId) {
-          // Update vote count based on vote type
           if (voteType === 'up') {
             return { ...post, upvote_count: post.upvote_count + 1 };
           } else {
@@ -129,12 +129,24 @@ const CommunityPage = () => {
         return post;
       });
       setPosts(updatedPosts);
+      
+      // Track the vote
+      setUserVotes(prev => ({
+        ...prev,
+        [postId]: voteType
+      }));
 
       await forumService.votePost(postId, voteType);
       toast.success(`Post ${voteType}voted!`);
     } catch (error) {
-      // Revert optimistic update on error
+      // Revert optimistic updates
       loadPosts();
+      setUserVotes(prev => {
+        const updated = { ...prev };
+        delete updated[postId];
+        return updated;
+      });
+      
       if (error.response?.status === 400) {
         toast.info('You have already voted on this post');
       } else {
@@ -151,8 +163,13 @@ const CommunityPage = () => {
 
     try {
       await forumService.deleteVotePost(postId);
+      setUserVotes(prev => {
+        const updated = { ...prev };
+        delete updated[postId];
+        return updated;
+      });
       toast.success('Vote removed successfully!');
-      loadPosts(); // Reload posts to get updated vote counts
+      loadPosts();
     } catch (error) {
       if (error.response?.status === 404) {
         toast.info('No vote found to remove');
@@ -208,7 +225,7 @@ const CommunityPage = () => {
           <h1 className="forum-title">Community Forum</h1>
           <p className="forum-subtitle">Join discussions, share ideas, and connect with others</p>
         </div>
-        <Button onClick={() => navigate('/community/create')}>Create Post</Button>
+        <Button className="forum-create-button" onClick={() => navigate('/community/create')}>Create Post</Button>
       </div>
 
       <Card className="forum-filters">
@@ -269,7 +286,7 @@ const CommunityPage = () => {
                             e.stopPropagation(); 
                             handleVote(post.id, 'up'); 
                           }}
-                          className="vote-button"
+                          className={`vote-button ${userVotes[post.id] === 'up' ? 'voted-up' : ''}`}
                           aria-label="Upvote"
                         >
                           ▲ {post.upvote_count}
@@ -279,7 +296,7 @@ const CommunityPage = () => {
                             e.stopPropagation(); 
                             handleVote(post.id, 'down'); 
                           }}
-                          className="vote-button"
+                          className={`vote-button ${userVotes[post.id] === 'down' ? 'voted-down' : ''}`}
                           aria-label="Downvote"
                         >
                           ▼ {post.downvote_count}
@@ -334,7 +351,7 @@ const CommunityPage = () => {
             <h2>No posts found</h2>
             <p>{searchTerm || selectedTag ? 'Try adjusting your search criteria' : 'Be the first to start a discussion!'}</p>
             {(searchTerm || selectedTag) && <Button onClick={() => { setSearchTerm(''); setSelectedTag(''); }}>Clear Filters</Button>}
-            <Button onClick={loadPosts} className="mt-2">Refresh</Button>
+            <Button onClick={loadPosts} className="edit-button">Refresh</Button>
           </Card.Body>
         </Card>
       )}

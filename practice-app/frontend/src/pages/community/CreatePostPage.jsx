@@ -184,9 +184,10 @@ const CreatePostPage = () => {
             <div className="form-actions">
               <Button 
                 type="button"
-                variant="secondary"
+                variant="primary"
                 onClick={() => navigate('/community')}
                 disabled={isSubmitting}
+                style={{ backgroundColor: '#b67979', color: 'white' }}
               >
                 Cancel
               </Button>

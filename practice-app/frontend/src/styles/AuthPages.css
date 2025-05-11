@@ -57,7 +57,7 @@
 .auth-form input[type="text"],
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
-  width: 100%;
+  width: 95%;
   padding: 0.625rem 0.75rem;
   border: 1px solid #ddd;
   border-radius: 0.375rem;
@@ -418,4 +418,12 @@
   to {
     transform: rotate(360deg);
   }
+}
+.green-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
 }

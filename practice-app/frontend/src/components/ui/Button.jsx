@@ -9,6 +9,7 @@ const variants = {
   danger: 'bg-red-600 hover:bg-red-700 text-white',
   warning: 'bg-yellow-400 hover:bg-yellow-500 text-white',
   ghost: 'bg-transparent hover:bg-gray-100 text-gray-700 border border-gray-200',
+  community: 'bg-[#b67979] hover:bg-[#a66868] text-white shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5',
 };
 
 const sizes = {
