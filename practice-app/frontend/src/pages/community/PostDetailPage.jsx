@@ -6,6 +6,7 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
+import userService from '../../services/userService.js'; // Import userService
 import '../../styles/PostDetailPage.css';
 
 const PostDetailPage = () => {
@@ -31,6 +32,8 @@ const PostDetailPage = () => {
     voteType: null // 'up' or 'down'
   });
   const [isVoting, setIsVoting] = useState(false);
+  // Add state for storing user details
+  const [userMap, setUserMap] = useState({});
 
   useEffect(() => {
     loadPostAndVoteStatus();
@@ -47,6 +50,12 @@ const PostDetailPage = () => {
     try {
       // Load post details
       const postData = await forumService.getPostById(id);
+      setPost(postData);
+      
+      // Fetch author details
+      if (postData) {
+        fetchUserDetails([postData.author]);
+      }
       
       // Check vote status if user is logged in
       if (currentUser) {
@@ -64,14 +73,14 @@ const PostDetailPage = () => {
           console.error('Error checking vote status:', error);
           // Set default vote status on error
           setUserVote({ hasVoted: false, voteType: null });
+          
+          // Don't show error to the user, just log it
+          console.log("Could not get vote status, assuming no vote");
         }
       } else {
         // Reset user vote when no user is logged in
         setUserVote({ hasVoted: false, voteType: null });
       }
-      
-      // Always set the post data after checking vote status
-      setPost(postData);
     } catch (error) {
       console.error('Error loading post:', error);
       toast.error('Failed to load post');
@@ -90,6 +99,12 @@ const PostDetailPage = () => {
         commentPagination.page, 
         commentPagination.page_size
       );
+      
+      // Get unique author IDs from comments
+      const commentAuthorIds = [...new Set((data.results || []).map(comment => comment.author))];
+      
+      // Fetch user details for comment authors
+      fetchUserDetails(commentAuthorIds);
       
       // Process comments to add vote status if user is logged in
       let processedComments = data.results || [];
@@ -121,6 +136,48 @@ const PostDetailPage = () => {
     } finally {
       setIsLoadingComments(false);
     }
+  };
+
+  // Function to fetch user details
+  const fetchUserDetails = async (userIds) => {
+    try {
+      const newUserMap = { ...userMap };
+      
+      // Fetch only users that aren't already in our map
+      const idsToFetch = userIds.filter(id => !newUserMap[id]);
+      
+      if (idsToFetch.length > 0) {
+        // This would be your actual API call to get user details
+        // For example:
+        for (const userId of idsToFetch) {
+          try {
+            const userDetails = await userService.getUserById(userId);
+            newUserMap[userId] = userDetails;
+          } catch (error) {
+            console.error(`Error fetching details for user ${userId}:`, error);
+            // Use a placeholder for users we couldn't fetch
+            newUserMap[userId] = { id: userId, username: `User ${userId}` };
+          }
+        }
+        
+        setUserMap(newUserMap);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
+  // Function to get user's name/username from userMap
+  const getUserName = (userId) => {
+    if (!userMap[userId]) {
+      return `User #${userId}`;  // Fallback if user details not available
+    }
+    
+    // Return username or full name depending on what's available
+    return userMap[userId].username || 
+           (userMap[userId].first_name && userMap[userId].last_name ? 
+            `${userMap[userId].first_name} ${userMap[userId].last_name}` : 
+            `User #${userId}`);
   };
 
   const handleSubmitComment = async (e) => {
@@ -269,7 +326,10 @@ const PostDetailPage = () => {
       return;
     }
 
-   
+    if (!userVote.hasVoted) {
+      toast.info('You have not voted on this post yet');
+      return;
+    }
 
     if (isVoting) {
       return; // Prevent multiple clicks
@@ -520,8 +580,19 @@ const PostDetailPage = () => {
       <React.Fragment key={i}>{line}<br /></React.Fragment>
     ));
 
-  if (isLoading) return <div className="post-detail-loading">Loading post...</div>;
-  if (!post) return <div className="post-detail-not-found">Post not found</div>;
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= Math.ceil(commentPagination.total / commentPagination.page_size)) {
+      setCommentPagination(prev => ({ ...prev, page: newPage }));
+    }
+  };
+
+  if (isLoading) {
+    return <div className="post-detail-loading">Loading post...</div>;
+  }
+
+  if (!post) {
+    return <div className="post-detail-not-found">Post not found</div>;
+  }
 
   return (
     <div className="post-detail-container">
@@ -540,7 +611,7 @@ const PostDetailPage = () => {
         <Card.Body>
           <div className="post-header">
             <div className="post-meta">
-              <div className="post-author">Posted by User #{post.author}</div>
+              <div className="post-author">Posted by {getUserName(post.author)}</div>
               <div className="post-timestamp">{formatDate(post.created_at)}</div>
             </div>
             {currentUser && post.author === currentUser.id && (
@@ -600,9 +671,12 @@ const PostDetailPage = () => {
               <button 
                 onClick={handleRemoveVote}
                 className="vote-button remove-vote"
-                disabled={isVoting}
+                disabled={isVoting || !userVote.hasVoted}
                 aria-label="Remove vote"
-               
+                style={{
+                  opacity: userVote.hasVoted ? '1' : '0.5',
+                  cursor: userVote.hasVoted ? 'pointer' : 'not-allowed'
+                }}
               >
                 Remove Vote
               </button>
@@ -664,7 +738,7 @@ const PostDetailPage = () => {
                       <div className="comment-header">
                         <div className="comment-meta">
                           <div className="comment-author">
-                            Comment by User #{comment.author}
+                            Comment by {getUserName(comment.author)}
                           </div>
                           <div className="comment-time">
                             {formatDate(comment.created_at)}
