@@ -6,6 +6,7 @@ import 'profile_screen.dart';
 import 'discover_recipes_screen.dart';
 import 'upload_recipe_screen.dart'; // Added import for UploadRecipeScreen
 import '../services/auth_service.dart';
+import 'community/community_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AuthService? authService;
@@ -60,14 +61,8 @@ class DashboardScreen extends StatelessWidget {
 
               if (confirm == true && context.mounted) {
                 try {
-                  // Get the stored token
-                  final token = await StorageService.getToken();
-                  if (token != null) {
-                    // Call the logout API
-                    //await AuthService().logout(token);
-                  }
-                  // Delete the token locally
-                  await StorageService.deleteToken();
+                  // Delete both tokens locally
+                  await StorageService.deleteTokens();
 
                   if (!context.mounted) return;
 
@@ -163,7 +158,9 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.group,
                     title: 'Join Community',
                     color: Colors.purple,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(context, '/community');
+                    },
                   ),
                   _buildDashboardCard(
                     icon: Icons.calendar_today,
@@ -176,6 +173,35 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        selectedItemColor: AppTheme.primaryGreen,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.group),
+            label: 'Community',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 1:
+              Navigator.pushNamed(context, '/community');
+              break;
+            case 2:
+              Navigator.pushNamed(context, ProfileScreen.routeName);
+              break;
+          }
+        },
       ),
     );
   }

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'storage_service.dart';
 import '../models/login_response.dart';
-import './storage_service.dart'; // Added for token and user ID saving
+import './storage_service.dart';
 
 class AuthenticationException implements Exception {
   final String message;
@@ -15,27 +16,31 @@ class AuthenticationException implements Exception {
 
 class AuthService {
   static const String baseUrl =
-      'http://10.0.2.2:8000/api'; // For /login/, /register/ etc.
+      'http://10.0.2.2:8000/';
   static const String jwtTokenUrl =
       'http://10.0.2.2:8000/api/token/'; // As per jwt.md
 
   Future<LoginResponse> login(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login/'),
+      // First, authenticate user with login endpoint
+      final loginResponse = await http.post(
+        Uri.parse('$baseUrl/api/login/'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
       );
 
-      switch (response.statusCode) {
+      switch (loginResponse.statusCode) {
         case 200:
-          final loginResponse = LoginResponse.fromJson(
-            jsonDecode(response.body),
+          final loginData = LoginResponse.fromJson(
+            jsonDecode(loginResponse.body),
           );
           // Save token and userId
-          await StorageService.saveToken(loginResponse.token);
-          await StorageService.saveUserId(loginResponse.userId.toString());
-          return loginResponse;
+          await StorageService.saveJwtAccessToken(loginData.token);
+          await StorageService.saveUserId(loginData.userId.toString());
+          return loginData;
         case 400:
           throw AuthenticationException(
             'Invalid email or password.',
@@ -49,16 +54,13 @@ class AuthService {
         default:
           throw AuthenticationException(
             'An error occurred. Please try again later.',
-            statusCode: response.statusCode,
+            statusCode: loginResponse.statusCode,
           );
       }
     } catch (e) {
-      if (e is AuthenticationException) {
-        rethrow;
-      }
-      throw AuthenticationException('Network error: ${e.toString()}');
+      throw Exception(e.toString());
     }
-  } // End of login method
+  }
 
   Future<void> register({
     required String username,
@@ -82,7 +84,7 @@ class AuthService {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/register/'), // Corrected endpoint
+        Uri.parse('$baseUrl/api/register/'), 
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -130,7 +132,7 @@ class AuthService {
   Future<void> requestPasswordResetCode(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/request-password-reset-code/'),
+        Uri.parse('$baseUrl/api/request-password-reset-code/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
@@ -153,7 +155,7 @@ class AuthService {
   Future<String> verifyResetCode(String email, String resetCode) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/verify-reset-code/'),
+        Uri.parse('$baseUrl/api/verify-reset-code/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'code': resetCode}),
       );
@@ -200,7 +202,7 @@ class AuthService {
     }
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/reset-password/'),
+        Uri.parse('$baseUrl/api/reset-password/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'token': token, 'new_password': newPassword}),
       );
@@ -223,7 +225,7 @@ class AuthService {
   Future<void> logout(String token) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/logout/'),
+        Uri.parse('$baseUrl/api/logout/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -256,41 +258,36 @@ class AuthService {
   }
 
   // New method to get JWT access token
-  Future<String> getJwtAccessToken(String email, String password) async {
+  Future<Map<String, String>> getJwtAccessToken(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse(jwtTokenUrl), // Using the dedicated JWT token URL
+        Uri.parse(jwtTokenUrl),
         headers: {'Content-Type': 'application/json'},
-        // As per jwt.md, use 'username' for email field
         body: jsonEncode({'username': email, 'password': password}),
       );
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        if (responseBody['access'] != null) {
-          return responseBody['access'] as String;
+        if (responseBody['access'] != null && responseBody['refresh'] != null) {
+          return {
+            'access': responseBody['access'],
+            'refresh': responseBody['refresh'],
+          };
         } else {
           throw AuthenticationException(
-            'Access token not found in JWT response.',
+            'Invalid JWT response format.',
             statusCode: response.statusCode,
           );
         }
       } else {
-        // Handle errors based on common Simple JWT responses
-        String errorMessage = 'Failed to obtain JWT token.';
+        String errorMessage = 'Failed to obtain JWT tokens.';
         try {
           final errorBody = jsonDecode(response.body);
           if (errorBody['detail'] != null) {
             errorMessage = errorBody['detail'];
-          } else if (errorBody['non_field_errors'] != null &&
-              errorBody['non_field_errors'] is List &&
-              errorBody['non_field_errors'].isNotEmpty) {
-            errorMessage = errorBody['non_field_errors'][0];
           }
         } catch (_) {
-          // If parsing fails, use a generic message or response.body
-          errorMessage =
-              'Failed to obtain JWT token (status ${response.statusCode}): ${response.body}';
+          errorMessage = 'Failed to obtain JWT tokens (status ${response.statusCode})';
         }
         throw AuthenticationException(
           errorMessage,
@@ -302,7 +299,7 @@ class AuthService {
         rethrow;
       }
       throw AuthenticationException(
-        'Network error while obtaining JWT token: ${e.toString()}',
+        'Network error while obtaining JWT tokens: ${e.toString()}',
       );
     }
   }
