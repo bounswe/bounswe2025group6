@@ -279,4 +279,100 @@ class CommunityService {
       throw Exception('Network error: ${e.toString()}');
     }
   }
+
+  Future<Map<String, dynamic>?> getUserVote(int postId) async {
+    try {
+      var response = await http.get(
+        Uri.parse('$baseUrl/forum/post/$postId/vote/'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.get(
+          Uri.parse('$baseUrl/forum/post/$postId/vote/'),
+          headers: headers,
+        );
+      }
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 204) {
+        return null;
+      } else {
+        throw Exception('Failed to get vote status');
+      }
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<void> votePost(int postId, String voteType) async {
+    try {
+      var response = await http.post(
+        Uri.parse('$baseUrl/forum/post/$postId/vote/'),
+        headers: headers,
+        body: jsonEncode({'vote_type': voteType}),
+      );
+
+      if (response.statusCode == 400) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Please login to vote');
+
+        response = await http.post(
+          Uri.parse('$baseUrl/forum/post/$postId/vote/'),
+          headers: headers,
+          body: jsonEncode({'vote_type': voteType}),
+        );
+      }
+
+      switch (response.statusCode) {
+        case 201:
+          return;
+        case 400:
+          final error = jsonDecode(response.body);
+          throw Exception(error['message'] ?? 'You have already voted on this post');
+        case 404:
+          throw Exception('Post not found');
+        default:
+          throw Exception('Failed to vote. Please try again');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error. Please check your connection');
+    }
+  }
+
+  Future<void> removeVote(int postId) async {
+    try {
+      var response = await http.delete(
+        Uri.parse('$baseUrl/forum/post/$postId/vote/'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 400) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Please login to remove your vote');
+
+        response = await http.delete(
+          Uri.parse('$baseUrl/forum/post/$postId/vote/'),
+          headers: headers,
+        );
+      }
+
+      switch (response.statusCode) {
+        case 204:
+          return;
+        case 404:
+          throw Exception('No vote found to remove');
+        default:
+          throw Exception('Failed to remove vote. Please try again');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error. Please check your connection');
+    }
+  }
 }
