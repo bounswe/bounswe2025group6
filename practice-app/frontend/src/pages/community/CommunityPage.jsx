@@ -6,6 +6,7 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
+import userService from '../../services/userService.js'; // Import userService for fetching user details
 import '../../styles/CommunityPage.css';
 
 const CommunityPage = () => {
@@ -24,6 +25,7 @@ const CommunityPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [sortBy, setSortBy] = useState('recent');
+  const [userMap, setUserMap] = useState({}); // Map to store user details
 
   // Available tags from API documentation
   const availableTags = [
@@ -43,12 +45,19 @@ const CommunityPage = () => {
       console.log("Fetching posts with page:", pagination.page, "page_size:", pagination.page_size);
       const data = await forumService.getPosts(pagination.page, pagination.page_size);
       console.log("Response data:", data);
+      
+      // Set the posts
       setPosts(data.results || []);
       setPagination({
         page: data.page || 1,
         page_size: data.page_size || 10,
         total: data.total || 0
       });
+      
+      // Get unique author IDs to fetch their details
+      const authorIds = [...new Set((data.results || []).map(post => post.author))];
+      fetchUserDetails(authorIds);
+      
     } catch (error) {
       console.error('Error loading posts:', error);
       setError('Failed to load forum posts');
@@ -56,6 +65,48 @@ const CommunityPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to fetch user details and store them in userMap
+  const fetchUserDetails = async (userIds) => {
+    try {
+      const newUserMap = { ...userMap };
+      
+      // Fetch only users that aren't already in our map
+      const idsToFetch = userIds.filter(id => !newUserMap[id]);
+      
+      if (idsToFetch.length > 0) {
+        // This would be your actual API call to get user details
+        // For example:
+        for (const userId of idsToFetch) {
+          try {
+            const userDetails = await userService.getUserById(userId);
+            newUserMap[userId] = userDetails;
+          } catch (error) {
+            console.error(`Error fetching details for user ${userId}:`, error);
+            // Use a placeholder for users we couldn't fetch
+            newUserMap[userId] = { id: userId, username: `User ${userId}` };
+          }
+        }
+        
+        setUserMap(newUserMap);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
+  // Function to get user's name/username from userMap
+  const getUserName = (userId) => {
+    if (!userMap[userId]) {
+      return `User #${userId}`;  // Fallback if user details not available
+    }
+    
+    // Return username or full name depending on what's available
+    return userMap[userId].username || 
+           (userMap[userId].first_name && userMap[userId].last_name ? 
+            `${userMap[userId].first_name} ${userMap[userId].last_name}` : 
+            `User #${userId}`);
   };
 
   const handleVote = async (postId, voteType) => {
@@ -203,7 +254,7 @@ const CommunityPage = () => {
                 <div className="forum-post">
                   <div className="forum-post-content">
                     <div className="forum-post-header">
-                      <span>Posted by User #{post.author}</span>
+                      <span>Posted by {getUserName(post.author)}</span>
                       <span>{formatDate(post.created_at)}</span>
                     </div>
                     <h2>{post.title}</h2>
