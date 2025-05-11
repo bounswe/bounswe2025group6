@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/login_response.dart';
+import './storage_service.dart'; // Added for token and user ID saving
 
 class AuthenticationException implements Exception {
   final String message;
@@ -28,7 +29,13 @@ class AuthService {
 
       switch (response.statusCode) {
         case 200:
-          return LoginResponse.fromJson(jsonDecode(response.body));
+          final loginResponse = LoginResponse.fromJson(
+            jsonDecode(response.body),
+          );
+          // Save token and userId
+          await StorageService.saveToken(loginResponse.token);
+          await StorageService.saveUserId(loginResponse.userId.toString());
+          return loginResponse;
         case 400:
           throw AuthenticationException(
             'Invalid email or password.',
