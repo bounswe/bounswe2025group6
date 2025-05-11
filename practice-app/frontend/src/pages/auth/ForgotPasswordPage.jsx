@@ -1,6 +1,6 @@
 // src/pages/auth/ForgotPasswordPage.jsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
@@ -355,7 +355,9 @@ const ForgotPasswordPage = () => {
         return null;
     }
   };
-  
+  useEffect(() => {
+      document.title = "Forgot Password - FitHub";
+    }, []);
   return (
     <div className="auth-container">
       <div className="auth-card">

@@ -1,6 +1,6 @@
 // src/pages/DashboardPage.jsx
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
@@ -16,7 +16,9 @@ const DashboardPage = () => {
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
   };
-
+  useEffect(() => {
+    document.title = "Dashboard";
+  }, []);
   return (
     <div className="dashboard-container dashboard-cards">
       <div className="dashboard-header center">

@@ -26,6 +26,7 @@ const RecipeDetailPage = () => {
         } else {
           setError('Recipe not found');
         }
+
       } catch (err) {
         setError('Failed to load recipe');
       } finally {

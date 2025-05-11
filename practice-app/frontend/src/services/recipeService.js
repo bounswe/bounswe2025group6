@@ -10,12 +10,14 @@ const API_BASE_URL = 'http://localhost:8000'; // Backend API'nin base URL'si
 
 export const getRecipeById = async (id) => {
   try {
-    const token = localStorage.getItem('fithub_access_token'); // Token'ı alın
+    const token = localStorage.getItem('fithub_access_token'); // Take token
+
     const response = await axios.get(`${API_BASE_URL}/recipes/${id}/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+
     return response.data;
   } catch (error) {
     console.error('Error fetching recipe:', error);
@@ -51,24 +53,74 @@ export const fetchRecipes = async (page = 1, pageSize = 10) => {
  * @param {Object} recipe Tarif verisi
  * @returns {Promise<Object>} Eklenen tarif
  */
-export const addRecipe = async (recipe) => {
+export const addRecipe = async (recipeData) => {
   try {
-    // Backend'e uygun formatta POST isteği gönder
-    const response = await axios.post(`${API_BASE_URL}/recipes/`, {
-      name: recipe.name,
-      steps: recipe.steps,
-      prep_time: recipe.prep_time,
-      cook_time: recipe.cook_time,
-      meal_type: recipe.meal_type,
-      ingredients: recipe.ingredients.map((ingredient) => ({
-        ingredient_name: ingredient.ingredient_name,
-        quantity: ingredient.quantity,
-        unit: ingredient.unit,
-      })),
+    const token = localStorage.getItem('fithub_access_token');
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
+
+    // Format the recipe data to match backend expectations
+    const formattedData = {
+      name: recipeData.name.trim(),
+      steps: recipeData.steps, // Steps are already an array of strings
+      prep_time: parseInt(recipeData.prep_time),
+      cook_time: parseInt(recipeData.cooking_time),
+      meal_type: recipeData.meal_type,
+      ingredients: recipeData.ingredients.map(ing => ({
+        ingredient_name: ing.ingredient_name,
+        quantity: parseFloat(ing.quantity) || 1,
+        unit: ing.unit || 'pcs'
+      }))
+    };
+
+    console.log('Sending formatted recipe data:', formattedData); // For debugging
+
+    const response = await fetch('http://localhost:8000/recipes/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(formattedData)
     });
-    return response.data;
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server error response:', errorData);
+      throw new Error(errorData.detail || 'Failed to create recipe');
+    }
+
+    return await response.json();
   } catch (error) {
-    console.error('Error adding recipe:', error);
+    console.error('Recipe creation error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new recipe
+ * @param {Object} recipeData Recipe data
+ * @returns {Promise<Object>} Created recipe
+ */
+export const createRecipe = async (recipeData) => {
+  try {
+    const response = await fetch('http://localhost:8000/recipes/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('fithub_access_token')}`,
+      },
+      body: JSON.stringify(recipeData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create recipe');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating recipe:', error);
     throw error;
   }
 };
