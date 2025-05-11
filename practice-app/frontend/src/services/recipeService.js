@@ -8,19 +8,18 @@ const API_BASE_URL = 'http://localhost:8000'; // Backend API'nin base URL'si
 
 
 
-/**
- * Get a recipe by ID
- * @param {number} id Recipe ID
- * @returns {Object|null} Recipe object or null if not found
- */
-export const getRecipeById = (id) => {
+export const getRecipeById = async (id) => {
   try {
-    const recipes = getAllRecipes();
-    const recipe = recipes.find(recipe => recipe.id === parseInt(id));
-    return recipe || null;
+    const token = localStorage.getItem('fithub_access_token'); // Token'ı alın
+    const response = await axios.get(`${API_BASE_URL}/recipes/${id}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
   } catch (error) {
     console.error('Error fetching recipe:', error);
-    return null;
+    throw error;
   }
 };
 

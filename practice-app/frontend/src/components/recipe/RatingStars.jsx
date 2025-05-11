@@ -1,4 +1,3 @@
-// src/components/recipe/RatingStars.jsx
 import React, { useState } from 'react';
 import '../../styles/RatingStars.css';
 
@@ -8,7 +7,6 @@ const RatingStars = ({
   onChange,
   maxRating = 5,
   className = '',
-  size = 'sm'
 }) => {
   const [hoverRating, setHoverRating] = useState(0);
 
@@ -27,7 +25,6 @@ const RatingStars = ({
   };
 
   const displayRating = hoverRating || rating;
-  const sizeClass = `star-${size}`;
 
   return (
     <div className={`rating-stars ${className}`}>
@@ -44,7 +41,7 @@ const RatingStars = ({
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
-              className={`${sizeClass} ${isFilled ? 'star-filled' : 'star-empty'}`}
+              className={isFilled ? 'star-filled' : 'star-empty'}
             >
               {isFilled ? (
                 <path
