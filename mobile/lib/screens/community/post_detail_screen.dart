@@ -17,6 +17,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   Map<String, dynamic>? post;
   bool _isLoading = true;
   final CommunityService _communityService = CommunityService();
+  String? currentVote;  // Add this line
+  bool isVoteLoading = false;  // Add this line
 
   @override
   void initState() {
@@ -38,6 +40,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               post = postDetail;
               _isLoading = false;
             });
+            _loadVoteStatus(); // Add this line
           }
         } catch (e) {
           if (mounted) {
@@ -105,6 +108,101 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _loadVoteStatus() async {
+    if (post == null) return;
+    
+    try {
+      final vote = await _communityService.getUserVote(post!['id']);
+      if (mounted) {
+        setState(() {
+          currentVote = vote?['vote_type'];
+        });
+      }
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
+  Future<void> _handleVote(String voteType) async {
+    if (isVoteLoading || post == null) return;
+
+    setState(() {
+      isVoteLoading = true;
+    });
+
+    try {
+      if (currentVote == voteType) {
+        // Remove vote if clicking the same button
+        await _communityService.removeVote(post!['id']);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Vote removed successfully'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        setState(() {
+          currentVote = null;
+          if (voteType == 'up') {
+            post!['upvote_count'] = (post!['upvote_count'] ?? 1) - 1;
+          } else {
+            post!['downvote_count'] = (post!['downvote_count'] ?? 1) - 1;
+          }
+        });
+      } else {
+        // Add or change vote
+        await _communityService.votePost(post!['id'], voteType);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(voteType == 'up' ? 'Post upvoted!' : 'Post downvoted!'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        setState(() {
+          // If there was a previous vote, decrement its count
+          if (currentVote != null) {
+            if (currentVote == 'up') {
+              post!['upvote_count'] = (post!['upvote_count'] ?? 1) - 1;
+            } else {
+              post!['downvote_count'] = (post!['downvote_count'] ?? 1) - 1;
+            }
+          }
+          
+          // Increment the new vote count
+          if (voteType == 'up') {
+            post!['upvote_count'] = (post!['upvote_count'] ?? 0) + 1;
+          } else {
+            post!['downvote_count'] = (post!['downvote_count'] ?? 0) + 1;
+          }
+          currentVote = voteType;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isVoteLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -144,6 +242,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Post Detail'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop(true); // Return true to indicate changes were made
+          },
+        ),
         actions: [
           if (post != null) ...[
             IconButton(
@@ -189,12 +293,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         const SizedBox(width: 4),
                         Text('${post!['view_count'] ?? 0}'),
                         const SizedBox(width: 16),
-                        const Icon(Icons.favorite),
-                        const SizedBox(width: 4),
+                        IconButton(
+                          icon: Icon(
+                            Icons.favorite,
+                            color: currentVote == 'up' ? Colors.red : null,
+                          ),
+                          onPressed: isVoteLoading 
+                            ? null 
+                            : () => _handleVote('up'),  // Remove the navigation
+                        ),
                         Text('${post!['upvote_count'] ?? 0}'),
                         const SizedBox(width: 16),
-                        const Icon(Icons.thumb_down),
-                        const SizedBox(width: 4),
+                        IconButton(
+                          icon: Icon(
+                            Icons.thumb_down,
+                            color: currentVote == 'down' ? Colors.blue : null,
+                          ),
+                          onPressed: isVoteLoading 
+                            ? null 
+                            : () => _handleVote('down'),  // Remove the navigation
+                        ),
                         Text('${post!['downvote_count'] ?? 0}'),
                       ],
                     ),
