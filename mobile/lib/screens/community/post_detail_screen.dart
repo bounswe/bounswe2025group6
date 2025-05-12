@@ -402,7 +402,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           },
         ),
         actions: [
-          if (post != null) ...[
+          if (post != null && _currentUserId != null && post!['author_id'] == _currentUserId) ...[
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: _navigateToEditScreen,
