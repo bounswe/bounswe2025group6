@@ -71,7 +71,10 @@ class ProfileService {
         final refreshSuccess = await _refreshToken();
         if (!refreshSuccess) {
           await StorageService.deleteAllUserData();
-          throw ProfileServiceException('Authentication failed', statusCode: 401);
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
         }
 
         response = await http.get(
@@ -130,7 +133,10 @@ class ProfileService {
         final refreshSuccess = await _refreshToken();
         if (!refreshSuccess) {
           await StorageService.deleteAllUserData();
-          throw ProfileServiceException('Authentication failed', statusCode: 401);
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
         }
 
         response = await http.patch(
