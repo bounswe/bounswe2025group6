@@ -45,6 +45,8 @@ const PostDetailPage = () => {
     }
   }, [post, commentPagination.page]);
 
+  // Updated loadPostAndVoteStatus function in PostDetailPage.jsx
+
   const loadPostAndVoteStatus = async () => {
     setIsLoading(true);
     try {
@@ -63,6 +65,14 @@ const PostDetailPage = () => {
           console.log("Checking vote status for user:", currentUser.id);
           const voteStatus = await forumService.checkPostVoteStatus(id);
           console.log("Vote status received:", voteStatus);
+          
+          // Only set hasVoted to true if we have a valid vote type
+          if (voteStatus.hasVoted && !voteStatus.voteType) {
+            console.log("Has voted is true but vote type is undefined - fixing this inconsistency");
+            voteStatus.hasVoted = false;  // Reset hasVoted to false if no vote type
+            voteStatus.voteType = null;
+          }
+          
           setUserVote(voteStatus);
           
           // Make sure the post data reflects the user's vote count
@@ -88,6 +98,8 @@ const PostDetailPage = () => {
       setIsLoading(false);
     }
   };
+
+  // Updated loadComments function for PostDetailPage.jsx
 
   const loadComments = async () => {
     if (!post || !post.is_commentable) return;
@@ -115,6 +127,14 @@ const PostDetailPage = () => {
           processedComments.map(async (comment) => {
             try {
               const voteStatus = await forumService.checkCommentVoteStatus(comment.id);
+              
+              // Validate vote status - ensure consistency
+              if (voteStatus.hasVoted && !voteStatus.voteType) {
+                console.log(`Comment ${comment.id} has invalid vote status - fixing`);
+                voteStatus.hasVoted = false;
+                voteStatus.voteType = null;
+              }
+              
               return { ...comment, userVote: voteStatus };
             } catch (error) {
               return { ...comment, userVote: { hasVoted: false, voteType: null } };
@@ -210,6 +230,8 @@ const PostDetailPage = () => {
     }
   };
 
+  // Updated handleVote function in PostDetailPage.jsx
+
   const handleVote = async (voteType) => {
     if (!currentUser) {
       toast.info('Please log in to vote');
@@ -264,7 +286,12 @@ const PostDetailPage = () => {
           
           // Delete the old vote first
           console.log("Deleting old vote");
-          await forumService.deleteVotePost(id);
+          try {
+            await forumService.deleteVotePost(id);
+          } catch (err) {
+            console.log("Error deleting vote, but will continue:", err);
+            // Continue despite error - we'll still try to create the new vote
+          }
         } else {
           console.log("Adding new vote:", voteType);
           // New vote
@@ -369,6 +396,7 @@ const PostDetailPage = () => {
     }
   };
 
+
   const handleVoteComment = async (commentId, voteType) => {
     if (!currentUser) {
       toast.info('Please log in to vote on comments');
@@ -417,7 +445,12 @@ const PostDetailPage = () => {
           }
           
           // Remove old vote first
-          await forumService.deleteVoteComment(commentId);
+          try {
+            await forumService.deleteVoteComment(commentId);
+          } catch (err) {
+            console.log("Error deleting comment vote, but will continue:", err);
+            // Continue despite error - we'll still try to create the new vote
+          }
         } else {
           // New vote
           if (voteType === 'up') {
@@ -470,6 +503,8 @@ const PostDetailPage = () => {
       loadComments();
     }
   };
+
+  // Updated handleRemoveCommentVote function for PostDetailPage.jsx
 
   const handleRemoveCommentVote = async (commentId) => {
     if (!currentUser) {
@@ -650,10 +685,6 @@ const PostDetailPage = () => {
                 className={`vote-button ${userVote.hasVoted && userVote.voteType === 'up' ? 'active-up' : ''}`}
                 disabled={isVoting}
                 aria-label="Upvote"
-                style={{
-                  backgroundColor: userVote.hasVoted && userVote.voteType === 'up' ? '#4CAF50' : '',
-                  color: userVote.hasVoted && userVote.voteType === 'up' ? 'white' : ''
-                }}
               >
                 ▲ {post.upvote_count || 0}
               </button>
@@ -662,10 +693,6 @@ const PostDetailPage = () => {
                 className={`vote-button ${userVote.hasVoted && userVote.voteType === 'down' ? 'active-down' : ''}`}
                 disabled={isVoting}
                 aria-label="Downvote"
-                style={{
-                  backgroundColor: userVote.hasVoted && userVote.voteType === 'down' ? '#4CAF50' : '',
-                  color: userVote.hasVoted && userVote.voteType === 'down' ? 'white' : ''
-                }}
               >
                 ▼ {post.downvote_count || 0}
               </button>
@@ -674,10 +701,6 @@ const PostDetailPage = () => {
                 className="vote-button remove-vote"
                 disabled={isVoting || !userVote.hasVoted}
                 aria-label="Remove vote"
-                style={{
-                  opacity: userVote.hasVoted ? '1' : '0.5',
-                  cursor: userVote.hasVoted ? 'pointer' : 'not-allowed'
-                }}
               >
                 Remove Vote
               </button>
