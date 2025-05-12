@@ -39,3 +39,14 @@ class Ingredient(TimestampedModel):
 
     def __str__(self):
         return self.name
+    
+
+class WikidataInfo(models.Model):
+    ingredient_id = models.IntegerField(unique=True)  # Store the ID of the linked Ingredient
+    wikidata_id = models.CharField(max_length=255, null=True, blank=True)
+    wikidata_label = models.CharField(max_length=255, null=True, blank=True)
+    wikidata_description = models.TextField(null=True, blank=True)
+    wikidata_image_url = models.URLField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Wikidata Info for Ingredient ID {self.ingredient_id}"
