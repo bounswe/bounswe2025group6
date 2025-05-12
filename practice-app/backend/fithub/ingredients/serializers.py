@@ -7,7 +7,8 @@ from rest_framework.pagination import PageNumberPagination
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ['id', 'name', 'wikidata_id', 'wikidata_label', 
+                 'wikidata_description', 'wikidata_image_url']
 
 # Needed for pagination
 class IngredientPagination(PageNumberPagination):

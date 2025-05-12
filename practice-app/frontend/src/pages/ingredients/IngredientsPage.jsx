@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { debounce } from 'lodash';
 import '../../styles/IngredientList.css';
 import '../../styles/IngredientsPage.css';
 
@@ -26,48 +27,80 @@ const IngredientsPage = () => {
 
   // Fetch all ingredients from API and handle pagination
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchAllIngredients = async () => {
       try {
-        let allData = [];
-        let nextUrl = 'http://localhost:8000/ingredients/';
-
-        while (nextUrl) {
-          const res = await fetch(nextUrl);
-          if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
-          const data = await res.json();
-          allData = [...allData, ...data.results];
-          nextUrl = data.next;
-        }
-
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
+        setLoading(true);
+        setError(null);
         
-        setAllIngredients(allData);
-        setIngredients(allData.slice(startIndex, endIndex));
-        setHasNextPage(allData.length > endIndex);
-        setLoading(false);
+        const res = await fetch(
+          `http://localhost:8000/ingredients/?page=1&page_size=100`, 
+          { signal: controller.signal }
+        );
+    
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+    
+        if (isMounted) {
+          setAllIngredients(data.results);
+          const startIndex = (page - 1) * pageSize;
+          const endIndex = startIndex + pageSize;
+          setIngredients(data.results.slice(startIndex, endIndex));
+          setHasNextPage(data.results.length > endIndex);
+        }
       } catch (err) {
-        setError(err.message);
-        setLoading(false);
+        if (err.name === 'AbortError') {
+          console.log('Fetch aborted');
+          return;
+        }
+        if (isMounted) {
+          setError(err.message);
+          console.error('Error fetching ingredients:', err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (ingredients.length === 0) {
-      setLoading(true);
-    }
-    fetchAllIngredients();
+    // Debounce the fetch to prevent multiple rapid calls
+    const debouncedFetch = debounce(() => {
+      if (ingredients.length === 0) {
+        fetchAllIngredients();
+      }
+    }, 300);
+
+    debouncedFetch();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      debouncedFetch.cancel();
+    };
   }, [pageSize, selectedColumn, page]);
 
   // Handle search functionality
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredIngredients([]);
-    } else {
-      const filtered = allIngredients.filter((ingredient) =>
-        ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredIngredients(filtered);
-    }
+    const debouncedSearch = debounce(() => {
+      if (searchQuery.trim() === '') {
+        setFilteredIngredients([]);
+      } else {
+        const filtered = allIngredients.filter((ingredient) =>
+          ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredIngredients(filtered);
+      }
+    }, 300);
+
+    debouncedSearch();
+    return () => debouncedSearch.cancel();
   }, [searchQuery, allIngredients]);
 
   // Update displayed ingredients when page or size changes
@@ -101,7 +134,14 @@ const IngredientsPage = () => {
 
   // Loading and error states
   if (loading && ingredients.length === 0) {
-    return <div>Loading ingredients…</div>;
+    return (
+      <div className="ingredients-page">
+        <div className="ingredients-loading">
+          <div className="loading-circle"></div>
+          <div className="loading-text">Loading ingredients...</div>
+        </div>
+      </div>
+    );
   }
   if (error) return <div className="text-red-500">Error: {error}</div>;
 

@@ -36,37 +36,25 @@ const UploadRecipePage = () => {
 
   // Fetch ingredients
   useEffect(() => {
-      const fetchAllIngredients = async () => {
-        try {
-          let allData = [];
-          let nextUrl = 'http://localhost:8000/ingredients/';
-  
-          while (nextUrl) {
-            const res = await fetch(nextUrl);
-            if (!res.ok) throw new Error('API Error: ${res.status} ${res.statusText}');
-            const data = await res.json();
-            allData = [...allData, ...data.results];
-            nextUrl = data.next;
-          }
-  
-          const startIndex = (page - 1) * pageSize;
-          const endIndex = startIndex + pageSize;
-          
-          setAllIngredients(allData);
-          setIngredients(allData.slice(startIndex, endIndex));
-          setHasNextPage(allData.length > endIndex);
-          setLoading(false);
-        } catch (err) {
-          setError(err.message);
-          setLoading(false);
-        }
-      };
-  
-      if (ingredients.length === 0) {
+    const fetchAllIngredients = async () => {
+      try {
         setLoading(true);
+        
+        const res = await fetch('http://localhost:8000/ingredients/?page=1&page_size=100');
+        if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
+        
+        const data = await res.json();
+        setAllIngredients(data.results);
+        setIngredients(data.results);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching ingredients:', err);
+        setLoading(false);
       }
-      fetchAllIngredients();
-    }, [pageSize, selectedColumn, page]);
+    };
+
+    fetchAllIngredients();
+  }, []);
 
   // Filter ingredients based on search
   useEffect(() => {

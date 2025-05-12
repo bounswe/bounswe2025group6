@@ -7,11 +7,17 @@ from drf_yasg.utils import swagger_auto_schema
 from .models import Ingredient
 from .serializers import IngredientSerializer, IngredientPagination
 from wikidata.utils import get_wikidata_id, get_wikidata_details  # Import from the wikidata app
+from django.utils import timezone
+from datetime import timedelta
+from django.core.exceptions import ObjectDoesNotExist
+import logging
+
+logger = logging.getLogger(__name__)
 
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
-    queryset = Ingredient.objects.all()
+    queryset = Ingredient.objects.all().order_by('name')
     serializer_class = IngredientSerializer
     pagination_class = IngredientPagination
 
@@ -74,53 +80,53 @@ class IngredientViewSet(mixins.ListModelMixin,
             return Response({'error': 'Ingredient not found.'}, status=status.HTTP_404_NOT_FOUND)
     
     #WIKIDATA TEST
+    def _update_wikidata_info(self, ingredient):
+        try:
+            # Only update if needed
+            if not ingredient.last_wikidata_update or \
+               timezone.now() - ingredient.last_wikidata_update > timedelta(hours=24):
+                
+                wikidata_id = get_wikidata_id(ingredient.name)
+                if wikidata_id:
+                    try:
+                        details = get_wikidata_details(wikidata_id)
+                        if details:
+                            ingredient.wikidata_id = wikidata_id
+                            ingredient.wikidata_label = details.get('labels', {}).get('en', {}).get('value', '')
+                            ingredient.wikidata_description = details.get('descriptions', {}).get('en', {}).get('value', '')
+                            
+                            if 'P18' in details.get('claims', {}):
+                                image = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
+                                ingredient.wikidata_image_url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image}"
+                
+                            ingredient.last_wikidata_update = timezone.now()
+                            ingredient.save()
+                    
+                    except Exception as e:
+                        logger.error(f"Error fetching Wikidata details for {ingredient.name}: {str(e)}")
+        
+        except Exception as e:
+            logger.error(f"Error updating Wikidata info for {ingredient.name}: {str(e)}")
+            # Don't raise the error - allow the API to continue working even if Wikidata fails
+
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        ingredients_data = serializer.data
-
-        for ingredient in ingredients_data:
-            wikidata_id = get_wikidata_id(ingredient['name'])  # Assuming 'name' field
-            ingredient['wikidata_id'] = wikidata_id  # Add the wikidata_id
-
-            if wikidata_id:
-                details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
-                if details:
-                    #  Flatten the structure for easier use in frontend
-                    ingredient['wikidata_label'] = details.get('labels', {}).get('en', {}).get('value')
-                    ingredient['wikidata_description'] = details.get('descriptions', {}).get('en', {}).get('value')
-                    if details.get('claims', {}).get('P18'):
-                         image_filename = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
-                         ingredient['wikidata_image_url'] = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
-                    else:
-                         ingredient['wikidata_image_url'] = None
-                else:
-                    ingredient['wikidata_label'] = None
-                    ingredient['wikidata_description'] = None
-                    ingredient['wikidata_image_url'] = None
-        return self.get_paginated_response(ingredients_data)
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            
+            # Don't block the response for Wikidata updates
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error in ingredient list view: {str(e)}")
+            return Response(
+                {"error": "An error occurred while fetching ingredients"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        self._update_wikidata_info(instance)
         serializer = self.get_serializer(instance)
-        ingredient_data = serializer.data
-
-        wikidata_id = get_wikidata_id(ingredient_data['name'])
-        ingredient_data['wikidata_id'] = wikidata_id
-
-        if wikidata_id:
-            details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
-            if details:
-                ingredient_data['wikidata_label'] = details.get('labels', {}).get('en', {}).get('value')
-                ingredient_data['wikidata_description'] = details.get('descriptions', {}).get('en', {}).get('value')
-                if details.get('claims', {}).get('P18'):
-                    image_filename = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
-                    ingredient_data['wikidata_image_url'] = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
-                else:
-                    ingredient_data['wikidata_image_url'] = None
-            else:
-                ingredient_data['wikidata_label'] = None
-                ingredient_data['wikidata_description'] = None
-                ingredient_data['wikidata_image_url'] = None
-        return Response(ingredient_data)
+        return Response(serializer.data)
