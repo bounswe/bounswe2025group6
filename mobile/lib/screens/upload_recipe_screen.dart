@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fithub/theme/app_theme.dart';
 import 'package:fithub/services/recipe_service.dart'; // Import RecipeService
+import 'package:fithub/services/profile_service.dart'; // Import ProfileService
+import 'package:fithub/models/user_profile.dart';
 
 class UploadRecipeScreen extends StatefulWidget {
   const UploadRecipeScreen({super.key});
@@ -94,6 +96,28 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
       try {
         final success = await RecipeService().createRecipe(recipeData);
         if (success) {
+          try {
+            final profileService = ProfileService();
+            UserProfile userProfile = await profileService.getUserProfile();
+            int newRecipeCount = (userProfile.recipeCount ?? 0) + 1;
+            userProfile = userProfile.copyWith(recipeCount: newRecipeCount);
+            await profileService.updateUserProfile(userProfile);
+          } catch (e) {
+            print('Error updating recipe count: $e'); // Log the error
+            // Show a snackbar to the user about the count update failure
+            if (mounted) {
+              // Check if the widget is still in the tree
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Recipe uploaded, but failed to update profile count: ${e.toString()}',
+                  ),
+                  backgroundColor: Colors.orange, // Use a warning color
+                ),
+              );
+            }
+          }
+          // Show success message regardless of count update success for now
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Recipe uploaded successfully!')),
           );
