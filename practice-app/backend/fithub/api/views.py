@@ -140,6 +140,7 @@ send_mail(
 
 @swagger_auto_schema(
     method='post',
+    tags = ["Password Reset via Email Link Workflow"],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -177,6 +178,7 @@ def forgot_password(request):
 
 @swagger_auto_schema(
     method='post',
+    tags = ["Password Reset via Email Link Workflow"],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -209,7 +211,7 @@ def password_reset(request, uidb64, token):
 class RequestResetCodeView(APIView):
     @swagger_auto_schema(
         operation_description="Request a 6-digit password reset code to be sent to your email.",
-        tags = ["Password Reset"],
+        tags = ["Password Reset via 6-Digit Code Workflow"],
         request_body=RequestPasswordResetCodeSerializer,
         responses={200: "Code sent", 400: "Validation error"}
     )
@@ -226,7 +228,7 @@ class RequestResetCodeView(APIView):
 class VerifyResetCodeView(APIView):
     @swagger_auto_schema(
         operation_description="Verify 6-digit password reset code for the given email.",
-        tags = ["Password Reset"],
+        tags = ["Password Reset via 6-Digit Code Workflow"],
         request_body=VerifyPasswordResetCodeSerializer,
         responses={200: "Code verified and temporary token issued", 400: "Validation error"}
     )
@@ -249,7 +251,7 @@ class VerifyResetCodeView(APIView):
 class ResetPasswordView(APIView):
     @swagger_auto_schema(
         operation_description="Reset password using a temporary token and new password.",
-        tags = ["Password Reset"],
+        tags = ["Password Reset via 6-Digit Code Workflow"],
         request_body=ResetPasswordSerializer,
         responses={200: "Password reset successful", 400: "Validation error"}
     )

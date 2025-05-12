@@ -3,10 +3,13 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework import mixins, viewsets
 from drf_yasg import openapi
+import requests
 from drf_yasg.utils import swagger_auto_schema
 from .models import Ingredient, WikidataInfo
 from .serializers import IngredientSerializer, IngredientPagination, WikidataInfoSerializer
 from wikidata.utils import get_wikidata_id, get_wikidata_details  # Import from the wikidata app
+WIKIDATA_SPARQL_URL = "https://query.wikidata.org/sparql"
+HEADERS = {"User-Agent": "IngredientWikidataAPI/1.0"}
 
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
@@ -152,3 +155,40 @@ class WikidataViewSet(viewsets.ViewSet):
             'wikidata_image_url': wikidata_info.wikidata_image_url,
         }
         return Response(ingredient_data)
+
+
+
+    def get_wikidata_entity(self, name):
+        """Search for the Wikidata entity ID of an ingredient/meal by name."""
+        response = requests.get(
+            "https://www.wikidata.org/w/api.php",
+            params={
+                "action": "wbsearchentities",
+                "search": name,
+                "language": "en",
+                "format": "json"
+            },
+            headers=HEADERS
+        )
+        results = response.json().get("search", [])
+        if results:
+            return results[0]["id"]
+        return None
+
+    def run_sparql_query(self, query):
+        response = requests.get(
+            WIKIDATA_SPARQL_URL,
+            params={"query": query, "format": "json"},
+            headers=HEADERS
+        )
+        return response.json()
+
+    #ADD OTHER ENDPOINTS
+    #allergens
+    #description
+    #label
+    #nutrition
+    #is-vegan
+    #image
+    #origin
+    #category

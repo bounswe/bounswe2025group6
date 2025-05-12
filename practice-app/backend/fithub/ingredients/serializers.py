@@ -23,4 +23,4 @@ class IngredientPagination(PageNumberPagination):
 class WikidataInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = WikidataInfo
-        fields = ['ingredient_id', 'wikidata_id', 'wikidata_label', 'wikidata_description', 'wikidata_image_url']
+        fields = '__all__'

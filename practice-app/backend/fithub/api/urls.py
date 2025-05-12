@@ -14,8 +14,8 @@ router.register(r'recipe-ratings', RecipeRatingViewSet)
 urlpatterns = [
     path('register/', views.register_user, name='register_user'),
     path('verify-email/<uidb64>/<token>/', verify_email, name='email-verify'),
-    # path('forgot-password/', views.forgot_password, name='forgot-password'),
-    # path('password-reset/<uidb64>/<token>/', views.password_reset, name='password-reset'),
+    path('forgot-password/', views.forgot_password, name='forgot-password'),
+    path('password-reset/<uidb64>/<token>/', views.password_reset, name='password-reset'),
     path('request-password-reset-code/', RequestResetCodeView.as_view(), name='request-password-reset-code'),
     path('verify-reset-code/', VerifyResetCodeView.as_view(), name='verify-reset-code'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
