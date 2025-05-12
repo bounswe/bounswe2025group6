@@ -137,7 +137,7 @@ const UploadRecipePage = () => {
 
       const newRecipe = await addRecipe(submissionData);
       toast.success('Recipe uploaded successfully!');
-      navigate('/recipes/${newRecipe.id}');
+      navigate(`/recipes/${newRecipe.id}`);
     } catch (error) {
       toast.error(error.message || 'Failed to upload recipe');
     } finally {
@@ -181,7 +181,7 @@ const UploadRecipePage = () => {
             required 
             min="0"
             step="0.1"
-            pattern="[0-9]\.?[0-9]"
+            pattern="[0-9]*\.?[0-9]*"
             onKeyPress={(e) => {
               if (!/[\d.]/.test(e.key)) {
                 e.preventDefault();
@@ -201,7 +201,7 @@ const UploadRecipePage = () => {
             required 
             min="0"
             step="0.1"
-            pattern="[0-9]\.?[0-9]"
+            pattern="[0-9]*\.?[0-9]*"
             onKeyPress={(e) => {
               if (!/[\d.]/.test(e.key)) {
                 e.preventDefault();
@@ -292,7 +292,7 @@ const UploadRecipePage = () => {
                     className="quantity-input"
                     min="0"
                     step="0.1"
-                    pattern="[0-9]\.?[0-9]"
+                    pattern="[0-9]*\.?[0-9]*"
                   />
                   <select
                     value={ing.unit}
