@@ -41,7 +41,7 @@ const DashboardPage = () => {
               Create personalized meal plans based on your preferences and dietary needs.
             </p>
             <Link to="/meal-planner" className="mt-auto">
-              <Button className="w-full" variant="success">Plan Meals</Button>
+              <Button className="green-button">Plan Meals</Button>
             </Link>
           </Card.Body>
         </Card>
@@ -54,7 +54,7 @@ const DashboardPage = () => {
               Browse our collection of recipes or search for something specific.
             </p>
             <Link to="/recipes" className="mt-auto">
-              <Button className="w-full" variant="success">Find Recipes</Button>
+              <Button className="green-button">Find Recipes</Button>
             </Link>
           </Card.Body>
         </Card>
@@ -67,7 +67,7 @@ const DashboardPage = () => {
               View and manage your shopping list based on your meal plans.
             </p>
             <Link to="/shopping-list" className="mt-auto">
-              <Button className="w-full" variant="success">Shopping List</Button>
+              <Button className="green-button">Shopping List</Button>
             </Link>
           </Card.Body>
         </Card>
@@ -80,7 +80,7 @@ const DashboardPage = () => {
               Friendly and collaborative community.
             </p>
             <Link to="/community" className="mt-auto">
-              <Button className="w-full" variant="success">Community</Button>
+              <Button className="green-button">Community</Button>
             </Link>
           </Card.Body>
         </Card>

@@ -103,7 +103,7 @@ const LoginPage = () => {
             <label htmlFor="rememberMe">Remember me</label>
           </div>
 
-          <Button type="submit" className="auth-submit" disabled={isLoading}>
+          <Button type="submit" className="green-button" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Log In'}
           </Button>
         </form>
@@ -112,21 +112,7 @@ const LoginPage = () => {
           <p>Don't have an account? <Link to="/register">Sign up for free</Link></p>
         </div>
 
-        <div className="auth-demo">
-          <p>Demo Credentials</p>
-          <div className="demo-boxes">
-            <div className="demo-box">
-              <p><strong>Regular User:</strong></p>
-              <p>Email: demo@example.com</p>
-              <p>Password: password123</p>
-            </div>
-            <div className="demo-box">
-              <p><strong>Dietitian:</strong></p>
-              <p>Email: dietitian@example.com</p>
-              <p>Password: password123</p>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );

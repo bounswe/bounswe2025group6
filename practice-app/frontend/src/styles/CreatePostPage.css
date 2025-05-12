@@ -1,8 +1,11 @@
 /* src/styles/CreatePostPage.css */
 .create-post-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  background: linear-gradient(to bottom, #a8d5e2, #b8e2c8);  min-height: 80vh;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
 }
 
 .create-post-header {
@@ -10,6 +13,7 @@
 }
 
 .create-post-title {
+  max-width: 600px;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
@@ -17,6 +21,7 @@
 }
 
 .create-post-subtitle {
+  max-width: 600px;
   color: #666;
   font-size: 1rem;
 }
@@ -33,6 +38,7 @@
 }
 
 .form-input {
+  max-width: 700px;
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
@@ -41,7 +47,7 @@
 }
 
 textarea.form-input {
-  min-height: 200px;
+  min-height: 150px;
   resize: vertical;
 }
 
@@ -96,11 +102,96 @@ textarea.form-input {
   margin-top: 2rem;
 }
 
+.form-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.form-actions button.primary {
+  background-color: #b67979;  /* Community theme color */
+  color: white;
+  border: none;
+}
+
+.form-actions button.primary:hover {
+  background-color: #a66868;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(182, 121, 121, 0.2);
+}
+
+.form-actions button.secondary {
+  background-color: transparent;
+  border: 1px solid #b67979;
+  color: #b67979;
+}
+
+.form-actions button.secondary:hover {
+  background-color: rgba(182, 121, 121, 0.1);
+}
+
 .create-post-loading {
   text-align: center;
   padding: 2rem;
   font-size: 1rem;
   color: #666;
+}
+
+.delete-button {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+}
+
+.post-button {
+  color: #b67979;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.post-button:hover {
+  color: #a66868;
+  transform: translateX(-4px);
+}
+
+.post-comment {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.post-comment button {
+  background-color: #b67979;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.post-comment button:hover {
+  background-color: #a66868;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(182, 121, 121, 0.2);
 }
 
 @media (max-width: 768px) {
