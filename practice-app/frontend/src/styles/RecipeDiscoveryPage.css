@@ -1,0 +1,30 @@
+#recipeDiscoveryPage {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 800px;
+}
+
+#recipeDiscoveryPage h1 {
+  text-align: center;
+  color: red;
+  font-size: 30px;
+}
+
+.recipe-discovery-page-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.recipe-discovery-page-header-item {
+  flex: 1;
+  max-width: 200px;
+}
+
+.recipe-list {
+  margin-top: 20px;
+}
