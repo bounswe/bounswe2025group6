@@ -10,6 +10,12 @@ import '../../styles/UploadRecipePage.scss';
 const UploadRecipePage = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const [ingredients, setIngredients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedColumn, setSelectedColumn] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [recipeData, setRecipeData] = useState({
@@ -30,17 +36,37 @@ const UploadRecipePage = () => {
 
   // Fetch ingredients
   useEffect(() => {
-    const fetchAllIngredients = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/ingredients/');
-        const data = await response.json();
-        setAllIngredients(data.results);
-      } catch (error) {
-        console.error('Error fetching ingredients:', error);
+      const fetchAllIngredients = async () => {
+        try {
+          let allData = [];
+          let nextUrl = 'http://localhost:8000/ingredients/';
+  
+          while (nextUrl) {
+            const res = await fetch(nextUrl);
+            if (!res.ok) throw new Error('API Error: ${res.status} ${res.statusText}');
+            const data = await res.json();
+            allData = [...allData, ...data.results];
+            nextUrl = data.next;
+          }
+  
+          const startIndex = (page - 1) * pageSize;
+          const endIndex = startIndex + pageSize;
+          
+          setAllIngredients(allData);
+          setIngredients(allData.slice(startIndex, endIndex));
+          setHasNextPage(allData.length > endIndex);
+          setLoading(false);
+        } catch (err) {
+          setError(err.message);
+          setLoading(false);
+        }
+      };
+  
+      if (ingredients.length === 0) {
+        setLoading(true);
       }
-    };
-    fetchAllIngredients();
-  }, []);
+      fetchAllIngredients();
+    }, [pageSize, selectedColumn, page]);
 
   // Filter ingredients based on search
   useEffect(() => {
