@@ -6,7 +6,7 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
-import userService from '../../services/userService.js'; // Import userService for fetching user details
+import userService from '../../services/userService.js';
 import '../../styles/CommunityPage.css';
 
 const CommunityPage = () => {
@@ -15,6 +15,7 @@ const CommunityPage = () => {
   const toast = useToast();
 
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -25,7 +26,7 @@ const CommunityPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [sortBy, setSortBy] = useState('recent');
-  const [userMap, setUserMap] = useState({}); // Map to store user details
+  const [userMap, setUserMap] = useState({});
   const [userVotes, setUserVotes] = useState({});  // { postId: 'up' | 'down' }
 
   // Available tags from API documentation
@@ -39,6 +40,40 @@ const CommunityPage = () => {
     loadPosts();
   }, [pagination.page]);
 
+  // Apply filters when the Apply Filters button is clicked
+  const applyFilters = () => {
+    const filtered = posts.filter(post => {
+      const matchSearch = searchTerm 
+        ? post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          post.content.toLowerCase().includes(searchTerm.toLowerCase()) 
+        : true;
+      const matchTag = selectedTag ? post.tags.includes(selectedTag) : true;
+      return matchSearch && matchTag;
+    }).sort((a, b) => {
+      switch (sortBy) {
+        case 'recent': return new Date(b.created_at) - new Date(a.created_at);
+        case 'popular': return b.upvote_count - a.upvote_count;
+        case 'comments': return (b.comments_count || 0) - (a.comments_count || 0);
+        default: return new Date(b.created_at) - new Date(a.created_at);
+      }
+    });
+    
+    setFilteredPosts(filtered);
+  };
+
+  // Reset filters to default state
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedTag('');
+    setSortBy('recent');
+    setFilteredPosts(posts); // Reset to original posts
+  };
+
+  // Initialize filtered posts when posts are loaded
+  useEffect(() => {
+    setFilteredPosts(posts);
+  }, [posts]);
+
   const loadPosts = async () => {
     setIsLoading(true);
     setError(null);
@@ -49,6 +84,7 @@ const CommunityPage = () => {
       
       // Set the posts
       setPosts(data.results || []);
+      setFilteredPosts(data.results || []); // Initialize filtered posts too
       setPagination({
         page: data.page || 1,
         page_size: data.page_size || 10,
@@ -59,6 +95,11 @@ const CommunityPage = () => {
       const authorIds = [...new Set((data.results || []).map(post => post.author))];
       fetchUserDetails(authorIds);
       
+      // Load user votes for the current posts
+      if (currentUser) {
+        await loadUserVotes(data.results || []);
+      }
+      
     } catch (error) {
       console.error('Error loading posts:', error);
       setError('Failed to load forum posts');
@@ -66,6 +107,26 @@ const CommunityPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Load vote status for all visible posts
+  const loadUserVotes = async (postsList) => {
+    if (!currentUser || !postsList.length) return;
+    
+    const newVotes = { ...userVotes };
+    
+    for (const post of postsList) {
+      try {
+        const voteStatus = await forumService.checkPostVoteStatus(post.id);
+        if (voteStatus.hasVoted) {
+          newVotes[post.id] = voteStatus.voteType;
+        }
+      } catch (error) {
+        console.error(`Error checking vote for post ${post.id}:`, error);
+      }
+    }
+    
+    setUserVotes(newVotes);
   };
 
   // Function to fetch user details and store them in userMap
@@ -78,7 +139,6 @@ const CommunityPage = () => {
       
       if (idsToFetch.length > 0) {
         // This would be your actual API call to get user details
-        // For example:
         for (const userId of idsToFetch) {
           try {
             const userDetails = await userService.getUserById(userId);
@@ -110,6 +170,8 @@ const CommunityPage = () => {
             `User #${userId}`);
   };
 
+  // Updated CommunityPage handleVote function to match the fixed endpoints
+
   const handleVote = async (postId, voteType) => {
     if (!currentUser) {
       toast.info('Please log in to vote on posts');
@@ -117,41 +179,145 @@ const CommunityPage = () => {
     }
 
     try {
-      // Optimistic update for votes
-      const updatedPosts = posts.map(post => {
-        if (post.id === postId) {
-          if (voteType === 'up') {
-            return { ...post, upvote_count: post.upvote_count + 1 };
-          } else {
-            return { ...post, downvote_count: post.downvote_count + 1 };
-          }
-        }
-        return post;
-      });
-      setPosts(updatedPosts);
+      // Check if user has already voted on this post
+      const currentVote = userVotes[postId];
       
-      // Track the vote
-      setUserVotes(prev => ({
-        ...prev,
-        [postId]: voteType
-      }));
-
-      await forumService.votePost(postId, voteType);
-      toast.success(`Post ${voteType}voted!`);
+      // If already voted with same type, remove the vote
+      if (currentVote === voteType) {
+        // Optimistic update
+        setUserVotes(prev => {
+          const updated = { ...prev };
+          delete updated[postId];
+          return updated;
+        });
+        
+        // Update post counts
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            if (voteType === 'up') {
+              return { ...post, upvote_count: Math.max(0, post.upvote_count - 1) };
+            } else {
+              return { ...post, downvote_count: Math.max(0, post.downvote_count - 1) };
+            }
+          }
+          return post;
+        }));
+        
+        // Also update filtered posts
+        setFilteredPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            if (voteType === 'up') {
+              return { ...post, upvote_count: Math.max(0, post.upvote_count - 1) };
+            } else {
+              return { ...post, downvote_count: Math.max(0, post.downvote_count - 1) };
+            }
+          }
+          return post;
+        }));
+        
+        await forumService.deleteVotePost(postId);
+        toast.success('Vote removed!');
+      } 
+      // If already voted but with different type, remove old vote first then create new one
+      else if (currentVote) {
+        // Optimistic update
+        setUserVotes(prev => ({
+          ...prev,
+          [postId]: voteType
+        }));
+        
+        // Update post counts
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            if (voteType === 'up') {
+              return { 
+                ...post, 
+                upvote_count: Math.max(0, post.upvote_count + 1),
+                downvote_count: Math.max(0, post.downvote_count - 1) 
+              };
+            } else {
+              return { 
+                ...post, 
+                upvote_count: Math.max(0, post.upvote_count - 1),
+                downvote_count: Math.max(0, post.downvote_count + 1) 
+              };
+            }
+          }
+          return post;
+        }));
+        
+        // Also update filtered posts
+        setFilteredPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            if (voteType === 'up') {
+              return { 
+                ...post, 
+                upvote_count: Math.max(0, post.upvote_count + 1),
+                downvote_count: Math.max(0, post.downvote_count - 1) 
+              };
+            } else {
+              return { 
+                ...post, 
+                upvote_count: Math.max(0, post.upvote_count - 1),
+                downvote_count: Math.max(0, post.downvote_count + 1) 
+              };
+            }
+          }
+          return post;
+        }));
+        
+        // Delete old vote first
+        try {
+          await forumService.deleteVotePost(postId);
+        } catch (err) {
+          console.log("Error deleting vote, but will continue:", err);
+          // Continue despite error - we'll still try to create the new vote
+        }
+        
+        // Then create new vote
+        await forumService.votePost(postId, voteType);
+        toast.success(`Post ${voteType}voted!`);
+      }
+      // If not voted before, simply create vote
+      else {
+        // Optimistic update
+        setUserVotes(prev => ({
+          ...prev,
+          [postId]: voteType
+        }));
+        
+        // Update post counts
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            if (voteType === 'up') {
+              return { ...post, upvote_count: post.upvote_count + 1 };
+            } else {
+              return { ...post, downvote_count: post.downvote_count + 1 };
+            }
+          }
+          return post;
+        }));
+        
+        // Also update filtered posts
+        setFilteredPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            if (voteType === 'up') {
+              return { ...post, upvote_count: post.upvote_count + 1 };
+            } else {
+              return { ...post, downvote_count: post.downvote_count + 1 };
+            }
+          }
+          return post;
+        }));
+        
+        await forumService.votePost(postId, voteType);
+        toast.success(`Post ${voteType}voted!`);
+      }
     } catch (error) {
       // Revert optimistic updates
       loadPosts();
-      setUserVotes(prev => {
-        const updated = { ...prev };
-        delete updated[postId];
-        return updated;
-      });
-      
-      if (error.response?.status === 400) {
-        toast.info('You have already voted on this post');
-      } else {
-        toast.error('Failed to vote on post');
-      }
+      console.error('Error voting on post:', error);
+      toast.error('Failed to vote on post');
     }
   };
 
@@ -161,21 +327,56 @@ const CommunityPage = () => {
       return;
     }
 
+    if (!userVotes[postId]) {
+      toast.info('You have not voted on this post');
+      return;
+    }
+
     try {
-      await forumService.deleteVotePost(postId);
+      const voteType = userVotes[postId];
+      
+      // Optimistic update
       setUserVotes(prev => {
         const updated = { ...prev };
         delete updated[postId];
         return updated;
       });
+      
+      // Update post counts
+      setPosts(prevPosts => prevPosts.map(post => {
+        if (post.id === postId) {
+          if (voteType === 'up') {
+            return { ...post, upvote_count: Math.max(0, post.upvote_count - 1) };
+          } else {
+            return { ...post, downvote_count: Math.max(0, post.downvote_count - 1) };
+          }
+        }
+        return post;
+      }));
+      
+      // Also update filtered posts
+      setFilteredPosts(prevPosts => prevPosts.map(post => {
+        if (post.id === postId) {
+          if (voteType === 'up') {
+            return { ...post, upvote_count: Math.max(0, post.upvote_count - 1) };
+          } else {
+            return { ...post, downvote_count: Math.max(0, post.downvote_count - 1) };
+          }
+        }
+        return post;
+      }));
+      
+      await forumService.deleteVotePost(postId);
       toast.success('Vote removed successfully!');
-      loadPosts();
     } catch (error) {
       if (error.response?.status === 404) {
         toast.info('No vote found to remove');
       } else {
         toast.error('Failed to remove vote');
       }
+      
+      // Revert optimistic updates on error
+      loadPosts();
     }
   };
 
@@ -192,27 +393,11 @@ const CommunityPage = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  // Filter and sort posts
-  const filteredAndSortedPosts = posts.filter(post => {
-    const matchSearch = searchTerm ? post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                      post.content.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-    const matchTag = selectedTag ? post.tags.includes(selectedTag) : true;
-    return matchSearch && matchTag;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'recent': return new Date(b.created_at) - new Date(a.created_at);
-      case 'popular': return b.upvote_count - a.upvote_count;
-      case 'comments': return (b.comments_count || 0) - (a.comments_count || 0);
-      default: return new Date(b.created_at) - new Date(a.created_at);
-    }
-  });
-
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= Math.ceil(pagination.total / pagination.page_size)) {
       setPagination(prev => ({ ...prev, page: newPage }));
     }
   };
-
 
   useEffect(() => {
     document.title = "Community";
@@ -248,6 +433,12 @@ const CommunityPage = () => {
               <option value="comments">Most Comments</option>
             </select>
           </div>
+          
+          {/* Filter action buttons */}
+          <div className="filter-actions">
+            <Button onClick={applyFilters} style={{ marginTop: '10px', marginRight: '10px' }}>Apply Filters</Button>
+            <Button onClick={resetFilters} style={{ marginTop: '10px' }}>Reset Filters</Button>
+          </div>
         </Card.Body>
       </Card>
 
@@ -263,9 +454,9 @@ const CommunityPage = () => {
 
       {isLoading ? (
         <div className="forum-loading">Loading posts...</div>
-      ) : filteredAndSortedPosts.length > 0 ? (
+      ) : filteredPosts.length > 0 ? (
         <div className="forum-posts">
-          {filteredAndSortedPosts.map(post => (
+          {filteredPosts.map(post => (
             <Card key={post.id} className="forum-post-card" onClick={() => goToPostDetail(post.id)}>
               <Card.Body>
                 <div className="forum-post">
@@ -306,8 +497,9 @@ const CommunityPage = () => {
                             e.stopPropagation(); 
                             handleRemoveVote(post.id); 
                           }}
-                          className="vote-button"
+                          className={`vote-button ${!userVotes[post.id] ? 'disabled' : ''}`}
                           aria-label="Remove vote"
+                          disabled={!userVotes[post.id]}
                         >
                           Remove Vote
                         </button>
@@ -350,7 +542,7 @@ const CommunityPage = () => {
           <Card.Body className="forum-empty">
             <h2>No posts found</h2>
             <p>{searchTerm || selectedTag ? 'Try adjusting your search criteria' : 'Be the first to start a discussion!'}</p>
-            {(searchTerm || selectedTag) && <Button onClick={() => { setSearchTerm(''); setSelectedTag(''); }}>Clear Filters</Button>}
+            {(searchTerm || selectedTag) && <Button onClick={resetFilters}>Clear Filters</Button>}
             <Button onClick={loadPosts} className="edit-button">Refresh</Button>
           </Card.Body>
         </Card>
