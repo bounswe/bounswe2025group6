@@ -23,13 +23,13 @@ const MainLayout = () => {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/meal-planner', label: 'Meal Planner', icon: '🍽️' },
-    { path: '/recipes', label: 'Recipes', icon: '📖' },
-    { path: '/shopping-list', label: 'Shopping List', icon: '🛒' },
-    { path: '/ingredients', label: 'Ingredients', icon: '🥕' },
-    { path: '/community', label: 'Community', icon: '💬' },
-    { path: '/profile', label: 'Profile', icon: '👤' },
+    { path: '/dashboard', label: 'Dashboard'},
+    { path: '/meal-planner', label: 'Meal Planner'},
+    { path: '/recipes', label: 'Recipes'},
+    { path: '/shopping-list', label: 'Shopping List'},
+    { path: '/ingredients', label: 'Ingredients'},
+    { path: '/community', label: 'Community'},
+    { path: '/profile', label: 'Profile'},
 
   ];
 
@@ -57,7 +57,6 @@ const MainLayout = () => {
               to={item.path}
               className={`layout-nav-link ${isActive(item.path) ? 'active' : ''}`}
             >
-              <span className="layout-nav-icon">{item.icon}</span>
               {item.label}
             </Link>
           ))}
