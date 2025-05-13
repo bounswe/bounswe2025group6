@@ -76,43 +76,129 @@ class IngredientViewSet(mixins.ListModelMixin,
         except Ingredient.DoesNotExist:
             return Response({'error': 'Ingredient not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class WikidataViewSet(viewsets.ViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve a list of all ingredients with their Wikidata information.",
-        responses={200: openapi.Response('List of ingredients with Wikidata info', IngredientSerializer(many=True))},
+        responses={200: openapi.Response('List of ingredients with Wikidata info')},
         tags=["IngredientWikidata"]
     )
     @action(detail=False, methods=['get'], url_path='list-with-wikidata')
     def list_with_wikidata(self, request):
-        queryset = Ingredient.objects.all()
-        serializer = IngredientSerializer(queryset, many=True)
-        ingredients_data = serializer.data
+        ingredients = Ingredient.objects.all()
+        data = []
 
-        for ingredient in ingredients_data:
-            wikidata_info, created = WikidataInfo.objects.get_or_create(ingredient_id=ingredient['id'])
+        for ingredient in ingredients:
+            # Get or create WikidataInfo for the ingredient
+            wikidata_info, created = WikidataInfo.objects.get_or_create(ingredient_id=ingredient.id)
 
             if not wikidata_info.wikidata_id:
-                wikidata_id = get_wikidata_id(ingredient['name'])
-                if wikidata_id:
-                    details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
-                    wikidata_info.wikidata_id = wikidata_id
-                    wikidata_info.wikidata_label = details.get('labels', {}).get('en', {}).get('value')
-                    wikidata_info.wikidata_description = details.get('descriptions', {}).get('en', {}).get('value')
-                    if details.get('claims', {}).get('P18'):
-                        image_filename = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
-                        wikidata_info.wikidata_image_url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
-                    else:
-                        wikidata_info.wikidata_image_url = None
-                    wikidata_info.save()
+                # Fetch the Wikidata entity ID
+                qid = self.get_wikidata_entity(ingredient.name)
+                if not qid:
+                    continue  # Skip if no Wikidata entity is found
 
-            ingredient['wikidata_info'] = {
-                'wikidata_id': wikidata_info.wikidata_id,
-                'wikidata_label': wikidata_info.wikidata_label,
-                'wikidata_description': wikidata_info.wikidata_description,
-                'wikidata_image_url': wikidata_info.wikidata_image_url,
-            }
-        return Response(ingredients_data)
+                # Populate fields from Wikidata
+                wikidata_info.wikidata_id = qid
+
+                # Fetch label and description
+                details_query = f"""
+                SELECT ?label ?description WHERE {{
+                  wd:{qid} rdfs:label ?label .
+                  OPTIONAL {{ wd:{qid} schema:description ?description . }}
+                  FILTER(LANG(?label) = "en" && LANG(?description) = "en")
+                }}
+                """
+                details = self.run_sparql_query(details_query)
+                for binding in details["results"]["bindings"]:
+                    wikidata_info.wikidata_label = binding.get("label", {}).get("value", "")
+                    wikidata_info.wikidata_description = binding.get("description", {}).get("value", "")
+
+                # Fetch image (P18)
+                image_query = f"""
+                SELECT ?image WHERE {{
+                  wd:{qid} wdt:P18 ?image .
+                }}
+                """
+                image_results = self.run_sparql_query(image_query)
+                if image_results["results"]["bindings"]:
+                    wikidata_info.wikidata_image_url = image_results["results"]["bindings"][0]["image"]["value"]
+
+                # Check if vegan
+                vegan_query = f"""
+                ASK {{
+                wd:{qid} wdt:P279* wd:Q25340 .
+                }}
+                """
+                vegan_result = self.run_sparql_query(vegan_query)
+                wikidata_info.is_vegan = vegan_result.get("boolean", False)  # Default to False if no data
+
+                # Fetch origin
+                origin_query = f"""
+                SELECT ?originLabel WHERE {{
+                wd:{qid} wdt:P495 ?origin .
+                SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+                }}
+                """
+                origin_results = self.run_sparql_query(origin_query)
+                if origin_results["results"]["bindings"]:
+                    wikidata_info.origin = origin_results["results"]["bindings"][0]["originLabel"]["value"]
+                else:
+                    wikidata_info.origin = None  # Default to None if no data
+
+                # Fetch category
+                category_query = f"""
+                SELECT ?categoryLabel WHERE {{
+                wd:{qid} wdt:P279 ?category .
+                SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+                }}
+                """
+                category_results = self.run_sparql_query(category_query)
+                if category_results["results"]["bindings"]:
+                    wikidata_info.category = category_results["results"]["bindings"][0]["categoryLabel"]["value"]
+                else:
+                    wikidata_info.category = None  # Default to None if no data
+
+                # Fetch allergens
+                allergens_query = f"""
+                SELECT ?allergenLabel WHERE {{
+                wd:{qid} wdt:P2674 ?allergen .
+                SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+                }}
+                """
+                allergens_results = self.run_sparql_query(allergens_query)
+                wikidata_info.allergens = [
+                    binding["allergenLabel"]["value"]
+                    for binding in allergens_results["results"]["bindings"]
+                ] if allergens_results["results"]["bindings"] else []
+
+                # Fetch nutrition
+                nutrition_query = f"""
+                SELECT ?propertyLabel ?value WHERE {{
+                VALUES ?prop {{ wdt:P2039 wdt:P3176 wdt:P2291 }}
+                wd:{qid} ?prop ?value .
+                SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+                ?prop rdfs:label ?propertyLabel .
+                FILTER(LANG(?propertyLabel) = "en")
+                }}
+                """
+                nutrition_results = self.run_sparql_query(nutrition_query)
+                wikidata_info.nutrition = {
+                    binding["propertyLabel"]["value"]: binding["value"]["value"]
+                    for binding in nutrition_results["results"]["bindings"]
+                } if nutrition_results["results"]["bindings"] else {}
+
+                # Save the updated WikidataInfo
+                wikidata_info.save()
+
+            # Add the ingredient and its Wikidata info to the response
+            data.append({
+                "ingredient_id": ingredient.id,
+                "name": ingredient.name,
+                "wikidata_info": WikidataInfoSerializer(wikidata_info).data
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+    
 
     @swagger_auto_schema(
         operation_description="Retrieve a specific ingredient by its ID along with its Wikidata information.",
@@ -182,7 +268,7 @@ class WikidataViewSet(viewsets.ViewSet):
             headers=HEADERS
         )
         return response.json()
-
+      
     #ADD OTHER ENDPOINTS
     #allergens
     #description

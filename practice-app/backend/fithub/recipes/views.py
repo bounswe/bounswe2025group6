@@ -13,6 +13,7 @@ from rest_framework import viewsets
 from .serializers import RecipeListSerializer, RecipeDetailSerializer
 from django.utils import timezone
 from .models import RecipeIngredient
+from rest_framework.decorators import action
 
 
 # Created for swagger documentation, paginate get request
