@@ -15,10 +15,8 @@ class AuthenticationException implements Exception {
 
 class AuthService {
   static const String baseUrl =
-      'http://104.248.36.144:5173';
-  static const String jwtTokenUrl =
-      'http://104.248.36.144:5173/token/'; // As per jwt.md
-
+      'http://104.248.36.144:8000';
+      
   Future<LoginResponse> login(String email, String password) async {
     try {
       // First, authenticate user with login endpoint
@@ -260,7 +258,7 @@ class AuthService {
   Future<Map<String, String>> getJwtAccessToken(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse(jwtTokenUrl),
+        Uri.parse('$baseUrl/api/token/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': email, 'password': password}),
       );
