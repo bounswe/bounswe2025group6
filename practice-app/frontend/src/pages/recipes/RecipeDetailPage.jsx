@@ -105,7 +105,12 @@ const handleDelete = async () => {
         {/*DELETE BUTTON EDIT BUTTON*/}
         <div className='recipe-detail-page-header-buttons'>
           <button className="delete-recipe-button" onClick={handleDelete}>Delete Recipe</button>
-          <button className="edit-recipe-button">Edit Recipe</button>
+          <button 
+            className="edit-recipe-button" 
+            onClick={() => navigate(`/recipes/${id}/edit`)}
+          >
+            Edit Recipe
+          </button>
         </div>
         
       </div>
