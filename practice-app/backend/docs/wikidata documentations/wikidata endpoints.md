@@ -3,44 +3,115 @@
 The `WikidataViewSet` provides endpoints to retrieve and manage Wikidata-related information for ingredients. Below is the detailed documentation for each endpoint.
 
 ---
+# List Ingredients with Wikidata Information
 
-## 1. List Ingredients with Wikidata Information
-
-### **Endpoint**
+## **Endpoint**
 `GET /wikidata/list-with-wikidata/`
 
-### **Description**
-Retrieve a list of all ingredients along with their Wikidata information.
+---
 
-### **Parameters**
-None.
+## **Description**
+This endpoint retrieves a list of all ingredients along with their associated Wikidata information. If the Wikidata information for an ingredient is not already stored in the database, the endpoint dynamically fetches it from Wikidata and populates the fields.
 
-### **Response**
-- **200 OK**: A list of ingredients with their Wikidata information.
-- **Example Response**:
+---
+
+## **Parameters**
+This endpoint does not require any parameters.
+
+---
+
+## **Response**
+
+### **Success Response (200 OK)**
+
+Returns a list of ingredients with their associated Wikidata information.
+
+#### **Example Response**
 ```json
 [
     {
-        "id": 1,
+        "ingredient_id": 1,
         "name": "Tomato",
         "wikidata_info": {
+            "ingredient_id": 1,
             "wikidata_id": "Q23556",
             "wikidata_label": "Tomato",
             "wikidata_description": "A red fruit commonly used in cooking.",
-            "wikidata_image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tomato.jpg"
+            "wikidata_image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tomato.jpg",
+            "is_vegan": true,
+            "origin": "Italy",
+            "category": "Vegetable",
+            "allergens": ["gluten", "nuts"],
+            "nutrition": {
+                "calories": 50,
+                "protein": 1.2
+            }
         }
     },
     {
-        "id": 2,
+        "ingredient_id": 2,
         "name": "Potato",
         "wikidata_info": {
+            "ingredient_id": 2,
             "wikidata_id": "Q23557",
             "wikidata_label": "Potato",
             "wikidata_description": "A starchy root vegetable.",
-            "wikidata_image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Potato.jpg"
+            "wikidata_image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Potato.jpg",
+            "is_vegan": true,
+            "origin": "Peru",
+            "category": "Vegetable",
+            "allergens": [],
+            "nutrition": {
+                "calories": 77,
+                "protein": 2.0
+            }
         }
     }
 ]
+
+
+### **Error Responses**
+
+#### **500 Internal Server Error**
+
+If there is an issue fetching data from Wikidata or processing the request, the server will return a  `500 Internal Server Error`.
+
+#### **Example Response**
+
+{
+
+"error": "An error occurred while processing the request."
+
+}
+
+
+## **Fields in the Response**
+
+### **Ingredient Fields**
+
+-   **`ingredient_id`**: The unique ID of the ingredient in the database.
+-   **`name`**: The name of the ingredient.
+
+### **Wikidata Info Fields**
+
+-   **`wikidata_id`**: The unique ID of the ingredient in Wikidata.
+-   **`wikidata_label`**: The label of the ingredient in Wikidata.
+-   **`wikidata_description`**: A brief description of the ingredient from Wikidata.
+-   **`wikidata_image_url`**: A URL to an image of the ingredient from Wikidata.
+-   **`is_vegan`**: A boolean indicating whether the ingredient is vegan.
+-   **`origin`**: The country or region of origin for the ingredient.
+-   **`category`**: The category of the ingredient (e.g., vegetable, fruit, spice).
+-   **`allergens`**: A list of allergens associated with the ingredient.
+-   **`nutrition`**: A dictionary containing nutritional information about the ingredient (e.g., calories, protein).
+
+----------
+
+## **Notes**
+
+1.  If an ingredient does not have Wikidata information, it will be skipped in the response.
+2.  The endpoint dynamically fetches missing data from Wikidata and stores it in the database for future use.
+3.  The  `nutrition`  field may include additional properties depending on the available data in Wikidata.
+
 
 ## 2. Retrieve Ingredient with Wikidata Information
 
