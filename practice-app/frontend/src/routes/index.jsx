@@ -25,7 +25,7 @@ import ShoppingListPage from '../pages/shopping/ShoppingListPage';
 import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
 import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
 import UploadRecipePage from '../pages/recipes/UploadRecipePage';
-import ProfilePage from '../pages/meal-planner/ProfilePage';
+import ProfilePage from '../pages/profile/ProfilePage';
 
 import CommunityPage from '../pages/community/CommunityPage';
 import PostDetailPage from '../pages/community/PostDetailPage';
