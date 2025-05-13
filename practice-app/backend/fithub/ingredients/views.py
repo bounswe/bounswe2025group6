@@ -268,3 +268,5 @@ class WikidataViewSet(viewsets.ViewSet):
             headers=HEADERS
         )
         return response.json()
+    
+    #ENDPOINTS WILL BE ADDED HERE
