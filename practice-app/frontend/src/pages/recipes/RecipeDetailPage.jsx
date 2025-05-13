@@ -16,9 +16,10 @@ const RecipeDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [recipeId, setRecipeId] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
-const handleDelete = async () => {
+  const handleDelete = async () => {
     try {
       if (!id) {
         alert('Invalid recipe ID.');
@@ -65,7 +66,13 @@ const handleDelete = async () => {
     loadRecipe();
   }, [id]);
 
-  
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+    };
+    fetchCurrentUser();
+  }, []);
 
   if (loading) return <div>Loading recipe...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
@@ -103,15 +110,17 @@ const handleDelete = async () => {
         </div>
 
         {/*DELETE BUTTON EDIT BUTTON*/}
-        <div className='recipe-detail-page-header-buttons'>
-          <button className="delete-recipe-button" onClick={handleDelete}>Delete Recipe</button>
-          <button 
-            className="edit-recipe-button" 
-            onClick={() => navigate(`/recipes/${id}/edit`)}
-          >
-            Edit Recipe
-          </button>
-        </div>
+        {currentUser && currentUser.id === recipe.creator_id && (
+          <div className='recipe-detail-page-header-buttons'>
+            <button className="delete-recipe-button" onClick={handleDelete}>Delete Recipe</button>
+            <button 
+              className="edit-recipe-button" 
+              onClick={() => navigate(`/recipes/${id}/edit`)}
+            >
+              Edit Recipe
+            </button>
+          </div>
+        )}
         
       </div>
 
