@@ -3,10 +3,13 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework import mixins, viewsets
 from drf_yasg import openapi
+import requests
 from drf_yasg.utils import swagger_auto_schema
-from .models import Ingredient
-from .serializers import IngredientSerializer, IngredientPagination
+from .models import Ingredient, WikidataInfo
+from .serializers import IngredientSerializer, IngredientPagination, WikidataInfoSerializer
 from wikidata.utils import get_wikidata_id, get_wikidata_details  # Import from the wikidata app
+WIKIDATA_SPARQL_URL = "https://query.wikidata.org/sparql"
+HEADERS = {"User-Agent": "IngredientWikidataAPI/1.0"}
 
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
@@ -72,55 +75,120 @@ class IngredientViewSet(mixins.ListModelMixin,
             return Response({'id': ingredient.id})
         except Ingredient.DoesNotExist:
             return Response({'error': 'Ingredient not found.'}, status=status.HTTP_404_NOT_FOUND)
-    
-    #WIKIDATA TEST
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
+
+
+class WikidataViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of all ingredients with their Wikidata information.",
+        responses={200: openapi.Response('List of ingredients with Wikidata info', IngredientSerializer(many=True))},
+        tags=["IngredientWikidata"]
+    )
+    @action(detail=False, methods=['get'], url_path='list-with-wikidata')
+    def list_with_wikidata(self, request):
+        queryset = Ingredient.objects.all()
+        serializer = IngredientSerializer(queryset, many=True)
         ingredients_data = serializer.data
 
         for ingredient in ingredients_data:
-            wikidata_id = get_wikidata_id(ingredient['name'])  # Assuming 'name' field
-            ingredient['wikidata_id'] = wikidata_id  # Add the wikidata_id
+            wikidata_info, created = WikidataInfo.objects.get_or_create(ingredient_id=ingredient['id'])
 
-            if wikidata_id:
-                details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
-                if details:
-                    #  Flatten the structure for easier use in frontend
-                    ingredient['wikidata_label'] = details.get('labels', {}).get('en', {}).get('value')
-                    ingredient['wikidata_description'] = details.get('descriptions', {}).get('en', {}).get('value')
+            if not wikidata_info.wikidata_id:
+                wikidata_id = get_wikidata_id(ingredient['name'])
+                if wikidata_id:
+                    details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
+                    wikidata_info.wikidata_id = wikidata_id
+                    wikidata_info.wikidata_label = details.get('labels', {}).get('en', {}).get('value')
+                    wikidata_info.wikidata_description = details.get('descriptions', {}).get('en', {}).get('value')
                     if details.get('claims', {}).get('P18'):
-                         image_filename = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
-                         ingredient['wikidata_image_url'] = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
+                        image_filename = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
+                        wikidata_info.wikidata_image_url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
                     else:
-                         ingredient['wikidata_image_url'] = None
-                else:
-                    ingredient['wikidata_label'] = None
-                    ingredient['wikidata_description'] = None
-                    ingredient['wikidata_image_url'] = None
-        return self.get_paginated_response(ingredients_data)
+                        wikidata_info.wikidata_image_url = None
+                    wikidata_info.save()
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
+            ingredient['wikidata_info'] = {
+                'wikidata_id': wikidata_info.wikidata_id,
+                'wikidata_label': wikidata_info.wikidata_label,
+                'wikidata_description': wikidata_info.wikidata_description,
+                'wikidata_image_url': wikidata_info.wikidata_image_url,
+            }
+        return Response(ingredients_data)
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a specific ingredient by its ID along with its Wikidata information.",
+        responses={
+            200: openapi.Response('Ingredient with Wikidata info', IngredientSerializer()),
+            404: openapi.Response('Ingredient not found')
+        },
+        tags=["IngredientWikidata"]
+    )
+    @action(detail=True, methods=['get'], url_path='retrieve-with-wikidata')
+    def retrieve_with_wikidata(self, request, pk=None):
+        try:
+            ingredient = Ingredient.objects.get(pk=pk)
+        except Ingredient.DoesNotExist:
+            return Response({'error': 'Ingredient not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = IngredientSerializer(ingredient)
         ingredient_data = serializer.data
 
-        wikidata_id = get_wikidata_id(ingredient_data['name'])
-        ingredient_data['wikidata_id'] = wikidata_id
+        wikidata_info, created = WikidataInfo.objects.get_or_create(ingredient_id=ingredient.id)
 
-        if wikidata_id:
-            details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
-            if details:
-                ingredient_data['wikidata_label'] = details.get('labels', {}).get('en', {}).get('value')
-                ingredient_data['wikidata_description'] = details.get('descriptions', {}).get('en', {}).get('value')
+        if not wikidata_info.wikidata_id:
+            wikidata_id = get_wikidata_id(ingredient.name)
+            if wikidata_id:
+                details = get_wikidata_details(wikidata_id, properties=('labels', 'descriptions', 'claims', 'P18'))
+                wikidata_info.wikidata_id = wikidata_id
+                wikidata_info.wikidata_label = details.get('labels', {}).get('en', {}).get('value')
+                wikidata_info.wikidata_description = details.get('descriptions', {}).get('en', {}).get('value')
                 if details.get('claims', {}).get('P18'):
                     image_filename = details['claims']['P18'][0]['mainsnak']['datavalue']['value']
-                    ingredient_data['wikidata_image_url'] = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
+                    wikidata_info.wikidata_image_url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_filename}"
                 else:
-                    ingredient_data['wikidata_image_url'] = None
-            else:
-                ingredient_data['wikidata_label'] = None
-                ingredient_data['wikidata_description'] = None
-                ingredient_data['wikidata_image_url'] = None
+                    wikidata_info.wikidata_image_url = None
+                wikidata_info.save()
+
+        ingredient_data['wikidata_info'] = {
+            'wikidata_id': wikidata_info.wikidata_id,
+            'wikidata_label': wikidata_info.wikidata_label,
+            'wikidata_description': wikidata_info.wikidata_description,
+            'wikidata_image_url': wikidata_info.wikidata_image_url,
+        }
         return Response(ingredient_data)
+
+
+
+    def get_wikidata_entity(self, name):
+        """Search for the Wikidata entity ID of an ingredient/meal by name."""
+        response = requests.get(
+            "https://www.wikidata.org/w/api.php",
+            params={
+                "action": "wbsearchentities",
+                "search": name,
+                "language": "en",
+                "format": "json"
+            },
+            headers=HEADERS
+        )
+        results = response.json().get("search", [])
+        if results:
+            return results[0]["id"]
+        return None
+
+    def run_sparql_query(self, query):
+        response = requests.get(
+            WIKIDATA_SPARQL_URL,
+            params={"query": query, "format": "json"},
+            headers=HEADERS
+        )
+        return response.json()
+
+    #ADD OTHER ENDPOINTS
+    #allergens
+    #description
+    #label
+    #nutrition
+    #is-vegan
+    #image
+    #origin
+    #category
