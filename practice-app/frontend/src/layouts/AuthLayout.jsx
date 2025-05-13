@@ -28,8 +28,8 @@ const AuthLayout = () => {
       </main>
       
       {/* Footer */}
-      <footer className="py-4 text-center text-white text-sm">
-        <p>© {new Date().getFullYear()} Meal Planner App. All rights reserved.</p>
+      <footer>
+        <p>© {new Date().getFullYear()} FitHub</p>
       </footer>
     </div>
   );
