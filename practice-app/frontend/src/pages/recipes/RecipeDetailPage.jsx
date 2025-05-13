@@ -7,6 +7,7 @@ import userService from '../../services/userService';
 import RatingStars from '../../components/recipe/RatingStars';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
+import { getCurrentUser } from '../../services/authService';
 
 const RecipeDetailPage = () => {
   const { id } = useParams();
@@ -24,9 +25,16 @@ const handleDelete = async () => {
         return;
       }
 
+      // Check if current user is the creator
+      const currentUser = await getCurrentUser(); // Add await here
+      if (!currentUser || currentUser.id !== recipe.creator_id) {
+        alert('You can only delete recipes that you created.');
+        return;
+      }
+      
       const success = await deleteRecipe(id);
       if (success) {
-        alert(`Recipe with ID ${id} deleted successfully.`);
+        alert(`Recipe ${recipe.name} deleted successfully.`);
         navigate(`/recipes/`);
       }
     } catch (error) {
@@ -97,7 +105,12 @@ const handleDelete = async () => {
         {/*DELETE BUTTON EDIT BUTTON*/}
         <div className='recipe-detail-page-header-buttons'>
           <button className="delete-recipe-button" onClick={handleDelete}>Delete Recipe</button>
-          <button className="edit-recipe-button">Edit Recipe</button>
+          <button 
+            className="edit-recipe-button" 
+            onClick={() => navigate(`/recipes/${id}/edit`)}
+          >
+            Edit Recipe
+          </button>
         </div>
         
       </div>
