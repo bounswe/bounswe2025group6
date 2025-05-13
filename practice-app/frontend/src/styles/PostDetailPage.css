@@ -382,3 +382,13 @@
     margin-bottom: 5px;
   }
 }
+.author-link {
+  cursor: pointer;
+  color: #b67979;
+  transition: color 0.2s ease;
+}
+
+.author-link:hover {
+  color: #a66868;
+  text-decoration: underline;
+}

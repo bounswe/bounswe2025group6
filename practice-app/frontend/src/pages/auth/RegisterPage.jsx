@@ -39,6 +39,24 @@ const RegisterPage = () => {
     setFormData(prev => ({ ...prev, userType: type }));
   };
 
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    const requirements = [];
+    if (password.length < minLength) requirements.push('at least 8 characters');
+    if (!hasUpperCase) requirements.push('one uppercase letter');
+    if (!hasLowerCase) requirements.push('one lowercase letter');
+    if (!hasNumber) requirements.push('one number');
+
+    return {
+      isValid: password.length >= minLength && hasUpperCase && hasLowerCase && hasNumber,
+      requirements
+    };
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.username.trim()) newErrors.username = 'Username is required';
@@ -47,8 +65,14 @@ const RegisterPage = () => {
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
     
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else {
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        newErrors.password = `Password must contain at least ${passwordValidation.requirements.join(', ')}`;
+      }
+    }
     
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
@@ -183,7 +207,10 @@ const RegisterPage = () => {
               placeholder="••••••••"
             />
             {errors.password && <p className="text-error">{errors.password}</p>}
-            <p className="text-xs text-gray-500">Must be at least 8 characters</p>
+            <p className="password-info">
+              Password must contain at least 8 characters, including one uppercase letter, 
+              one lowercase letter, and one number
+            </p>
           </div>
 
           <div>

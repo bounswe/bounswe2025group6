@@ -12,14 +12,16 @@ const AuthLayout = () => {
     <div className="page-AuthLayout">
         <header>
             <Link to="/dashboard" className="layout-logo">
-              <img
-                src={'../assets/fithub_small.png'}
-                alt="Logo"
-                className="layout-logo-img"
-                style={{ width: 45, height: 45, borderRadius: '50%' }}
-              />
-              FitHub
-            </Link>
+                          <img
+                            src={'../assets/fithub_small.png'}
+                            alt="Logo"
+                            className="layout-logo-img"
+                          />
+                          <span className="logo-text">
+                            <span className="fit">Fit</span>
+                            <span className="hub">Hub</span>
+                          </span>
+                        </Link>
         </header>
         
         {/* Main content - renders child routes */}

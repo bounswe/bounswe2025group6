@@ -462,7 +462,18 @@ const CommunityPage = () => {
                 <div className="forum-post">
                   <div className="forum-post-content">
                     <div className="forum-post-header">
-                      <span>Posted by {getUserName(post.author)}</span>
+                      <span className="post-author-wrapper">
+                        Posted by{" "}
+                        <span 
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent post detail navigation
+                            navigate(`/community/profile/${post.author}`);
+                          }}
+                          className="author-link"
+                        >
+                          {getUserName(post.author)}
+                        </span>
+                      </span>
                       <span>{formatDate(post.created_at)}</span>
                     </div>
                     <h2>{post.title}</h2>

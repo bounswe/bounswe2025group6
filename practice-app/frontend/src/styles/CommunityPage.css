@@ -296,3 +296,18 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(182, 121, 121, 0.2);
 }
+
+.post-author-wrapper {
+  color: #666;
+}
+
+.author-link {
+  cursor: pointer;
+  color: #2d7c4b;
+  transition: color 0.2s ease;
+}
+
+.author-link:hover {
+  color: #4e8846;
+  text-decoration: underline;
+}

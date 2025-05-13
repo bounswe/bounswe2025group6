@@ -23,13 +23,13 @@ const MainLayout = () => {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/meal-planner', label: 'Meal Planner', icon: '🍽️' },
-    { path: '/recipes', label: 'Recipes', icon: '📖' },
-    { path: '/shopping-list', label: 'Shopping List', icon: '🛒' },
-    { path: '/ingredients', label: 'Ingredients', icon: '🥕' },
-    { path: '/community', label: 'Community', icon: '💬' },
-    { path: '/profile', label: 'Profile', icon: '👤' },
+    { path: '/dashboard', label: 'Dashboard'},
+    { path: '/meal-planner', label: 'Meal Planner'},
+    { path: '/recipes', label: 'Recipes'},
+    { path: '/shopping-list', label: 'Shopping List'},
+    { path: '/ingredients', label: 'Ingredients'},
+    { path: '/community', label: 'Community'},
+    { path: '/profile', label: 'Profile'},
 
   ];
 
@@ -47,7 +47,10 @@ const MainLayout = () => {
                 alt="Logo"
                 className="layout-logo-img"
               />
-              <span>FitHub</span>
+              <span className="logo-text">
+                <span className="fit">Fit</span>
+                <span className="hub">Hub</span>
+              </span>
             </Link>
         </div>
         <nav className="layout-nav">
@@ -63,7 +66,7 @@ const MainLayout = () => {
           ))}
         </nav>
         <div className="layout-header-right">
-            <button className="layout-logout" onClick={handleLogout}>
+            <button className="layout-logout green-button" onClick={handleLogout}>
               Logout
             </button>
         </div>
