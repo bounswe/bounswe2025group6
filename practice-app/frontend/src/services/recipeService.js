@@ -161,24 +161,33 @@ export const updateRecipe = (id, updatedRecipe) => {
  * @param {number} id Recipe ID
  * @returns {boolean} Success status
  */
-export const deleteRecipe = (id) => {
+export const deleteRecipe = async (id) => {
   try {
-    const recipes = getAllRecipes();
-    const updatedRecipes = recipes.filter(recipe => recipe.id !== parseInt(id));
-    
-    if (updatedRecipes.length === recipes.length) {
-      throw new Error('Recipe not found');
+    const token = localStorage.getItem('fithub_access_token'); // Token'ı al
+    if (!token) {
+      console.error('Authentication token not found');
+      throw new Error('Authentication token not found');
     }
-    
-    localStorage.setItem(STORAGE_KEY_RECIPES, JSON.stringify(updatedRecipes));
-    
-    // Also remove from bookmarks if present
-    removeFromBookmarks(id);
-    
-    return true;
+
+    const response = await fetch(`${API_BASE_URL}/recipes/${id}/`, {
+  method: 'DELETE',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+});
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server error response:', errorData);
+      throw new Error(errorData.detail || 'Failed to delete recipe');
+    }
+
+    console.log(`Recipe with ID ${id} deleted successfully.`);
+    return true; // Başarılı durum
   } catch (error) {
-    console.error('Error deleting recipe:', error);
-    throw new Error('Failed to delete recipe');
+    console.error('Error deleting recipe:', error.message || error);
+    throw error; // Hatanın yukarıya iletilmesini sağla
   }
 };
 
