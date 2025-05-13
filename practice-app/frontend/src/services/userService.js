@@ -24,6 +24,18 @@ api.interceptors.request.use(
   }
 );
 
+const getUsername = async (userId) => {
+  if (!userId || userId === 0) return 'Unknown';
+  
+  try {
+    const response = await api.get(`/api/users/${userId}/`);
+    return response.data.username || 'Unknown';
+  } catch (error) {
+    console.error('Error fetching username:', error);
+    return 'Unknown';
+  }
+};
+
 const userService = {
   // Get user profile by ID
   getUserById: async (userId) => {
@@ -83,7 +95,9 @@ const userService = {
       console.error('Error updating user settings:', error);
       throw error;
     }
-  }
+  },
+
+  getUsername,
 };
 
 export default userService;
