@@ -198,7 +198,7 @@ class WikidataViewSet(viewsets.ViewSet):
             })
 
         return Response(data, status=status.HTTP_200_OK)
-    
+
 
     @swagger_auto_schema(
         operation_description="Retrieve a specific ingredient by its ID along with its Wikidata information.",
@@ -268,10 +268,38 @@ class WikidataViewSet(viewsets.ViewSet):
             headers=HEADERS
         )
         return response.json()
-      
+
+    @swagger_auto_schema(
+        operation_description="Filter ingredients by their Wikidata description.",
+        manual_parameters=[
+            openapi.Parameter(
+                'description',
+                openapi.IN_QUERY,
+                description="Wikidata description to filter ingredients by",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        tags=["IngredientWikidata"]
+    )
+    @action(detail=False, methods=['get'], url_path='filter-by-description')
+    def filter_by_description(self, request):
+        description = request.query_params.get("description")
+        if not description:
+            return Response({'error': 'Query parameter "description" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Filter ingredients by their Wikidata description
+        ingredients = WikidataInfo.objects.filter(wikidata_description__icontains=description)
+        if not ingredients.exists():
+            return Response({'error': 'No ingredients found with the specified description.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the filtered ingredients
+        serializer = WikidataInfoSerializer(ingredients, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     #ADD OTHER ENDPOINTS
     #allergens
-    #description
+    #description - Celil written that.
     #label
     #nutrition
     #is-vegan
