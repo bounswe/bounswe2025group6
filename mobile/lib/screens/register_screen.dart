@@ -155,6 +155,25 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password is required';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Password must contain at least one number';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,15 +236,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
+                        helperText: 'Must contain 8+ characters, uppercase, lowercase, and number',
                       ),
                       obscureText: true,
                       controller: _passwordController, // Assign controller
                       onSaved: (v) => _password = v ?? '',
-                      validator:
-                          (v) =>
-                              v != null && v.length >= 8
-                                  ? null
-                                  : 'Enter at least 8 characters',
+                      validator: _validatePassword,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(

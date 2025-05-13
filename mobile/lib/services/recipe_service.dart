@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
-import '../models/ingredient.dart'; // Added import for IngredientDetail
-import 'storage_service.dart'; // For JWT token
+import '../models/ingredient.dart'; 
+import 'storage_service.dart'; 
 
 class RecipeService {
-  static const String _baseHost = 'http://10.0.2.2:8000';
+  static const String _baseHost = 'http://104.248.36.144:5173';
   String? token;
 
   RecipeService({this.token});

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
-import '../models/recipe.dart'; // Added for Recipe model
+import '../models/recipe.dart'; 
 import '../services/profile_service.dart';
-import '../services/recipe_service.dart'; // Added for RecipeService
+import '../services/recipe_service.dart'; 
 import '../theme/app_theme.dart';
-import '../widgets/recipe_card.dart'; // Added for RecipeCard
+import '../widgets/recipe_card.dart'; 
 import './profile_settings_screen.dart';
-import './recipe_detail_screen.dart'; // Added for navigation to recipe details
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';

@@ -15,7 +15,7 @@ class ProfileServiceException implements Exception {
 }
 
 class ProfileService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'http://104.248.36.144:5173/api';
   String? token;
 
   ProfileService({this.token});
