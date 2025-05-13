@@ -47,7 +47,7 @@ const MainLayout = () => {
                 alt="Logo"
                 className="layout-logo-img"
               />
-              FitHub
+              <span>FitHub</span>
             </Link>
         </div>
         <nav className="layout-nav">
@@ -80,9 +80,8 @@ const MainLayout = () => {
           <p>© {new Date().getFullYear()} FitHub </p>
 
           <div className="layout-footer-links">
-            <a href="#">About</a>
-            <a href="#">Terms</a>
-            <a href="#">Privacy</a>
+            <p>Cmpe352 Group 6</p>
+
           </div>
         </div>
       </footer>

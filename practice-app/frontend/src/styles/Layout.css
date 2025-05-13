@@ -39,6 +39,10 @@ body, html {
   width: 45px;
 }
 
+.layout-header-left span {
+  margin-left: 5px;
+}
+
 .layout-nav {
   display: flex;
 }
@@ -103,45 +107,34 @@ body, html {
 
 
 .layout-footer {
-  background: linear-gradient(to right, #38a169, #2b6cb0);
-  border-top: 1px solid #e2e8f0;
-  padding: 1rem 2rem;
-  font-size: 0.875rem;
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 100vw;
-  box-sizing: border-box;
-  margin: 0;
-  padding-left: 0;
-  padding-right: 0;
+    box-sizing: border-box;
+    padding: 5px 20px;
+    background-color: rgba(10, 10, 10, .7);
 }
 
 .layout-footer-inner {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+}
+
+.layout-footer-inner p {
+  color: #fff;
 }
 
 .layout-footer-links {
   display: flex;
-  gap: 1rem;
-  justify-content: center;
+  flex-direction: row;
 }
 
 .layout-footer a {
-  color: #dbeafe;
-  margin-left: 1rem;
-  transition: color 0.3s ease;
+  color: #fff;
+  text-decoration: none;
+  margin-left: 10px;
 }
 
-.layout-footer a:hover {
-  color: #ffffff;
-}
+
 
 .layout-main {
   width: 100%;
@@ -236,6 +229,13 @@ body, html {
   .layout-header-right {
     right: 1vw;
   }
+}
+
+.page-AuthLayout footer {
+  padding: 5px 10px;
+  background-color: rgba(10, 10, 10, .4);
+  color: #fff;
+  text-align: center;
 }
 
 @media (max-width: 576px) {
