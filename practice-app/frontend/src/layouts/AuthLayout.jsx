@@ -9,20 +9,17 @@ import { Link, Outlet } from 'react-router-dom';
  */
 const AuthLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-r from-green-300 to-blue-400">
-        {/* Header with logo */}
-        <header className="py-6 px-4">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <div className="page-AuthLayout">
+        <header>
             <Link to="/dashboard" className="layout-logo">
-          <img
-            src={'../assets/fithub_small.png'}
-            alt="Logo"
-            className="layout-logo-img"
-            style={{ width: 32, height: 32, marginRight: 8, marginLeft:16, borderRadius: '50%' }}
-          />
-          FitHub
+              <img
+                src={'../assets/fithub_small.png'}
+                alt="Logo"
+                className="layout-logo-img"
+                style={{ width: 45, height: 45, borderRadius: '50%' }}
+              />
+              FitHub
             </Link>
-          </div>
         </header>
         
         {/* Main content - renders child routes */}
@@ -31,8 +28,8 @@ const AuthLayout = () => {
       </main>
       
       {/* Footer */}
-      <footer className="py-4 text-center text-white text-sm">
-        <p>© {new Date().getFullYear()} Meal Planner App. All rights reserved.</p>
+      <footer>
+        <p>© {new Date().getFullYear()} FitHub</p>
       </footer>
     </div>
   );

@@ -76,7 +76,6 @@ class IngredientViewSet(mixins.ListModelMixin,
         except Ingredient.DoesNotExist:
             return Response({'error': 'Ingredient not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class WikidataViewSet(viewsets.ViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve a list of all ingredients with their Wikidata information.",
@@ -200,6 +199,7 @@ class WikidataViewSet(viewsets.ViewSet):
 
         return Response(data, status=status.HTTP_200_OK)
     
+
     @swagger_auto_schema(
         operation_description="Retrieve a specific ingredient by its ID along with its Wikidata information.",
         responses={
@@ -268,5 +268,13 @@ class WikidataViewSet(viewsets.ViewSet):
             headers=HEADERS
         )
         return response.json()
-    
-    #ENDPOINTS WILL BE ADDED HERE
+      
+    #ADD OTHER ENDPOINTS
+    #allergens
+    #description
+    #label
+    #nutrition
+    #is-vegan
+    #image
+    #origin
+    #category

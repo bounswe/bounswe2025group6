@@ -38,25 +38,17 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="layout-container" style={{ padding: '16px' }}>
+    <div className="layout-container">
       <header className="layout-header">
-        <div className="layout-header-row margin-top-6">
-          <div className="layout-header-left">
+        <div className="layout-header-left">
             <Link to="/dashboard" className="layout-logo">
               <img
                 src={'../assets/fithub_small.png'}
                 alt="Logo"
                 className="layout-logo-img"
-                style={{ width: 32, height: 32, marginRight: 8, borderRadius: '50%' }}
               />
-              FitHub
+              <span>FitHub</span>
             </Link>
-          </div>
-          <div className="layout-header-right">
-            <button className="layout-logout" onClick={handleLogout}>
-              Logout <span role="img" aria-label="logout">🚪</span>
-            </button>
-          </div>
         </div>
         <nav className="layout-nav">
           {navItems.map((item) => (
@@ -70,7 +62,11 @@ const MainLayout = () => {
             </Link>
           ))}
         </nav>
-
+        <div className="layout-header-right">
+            <button className="layout-logout" onClick={handleLogout}>
+              Logout
+            </button>
+        </div>
       </header>
 
       <main className="layout-main">
@@ -84,9 +80,8 @@ const MainLayout = () => {
           <p>© {new Date().getFullYear()} FitHub </p>
 
           <div className="layout-footer-links">
-            <a href="#">About</a>
-            <a href="#">Terms</a>
-            <a href="#">Privacy</a>
+            <p>Cmpe352 Group 6</p>
+
           </div>
         </div>
       </footer>

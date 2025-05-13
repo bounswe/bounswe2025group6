@@ -1,17 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getRecipeById } from '../../services/recipeService';
-import { getUserProfile } from '../../services/profileService'; // userService yerine profileService kullanıldı
+import { deleteRecipe } from '../../services/recipeService';
+import userService from '../../services/userService';
 import RatingStars from '../../components/recipe/RatingStars';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
+import { getCurrentUser } from '../../services/authService';
 
 const RecipeDetailPage = () => {
   const { id } = useParams();
   const [recipe, setRecipe] = useState(null);
-  const [creatorName, setCreatorName] = useState(''); // Kullanıcı adı için state
+  const [creatorName, setCreatorName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [recipeId, setRecipeId] = useState('');
+  const navigate = useNavigate();
+
+const handleDelete = async () => {
+    try {
+      if (!id) {
+        alert('Invalid recipe ID.');
+        return;
+      }
+
+      // Check if current user is the creator
+      const currentUser = await getCurrentUser(); // Add await here
+      if (!currentUser || currentUser.id !== recipe.creator_id) {
+        alert('You can only delete recipes that you created.');
+        return;
+      }
+      
+      const success = await deleteRecipe(id);
+      if (success) {
+        alert(`Recipe ${recipe.name} deleted successfully.`);
+        navigate(`/recipes/`);
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      alert('Failed to delete the recipe. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const loadRecipe = async () => {
@@ -21,9 +51,6 @@ const RecipeDetailPage = () => {
         if (recipeData) {
           setRecipe(recipeData);
 
-          // Kullanıcı adını almak için API çağrısı
-          //const userData = await getUserProfile(); // getUserById yerine getUserProfile kullanıldı
-          //setCreatorName(userData.username); // Kullanıcı adını state'e kaydet
         } else {
           setError('Recipe not found');
         }
@@ -48,9 +75,9 @@ const RecipeDetailPage = () => {
     <div id="recipe-detail-page" className="container">
       <div className="recipe-detail-page-header" style={{
 				backgroundImage:
-					'url("https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+					'url("https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")'
 			}}>
-        <h1>{recipe.name} Recipe</h1>
+        <h1>{recipe.name}</h1>
         <div className='recipe-detail-page-header-boxes'>
           <div className='recipe-detail-page-header-box'>
             {recipe.dietary_info && recipe.dietary_info.length > 0 ? (
@@ -74,6 +101,18 @@ const RecipeDetailPage = () => {
           )}
           </div>
         </div>
+
+        {/*DELETE BUTTON EDIT BUTTON*/}
+        <div className='recipe-detail-page-header-buttons'>
+          <button className="delete-recipe-button" onClick={handleDelete}>Delete Recipe</button>
+          <button 
+            className="edit-recipe-button" 
+            onClick={() => navigate(`/recipes/${id}/edit`)}
+          >
+            Edit Recipe
+          </button>
+        </div>
+        
       </div>
 
       <div className='recipe-detail-page-boxes'>
@@ -150,25 +189,11 @@ const RecipeDetailPage = () => {
             <p>No ingredients provided</p>
           )}
         </div>
+        
       </div>
+      
 
-
-      {/*
-      <div className='recipe-detail-page-allergen'>
-          <strong>Allergens: </strong> 
-          {recipe.alergens && recipe.alergens.length > 0 ? (
-            recipe.alergens.map((allergen, index) => (
-              <span key={index}>
-                {allergen.charAt(0).toUpperCase() + allergen.slice(1)}
-                {index < recipe.alergens.length - 1 ? ', ' : ''}
-              </span>
-            ))
-          ) : (
-            'None'
-          )}
-      </div>
-      */}
-
+      
 
 
       {/*

@@ -172,26 +172,36 @@ const forumService = {
     }
   },
 
-  // Post vote status
   checkPostVoteStatus: async (postId) => {
     try {
       console.log(`Checking vote status for post ${postId}`);
-      const response = await api.get(`/forum/posts/${postId}/vote/`);
+      const response = await api.get(`/forum/post/${postId}/vote/`);
       
       // For 200 OK responses, the endpoint returns the vote data
       console.log("Vote status response:", response.data);
       
-      // Make sure vote_type is correctly extracted
+      // Make sure vote_type is correctly extracted and validated
       const voteType = response.data.vote_type;
       console.log("Vote type from response:", voteType);
       
-      return {
-        hasVoted: true,
-        voteType: voteType // Can be 'up' or 'down'
-      };
+      // Only return hasVoted true if we have a valid vote type
+      if (voteType === 'up' || voteType === 'down') {
+        return {
+          hasVoted: true,
+          voteType: voteType
+        };
+      } else {
+        // If vote_type is not 'up' or 'down' but we got a 200 response,
+        // something is inconsistent - return not voted to be safe
+        console.log("Vote type is invalid, returning hasVoted: false");
+        return {
+          hasVoted: false,
+          voteType: null
+        };
+      }
     } catch (error) {
       // For 204 Not Found (no vote), return hasVoted: false
-      if (error.response && error.response.status === 204) {
+      if (error.response && (error.response.status === 204 || error.response.status === 404)) {
         console.log(`No vote found for post ${postId}`);
         return {
           hasVoted: false,
@@ -201,10 +211,10 @@ const forumService = {
       
       // Log the error response for debugging
       if (error.response) {
-        console.error('Error response:', error.response.status, error.response.data);
+        console.error('Error response:', error.response.status);
       }
       
-      // For other errors (401, 404, etc.), throw the error
+      // For other errors (401, etc.), throw the error
       console.error('Error checking post vote status:', error);
       throw error;
     }
@@ -214,7 +224,7 @@ const forumService = {
   checkCommentVoteStatus: async (commentId) => {
     try {
       console.log(`Checking vote status for comment ${commentId}`);
-      const response = await api.get(`/forum/comments/${commentId}/vote/`);
+      const response = await api.get(`/forum/comment/${commentId}/vote/`);
       
       // For 200 OK responses, the endpoint returns the vote data
       return {

@@ -196,7 +196,7 @@ export const getCurrentUser = async () => {
     if (!userJson) {
       throw new Error('User not found');
     }
-    
+
     return JSON.parse(userJson);
   } catch (error) {
     console.error('Get current user error:', error);

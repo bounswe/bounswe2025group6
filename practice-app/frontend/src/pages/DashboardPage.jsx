@@ -6,9 +6,12 @@ import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import '../styles/DashboardPage.css';
+import { getCurrentUser } from '../services/authService';
+import userService from '../services/userService';
 
 const DashboardPage = () => {
-  const { currentUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [username, setUsername] = useState('User');
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
@@ -16,15 +19,36 @@ const DashboardPage = () => {
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
   };
+
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+        
+        if (user && user.id) {
+          const fetchedUsername = await userService.getUsername(user.id);
+          setUsername(fetchedUsername);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
     document.title = "Dashboard";
   }, []);
+
+  if (!currentUser) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="dashboard-container dashboard-cards">
       <div className="dashboard-header center">
         <div>
           <h1 className="dashboard-title">
-            {getWelcomeMessage()}, {currentUser?.username || 'User'}!
+            {getWelcomeMessage()}, {username}!
           </h1>
           <p className="dashboard-subtitle">
             Welcome to your meal planning dashboard. What would you like to do today?

@@ -112,7 +112,6 @@ If there is an issue fetching data from Wikidata or processing the request, the 
 2.  The endpoint dynamically fetches missing data from Wikidata and stores it in the database for future use.
 3.  The  `nutrition`  field may include additional properties depending on the available data in Wikidata.
 
-
 ## 2. Retrieve Ingredient with Wikidata Information
 
 ### **Endpoint**

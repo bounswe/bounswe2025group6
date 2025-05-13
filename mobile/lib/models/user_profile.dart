@@ -142,6 +142,8 @@ class UserProfile {
         allergens.isNotEmpty ? allergens : []; // Send empty list if none
     data['profileVisibility'] = publicProfile ? 'public' : 'private';
 
+    if (recipeCount != null) data['recipeCount'] = recipeCount;
+
     return data;
   }
 

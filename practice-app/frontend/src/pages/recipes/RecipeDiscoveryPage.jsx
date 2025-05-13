@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { fetchRecipes } from '../../services/recipeService';
 import RecipeCard from '../../components/recipe/RecipeCard';
 import Button from '../../components/ui/Button';
-import '../../styles/RecipePages.css';
+import '../../styles/RecipeDiscoveryPage.css';
+import '../../styles/style.css';
 
 const RecipeDiscoveryPage = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const RecipeDiscoveryPage = () => {
     const loadRecipes = async () => {
       try {
         setLoading(true);
-        const response = await fetchRecipes(currentPage, 10); // Sayfa başına 10 tarif
+        const response = await fetchRecipes(currentPage, 10);
         setRecipes(response.results);
         setFilteredRecipes(response.results);
         setTotalPages(Math.ceil(response.total / 10));
@@ -62,45 +63,53 @@ const RecipeDiscoveryPage = () => {
   };
 
   const handleNavigateToUpload = () => {
-    navigate('/uploadRecipe'); // Directing UploadRecipes
+    navigate('/uploadRecipe');
   };
 
   if (loading) return <div>Loading recipes...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
-    <div className="recipe-discovery-page">
-      <button onClick={handleNavigateToUpload} className="upload-button">
-        Upload Recipe
-      </button>
-      <h1 className="page-title">Discover Recipes</h1>
+    <div id='recipeDiscoveryPage' className='container'>
 
-      <div className="searchbox-container">
+      <h1>Discover Recipes</h1>
+
+      <div className='recipe-discovery-page-header'>
+        <button onClick={handleNavigateToUpload} className="recipe-discovery-page-header-item">
+                  Upload New Recipe
+        </button>
         <input
-          type="text"
-          placeholder="Search recipes..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="searchbox"
+            type="text"
+            placeholder="Search recipes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="recipe-discovery-page-header-item"
         />
-
       </div>
 
       <div className="recipe-list">
-        {filteredRecipes.map((recipe) => (
-          <RecipeCard key={recipe.id} recipe={recipe} />
-        ))}
+          {filteredRecipes.map((recipe) => (
+            <RecipeCard key={recipe.id} recipe={recipe} />
+          ))}
       </div>
 
       <div className="pagination-controls">
-        <button onClick={handlePreviousPage} disabled={currentPage === 1}>
-          Previous
-        </button>
-        <span> {currentPage} </span>
-        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-          Next
-        </button>
+          <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+            Previous
+          </button>
+          <span> {currentPage} </span>
+          <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+            Next
+          </button>
       </div>
+
+      
+
+      
+
+
+    
+    
     </div>
   );
 };

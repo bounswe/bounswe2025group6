@@ -35,6 +35,7 @@ import EditPostPage from '../pages/community/EditPostPage';
 
 import IngredientsPage from '../pages/ingredients/IngredientsPage'
 import IngredientDetailPage from '../pages/ingredients/IngredientDetailPage';
+import RecipeEditPage from '../pages/recipes/RecipeEditPage';
 import '../styles/index.css';
 
 const AppRoutes = () => {
@@ -106,6 +107,13 @@ const AppRoutes = () => {
           path="/recipes/:id" 
           element={
               <RecipeDetailPage />
+          } 
+        />
+        
+        <Route 
+          path="/recipes/:id/edit" 
+          element={
+              <RecipeEditPage />
           } 
         />
         
