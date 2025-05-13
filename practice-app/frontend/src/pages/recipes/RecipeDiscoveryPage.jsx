@@ -25,7 +25,7 @@ const RecipeDiscoveryPage = () => {
     const loadRecipes = async () => {
       try {
         setLoading(true);
-        const response = await fetchRecipes(currentPage, 10); // Sayfa başına 10 tarif
+        const response = await fetchRecipes(currentPage, 10);
         setRecipes(response.results);
         setFilteredRecipes(response.results);
         setTotalPages(Math.ceil(response.total / 10));
@@ -63,7 +63,7 @@ const RecipeDiscoveryPage = () => {
   };
 
   const handleNavigateToUpload = () => {
-    navigate('/uploadRecipe'); // Directing UploadRecipes
+    navigate('/uploadRecipe');
   };
 
   if (loading) return <div>Loading recipes...</div>;
