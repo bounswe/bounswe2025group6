@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
+import '../models/ingredient.dart'; // Added import for IngredientDetail
 import 'storage_service.dart'; // For JWT token
 
 class RecipeService {
@@ -172,6 +173,53 @@ class RecipeService {
     } catch (e) {
       print('Error creating recipe: $e');
       throw Exception('Failed to create recipe: $e');
+    }
+  }
+
+  // Fetches all ingredients.
+  Future<List<IngredientDetail>> getAllIngredients({
+    int? page,
+    int? pageSize,
+  }) async {
+    String url = '$_baseHost/ingredients/'; // Endpoint for ingredients
+    Map<String, String> queryParams = {};
+    if (page != null) {
+      queryParams['page'] = page.toString();
+    }
+    if (pageSize != null) {
+      queryParams['page_size'] = pageSize.toString();
+    }
+
+    if (queryParams.isNotEmpty) {
+      url += '?' + Uri(queryParameters: queryParams).query;
+    }
+
+    try {
+      var response = await http.get(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final List<dynamic> results =
+            responseData['results'] as List<dynamic>? ?? [];
+
+        List<IngredientDetail> ingredients =
+            results
+                .map(
+                  (data) =>
+                      IngredientDetail.fromJson(data as Map<String, dynamic>),
+                )
+                .toList();
+        return ingredients;
+      } else {
+        throw Exception(
+          'Failed to load ingredients (status code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to load ingredients: $e');
     }
   }
 }

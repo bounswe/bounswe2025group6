@@ -40,6 +40,7 @@ dependencies:
   # Add keyboard_visibility for better keyboard handling
   flutter_keyboard_visibility: ^6.0.0
   logging: ^1.2.0
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

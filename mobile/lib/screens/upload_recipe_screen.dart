@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fithub/theme/app_theme.dart';
-import 'package:fithub/services/recipe_service.dart'; // Import RecipeService
-import 'package:fithub/services/profile_service.dart'; // Import ProfileService
+import 'package:fithub/services/recipe_service.dart';
+import 'package:fithub/services/profile_service.dart';
 import 'package:fithub/models/user_profile.dart';
+import 'package:fithub/models/ingredient.dart'; // Import IngredientDetail
+import 'package:flutter_typeahead/flutter_typeahead.dart'; // Import flutter_typeahead
 
 class UploadRecipeScreen extends StatefulWidget {
   const UploadRecipeScreen({super.key});
@@ -22,12 +24,41 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   String? _selectedMealType;
   List<Map<String, TextEditingController>> _ingredients = [];
   bool _isSubmitting = false; // To track submission state
+  List<IngredientDetail> _allIngredients = [];
+  bool _isLoadingIngredients = true;
+  final RecipeService _recipeService = RecipeService();
 
   @override
   void initState() {
     super.initState();
+    _fetchIngredients();
     // Add one initial ingredient field
     _addIngredientField();
+  }
+
+  Future<void> _fetchIngredients() async {
+    try {
+      final ingredients = await _recipeService.getAllIngredients(
+        pageSize: 1000,
+      ); // Fetch a large number to get all
+      if (mounted) {
+        setState(() {
+          _allIngredients = ingredients;
+          _isLoadingIngredients = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingIngredients = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load ingredients: ${e.toString()}'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -266,18 +297,70 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                         padding: const EdgeInsets.all(12.0),
                         child: Column(
                           children: [
-                            TextFormField(
-                              controller: _ingredients[index]['name'],
-                              decoration: const InputDecoration(
-                                labelText: 'Ingredient Name',
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Enter ingredient name';
-                                }
-                                return null;
-                              },
-                            ),
+                            _isLoadingIngredients
+                                ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                : TypeAheadField<IngredientDetail>(
+                                  controller:
+                                      _ingredients[index]['name'], // Pass the controller here
+                                  suggestionsCallback: (pattern) {
+                                    if (pattern.isEmpty) {
+                                      return [];
+                                    }
+                                    return _allIngredients
+                                        .where(
+                                          (ingredient) => ingredient.name
+                                              .toLowerCase()
+                                              .contains(pattern.toLowerCase()),
+                                        )
+                                        .toList(); // Added .toList()
+                                  },
+                                  builder: (context, controller, focusNode) {
+                                    // Assign the provided controller to our TextEditingController instance
+                                    // This is a bit tricky because _ingredients[index]['name'] is already a controller.
+                                    // The TypeAheadField's controller parameter handles this.
+                                    // We use the provided focusNode.
+                                    return TextFormField(
+                                      controller:
+                                          controller, // Use the controller from TypeAheadField's builder
+                                      focusNode: focusNode,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Ingredient Name',
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter ingredient name';
+                                        }
+                                        // Optional: Validate if the entered ingredient is in the list
+                                        // if (!_allIngredients.any((ing) => ing.name.toLowerCase() == value.toLowerCase())) {
+                                        //   return 'Please select a valid ingredient from the list';
+                                        // }
+                                        return null;
+                                      },
+                                    );
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    return ListTile(
+                                      title: Text(suggestion.name),
+                                    );
+                                  },
+                                  onSelected: (suggestion) {
+                                    // Changed from onSuggestionSelected
+                                    // The controller for the field is _ingredients[index]['name']
+                                    // TypeAheadField updates its 'controller' parameter automatically.
+                                    _ingredients[index]['name']!.text =
+                                        suggestion.name;
+                                  },
+                                  emptyBuilder: // Changed from noItemsFoundBuilder
+                                      (context) => const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text(
+                                          'No ingredients found.',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
