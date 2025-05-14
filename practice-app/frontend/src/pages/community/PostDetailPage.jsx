@@ -647,7 +647,18 @@ const PostDetailPage = () => {
         <Card.Body>
           <div className="post-header">
             <div className="post-meta">
-              <div className="post-author">Posted by {getUserName(post.author)}</div>
+              <div className="post-author">
+                Posted by{" "}
+                <span 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/community/profile/${post.author}`);
+                  }}
+                  className="author-link"
+                >
+                  {getUserName(post.author)}
+                </span>
+              </div>
               <div className="post-timestamp">{formatDate(post.created_at)}</div>
             </div>
             {currentUser && post.author === currentUser.id && (
@@ -762,7 +773,16 @@ const PostDetailPage = () => {
                       <div className="comment-header">
                         <div className="comment-meta">
                           <div className="comment-author">
-                            Comment by {getUserName(comment.author)}
+                            Comment by{" "}
+                            <span 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/community/profile/${comment.author}`);
+                              }}
+                              className="author-link"
+                            >
+                              {getUserName(comment.author)}
+                            </span>
                           </div>
                           <div className="comment-time">
                             {formatDate(comment.created_at)}

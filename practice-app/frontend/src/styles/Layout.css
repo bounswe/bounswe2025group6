@@ -37,6 +37,7 @@ body, html {
 
 .layout-logo-img {
   width: 45px;
+  border-radius: 7px;
 }
 
 .layout-header-left span {
@@ -249,3 +250,35 @@ body, html {
   }
 }
 
+.green-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  margin-left: auto
+}
+
+.layout-logo {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  text-decoration: none;
+}
+
+.logo-text {
+  font-family: Arial;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.logo-text .fit {
+  margin-left: 2px;
+  color: white;
+}
+
+.logo-text .hub {
+  margin-left: 1px;
+  color: #e1febb;
+}

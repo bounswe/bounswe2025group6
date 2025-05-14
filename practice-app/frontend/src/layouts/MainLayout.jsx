@@ -47,7 +47,10 @@ const MainLayout = () => {
                 alt="Logo"
                 className="layout-logo-img"
               />
-              <span>FitHub</span>
+              <span className="logo-text">
+                <span className="fit">Fit</span>
+                <span className="hub">Hub</span>
+              </span>
             </Link>
         </div>
         <nav className="layout-nav">
@@ -62,7 +65,7 @@ const MainLayout = () => {
           ))}
         </nav>
         <div className="layout-header-right">
-            <button className="layout-logout" onClick={handleLogout}>
+            <button className="layout-logout green-button" onClick={handleLogout}>
               Logout
             </button>
         </div>

@@ -269,6 +269,39 @@ class WikidataViewSet(viewsets.ViewSet):
         )
         return response.json()
 
+    
+    # IMAGE ENDPOINT
+    # Function to get the image of an ingredient/meal by name
+    @swagger_auto_schema(
+        operation_description="Get image of an ingredient/meal.",
+        manual_parameters=[
+            openapi.Parameter('name', openapi.IN_QUERY, description="Ingredient or meal name", type=openapi.TYPE_STRING, required=True)
+        ],
+        tags=["IngredientWikidata"]
+    )
+    @action(detail=False, methods=['get'], url_path='image')
+    def image(self, request):
+        name = request.query_params.get("name")
+        if not name:
+            return Response({'error': 'Query parameter "name" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qid = self.get_wikidata_entity(name)
+        if not qid:
+            return Response({'error': 'Item not found in Wikidata.'}, status=status.HTTP_404_NOT_FOUND)
+
+        query = f"""
+        SELECT ?image WHERE {{
+          wd:{qid} wdt:P18 ?image .
+        }}
+        """
+        results = self.run_sparql_query(query)
+        if results["results"]["bindings"]:
+            image_name = results["results"]["bindings"][0]["image"]["value"].split("/")[-1]
+            return Response({"image_url": f"https://commons.wikimedia.org/wiki/Special:FilePath/{image_name}"})
+        return Response({"image_url": None})
+    
+    
+
     @swagger_auto_schema(
         operation_description="Filter ingredients by their Wikidata description.",
         manual_parameters=[
@@ -303,6 +336,6 @@ class WikidataViewSet(viewsets.ViewSet):
     #label
     #nutrition
     #is-vegan
-    #image
+ 
     #origin
     #category

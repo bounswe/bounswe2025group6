@@ -75,9 +75,6 @@ const RecipeDiscoveryPage = () => {
       <h1>Discover Recipes</h1>
 
       <div className='recipe-discovery-page-header'>
-        <button onClick={handleNavigateToUpload} className="recipe-discovery-page-header-item">
-                  Upload New Recipe
-        </button>
         <input
             type="text"
             placeholder="Search recipes..."
@@ -85,6 +82,9 @@ const RecipeDiscoveryPage = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="recipe-discovery-page-header-item"
         />
+        <button onClick={handleNavigateToUpload} className="green-button">
+                  Upload New Recipe
+        </button>
       </div>
 
       <div className="recipe-list">
@@ -94,11 +94,11 @@ const RecipeDiscoveryPage = () => {
       </div>
 
       <div className="pagination-controls">
-          <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+          <button onClick={handlePreviousPage} disabled={currentPage === 1} className='pagination-green-button'>
             Previous
           </button>
           <span> {currentPage} </span>
-          <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+          <button onClick={handleNextPage} disabled={currentPage === totalPages} className='pagination-green-button'>
             Next
           </button>
       </div>

@@ -28,3 +28,27 @@
 .recipe-list {
   margin-top: 20px;
 }
+
+.green-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  margin-left: auto
+}
+
+.pagination-green-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+}
