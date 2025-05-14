@@ -1,6 +1,8 @@
 // src/utils/Auth.js
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 const AUTH_TOKEN_KEY = 'fithub_access_token';
 const REFRESH_TOKEN_KEY = 'fithub_refresh_token';
 
@@ -36,7 +38,7 @@ export const refreshAuthToken = async () => {
   }
   
   try {
-    const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+    const response = await axios.post(`${API_BASE}/api/token/refresh/`, {
       refresh: refreshToken
     });
     

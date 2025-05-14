@@ -5,6 +5,8 @@ import { getCurrentUser } from '../../services/authService';
 import '../../styles/UploadRecipePage.scss';
 import { useToast } from '../../components/ui/Toast';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 const RecipeEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -92,7 +94,7 @@ const RecipeEditPage = () => {
         cook_time: parseInt(recipeData.cooking_time),
       };
 
-      const response = await fetch(`http://localhost:8000/recipes/${id}/`, {
+      const response = await fetch(`${API_BASE}/recipes/${id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

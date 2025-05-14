@@ -113,7 +113,7 @@ export const addRecipe = async (recipeData) => {
 
     console.log('Sending formatted recipe data:', formattedData); // For debugging
 
-    const response = await fetch('http://localhost:8000/recipes/', {
+    const response = await fetch(`${API_BASE_URL}/recipes/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ export const addRecipe = async (recipeData) => {
  */
 export const createRecipe = async (recipeData) => {
   try {
-    const response = await fetch('http://localhost:8000/recipes/', {
+    const response = await fetch(`${API_BASE_URL}/recipes/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
