@@ -4,7 +4,7 @@ import 'storage_service.dart';
 import '../models/forum_comment.dart'; 
 
 class CommunityService {
-  static const String baseUrl = 'http://104.248.36.144:8000';
+  static const String baseUrl = 'http://95.179.161.59:8000';
   String? token;
 
   CommunityService({this.token});

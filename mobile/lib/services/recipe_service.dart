@@ -5,7 +5,7 @@ import '../models/ingredient.dart';
 import 'storage_service.dart'; 
 
 class RecipeService {
-  static const String _baseHost = 'http://104.248.36.144:8000';
+  static const String _baseHost = 'http://95.179.161.59:8000';
   String? token;
 
   RecipeService({this.token});
