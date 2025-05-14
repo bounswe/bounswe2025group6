@@ -34,7 +34,7 @@ SECRET_KEY = 'django-insecure-f7#u$4w*^*l6s*yh^$6=a9t*h$loal!1^=p@_u%icge!g_ul%h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '10.0.2.2', '95.179.161.59']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '10.0.2.2', '95.179.161.59', '104.248.36.144']
 
 # Application definition
 
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'drf_yasg', # Swagger and ReDoc
     'utils',    # Utility functions and classes
 
+    'core',
     'api',      # Our main api
     'ingredients', # Ingredients app
     'recipes',  # Recipes app
@@ -217,4 +218,4 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTH_USER_MODEL = 'api.RegisteredUser'
 
-SITE_DOMAIN = "http://localhost:8000"
+SITE_DOMAIN = "http://95.179.161.59:8000"

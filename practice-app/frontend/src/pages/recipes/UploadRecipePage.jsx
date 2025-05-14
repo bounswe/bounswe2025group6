@@ -39,7 +39,7 @@ const UploadRecipePage = () => {
       const fetchAllIngredients = async () => {
         try {
           let allData = [];
-          let nextUrl = 'http://localhost:8000/ingredients/';
+          let nextUrl = import.meta.env.VITE_API_URL + '/ingredients/';
   
           while (nextUrl) {
             const res = await fetch(nextUrl);
