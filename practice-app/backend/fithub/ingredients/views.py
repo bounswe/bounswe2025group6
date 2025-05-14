@@ -360,6 +360,35 @@ class WikidataViewSet(viewsets.ViewSet):
         except WikidataInfo.DoesNotExist:
             return Response({"error": "Wikidata info not found for the given ingredient."}, status=status.HTTP_404_NOT_FOUND)
 
+    @swagger_auto_schema(
+        operation_description="Retrieve the category for a specific ingredient.",
+        tags=["IngredientWikidata"],
+        manual_parameters=[
+            openapi.Parameter(
+                'ingredient_id',
+                openapi.IN_QUERY,
+                description="The ID of the ingredient.",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ],
+        responses={
+            200: openapi.Response(description="Category retrieved successfully."),
+            404: openapi.Response(description="Ingredient or Wikidata info not found."),
+        }
+    )
+    @action(detail=False, methods=['get'], url_path='category')
+    def get_category(self, request):
+        ingredient_id = request.query_params.get('ingredient_id')
+        if not ingredient_id:
+            return Response({"error": "ingredient_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            wikidata_info = WikidataInfo.objects.get(ingredient_id=ingredient_id)
+            return Response({"category": wikidata_info.category}, status=status.HTTP_200_OK)
+        except WikidataInfo.DoesNotExist:
+            return Response({"error": "Wikidata info not found for the given ingredient."}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 
@@ -376,19 +405,3 @@ class WikidataViewSet(viewsets.ViewSet):
  
     #origin
     #category
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-
-
