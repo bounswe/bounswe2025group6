@@ -20,7 +20,6 @@ const RecipeDiscoveryPage = () => {
   useEffect(() => {
     document.title = "Recipe Discovery";
   }, []);
-
   useEffect(() => {
     const loadRecipes = async () => {
       try {
@@ -29,6 +28,15 @@ const RecipeDiscoveryPage = () => {
         setRecipes(response.results);
         setFilteredRecipes(response.results);
         setTotalPages(Math.ceil(response.total / 10));
+        
+        // Optional: Prefetch next page data after current page loads
+        if (currentPage < Math.ceil(response.total / 10)) {
+          setTimeout(() => {
+            fetchRecipes(currentPage + 1, 10).catch(err => 
+              console.log('Error prefetching next page:', err)
+            );
+          }, 2000);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
