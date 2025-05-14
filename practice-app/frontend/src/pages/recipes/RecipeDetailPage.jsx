@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { getRecipeById, getWikidataImage, deleteRecipe } from '../../services/recipeService';
-import userService from '../../services/userService';
+import userService, { getUsername } from '../../services/userService';
 import RatingStars from '../../components/recipe/RatingStars';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
 import { getCurrentUser } from '../../services/authService';
 
 const RecipeDetailPage = () => {
-  const { id } = useParams();
-  const [recipe, setRecipe] = useState(null);
+  const { id } = useParams();  const [recipe, setRecipe] = useState(null);
   const [creatorName, setCreatorName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,14 +41,19 @@ const RecipeDetailPage = () => {
       console.error('Error deleting recipe:', error);
       alert('Failed to delete the recipe. Please try again.');
     }
-  };
-  useEffect(() => {
+  };  useEffect(() => {
     const loadRecipeAndImage = async () => {
       try {
         setLoading(true);
         const recipeData = await getRecipeById(Number(id));
         if (recipeData) {
           setRecipe(recipeData);
+          
+          // Fetch creator name
+          if (recipeData.creator_id) {
+            const name = await getUsername(recipeData.creator_id);
+            setCreatorName(name);
+          }
           
           // Fetch image from Wikidata API
           try {
@@ -91,8 +95,10 @@ const RecipeDetailPage = () => {
 				backgroundImage: recipeImage
           ? `url("${recipeImage}")`
           : 'url("https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")'
-			}}>
-        <h1>{recipe.name}</h1>
+			}}>        <h1>{recipe.name}</h1>
+        <p className="creator-name" style={{ color: 'white', fontStyle: 'italic', marginTop: '5px' }}>
+          Created by: {creatorName || 'Loading...'}
+        </p>
         <div className='recipe-detail-page-header-boxes'>
           <div className='recipe-detail-page-header-box'>
             <span className='recipe-detail-page-header-box-info'>Dietary Info: </span>

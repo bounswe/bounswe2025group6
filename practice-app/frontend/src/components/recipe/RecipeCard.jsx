@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import { getRecipeById, getWikidataImage } from '../../services/recipeService';
+import { getUsername } from '../../services/userService';
 import '../../styles/RecipeCard.css';
 
 const RecipeCard = ({ recipe }) => {
@@ -11,6 +12,7 @@ const RecipeCard = ({ recipe }) => {
   const [recipeImage, setRecipeImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [creatorName, setCreatorName] = useState('');
   const cardRef = useRef(null);
 
   // Lazy loading with IntersectionObserver
@@ -35,7 +37,6 @@ const RecipeCard = ({ recipe }) => {
       }
     };
   }, []);
-
   // Only load image when card becomes visible
   useEffect(() => {
     const loadImage = async () => {
@@ -58,6 +59,18 @@ const RecipeCard = ({ recipe }) => {
 
     loadImage();
   }, [recipe.name, isVisible, isLoading, recipeImage]);
+  
+  // Fetch creator's username
+  useEffect(() => {
+    const fetchCreatorName = async () => {
+      if (recipe.creator_id) {
+        const name = await getUsername(recipe.creator_id);
+        setCreatorName(name);
+      }
+    };
+    
+    fetchCreatorName();
+  }, [recipe.creator_id]);
 
   const handleClick = () => {
     navigate(`/recipes/${recipe.id}`);
@@ -74,20 +87,19 @@ const RecipeCard = ({ recipe }) => {
             <div className="loader-spinner"></div>
           </div>
         )}
-      </div>
-      <div className='recipe-card-content'>
-        <h2>{recipe.name}</h2>
-        <div className='recipe-card-content-info'>
-          <span><strong>Meal Type:</strong> {recipe.meal_type || 'No type provided.'}</span>
-          <span><strong>Cost:</strong> {recipe.cost_per_serving}$</span>
-          <span><strong>Prep Time:</strong> {recipe.prep_time}mins</span>
-          <span><strong>Cook Time:</strong> {recipe.cook_time}mins</span>
-        </div>
-        <div className='recipe-card-content-dietary'>
+      </div>        <div className='recipe-card-content'>
+          <h2>{recipe.name}</h2>          <div className='recipe-card-content-info'>
+            <span><strong>Meal Type:</strong> {recipe.meal_type || 'No type provided.'}</span>
+            <span><strong>Cost:</strong> {recipe.cost_per_serving}$</span>
+            <span><strong>Prep Time:</strong> {recipe.prep_time}mins</span>
+            <span><strong>Cook Time:</strong> {recipe.cook_time}mins</span>
+            <span><strong>Created by:</strong> {creatorName || 'Loading...'}</span>
+          </div>
+          <div className='recipe-card-content-dietary'>
 
+          </div>
+          
         </div>
-        
-      </div>
     
     </div>
 
