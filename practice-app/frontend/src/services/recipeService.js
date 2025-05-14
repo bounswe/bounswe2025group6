@@ -4,7 +4,7 @@ import axios from 'axios';
 // Local storage key for saved recipes
 const STORAGE_KEY_RECIPES = 'mealPlanner_recipes';
 const STORAGE_KEY_BOOKMARKS = 'mealPlanner_bookmarkedRecipes';
-const API_BASE_URL = 'http://localhost:8000'; // Backend API'nin base URL'si
+const API_BASE_URL = import.meta.env.VITE_API_URL; // Backend API'nin base URL'si
 
 // Cache for storing image URLs to prevent duplicate API calls
 const imageCache = new Map();
