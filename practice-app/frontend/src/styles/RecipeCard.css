@@ -77,11 +77,13 @@
 }
 
 .recipe-card-content h2 {
-  padding: 0;
+  padding: 0 10px;
   margin: 0;
   margin-bottom: 10px;
   font-size: 34px;
   text-transform: uppercase;
+  line-height: 0.8;
+  text-align: center;
 }
 
 .recipe-card-content-info {

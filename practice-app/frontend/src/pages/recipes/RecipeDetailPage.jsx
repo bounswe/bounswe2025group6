@@ -95,24 +95,26 @@ const RecipeDetailPage = () => {
         <h1>{recipe.name}</h1>
         <div className='recipe-detail-page-header-boxes'>
           <div className='recipe-detail-page-header-box'>
+            <span className='recipe-detail-page-header-box-info'>Dietary Info: </span>
             {recipe.dietary_info && recipe.dietary_info.length > 0 ? (
               recipe.dietary_info.map((info, index) => (
-                <span key={index} >{info}</span>
+                <span className='recipe-detail-page-header-box-dietary' key={index} >{info}</span>
               ))
             ) : (
-              <span>None</span>
+              <span className='recipe-detail-page-header-box-dietary'>None</span>
             )}
           </div>
-          <div className='recipe-detail-page-header-box recipe-detail-page-header-box-allergens'>
+          <div className='recipe-detail-page-header-box'>
+            <span className='recipe-detail-page-header-box-info'>Allergens: </span>
             {recipe.alergens && recipe.alergens.length > 0 ? (
             recipe.alergens.map((allergen, index) => (
-              <span key={index}>
+              <span className='recipe-detail-page-header-box-allergen' key={index}>
                 {allergen.charAt(0).toUpperCase() + allergen.slice(1)}
                 {index < recipe.alergens.length - 1 ? '' : ''}
               </span>
             ))
           ) : (
-            'None'
+            <span className='recipe-detail-page-header-box-allergen'>None</span>
           )}
           </div>
         </div>
@@ -154,7 +156,7 @@ const RecipeDetailPage = () => {
 
         <div className="recipe-detail-page-box">
           <span className='recipe-detail-page-box-header'>COST</span>
-          <span className='recipe-detail-page-box-title'>{recipe.cost_per_serving || 'Not calculated'} $</span>
+          <span className='recipe-detail-page-box-title'>{recipe.cost_per_serving || 'None'} $</span>
         </div>  
       </div>
 
