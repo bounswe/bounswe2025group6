@@ -389,6 +389,37 @@ class WikidataViewSet(viewsets.ViewSet):
         except WikidataInfo.DoesNotExist:
             return Response({"error": "Wikidata info not found for the given ingredient."}, status=status.HTTP_404_NOT_FOUND)
 
+    
+    
+    #Country of Origin Endpoint: get the origin country/cuisine of a meal 
+    @swagger_auto_schema(
+        operation_description="Get origin country/cuisine of a meal.",
+        manual_parameters=[
+            openapi.Parameter('name', openapi.IN_QUERY, description="Meal name", type=openapi.TYPE_STRING, required=True)
+        ],
+        tags=["IngredientWikidata"]
+    )
+    @action(detail=False, methods=['get'], url_path='origin')
+    def origin(self, request):
+        name = request.query_params.get("name")
+        if not name:
+            return Response({'error': 'Query parameter "name" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qid = self.get_wikidata_entity(name)
+        if not qid:
+            return Response({'error': 'Item not found in Wikidata.'}, status=status.HTTP_404_NOT_FOUND)
+
+        query = f"""
+        SELECT ?originLabel WHERE {{
+          wd:{qid} wdt:P495 ?origin .
+          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+        }}
+        """
+        results = self.run_sparql_query(query)
+        origins = [binding["originLabel"]["value"] for binding in results["results"]["bindings"]]
+        return Response({"origin": origins[0] if origins else None})
+    
+
 
 
 
@@ -403,5 +434,5 @@ class WikidataViewSet(viewsets.ViewSet):
     #nutrition
     #is-vegan
  
-    #origin
+    
     #category
