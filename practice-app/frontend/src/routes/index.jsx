@@ -39,8 +39,7 @@ import RecipeEditPage from '../pages/recipes/RecipeEditPage';
 import '../styles/index.css';
 
 const AppRoutes = () => {
-  return (
-    <Routes>
+  return (    <Routes>
       {/* Public home page */}
       <Route path="/" element={<HomePage />} />
       

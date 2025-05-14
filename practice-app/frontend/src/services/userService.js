@@ -23,7 +23,7 @@ api.interceptors.request.use(
   }
 );
 
-const getUsername = async (userId) => {
+export const getUsername = async (userId) => {
   if (!userId || userId === 0) return 'Unknown';
   
   try {

@@ -91,6 +91,7 @@
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+  text-align: center;
 }
 
 .recipe-card-content-info span {

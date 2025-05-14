@@ -5,11 +5,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
+import TermsContent from '../../components/info/TermsContent';
 import '../../styles/AuthPages.css';
 
 const RegisterPage = () => {
   const { register, isLoading } = useAuth();
   const toast = useToast();
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -242,9 +245,7 @@ const RegisterPage = () => {
               {errors.certificationUrl && <p className="text-error">{errors.certificationUrl}</p>}
               <p className="text-xs text-gray-500">URL to your professional certification document</p>
             </div>
-          )}
-
-          <div className="checkbox-container">
+          )}          <div className="checkbox-container">
             <input
               type="checkbox"
               id="acceptTerms"
@@ -254,10 +255,44 @@ const RegisterPage = () => {
             />
             <label htmlFor="acceptTerms">
               I accept the{' '}
-              <Link to="/terms" className="text-blue-600 hover:text-blue-800">Terms and Conditions</Link>
+              <button 
+                type="button" 
+                className="terms-link" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowTermsModal(true);
+                }}
+              >
+                Fithub Terms and Conditions
+              </button>
             </label>
           </div>
           {errors.acceptTerms && <p className="text-error">{errors.acceptTerms}</p>}
+          
+          <Modal 
+            isOpen={showTermsModal} 
+            onClose={() => setShowTermsModal(false)}
+            title="Fithub Terms & Conditions"
+          >
+            <TermsContent />
+            <div className="text-center mt-6">
+              <Button 
+                onClick={() => {
+                  setShowTermsModal(false);
+                  setFormData(prev => ({ ...prev, acceptTerms: true }));
+                }}
+              >
+                Accept Terms
+              </Button>
+              <Button 
+                className="ml-4" 
+                variant="secondary" 
+                onClick={() => setShowTermsModal(false)}
+              >
+                Close
+              </Button>
+            </div>
+          </Modal>
 
           <Button type="submit" className="auth-submit" disabled={isLoading}>
             {isLoading ? 'Registering...' : 'Create Account'}
