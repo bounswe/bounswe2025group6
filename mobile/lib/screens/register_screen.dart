@@ -24,6 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
   PlatformFile? _pdfFile;
   bool _isLoading = false; // Loading state
   late final AuthService _authService; // Declare AuthService
+  bool _acceptedTerms = false; // Add this near other state variables
 
   @override
   void initState() {
@@ -36,6 +37,17 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    
+    // Add this check before form submission
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the terms and conditions to continue.'),
+        ),
+      );
+      return;
+    }
+    
     _formKey.currentState!.save();
 
     if (_userType == 'Dietitian' && _pdfFile == null) {
@@ -112,6 +124,56 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  void _showTermsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Terms and Conditions'),
+          content: SingleChildScrollView(
+            child: const Text(
+              'By using FitHub, you agree to the following terms:\n\n'
+              '1. Your personal information will be handled according to our privacy policy.\n\n'
+              '2. You are responsible for maintaining the confidentiality of your account.\n\n'
+              '3. You agree to use the platform responsibly and not engage in any harmful activities.\n\n'
+              '4. Dietitians must provide valid certification documents.\n\n'
+              '5. We reserve the right to terminate accounts that violate our terms.\n\n'
+              // Add more terms as needed
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryGreen,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password is required';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Password must contain at least one number';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,15 +236,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
+                        helperText: 'Must contain 8+ characters, uppercase, lowercase, and number',
                       ),
                       obscureText: true,
                       controller: _passwordController, // Assign controller
                       onSaved: (v) => _password = v ?? '',
-                      validator:
-                          (v) =>
-                              v != null && v.length >= 8
-                                  ? null
-                                  : 'Enter at least 8 characters',
+                      validator: _validatePassword,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -250,6 +309,39 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       const SizedBox(height: 16),
                     ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _acceptedTerms,
+                          onChanged: (value) {
+                            setState(() {
+                              _acceptedTerms = value ?? false;
+                            });
+                          },
+                          activeColor: AppTheme.primaryGreen,
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Text('I accept the '),
+                              GestureDetector(
+                                onTap: _showTermsDialog,
+                                child: const Text(
+                                  'Terms and Conditions',
+                                  style: TextStyle(
+                                    color: AppTheme.primaryGreen,
+                                    decoration: TextDecoration.underline,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

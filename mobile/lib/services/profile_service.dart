@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert'; // Added for jsonEncode/Decode
-import 'package:http/http.dart' as http; // Added for http requests
+import 'dart:convert'; 
+import 'package:http/http.dart' as http; 
 import '../models/user_profile.dart';
-import './storage_service.dart'; // Added for token and user ID
+import './storage_service.dart'; 
 
 class ProfileServiceException implements Exception {
   final String message;
@@ -15,7 +15,7 @@ class ProfileServiceException implements Exception {
 }
 
 class ProfileService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'http://104.248.36.144:8000';
   String? token;
 
   ProfileService({this.token});
@@ -33,7 +33,7 @@ class ProfileService {
       if (refreshToken == null) return false;
 
       final response = await http.post(
-        Uri.parse('$baseUrl/token/refresh/'),
+        Uri.parse('$baseUrl/api/token/refresh/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': refreshToken}),
       );
@@ -63,7 +63,7 @@ class ProfileService {
 
     try {
       var response = await http.get(
-        Uri.parse('$baseUrl/users/$userId/'),
+        Uri.parse('$baseUrl/api/users/$userId/'),
         headers: headers,
       );
 
@@ -78,7 +78,7 @@ class ProfileService {
         }
 
         response = await http.get(
-          Uri.parse('$baseUrl/users/$userId/'),
+          Uri.parse('$baseUrl/api/users/$userId/'),
           headers: headers,
         );
       }
@@ -124,7 +124,7 @@ class ProfileService {
 
     try {
       var response = await http.patch(
-        Uri.parse('$baseUrl/users/$userId/'),
+        Uri.parse('$baseUrl/api/users/$userId/'),
         headers: headers,
         body: jsonEncode(requestBody),
       );
@@ -140,7 +140,7 @@ class ProfileService {
         }
 
         response = await http.patch(
-          Uri.parse('$baseUrl/users/$userId/'),
+          Uri.parse('$baseUrl/api/users/$userId/'),
           headers: headers,
           body: jsonEncode(requestBody),
         );

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'storage_service.dart';
 import '../models/login_response.dart';
-import './storage_service.dart';
 
 class AuthenticationException implements Exception {
   final String message;
@@ -16,10 +15,8 @@ class AuthenticationException implements Exception {
 
 class AuthService {
   static const String baseUrl =
-      'http://10.0.2.2:8000/';
-  static const String jwtTokenUrl =
-      'http://10.0.2.2:8000/api/token/'; // As per jwt.md
-
+      'http://104.248.36.144:8000';
+      
   Future<LoginResponse> login(String email, String password) async {
     try {
       // First, authenticate user with login endpoint
@@ -261,7 +258,7 @@ class AuthService {
   Future<Map<String, String>> getJwtAccessToken(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse(jwtTokenUrl),
+        Uri.parse('$baseUrl/api/token/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': email, 'password': password}),
       );

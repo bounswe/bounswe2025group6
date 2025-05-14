@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'storage_service.dart';
-import '../models/forum_comment.dart'; // Import the ForumComment model
+import '../models/forum_comment.dart'; 
 
 class CommunityService {
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  static const String baseUrl = 'http://104.248.36.144:8000';
   String? token;
 
   CommunityService({this.token});

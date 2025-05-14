@@ -88,13 +88,6 @@ class DashboardScreen extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.person_outline),
-            color: AppTheme.primaryGreen,
-            onPressed: () {
-              Navigator.pushNamed(context, ProfileScreen.routeName);
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.menu),
             color: AppTheme.primaryGreen,
             onPressed: () {
