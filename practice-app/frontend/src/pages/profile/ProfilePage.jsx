@@ -1,8 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { getCurrentUser } from '../../services/authService';
+import userService from '../../services/userService';
 import '../../styles/ProfilePage.css';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [userProfile, setUserProfile] = useState({
+    username: '',
+    email: '',
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [profileImage, setProfileImage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditPhotoClick = () => {
+    fileInputRef.current.click();
+  };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getCurrentUser();
+        // Fetch username using userService
+        let username = 'User';
+        if (user && user.id) {
+          username = await userService.getUsername(user.id);
+        }
+        
+        setUserProfile({
+          username: username,
+          email: user.email || 'No email provided',
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="profile-page container">
@@ -26,14 +78,29 @@ const ProfilePage = () => {
         {activeTab === 'profile' && <div className='profile-page-content-profile'>
           <h2>Profile Details</h2>
           <div className='profile-page-content-profile-img' style={{
-              backgroundImage:
-                'url("https://images.unsplash.com/photo-1557844681-b0da6a516dc9?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")'
+            backgroundImage: profileImage 
+              ? `url(${profileImage})`
+              : 'url("https://images.unsplash.com/photo-1557844681-b0da6a516dc9?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")'
           }}></div>
+          
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+          
           <button 
             className="profile-page-content-profile-button" 
-            onClick={() => navigate()}>Edit Photo</button>
-          <p><strong>Username: </strong><span>User</span></p>
-          <p><strong>Email: </strong><span>user@username.com</span></p>
+            onClick={handleEditPhotoClick}
+          >
+            Select Photo
+          </button>
+          
+          <p><strong>Username: </strong><span>{userProfile.username}</span></p>
+          <p><strong>Email: </strong><span>{userProfile.email}</span></p>
         </div>}
         {activeTab === 'recipes' && <div className='profile-page-content-recipes'>
           <h2>Recipe List</h2>
