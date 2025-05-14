@@ -6,7 +6,44 @@ const STORAGE_KEY_RECIPES = 'mealPlanner_recipes';
 const STORAGE_KEY_BOOKMARKS = 'mealPlanner_bookmarkedRecipes';
 const API_BASE_URL = 'http://localhost:8000'; // Backend API'nin base URL'si
 
+// Cache for storing image URLs to prevent duplicate API calls
+const imageCache = new Map();
 
+/**
+ * Fetch recipe image from Wikidata API
+ * @param {string} name Recipe name
+ * @returns {Promise<string|null>} Image URL or null if not found
+ */
+export const getWikidataImage = async (name) => {
+  // Return from cache if available
+  if (imageCache.has(name)) {
+    return imageCache.get(name);
+  }
+  
+  try {
+    const token = localStorage.getItem('fithub_access_token');
+    const response = await axios.get(`${API_BASE_URL}/ingredients/wikidata/image/`, {
+      params: { name },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const imageUrl = response.data.image_url;
+    
+    // Store in cache
+    if (imageUrl) {
+      imageCache.set(name, imageUrl);
+    }
+    
+    return imageUrl;
+  } catch (error) {
+    console.error('Error fetching Wikidata image:', error);
+    // Cache the failure too to avoid repeated failed requests
+    imageCache.set(name, null);
+    return null;
+  }
+};
 
 export const getRecipeById = async (id) => {
   try {
