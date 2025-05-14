@@ -7,6 +7,7 @@ import { generateShoppingList } from '../../services/mealPlanService';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import '../../styles/ShoppingListPage.css';
+import '../../styles/style.css';
 
 const ShoppingListPage = () => {
   const { activePlan } = useMealPlan();
@@ -121,33 +122,33 @@ const ShoppingListPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Shopping List</h1>
+    <div className="container" style={{ maxWidth: '800px' }}>
+      <div className="">
+        <h1 className="">Shopping List</h1>
         <Button onClick={() => window.print()} variant="secondary">
           Print List
         </Button>
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="flex justify-between mb-1">
+      <div className="">
+        <div className="">
           <span>Progress: {getCheckedItemsCount()}/{getTotalItemsCount()} items</span>
           <span>Remaining: ₺{getRemainingTotal()}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div className="">
           <div 
-            className="bg-blue-600 h-2.5 rounded-full" 
+            className="" 
             style={{ width: `${(getCheckedItemsCount() / getTotalItemsCount()) * 100}%` }}
           ></div>
         </div>
       </div>
 
       {/* Market Selection */}
-      <Card className="mb-6">
+      <Card className="">
         <Card.Body>
-          <h2 className="text-xl font-semibold mb-3">Choose Market</h2>
-          <div className="flex flex-wrap gap-2">
+          <h2 className="">Choose Market</h2>
+          <div className="">
             {Object.keys(marketPriceModifiers).map(market => (
               <button
                 key={market}
@@ -162,19 +163,19 @@ const ShoppingListPage = () => {
               </button>
             ))}
           </div>
-          <div className="mt-3">
-            <p className="text-gray-600">
-              Estimated total at {selectedMarket}: <span className="font-semibold">₺{getMarketEstimate(shoppingList.totalCost)}</span>
+          <div className="">
+            <p className="">
+              Estimated total at {selectedMarket}: <span className="">₺{getMarketEstimate(shoppingList.totalCost)}</span>
             </p>
           </div>
         </Card.Body>
       </Card>
 
       {/* Shopping List */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Items to Buy</h2>
-          <div className="space-x-2">
+      <div className="">
+        <div className="">
+          <h2 className="">Items to Buy</h2>
+          <div className="">
             <Button size="sm" variant="secondary" onClick={clearCheckedItems}>
               Uncheck All
             </Button>
@@ -185,14 +186,14 @@ const ShoppingListPage = () => {
         </div>
 
         {shoppingList.categories.length > 0 ? (
-          <div className="space-y-6">
+          <div className="">
             {shoppingList.categories.map((category, index) => (
               <Card key={index}>
                 <Card.Header>
-                  <h3 className="font-semibold">{category.name}</h3>
+                  <h3 className="">{category.name}</h3>
                 </Card.Header>
                 <Card.Body>
-                  <ul className="divide-y">
+                  <ul className="">
                     {category.items.map((item, itemIdx) => {
                       const itemKey = `${category.name}-${item.name}`;
                       return (
@@ -224,7 +225,7 @@ const ShoppingListPage = () => {
         ) : (
           <Card>
             <Card.Body>
-              <p className="text-center text-gray-500">
+              <p className="">
                 No items in your shopping list. Add meals to your meal plan first.
               </p>
             </Card.Body>
@@ -233,7 +234,7 @@ const ShoppingListPage = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex space-x-3 justify-center mt-8">
+      <div className="">
         <Link to="/meal-planner">
           <Button variant="secondary">Back to Meal Planner</Button>
         </Link>

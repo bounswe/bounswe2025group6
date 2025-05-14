@@ -44,7 +44,7 @@
   z-index: 2;
 }
 
-.recipe-detail-page-header-box span {
+.recipe-detail-page-header-box-dietary {
   display: inline-block;
   padding: 5px 10px 5px 10px;
   margin-right: 5px;
@@ -53,11 +53,24 @@
   font-size: 16px;
   background: linear-gradient(to right, #38a169, #2b6cb0) left bottom no-repeat;
   border-radius: 15px;
+  text-transform: lowercase;
 }
 
-.recipe-detail-page-header-box-allergens span{
+.recipe-detail-page-header-box-allergen{
   margin-top: 5px;
   background: linear-gradient(to right, #d84646, #d11e1e) left bottom no-repeat !important;
+  display: inline-block;
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px;
+  z-index: 2;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 15px;
+  text-transform: lowercase;
+}
+
+.recipe-detail-page-header-box-info {
+  color: #fff;
 }
 
 .recipe-detail-page-boxes {
