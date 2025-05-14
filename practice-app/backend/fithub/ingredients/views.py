@@ -449,6 +449,36 @@ class WikidataViewSet(viewsets.ViewSet):
         origins = [binding["originLabel"]["value"] for binding in results["results"]["bindings"]]
         return Response({"origin": origins[0] if origins else None})
     
+    #Filter by wikidata label
+    @swagger_auto_schema(
+        operation_description="Filter ingredients by their Wikidata label.",
+        manual_parameters=[
+            openapi.Parameter(
+                'label',
+                openapi.IN_QUERY,
+                description="Wikidata label to filter ingredients by",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        tags=["IngredientWikidata"]
+    )
+    @action(detail=False, methods=['get'], url_path='filter-by-label')
+    def filter_by_label(self, request):
+        label = request.query_params.get("label")
+        if not label:
+            return Response({'error': 'Query parameter "label" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Filter ingredients by their Wikidata label
+        ingredients = WikidataInfo.objects.filter(wikidata_label__icontains=label)
+        if not ingredients.exists():
+            return Response({'error': 'No ingredients found with the specified label.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the filtered ingredients
+        serializer = WikidataInfoSerializer(ingredients, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
 
 
 
