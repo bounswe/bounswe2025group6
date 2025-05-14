@@ -1,0 +1,38 @@
+/* Terms Content Styles */
+.terms-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.terms-last-updated {
+  text-align: right;
+  font-style: italic;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.terms-intro {
+  margin-bottom: 20px;
+}
+
+.terms-content h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4CAF50;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.terms-content p {
+  margin-bottom: 12px;
+}
+
+.terms-content ul {
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+.terms-content li {
+  margin-bottom: 8px;
+}
