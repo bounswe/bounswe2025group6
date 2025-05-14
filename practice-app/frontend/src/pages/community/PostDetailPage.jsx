@@ -194,10 +194,7 @@ const PostDetailPage = () => {
     }
     
     // Return username or full name depending on what's available
-    return userMap[userId].username || 
-           (userMap[userId].first_name && userMap[userId].last_name ? 
-            `${userMap[userId].first_name} ${userMap[userId].last_name}` : 
-            `User #${userId}`);
+    return userMap[userId].username ;
   };
 
   const handleSubmitComment = async (e) => {
