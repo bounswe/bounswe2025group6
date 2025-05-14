@@ -60,7 +60,6 @@ const MainLayout = () => {
               to={item.path}
               className={`layout-nav-link ${isActive(item.path) ? 'active' : ''}`}
             >
-              <span className="layout-nav-icon">{item.icon}</span>
               {item.label}
             </Link>
           ))}

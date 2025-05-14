@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import '../models/recipe.dart'; // Added for Recipe model
 import '../services/profile_service.dart';
+import '../services/recipe_service.dart'; // Added for RecipeService
 import '../theme/app_theme.dart';
+import '../widgets/recipe_card.dart'; // Added for RecipeCard
 import './profile_settings_screen.dart';
+import './recipe_detail_screen.dart'; // Added for navigation to recipe details
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';
@@ -22,14 +26,20 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileService
   _profileService; // Will be set from widget.profileService
+  late final RecipeService _recipeService; // Added RecipeService instance
   UserProfile? _userProfile;
   bool _isLoading = true;
   String? _errorMessage;
+
+  List<Recipe> _userRecipes = [];
+  bool _isLoadingRecipes = true;
+  String? _recipesErrorMessage;
 
   @override
   void initState() {
     super.initState();
     _profileService = widget.profileService; // Initialize from the widget
+    _recipeService = RecipeService(); // Initialize RecipeService
     _loadUserProfile();
   }
 
@@ -46,11 +56,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userProfile = profile;
         _isLoading = false;
       });
+      if (_userProfile != null) {
+        _loadAndFilterUserRecipes(); // Load recipes after profile is loaded
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'Failed to load profile: $e';
+      });
+    }
+  }
+
+  Future<void> _loadAndFilterUserRecipes() async {
+    if (_userProfile?.id == null) {
+      if (mounted) {
+        setState(() {
+          _isLoadingRecipes = false;
+          _recipesErrorMessage = 'User ID not available to load recipes.';
+        });
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _isLoadingRecipes = true;
+      _recipesErrorMessage = null;
+    });
+
+    try {
+      // Fetch all recipes - consider pagination implications for large datasets
+      final allRecipes = await _recipeService.getAllRecipes(
+        pageSize: 100,
+      ); // Fetching up to 100 recipes
+      if (!mounted) return;
+
+      final filteredRecipes =
+          allRecipes
+              .where((recipe) => recipe.creatorId == _userProfile!.id)
+              .toList();
+
+      setState(() {
+        _userRecipes = filteredRecipes;
+        _isLoadingRecipes = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingRecipes = false;
+        _recipesErrorMessage = 'Failed to load recipes: $e';
       });
     }
   }
@@ -293,8 +348,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 : '0 recipes',
           ),
         ]),
+        SizedBox(height: 20),
+        _buildSectionTitle(context, 'My Recipes'),
+        _buildUserRecipesSection(),
         SizedBox(height: 40),
       ],
+    );
+  }
+
+  Widget _buildUserRecipesSection() {
+    if (_isLoadingRecipes) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
+        ),
+      );
+    }
+
+    if (_recipesErrorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_recipesErrorMessage!, textAlign: TextAlign.center),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _loadAndFilterUserRecipes,
+                child: Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryGreen,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_userRecipes.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Text(
+            'You haven\'t created any recipes yet.',
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true, // Important for ListView inside ListView
+      physics:
+          NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
+      itemCount: _userRecipes.length,
+      itemBuilder: (context, index) {
+        final recipe = _userRecipes[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: RecipeCard(
+            recipe: recipe,
+            // onTap callback removed as RecipeCard handles its own tap
+          ),
+        );
+      },
     );
   }
 
