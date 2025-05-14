@@ -478,6 +478,34 @@ class WikidataViewSet(viewsets.ViewSet):
         serializer = WikidataInfoSerializer(ingredients, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Retrieve Wikidata information for a specific ingredient by its name.",
+        manual_parameters=[
+            openapi.Parameter(
+                'name',
+                openapi.IN_QUERY,
+                description="The name of the ingredient to retrieve information for",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        tags=["IngredientWikidata"]
+    )
+
+    @action(detail=False, methods=['get'], url_path='retrieve-by-name')
+    def retrieve_by_name(self, request):
+        name = request.query_params.get("name")
+        if not name:
+            return Response({'error': 'Query parameter "name" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve by ingredient name
+        try:
+            wikidata_info = WikidataInfo.objects.get(wikidata_label__iexact=name)
+            serializer = WikidataInfoSerializer(wikidata_info)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except WikidataInfo.DoesNotExist:
+            return Response({'error': 'No Wikidata information found for the specified ingredient name.'}, status=status.HTTP_404_NOT_FOUND)
+
     
 
 
