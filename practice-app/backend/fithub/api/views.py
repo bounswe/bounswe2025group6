@@ -22,7 +22,6 @@ from .models import RegisteredUser, RecipeRating
 from recipes.models import Recipe  # Import from recipes app
 from rest_framework import serializers
 import copy
-import os
 from django.db import transaction
 
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
@@ -63,8 +62,6 @@ def register_user(request):
 
 
 def send_verification_email(user, request):
-    print("mail being sent")
-    print(os.getenv('EMAIL_HOST_PASSWORD'))
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     domain = get_current_site(request).domain
