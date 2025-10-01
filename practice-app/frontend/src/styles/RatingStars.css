@@ -1,0 +1,23 @@
+.rating-stars {
+  display: flex;
+  align-items: center;
+}
+
+.star {
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+
+.star-filled {
+  color: #369b6f; /* Sarı renk */
+}
+
+.star-empty {
+  color: #d1d5db; /* Gri renk */
+}
+
+/* Sabit yıldız boyutları */
+.star svg {
+  width: 1.5rem; /* Sabit genişlik */
+  height: 1.5rem; /* Sabit yükseklik */
+}

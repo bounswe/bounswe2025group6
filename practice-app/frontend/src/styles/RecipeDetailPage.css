@@ -1,0 +1,182 @@
+#recipe-detail-page {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 10px;
+}
+
+.recipe-detail-page-header{
+  width: 100%;
+  height: 400px;
+  position: relative;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 0;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.recipe-detail-page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: linear-gradient(180deg,rgba(255, 255, 255, 0.28) 10%, rgba(25, 56, 38, 0.88) 92%);
+  opacity: 0.6;
+  border-radius: 10px 10px 0 0;
+}
+
+.recipe-detail-page-header h1 {
+  margin: 0;
+  padding: 0 20px;
+  color: #fff;
+  z-index: 2;
+}
+
+.recipe-detail-page-header-boxes {
+  padding: 10px 20px;
+  z-index: 2;
+}
+
+.recipe-detail-page-header-box-dietary {
+  display: inline-block;
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px;
+  z-index: 2;
+  color: #fff;
+  font-size: 16px;
+  background: linear-gradient(to right, #38a169, #2b6cb0) left bottom no-repeat;
+  border-radius: 15px;
+  text-transform: lowercase;
+}
+
+.recipe-detail-page-header-box-allergen{
+  margin-top: 5px;
+  background: linear-gradient(to right, #d84646, #d11e1e) left bottom no-repeat !important;
+  display: inline-block;
+  padding: 5px 10px 5px 10px;
+  margin-right: 5px;
+  z-index: 2;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 15px;
+  text-transform: lowercase;
+}
+
+.recipe-detail-page-header-box-info {
+  color: #fff;
+}
+
+.recipe-detail-page-boxes {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 40px;
+  font-size: 18px;
+}
+
+.recipe-detail-page-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(to right, #38a169, #2b6cb0) left bottom no-repeat;
+  background-size: 100% 5px;
+  max-width: 115px;
+}
+
+.recipe-detail-page-box-header {
+  margin-bottom: 10px;
+  color: red;
+  font-weight: 700;
+}
+
+.recipe-detail-page-header-buttons {
+  position: absolute;
+  content: '';
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+}
+
+.recipe-detail-page-header-buttons .delete-recipe-button {
+  background-color: #eb2a2a;
+  transition: background-color 0.3s ease;
+}
+
+.recipe-detail-page-header-buttons .delete-recipe-button:hover {
+  background-color: #ff1a1a;
+}
+
+.recipe-detail-page-header-buttons button {
+  margin-left: 10px;
+  border-radius: 10px;
+}
+
+.recipe-detail-page-stars {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 40px;
+  font-size: 18px;
+}
+
+.recipe-detail-page-star {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.recipe-detail-page-star-header {
+  margin-bottom: 10px;
+  color: red;
+  font-weight: 700;
+}
+
+.recipe-detail-page-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 18px;
+}
+
+.recipe-detail-page-content h2 {
+  text-align: center;
+}
+
+.recipe-detail-page-content-steps {
+  flex: 1;
+}
+
+.recipe-detail-page-content-steps li{
+  margin-bottom: 5px;
+}
+
+.recipe-detail-page-content-steps li::marker {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.recipe-detail-page-ingredients {
+  flex: 1;
+}
+
+.recipe-detail-page-ingredients span {
+  font-weight: 700;
+}
+
+.recipe-detail-page-ingredients ul li::marker {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+
+
