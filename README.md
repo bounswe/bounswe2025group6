@@ -1,4 +1,4 @@
-# CMPE 352 Spring 2025 - Group 6 FITHUB
+# CMPE 451 Fall 2025 - Group 6 FITHUB
 
 Welcome! This is the project repository of group 6. For further information, see the [wiki](https://github.com/bounswe/bounswe2025group6/wiki).
 
@@ -13,3 +13,5 @@ Welcome! This is the project repository of group 6. For further information, see
 - [Özgür Savaşçıoğlu](https://github.com/bounswe/bounswe2025group6/wiki/Özgür-Savaşçıoğlu)  
 - [Selçuk Ersoy](https://github.com/bounswe/bounswe2025group6/wiki/Ahmet-Selçuk-Ersoy)  
 - [Seyit Mustafa Demir](https://github.com/bounswe/bounswe2025group6/wiki/Seyit-Mustafa-Demir)
+- [Talha Özdoğan](https://github.com/bounswe/bounswe2025group6/wiki/Talha-Özdoğan)
+- [Taha Ensar Kukul](https://github.com/bounswe/bounswe2025group6/wiki/Taha-Ensar-Kukul)
