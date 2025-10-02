@@ -1,0 +1,73 @@
+# Django specific
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+db.sqlite3
+/media
+/staticfiles
+/static_root/
+/.env
+.env.*
+
+# Django migrations
+**/migrations/
+!**/migrations/__init__.py
+
+# Python
+.Python
+env/
+.env/
+.env
+.env.*
+venv/
+.venv/
+ENV/
+venv.bak/
+*.bak
+*.swp
+
+# VSCode / IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Docker
+*.log
+docker-compose.override.yml
+docker-compose.dev.yml
+docker-compose.test.yml
+.docker/
+build/
+tmp/
+
+# MySQL
+*.dump
+*.mysql
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+
+# Pipenv
+Pipfile.lock
+
+# Testing
+.coverage
+.junit/
+
+# Node (for React/JS frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Other
+*.backup
+*.bak
