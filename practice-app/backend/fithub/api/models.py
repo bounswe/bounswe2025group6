@@ -19,6 +19,67 @@ class RegisteredUser(AbstractUser, TimestampedModel):
         (DIETITIAN, 'Dietitian'),
     ]
 
+     # new field for languages spoken by the user
+    LANGUAGES = [
+        ('en', 'English'),
+        ('es', 'Spanish'),
+        ('fr', 'French'),
+        ('de', 'German'),
+        ('tr', 'Turkish'),
+    ]
+    
+    language = models.CharField(
+        max_length=2,
+        choices=LANGUAGES,
+        default='en',
+    )
+
+    # new field for preferred date format
+    DATE_FORMATS = [
+        ('MM/DD/YYYY', 'MM/DD/YYYY'),
+        ('DD/MM/YYYY', 'DD/MM/YYYY'),
+        ('YYYY-MM-DD', 'YYYY-MM-DD'),   
+    ]
+
+    preferredDateFormat = models.CharField(
+        max_length=10,
+        choices=DATE_FORMATS,
+        default='MM/DD/YYYY',
+    )
+
+    # new field for date of birth
+    date_of_birth = models.DateField(null=True, blank=True)
+
+    # new field for nationality
+    nationality = models.CharField(max_length=50, blank=True, null=True)
+
+    CURRENCY_CHOICES = [
+        ('USD', 'US Dollar'),
+        ('EUR', 'Euro'),
+        ('GBP', 'British Pound'),
+        ('TRY', 'Turkish Lira'),
+    ]
+
+    preferredCurrency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default='USD',
+    )
+
+    # new field for accessibility needs
+    ACCESIBILITY_CHOICES = [
+        ('none', 'None'),
+        ('colorblind', 'Color Blindness'),
+        ('visual', 'Visual Impairment'),
+        ('hearing', 'Hearing Impairment'),
+    ]
+
+    accessibilityNeeds = models.CharField(
+        max_length=10,
+        choices=ACCESIBILITY_CHOICES,
+        default='none',
+    )
+
     email = models.EmailField(unique=True)
 
     usertype = models.CharField(
