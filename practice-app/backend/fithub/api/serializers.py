@@ -166,7 +166,9 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'usertype', 
             'profilePhoto', 'foodAllergies', 'notificationPreferences',
             'profileVisibility', 'recipeCount', 'avgRecipeRating',
-            'typeOfCook', 'followedUsers', 'bookmarkRecipes', 'likedRecipes',
+            'typeOfCook', 'followedUsers', 'bookmarkRecipes', 'likedRecipes', 'language', 
+            'preferredDateFormat','date_of_birth', 'nationality', 'preferredCurrency', 
+            'accessibilityNeeds'
         ]
         extra_kwargs = {
             'password': {'write_only': True},  # Hide password in responses
