@@ -24,9 +24,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         if getattr(self.request.user, 'is_staff', False):
             return Report.objects.select_related('reporter', 'content_type').all()
         return Report.objects.filter(reporter=self.request.user)
-    
-    # def perform_create(self, serializer):
-    #     serializer.save(reporter=self.request.user)
 
 class AdminReportViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]

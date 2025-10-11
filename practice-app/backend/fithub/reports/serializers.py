@@ -38,14 +38,14 @@ class ReportCreateSerializer(serializers.ModelSerializer):
         except model_class.DoesNotExist:
             raise serializers.ValidationError("The reported content does not exist")
         
-        # Get the reporter from the context (passed by perform_create)
+        # Get the reporter from the context
         reporter = self.context['request'].user
         
-        # Create the report with ALL required fields including reporter
+        # Create the report
         return Report.objects.create(
             content_type=content_type,
             object_id=object_id,
-            reporter=reporter,  # THIS IS THE FIX - ADD REPORTER
+            reporter=reporter, 
             **validated_data
         )
 
