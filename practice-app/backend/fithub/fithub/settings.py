@@ -19,11 +19,16 @@ import pymysql
 
 pymysql.install_as_MySQLdb()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Base dir looks to practice-app folder
+PRACTICE_APP_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 # Load environment variables from .env file
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(PRACTICE_APP_DIR, '.env'))
+
+ENV_VARIABLES = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT']
+for var in ENV_VARIABLES:
+    if os.getenv(var) is None:
+        raise ValueError(f"{var} environment variable is not set. Please check your .env file.")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
