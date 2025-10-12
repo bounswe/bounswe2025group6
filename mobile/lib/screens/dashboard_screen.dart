@@ -80,7 +80,7 @@ class DashboardScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Logout failed: ${e.toString()}'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppTheme.errorColor,
                     ),
                   );
                 }
@@ -109,7 +109,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               const Text(
                 'Manage your meals, recipes, and plans here.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 24),
 
@@ -170,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: AppTheme.primaryGreen,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: AppTheme.textSecondary,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
