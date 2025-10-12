@@ -73,6 +73,9 @@ docker-compose --version
 
 - **Running necessary migrations**:
     After installing the dependencies, you need to run the necessary migrations to set up the database schema. This step is crucial for the application to function correctly and to have the current database structure.
+    
+    IMPORTANT: You need to have folder named migrations and an empty __init__.py file inside each folder in our backend folder (except fithub). If you don't have it, please create it. Without this your makemigrations command will not work properly.
+    
     ```bash
     python manage.py makemigrations
     python manage.py migrate
