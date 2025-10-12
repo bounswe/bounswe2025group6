@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Text(
                       "Don't have an account? ",
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Login successful!'),
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.successColor,
       ),
     );
   }
@@ -238,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Login failed: $message'),
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.errorColor,
       ),
     );
   }
