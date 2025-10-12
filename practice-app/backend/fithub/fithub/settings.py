@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import sys
 from dotenv import load_dotenv
 import os
 import pymysql
@@ -167,6 +168,13 @@ DATABASES = {
         }
     }
 }
+
+# settings.py
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
 
 
 # Password validation
