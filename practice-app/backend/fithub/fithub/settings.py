@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'recipes',  # Recipes app
     'forum',    # Forum app
     'wikidata',    # Wikidata app
-    'reports'   # Reports app
+    'reports',   # Reports app
+    'analytics',
 ]
 
 REST_FRAMEWORK = {
