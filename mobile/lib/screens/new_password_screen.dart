@@ -57,7 +57,7 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(e.toString()),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         }

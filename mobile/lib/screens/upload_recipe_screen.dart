@@ -143,7 +143,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                   content: Text(
                     'Recipe uploaded, but failed to update profile count: ${e.toString()}',
                   ),
-                  backgroundColor: Colors.orange, // Use a warning color
+                  backgroundColor: AppTheme.warningColor, // Use a warning color
                 ),
               );
             }
@@ -413,11 +413,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 child: TextButton.icon(
                                   icon: const Icon(
                                     Icons.remove_circle_outline,
-                                    color: Colors.red,
+                                    color: AppTheme.errorColor,
                                   ),
                                   label: const Text(
                                     'Remove',
-                                    style: TextStyle(color: Colors.red),
+                                    style: TextStyle(color: AppTheme.errorColor),
                                   ),
                                   onPressed:
                                       () => _removeIngredientField(index),
