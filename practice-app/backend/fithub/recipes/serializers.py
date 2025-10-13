@@ -46,6 +46,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'creator',             # for response (read_only)
             'ingredients',         # for request (write_only)
             'ingredients_output',  # for response (read_only)
+            'image',               # for optional image upload
         ]
 
     def create(self, validated_data):
@@ -142,7 +143,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'comment_count',
             'is_approved',
             'is_featured',
-            'total_time'  # This will be computed dynamically
+            'total_time',  # This will be computed dynamically
+            'image',       # for optional image upload
         ]
 
 # Used for detail view of Recipe (Response)
@@ -181,7 +183,8 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'total_user_ratings',  # Computed dynamically
             'total_ratings',  # Computed dynamically
             'alergens',  # Dynamically returns allergens
-            'dietary_info'  # Dynamically returns dietary info
+            'dietary_info',  # Dynamically returns dietary info
+            'image'  # Optional image field
         ]
 
     def get_ingredients(self, obj):

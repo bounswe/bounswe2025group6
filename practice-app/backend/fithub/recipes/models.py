@@ -16,6 +16,7 @@ class Recipe(TimestampedModel):
     prep_time = models.PositiveIntegerField(help_text="Minutes")
     cook_time = models.PositiveIntegerField(help_text="Minutes")
     meal_type = models.CharField(max_length=50, choices=MEAL_TYPES)
+    image = models.ImageField(upload_to='recipe_images/', blank=True, null=True) # Cloudinary will check its recipe_images folder on cloud
     creator = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE, related_name="recipes")
 
     # Null first, will be filled with scraped data later

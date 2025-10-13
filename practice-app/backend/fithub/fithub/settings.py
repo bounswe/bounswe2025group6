@@ -65,7 +65,21 @@ INSTALLED_APPS = [
     'wikidata',    # Wikidata app
     'reports',   # Reports app
     'analytics',
+    'cloudinary',
+    'cloudinary_storage',
 ]
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+for storage_variable in CLOUDINARY_STORAGE.values():
+    if storage_variable is None:
+        raise ValueError("Cloudinary storage variable is not set. Please check your .env file.")
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

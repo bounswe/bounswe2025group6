@@ -7,3 +7,8 @@ django-cors-headers==4.7.0               # For CORS headerspip install
 cryptography==44.0.3
 requests==2.28.1                         #for wikidata connection
 jsonschema==4.17.0
+
+# Cloudinary integration (recipe optional image upload to cloud)
+cloudinary>=1.41
+django-cloudinary-storage>=0.3.0
+Pillow>=10.0  # needed for ImageField
