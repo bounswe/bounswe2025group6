@@ -14,6 +14,7 @@ from .serializers import RecipeListSerializer, RecipeDetailSerializer
 from django.utils import timezone
 from .models import RecipeIngredient
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # Created for swagger documentation, paginate get request
@@ -38,6 +39,7 @@ class RecipePagination(PageNumberPagination):
 
 @permission_classes([IsAuthenticated])
 class RecipeViewSet(viewsets.ModelViewSet):
+    parser_classes = [MultiPartParser, FormParser]
     queryset = Recipe.objects.filter(deleted_on=None)  # Filter out soft-deleted recipes
     http_method_names = ['get', 'post', 'put', 'delete'] # We don't need PATCH method (PUT can also be used for partial updates)
 
@@ -70,7 +72,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         data['creator'] = request.user.id  # Add the authenticated user's ID as the creator
 
-        # Pass the updated data to the serializer)
+        # Pass the updated data to the serializer
         serializer = self.get_serializer(data=data)
 
         if serializer.is_valid():

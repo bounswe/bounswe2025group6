@@ -6,18 +6,7 @@ from ingredients.models import Ingredient
 from rest_framework.exceptions import ValidationError
 from ingredients.serializers import IngredientSerializer
 from rest_framework.response import Response
-
-# Used for create request body (input)
-class RecipeIngredientInputSerializer(serializers.Serializer):
-    ingredient_name = serializers.CharField()
-    quantity = serializers.FloatField()
-    unit = serializers.CharField()
-
-    # Custom validation for ingredient_name
-    def validate_ingredient_name(self, value):
-        if not Ingredient.objects.filter(name=value).exists():
-            raise serializers.ValidationError(f"Ingredient with name {value} does not exist.")
-        return value
+import json
 
 # Used for create response serialization (output)
 class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
@@ -27,16 +16,17 @@ class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = ['ingredient', 'quantity', 'unit']
 
-# Updated RecipeSerializer
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = serializers.ListField(
-        child=RecipeIngredientInputSerializer(), write_only=True
-    )
+    # ingredients as JSON string input
+    ingredients = serializers.CharField(write_only=True, required=True, help_text='JSON array of ingredients')
+    
+    # Cloudinary URL
+    image = serializers.ImageField(required=False, allow_null=True, use_url=True)
+
+    # read-only fields for output
     ingredients_output = serializers.SerializerMethodField()
     creator = serializers.IntegerField(read_only=True)
-    steps = serializers.ListField(
-        child=serializers.CharField(), allow_empty=False
-    )
+    steps = serializers.ListField(child=serializers.CharField(), allow_empty=False)
 
     class Meta:
         model = Recipe
@@ -50,27 +40,31 @@ class RecipeSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-
-        # Create the Recipe instance
+        ingredients_json = validated_data.pop('ingredients')
+        
+        try:
+            ingredients_data = json.loads(ingredients_json)
+        except json.JSONDecodeError:
+            raise serializers.ValidationError({"ingredients": "Invalid JSON format."})
+            
         user = self.context['request'].user
         recipe = Recipe.objects.create(creator=user, **validated_data)
 
-
-        # Loop over ingredients data to create RecipeIngredient instances
         for item in ingredients_data:
-            ingredient_name = item['ingredient_name']
+            ingredient_name = item.get('ingredient_name')
+            quantity = item.get('quantity')
+            unit = item.get('unit')
 
-            # Check if the ingredient exists
-            if not Ingredient.objects.filter(name=ingredient_name).exists():
-                raise ValidationError(f"Ingredient with name {ingredient_name} does not exist.")
+            try:
+                ingredient = Ingredient.objects.get(name=ingredient_name)
+            except Ingredient.DoesNotExist:
+                raise serializers.ValidationError({"ingredients": f"Ingredient '{ingredient_name}' does not exist."})
 
-            ingredient = Ingredient.objects.get(name=ingredient_name)
             RecipeIngredient.objects.create(
                 recipe=recipe,
                 ingredient=ingredient,
-                quantity=item['quantity'],
-                unit=item['unit']
+                quantity=quantity,
+                unit=unit
             )
 
         return recipe
@@ -82,7 +76,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
+        
         if ingredients_data is not None:
             # Hard delete all existing ingredients for this recipe
             # It's a design choice to remove all ingredients and add new ones
