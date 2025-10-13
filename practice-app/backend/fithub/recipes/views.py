@@ -3,7 +3,7 @@
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RecipeSerializer
+from .serializers import RecipeCreateSerializer, RecipeUpdateSerializer
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
@@ -49,16 +49,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeListSerializer
         elif self.action == 'retrieve':
             return RecipeDetailSerializer
-        else: # For create, update, and destroy actions
-            return RecipeSerializer
+        elif self.action == 'create': # For create, update, and destroy actions
+            return RecipeCreateSerializer
+        elif self.action == 'update':
+            return RecipeUpdateSerializer
+        else:
+            return RecipeDetailSerializer  # Default to detail serializer
 
     # Use the custom pagination class
     pagination_class = RecipePagination
 
     @swagger_auto_schema(
         operation_description="Create a new recipe",
-        request_body=RecipeSerializer,  # Use the correct serializer for the POST request
-        responses={201: RecipeSerializer},
+        request_body=RecipeCreateSerializer,  # Use the correct serializer for the POST request
+        responses={201: RecipeDetailSerializer},
     )
     def create(self, request, *args, **kwargs):
         """
@@ -108,8 +112,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Update an existing recipe",
-        request_body=RecipeSerializer,  # Use the correct serializer for the POST request
-        responses={200: RecipeSerializer},
+        request_body=RecipeUpdateSerializer,  # Use the correct serializer for the POST request
+        responses={200: RecipeDetailSerializer},
     )
     def update(self, request, *args, **kwargs):
         """
