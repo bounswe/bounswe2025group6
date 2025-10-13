@@ -32,9 +32,13 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "quantity": 0.5,
       "unit": "cup"
     }
-  ]
+  ],
+  "image": "<any image file in png or jpg format>"
 }
 ```
+
+- Optional:
+  - `image`: An image file in png or jpg format to be uploaded to Cloudinary and associated with the recipe.
 
 - Must be provided:
   - `name`: The name of the recipe.
@@ -126,7 +130,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     "high-protein",
     "gluten-free",
     "vegan"
-  ]
+  ],
+  "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
+  "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
 }
 ```
 
@@ -174,7 +181,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "comment_count": 0,
       "is_approved": false,
       "is_featured": false,
-      "total_time": 25
+      "total_time": 25,
+      "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
+      "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
+      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
     },
     {
       "id": 7,
@@ -194,7 +204,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "comment_count": 0,
       "is_approved": false,
       "is_featured": false,
-      "total_time": 25
+      "total_time": 25,
+      "image": null,
+      "image_relative_url": null,
+      "image_full_url": null
     },
     {
       "id": 13,
@@ -214,7 +227,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "comment_count": 0,
       "is_approved": false,
       "is_featured": false,
-      "total_time": 20
+      "total_time": 20,
+      "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
+      "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
+      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
     }
   ]
 }
@@ -328,7 +344,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     "gluten-free",
     "soy-based",
     "vegan"
-  ]
+  ],
+  "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
+  "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
 }
 ```
 
@@ -342,14 +361,14 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 ```json
 
 {
-  "name": "New Veggie Omelette",
+  "name": "Omelette",
   "steps": [
     "Crack the eggs into a bowl and whisk them.",
     "Chop the vegetables finely."
   ],
-  "prep_time": 2,
-  "cook_time": 12,
-  "meal_type": "dinner",
+  "prep_time": 5,
+  "cook_time": 5,
+  "meal_type": "lunch",
   "ingredients": [
     {
       "ingredient_name": "Eggs",
@@ -361,7 +380,8 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "quantity": 2,
       "unit": "cups"
     }
-  ]
+  ],
+  "image": "<any image file in png or jpg format>"
 }
 ```
 
@@ -378,6 +398,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   - `cook_time`: Cooking time in minutes.
   - `meal_type`: Type of meal (e.g., breakfast, lunch, dinner).
   - `ingredients`: List of ingredients with their names, quantities, and units.
+  - `image`: An image file in png or jpg format to be uploaded to Cloudinary and associated with the recipe.
 - **Note**: The `ingredients` field should contain a list of objects, each with `ingredient_name`, `quantity`, and `unit`.
 - The `creator` field is automatically set based on the authenticated user.
 - The `created_at`, `updated_at`, and `deleted_on` fields are managed by the database.
@@ -385,22 +406,22 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 13,
-  "name": "New Veggie Omelette",
+  "id": 20,
+  "name": "omelette",
   "steps": [
     "Crack the eggs into a bowl and whisk them.",
     "Chop the vegetables finely."
   ],
-  "prep_time": 2,
-  "cook_time": 12,
-  "meal_type": "dinner",
+  "prep_time": 5,
+  "cook_time": 5,
+  "meal_type": "lunch",
   "creator_id": 1,
   "ingredients": [
     {
       "ingredient": {
-        "id": 4,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
+        "id": 19,
+        "created_at": "2025-10-13T11:28:00Z",
+        "updated_at": "2025-10-13T11:28:00Z",
         "deleted_on": null,
         "name": "Eggs",
         "category": "proteins",
@@ -412,14 +433,14 @@ This document describes how to use the Recipe API endpoint, which allows for cre
           "gluten-free"
         ]
       },
-      "quantity": 2,
+      "quantity": 3,
       "unit": "pcs"
     },
     {
       "ingredient": {
-        "id": 43,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
+        "id": 6,
+        "created_at": "2025-10-13T11:28:00Z",
+        "updated_at": "2025-10-13T11:28:00Z",
         "deleted_on": null,
         "name": "Bell Pepper",
         "category": "vegetables",
@@ -429,8 +450,8 @@ This document describes how to use the Recipe API endpoint, which allows for cre
           "gluten-free"
         ]
       },
-      "quantity": 2,
-      "unit": "cups"
+      "quantity": 0.5,
+      "unit": "cup"
     }
   ],
   "cost_per_serving": null,
@@ -444,20 +465,23 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-05-05T10:05:25.723062Z",
-  "updated_at": "2025-05-05T10:10:12.361391Z",
+  "created_at": "2025-10-13T17:50:08.450819Z",
+  "updated_at": "2025-10-13T17:50:08.450850Z",
   "deleted_on": null,
-  "total_time": 14,
+  "total_time": 10,
   "total_user_ratings": 0,
   "total_ratings": 0,
   "alergens": [
     "egg"
   ],
   "dietary_info": [
-    "high-protein",
     "gluten-free",
-    "vegan"
-  ]
+    "vegan",
+    "high-protein"
+  ],
+  "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
+  "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
 }
 ```
 
