@@ -21,6 +21,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = serializers.CharField(write_only=True, required=True, help_text='JSON array of ingredients')
     
     # Cloudinary URL
+    image_relative_url = serializers.SerializerMethodField()
+    image_full_url = serializers.SerializerMethodField()
     image = serializers.ImageField(required=False, allow_null=True, use_url=True)
 
     # read-only fields for output
@@ -37,6 +39,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'ingredients',         # for request (write_only)
             'ingredients_output',  # for response (read_only)
             'image',               # for optional image upload
+            'image_relative_url',  # for response (read_only)
+            'image_full_url',      # for response (read_only)
         ]
 
     def create(self, validated_data):
@@ -102,6 +106,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return instance
 
+    def get_image_relative_url(self, obj):
+        return str(obj.image) if obj.image else None
+
+    def get_image_full_url(self, obj):
+        return obj.image.url if obj.image else None
+    
     def get_ingredients_output(self, obj):
         ingredients = RecipeIngredient.objects.filter(recipe=obj)
         return RecipeIngredientOutputSerializer(ingredients, many=True).data
@@ -117,6 +127,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 class RecipeListSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
 
+    image_relative_url = serializers.SerializerMethodField()
+    image_full_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Recipe
         fields = [
@@ -139,8 +152,17 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'is_featured',
             'total_time',  # This will be computed dynamically
             'image',       # for optional image upload
+            'image_relative_url',  # for response (read_only)
+            'image_full_url',      # for response (read_only)
         ]
 
+    def get_image_relative_url(self, obj):
+        return str(obj.image) if obj.image else None
+    
+    def get_image_full_url(self, obj):
+        return obj.image.url if obj.image else None
+    
+    
 # Used for detail view of Recipe (Response)
 class RecipeDetailSerializer(serializers.ModelSerializer):
     alergens = serializers.SerializerMethodField()
@@ -148,6 +170,9 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
     ingredients = serializers.SerializerMethodField()
 
+    image_relative_url = serializers.SerializerMethodField()
+    image_full_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Recipe
         fields = [
@@ -178,9 +203,17 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'total_ratings',  # Computed dynamically
             'alergens',  # Dynamically returns allergens
             'dietary_info',  # Dynamically returns dietary info
-            'image'  # Optional image field
+            'image',  # Optional image field
+            'image_relative_url',  # for response (read_only)
+            'image_full_url',      # for response (read_only)
         ]
 
+    def get_image_relative_url(self, obj):
+        return str(obj.image) if obj.image else None
+    
+    def get_image_full_url(self, obj):
+        return obj.image.url if obj.image else None
+    
     def get_ingredients(self, obj):
         ingredients = RecipeIngredient.objects.filter(recipe=obj)
         return RecipeIngredientOutputSerializer(ingredients, many=True).data
