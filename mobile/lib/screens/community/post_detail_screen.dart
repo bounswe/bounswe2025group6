@@ -1,10 +1,12 @@
 import 'dart:convert'; // For jsonDecode
 import 'package:flutter/material.dart';
 import '../../models/forum_comment.dart'; // Import ForumComment model
+import '../../models/report.dart';
 import '../../services/community_service.dart';
 import '../../services/storage_service.dart';
 import './edit_post_screen.dart';
 import '../../widgets/comment_card.dart'; // Import CommentCard (will be created later)
+import '../../widgets/report_button.dart';
 
 class PostDetailScreen extends StatefulWidget {
   const PostDetailScreen({Key? key}) : super(key: key);
@@ -402,6 +404,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           },
         ),
         actions: [
+          // Show edit/delete for own posts
           if (post != null && _currentUserId != null && post!['author_id'] == _currentUserId) ...[
             IconButton(
               icon: const Icon(Icons.edit),
@@ -412,6 +415,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               onPressed: _showDeleteConfirmation,
             ),
           ],
+          // Show report button for other users' posts
+          if (post != null && _currentUserId != null && post!['author_id'] != _currentUserId)
+            ReportButton(
+              contentType: ReportContentType.post,
+              objectId: post!['id'],
+              contentPreview: post!['title'] ?? 'Post',
+            ),
         ],
       ),
       body: Column(

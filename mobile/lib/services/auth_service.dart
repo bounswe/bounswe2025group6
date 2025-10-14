@@ -15,7 +15,7 @@ class AuthenticationException implements Exception {
 
 class AuthService {
   static const String baseUrl =
-      'http://95.179.161.59:8000';
+      'http://10.0.2.2:8000';
       
   Future<LoginResponse> login(String email, String password) async {
     try {

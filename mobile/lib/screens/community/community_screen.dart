@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../models/report.dart';
 import '../../services/community_service.dart';
+import '../../services/storage_service.dart';
+import '../../widgets/report_dialog.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -107,11 +111,33 @@ class _PostCardState extends State<PostCard> {
   final CommunityService _communityService = CommunityService();
   String? currentVote;
   bool isLoading = false;
+  int? _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _loadVoteStatus();
+    _loadCurrentUserId();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final token = await StorageService.getJwtAccessToken();
+    if (token != null) {
+      try {
+        final parts = token.split('.');
+        if (parts.length != 3) return;
+        final payload = jsonDecode(
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+        );
+        if (mounted) {
+          setState(() {
+            _currentUserId = payload['user_id'] as int?;
+          });
+        }
+      } catch (e) {
+        // Handle error silently
+      }
+    }
   }
 
   Future<void> _loadVoteStatus() async {
@@ -214,6 +240,10 @@ class _PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if this is the current user's post
+    final isOwnPost = _currentUserId != null && 
+                      widget.post['author_id'] == _currentUserId;
+
     return Card(
       margin: const EdgeInsets.all(8.0),
       child: InkWell(
@@ -223,9 +253,45 @@ class _PostCardState extends State<PostCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.post['title'] ?? '',
-                style: Theme.of(context).textTheme.titleLarge,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.post['title'] ?? '',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  // Show report icon for other users' posts
+                  if (!isOwnPost && _currentUserId != null)
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      itemBuilder: (context) => [
+                        PopupMenuItem<String>(
+                          value: 'report',
+                          child: const Row(
+                            children: [
+                              Icon(Icons.flag_outlined, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Report Post'),
+                            ],
+                          ),
+                          onTap: () async {
+                            // Wait for menu to close
+                            await Future.delayed(const Duration(milliseconds: 100));
+                            if (!context.mounted) return;
+                            
+                            await ReportDialog.show(
+                              context: context,
+                              contentType: ReportContentType.post,
+                              objectId: widget.post['id'],
+                              contentPreview: widget.post['title'] ?? 'Post',
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                ],
               ),
               const SizedBox(height: 8),
               Text(
