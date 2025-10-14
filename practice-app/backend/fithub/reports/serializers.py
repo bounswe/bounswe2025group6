@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Report
 
 from forum.models import ForumPost as Post
+from forum.models import ForumPostComment as PostComment
 from recipes.models import Recipe
 
 
@@ -22,6 +23,7 @@ class ReportCreateSerializer(serializers.ModelSerializer):
         content_type_map = {
             'post': ContentType.objects.get_for_model(Post),
             'recipe': ContentType.objects.get_for_model(Recipe),
+            'postcomment': ContentType.objects.get_for_model(PostComment),
         }
         
         content_type = content_type_map.get(content_type_name.lower())

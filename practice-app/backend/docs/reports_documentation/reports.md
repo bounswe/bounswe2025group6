@@ -15,7 +15,7 @@ Authorization: Bearer <access_token>
 #### Request Body Example:
 ```json
 {
-    "content_type": "post",  // or "recipe"
+    "content_type": "post",  // or "recipe" or "PostComment"
     "object_id": 123,
     "report_type": "spam",
     "description": "This content appears to be spam advertising"

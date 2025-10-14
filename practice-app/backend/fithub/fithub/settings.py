@@ -20,11 +20,11 @@ import pymysql
 
 pymysql.install_as_MySQLdb()
 
-# Base dir looks to practice-app folder
-PRACTICE_APP_DIR = Path(__file__).resolve().parent.parent.parent.parent
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables from .env file
-load_dotenv(os.path.join(PRACTICE_APP_DIR, '.env'))
+load_dotenv(BASE_DIR / '.env')
 
 ENV_VARIABLES = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT']
 for var in ENV_VARIABLES:
@@ -180,11 +180,11 @@ WSGI_APPLICATION = 'fithub.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
         'OPTIONS': {
             'sql_mode': 'traditional',
         }
@@ -242,12 +242,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Log in cookies, and email settings must be imlemented here later
 
 # Email Configuration
-# TODO: Remove the below line in production and use the SMTP backend instead
-#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
+EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
