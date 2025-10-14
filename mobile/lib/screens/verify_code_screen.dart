@@ -58,7 +58,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                 'Enter the 6-digit code sent to ${widget.email}',
                 style: const TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 32),
@@ -150,7 +150,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(e.toString()),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         }

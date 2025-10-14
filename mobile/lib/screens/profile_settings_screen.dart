@@ -115,7 +115,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to save settings: ${e.toString()}'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         }
