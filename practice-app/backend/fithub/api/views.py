@@ -262,19 +262,51 @@ class ResetPasswordView(APIView):
             return Response({"detail": "Password has been successfully reset."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+from .models import LoginAttempt
+
 class login_view(APIView):
     @swagger_auto_schema(
-        request_body=LoginSerializer(),  # Specify the serializer for login
+        request_body=LoginSerializer(),
         responses={
             200: 'Successful login response with token',
             400: 'Bad request',
-            401: 'Invalid credentials'
+            401: 'Invalid credentials',
+            429: 'Too many failed attempts'
         }
     )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Invalid credentials"}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Check for too many failed attempts
+        recent_attempts = LoginAttempt.get_recent_attempts(
+            user, 
+            minutes=settings.LOGIN_ATTEMPT_TIMEOUT
+        )
+        
+        if recent_attempts >= settings.LOGIN_ATTEMPT_LIMIT:
+            return Response(
+                {
+                    "error": "Account temporarily locked due to too many failed attempts. "
+                            f"Please try again in {settings.LOGIN_ATTEMPT_TIMEOUT} minutes."
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # Attempt authentication
+        if serializer.validated_data.get('user') == user:
+            # Successful login
+            LoginAttempt.objects.create(user=user, successful=True)
             token, _ = Token.objects.get_or_create(user=user)
             return Response({
                 'token': token.key,
@@ -283,7 +315,14 @@ class login_view(APIView):
                 'email': user.email,
                 'usertype': user.usertype,
             })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Failed login
+            LoginAttempt.objects.create(user=user, successful=False)
+            print("Failed login attempt recorded.")
+            return Response(
+                {"error": "Invalid credentials"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 class logout_view(APIView):
     permission_classes = [IsAuthenticated]

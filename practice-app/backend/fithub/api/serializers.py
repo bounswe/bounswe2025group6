@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import RegisteredUser, Dietitian
+from .models import LoginAttempt, RegisteredUser, Dietitian
 from django.contrib.auth.models import User
 from .models import PasswordResetCode, PasswordResetToken
 from django.utils.crypto import get_random_string
@@ -71,6 +71,7 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid email or password.')
 
         if not user.check_password(password):
+            LoginAttempt.objects.create(user=user, successful=False)
             raise serializers.ValidationError('Invalid email or password.')
 
         if not user.is_active:
