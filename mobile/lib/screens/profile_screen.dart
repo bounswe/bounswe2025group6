@@ -323,24 +323,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ]),
         SizedBox(height: 20),
+        _buildSectionTitle(context, 'Localization & Accessibility'),
+        _buildInfoCard([
+          _buildInfoTile(
+            Icons.language,
+            'Language',
+            profile.language.displayName,
+          ),
+          _buildInfoTile(
+            Icons.calendar_today,
+            'Date Format',
+            profile.preferredDateFormat.displayName,
+          ),
+          _buildInfoTile(
+            Icons.attach_money,
+            'Currency',
+            profile.preferredCurrency.displayName,
+          ),
+          _buildInfoTile(
+            Icons.accessibility_new,
+            'Accessibility',
+            profile.accessibilityNeeds.displayName,
+          ),
+          if (profile.nationality != null)
+            _buildInfoTile(
+              Icons.flag,
+              'Nationality',
+              profile.nationality!,
+            ),
+          if (profile.dateOfBirth != null)
+            _buildInfoTile(
+              Icons.cake,
+              'Date of Birth',
+              '${profile.dateOfBirth!.day}/${profile.dateOfBirth!.month}/${profile.dateOfBirth!.year}',
+            ),
+        ]),
+        SizedBox(height: 20),
         _buildSectionTitle(context, 'Community'),
         _buildInfoCard([
           _buildInfoTile(
-            Icons.people_outline, // Changed icon
+            Icons.people_outline,
             'Following',
             profile.followedUsers != null
                 ? '${profile.followedUsers!.length} users'
                 : '0 users',
           ),
           _buildInfoTile(
-            Icons.bookmark_border_outlined, // Changed icon
+            Icons.bookmark_border_outlined,
             'Bookmarked Recipes',
             profile.bookmarkRecipes != null
                 ? '${profile.bookmarkRecipes!.length} recipes'
                 : '0 recipes',
           ),
           _buildInfoTile(
-            Icons.favorite_border_outlined, // Changed icon
+            Icons.favorite_border_outlined,
             'Liked Recipes',
             profile.likedRecipes != null
                 ? '${profile.likedRecipes!.length} recipes'

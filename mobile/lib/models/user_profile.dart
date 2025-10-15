@@ -1,14 +1,78 @@
+/// Enum for supported languages
+enum Language {
+  en,
+  tr;
+
+  String get displayName {
+    switch (this) {
+      case Language.en:
+        return 'English';
+      case Language.tr:
+        return 'Türkçe';
+    }
+  }
+}
+
+/// Enum for date formats
+enum DateFormat {
+  mmddyyyy('MM/DD/YYYY'),
+  ddmmyyyy('DD/MM/YYYY'),
+  yyyymmdd('YYYY-MM-DD');
+
+  final String value;
+  const DateFormat(this.value);
+
+  String get displayName => value;
+}
+
+/// Enum for currencies
+enum Currency {
+  usd('USD'),
+  try_('TRY');
+
+  final String value;
+  const Currency(this.value);
+
+  String get displayName {
+    switch (this) {
+      case Currency.usd:
+        return 'US Dollar (\$)';
+      case Currency.try_:
+        return 'Turkish Lira (₺)';
+    }
+  }
+}
+
+/// Enum for accessibility needs
+enum AccessibilityNeeds {
+  none,
+  colorblind,
+  visual,
+  hearing;
+
+  String get displayName {
+    switch (this) {
+      case AccessibilityNeeds.none:
+        return 'None';
+      case AccessibilityNeeds.colorblind:
+        return 'Colorblind';
+      case AccessibilityNeeds.visual:
+        return 'Visual Impairment';
+      case AccessibilityNeeds.hearing:
+        return 'Hearing Impairment';
+    }
+  }
+}
+
 class UserProfile {
-  int? id; // Added user ID
+  int? id;
   String username;
   String email;
-  String?
-  profilePictureUrl; // Nullable if no picture or to store avatar asset path
+  String? profilePictureUrl;
   List<String> dietaryPreferences;
   List<String> allergens;
   String dislikedFoods;
-  double? monthlyBudget; // Nullable
-  // int householdSize; // Removed
+  double? monthlyBudget;
   bool publicProfile;
   DateTime joinedDate;
   String userType;
@@ -19,9 +83,17 @@ class UserProfile {
   List<int>? followedUsers;
   List<int>? bookmarkRecipes;
   List<int>? likedRecipes;
+  
+  // New fields
+  Language language;
+  DateFormat preferredDateFormat;
+  DateTime? dateOfBirth;
+  String? nationality;
+  Currency preferredCurrency;
+  AccessibilityNeeds accessibilityNeeds;
 
   UserProfile({
-    this.id, // Added to constructor
+    this.id,
     required this.username,
     required this.email,
     this.profilePictureUrl,
@@ -29,7 +101,6 @@ class UserProfile {
     this.allergens = const [],
     this.dislikedFoods = '',
     this.monthlyBudget,
-    // this.householdSize = 1, // Removed
     this.publicProfile = false,
     required this.joinedDate,
     this.userType = 'user',
@@ -40,6 +111,13 @@ class UserProfile {
     this.followedUsers,
     this.bookmarkRecipes,
     this.likedRecipes,
+    // New fields with defaults
+    this.language = Language.en,
+    this.preferredDateFormat = DateFormat.yyyymmdd,
+    this.dateOfBirth,
+    this.nationality,
+    this.preferredCurrency = Currency.usd,
+    this.accessibilityNeeds = AccessibilityNeeds.none,
   });
 
   // Placeholder factory method
@@ -72,12 +150,50 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json, int userId) {
     // Helper to safely parse date
-    DateTime parseJoinedDate(dynamic dateValue) {
+    DateTime parseDate(dynamic dateValue) {
       if (dateValue is String) {
         return DateTime.tryParse(dateValue) ?? DateTime.now();
       }
-      // Fallback if date_joined is not a string or not present
       return DateTime.now();
+    }
+
+    DateTime? parseDateNullable(dynamic dateValue) {
+      if (dateValue is String && dateValue.isNotEmpty) {
+        return DateTime.tryParse(dateValue);
+      }
+      return null;
+    }
+
+    Language parseLanguage(dynamic value) {
+      final str = value?.toString().toLowerCase();
+      return Language.values.firstWhere(
+        (lang) => lang.name == str,
+        orElse: () => Language.en,
+      );
+    }
+
+    DateFormat parseDateFormat(dynamic value) {
+      final str = value?.toString();
+      return DateFormat.values.firstWhere(
+        (format) => format.value == str,
+        orElse: () => DateFormat.yyyymmdd,
+      );
+    }
+
+    Currency parseCurrency(dynamic value) {
+      final str = value?.toString().toUpperCase();
+      return Currency.values.firstWhere(
+        (curr) => curr.value == str,
+        orElse: () => Currency.usd,
+      );
+    }
+
+    AccessibilityNeeds parseAccessibility(dynamic value) {
+      final str = value?.toString().toLowerCase();
+      return AccessibilityNeeds.values.firstWhere(
+        (acc) => acc.name == str,
+        orElse: () => AccessibilityNeeds.none,
+      );
     }
 
     return UserProfile(
@@ -85,12 +201,11 @@ class UserProfile {
       username: json['username'] as String? ?? 'N/A',
       email: json['email'] as String? ?? 'N/A',
       profilePictureUrl: json['profilePhoto'] as String?,
-      // Fields not supported by backend, retain local or default
       dietaryPreferences:
           (json['dietaryPreferences'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
-          [], // Assuming backend might send it, else default
+          [],
       allergens:
           (json['foodAllergies'] as List<dynamic>?)
               ?.map((e) => e.toString())
@@ -98,11 +213,9 @@ class UserProfile {
           [],
       dislikedFoods: json['dislikedFoods'] as String? ?? '',
       monthlyBudget: (json['monthlyBudget'] as num?)?.toDouble(),
-      // householdSize: json['householdSize'] as int? ?? 1, // Removed
       publicProfile:
           (json['profileVisibility'] as String? ?? 'private') == 'public',
-      // Assuming 'date_joined' might be the field from Django's User model
-      joinedDate: parseJoinedDate(json['date_joined']),
+      joinedDate: parseDate(json['date_joined']),
       userType: json['usertype'] as String? ?? 'user',
       notificationPreferences:
           json['notificationPreferences'] as Map<String, dynamic>?,
@@ -121,6 +234,13 @@ class UserProfile {
           (json['likedRecipes'] as List<dynamic>?)
               ?.map((e) => e as int)
               .toList(),
+      // New fields
+      language: parseLanguage(json['language']),
+      preferredDateFormat: parseDateFormat(json['preferredDateFormat']),
+      dateOfBirth: parseDateNullable(json['date_of_birth']),
+      nationality: json['nationality'] as String?,
+      preferredCurrency: parseCurrency(json['preferredCurrency']),
+      accessibilityNeeds: parseAccessibility(json['accessibilityNeeds']),
     );
   }
 
@@ -129,7 +249,7 @@ class UserProfile {
     // Only include fields supported by the backend for PATCH requests
     if (username.isNotEmpty) data['username'] = username;
     if (email.isNotEmpty) data['email'] = email;
-    data['usertype'] = userType; // usertype is likely required or has a default
+    data['usertype'] = userType;
 
     // Handle profilePictureUrl: send null if it's an asset path, otherwise send the URL
     if (profilePictureUrl != null && profilePictureUrl!.startsWith('assets/')) {
@@ -138,17 +258,28 @@ class UserProfile {
       data['profilePhoto'] = profilePictureUrl;
     }
 
-    data['foodAllergies'] =
-        allergens.isNotEmpty ? allergens : []; // Send empty list if none
+    data['foodAllergies'] = allergens.isNotEmpty ? allergens : [];
     data['profileVisibility'] = publicProfile ? 'public' : 'private';
 
     if (recipeCount != null) data['recipeCount'] = recipeCount;
+
+    // New fields
+    data['language'] = language.name;
+    data['preferredDateFormat'] = preferredDateFormat.value;
+    if (dateOfBirth != null) {
+      data['date_of_birth'] = dateOfBirth!.toIso8601String().split('T')[0]; // YYYY-MM-DD format
+    }
+    if (nationality != null && nationality!.isNotEmpty) {
+      data['nationality'] = nationality;
+    }
+    data['preferredCurrency'] = preferredCurrency.value;
+    data['accessibilityNeeds'] = accessibilityNeeds.name;
 
     return data;
   }
 
   UserProfile copyWith({
-    int? id, // Added id
+    int? id,
     String? username,
     String? email,
     String? profilePictureUrl,
@@ -157,7 +288,6 @@ class UserProfile {
     String? dislikedFoods,
     double? monthlyBudget,
     bool clearMonthlyBudget = false,
-    // int? householdSize, // Removed
     bool? publicProfile,
     DateTime? joinedDate,
     String? userType,
@@ -168,9 +298,18 @@ class UserProfile {
     List<int>? followedUsers,
     List<int>? bookmarkRecipes,
     List<int>? likedRecipes,
+    // New fields
+    Language? language,
+    DateFormat? preferredDateFormat,
+    DateTime? dateOfBirth,
+    bool clearDateOfBirth = false,
+    String? nationality,
+    bool clearNationality = false,
+    Currency? preferredCurrency,
+    AccessibilityNeeds? accessibilityNeeds,
   }) {
     return UserProfile(
-      id: id ?? this.id, // Ensure ID is copied
+      id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
@@ -181,7 +320,6 @@ class UserProfile {
       dislikedFoods: dislikedFoods ?? this.dislikedFoods,
       monthlyBudget:
           clearMonthlyBudget ? null : monthlyBudget ?? this.monthlyBudget,
-      // householdSize: householdSize ?? this.householdSize, // Removed
       publicProfile: publicProfile ?? this.publicProfile,
       joinedDate: joinedDate ?? this.joinedDate,
       userType: userType ?? this.userType,
@@ -193,6 +331,13 @@ class UserProfile {
       followedUsers: followedUsers ?? this.followedUsers,
       bookmarkRecipes: bookmarkRecipes ?? this.bookmarkRecipes,
       likedRecipes: likedRecipes ?? this.likedRecipes,
+      // New fields
+      language: language ?? this.language,
+      preferredDateFormat: preferredDateFormat ?? this.preferredDateFormat,
+      dateOfBirth: clearDateOfBirth ? null : dateOfBirth ?? this.dateOfBirth,
+      nationality: clearNationality ? null : nationality ?? this.nationality,
+      preferredCurrency: preferredCurrency ?? this.preferredCurrency,
+      accessibilityNeeds: accessibilityNeeds ?? this.accessibilityNeeds,
     );
   }
 }

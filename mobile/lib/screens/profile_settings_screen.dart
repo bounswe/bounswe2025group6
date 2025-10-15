@@ -35,6 +35,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   late TextEditingController _emailController;
   late TextEditingController _dislikedFoodsController;
   late TextEditingController _monthlyBudgetController;
+  late TextEditingController _nationalityController;
+  
+  DateTime? _selectedDateOfBirth;
 
   List<String> _availableDietaryPreferences = [
     'Vegetarian',
@@ -56,7 +59,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _profileService = widget.profileService; // Initialize from widget
+    _profileService = widget.profileService;
     _editableProfile = widget.userProfile.copyWith();
     _usernameController = TextEditingController(
       text: _editableProfile.username,
@@ -68,6 +71,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     _monthlyBudgetController = TextEditingController(
       text: _editableProfile.monthlyBudget?.toString() ?? '',
     );
+    _nationalityController = TextEditingController(
+      text: _editableProfile.nationality ?? '',
+    );
+    _selectedDateOfBirth = _editableProfile.dateOfBirth;
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _dislikedFoodsController.dispose();
+    _monthlyBudgetController.dispose();
+    _nationalityController.dispose();
+    super.dispose();
   }
 
   void _selectAvatar(String avatarPath) {
@@ -92,15 +109,19 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       UserProfile finalProfileToSave = _editableProfile.copyWith(
-        id: _editableProfile.id, // Explicitly pass the ID
+        id: _editableProfile.id,
         username: _usernameController.text,
         dislikedFoods: _dislikedFoodsController.text,
         monthlyBudget: double.tryParse(_monthlyBudgetController.text),
         clearMonthlyBudget: _monthlyBudgetController.text.isEmpty,
+        nationality: _nationalityController.text.isNotEmpty ? _nationalityController.text : null,
+        clearNationality: _nationalityController.text.isEmpty,
+        dateOfBirth: _selectedDateOfBirth,
+        clearDateOfBirth: _selectedDateOfBirth == null,
       );
 
       try {
-        UserProfile updatedProfile = await _profileService.updateUserProfile(
+        await _profileService.updateUserProfile(
           finalProfileToSave,
         );
         if (mounted) {
@@ -259,6 +280,162 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               'Allergens',
               _availableAllergens,
               _editableProfile.allergens,
+            ),
+            SizedBox(height: 30),
+            Text(
+              'Localization & Accessibility',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            SizedBox(height: 12),
+            
+            // Language Dropdown
+            DropdownButtonFormField<Language>(
+              value: _editableProfile.language,
+              decoration: InputDecoration(
+                labelText: 'Language',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.language),
+              ),
+              items: Language.values.map((lang) {
+                return DropdownMenuItem(
+                  value: lang,
+                  child: Text(lang.displayName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _editableProfile = _editableProfile.copyWith(language: value);
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 12),
+            
+            // Date Format Dropdown
+            DropdownButtonFormField<DateFormat>(
+              value: _editableProfile.preferredDateFormat,
+              decoration: InputDecoration(
+                labelText: 'Date Format',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.calendar_today),
+              ),
+              items: DateFormat.values.map((format) {
+                return DropdownMenuItem(
+                  value: format,
+                  child: Text(format.displayName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _editableProfile = _editableProfile.copyWith(preferredDateFormat: value);
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 12),
+            
+            // Currency Dropdown
+            DropdownButtonFormField<Currency>(
+              value: _editableProfile.preferredCurrency,
+              decoration: InputDecoration(
+                labelText: 'Preferred Currency',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.attach_money),
+              ),
+              items: Currency.values.map((currency) {
+                return DropdownMenuItem(
+                  value: currency,
+                  child: Text(currency.displayName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _editableProfile = _editableProfile.copyWith(preferredCurrency: value);
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 12),
+            
+            // Accessibility Needs Dropdown
+            DropdownButtonFormField<AccessibilityNeeds>(
+              value: _editableProfile.accessibilityNeeds,
+              decoration: InputDecoration(
+                labelText: 'Accessibility Needs',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.accessibility_new),
+              ),
+              items: AccessibilityNeeds.values.map((needs) {
+                return DropdownMenuItem(
+                  value: needs,
+                  child: Text(needs.displayName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _editableProfile = _editableProfile.copyWith(accessibilityNeeds: value);
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 12),
+            
+            // Nationality Field
+            TextFormField(
+              controller: _nationalityController,
+              decoration: InputDecoration(
+                labelText: 'Nationality (Optional)',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.flag),
+              ),
+              maxLength: 50,
+            ),
+            SizedBox(height: 12),
+            
+            // Date of Birth Picker
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.cake, color: AppTheme.primaryGreen),
+              title: Text('Date of Birth (Optional)'),
+              subtitle: Text(
+                _selectedDateOfBirth != null
+                    ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
+                    : 'Not set',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_selectedDateOfBirth != null)
+                    IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          _selectedDateOfBirth = null;
+                        });
+                      },
+                    ),
+                  IconButton(
+                    icon: Icon(Icons.edit_calendar),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDateOfBirth ?? DateTime.now().subtract(Duration(days: 365 * 25)),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _selectedDateOfBirth = picked;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
