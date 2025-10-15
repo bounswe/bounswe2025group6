@@ -22,9 +22,6 @@ class RegisteredUser(AbstractUser, TimestampedModel):
      # new field for languages spoken by the user
     LANGUAGES = [
         ('en', 'English'),
-        ('es', 'Spanish'),
-        ('fr', 'French'),
-        ('de', 'German'),
         ('tr', 'Turkish'),
     ]
     
