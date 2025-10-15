@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/forum_comment.dart';
+import '../models/user_profile.dart';
 import '../services/community_service.dart';
+import '../utils/date_formatter.dart';
 
 class CommentCard extends StatefulWidget {
   final ForumComment comment;
@@ -9,6 +11,7 @@ class CommentCard extends StatefulWidget {
   final int? currentUserId;
   final VoidCallback onDelete;
   final VoidCallback onVoteChanged;
+  final DateFormat? userDateFormat;
 
   const CommentCard({
     Key? key,
@@ -18,6 +21,7 @@ class CommentCard extends StatefulWidget {
     required this.currentUserId,
     required this.onDelete,
     required this.onVoteChanged,
+    this.userDateFormat,
   }) : super(key: key);
 
   @override
@@ -150,14 +154,11 @@ class _CommentCardState extends State<CommentCard> {
   }
 
   String _formatDateTime(String? dateTimeStr) {
-    if (dateTimeStr == null) return '';
-    try {
-      final dateTime = DateTime.parse(dateTimeStr).toLocal();
-      // More detailed format
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return 'Invalid date'; // Handle parsing errors
-    }
+    return DateFormatter.formatDateString(
+      dateTimeStr,
+      preferredFormat: widget.userDateFormat,
+      includeTime: true,
+    );
   }
 
   @override

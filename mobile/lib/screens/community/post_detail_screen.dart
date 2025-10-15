@@ -2,8 +2,11 @@ import 'dart:convert'; // For jsonDecode
 import 'package:flutter/material.dart';
 import '../../models/forum_comment.dart'; // Import ForumComment model
 import '../../models/report.dart';
+import '../../models/user_profile.dart';
 import '../../services/community_service.dart';
+import '../../services/profile_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/date_formatter.dart';
 import './edit_post_screen.dart';
 import '../../widgets/comment_card.dart'; // Import CommentCard (will be created later)
 import '../../widgets/report_button.dart';
@@ -22,6 +25,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   Map<String, dynamic>? post;
   bool _isLoading = true;
   final CommunityService _communityService = CommunityService();
+  final ProfileService _profileService = ProfileService();
   String? currentVote;
   bool isVoteLoading = false;
   List<Map<String, dynamic>> _comments =
@@ -30,12 +34,28 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   String? _commentsError;
   bool _isSubmittingComment = false;
   int? _currentUserId; // To store the logged-in user's ID
+  DateFormat? _userDateFormat; // To store user's preferred date format
 
   @override
   void initState() {
     super.initState();
     _initializePost();
     _loadCurrentUserId(); // Load user ID
+    _loadUserPreferences(); // Load user's date format preference
+  }
+  
+  Future<void> _loadUserPreferences() async {
+    try {
+      final profile = await _profileService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _userDateFormat = profile.preferredDateFormat;
+        });
+      }
+    } catch (e) {
+      // If we can't load preferences, just use default format
+      print('Could not load user preferences: $e');
+    }
   }
 
   Future<void> _loadCurrentUserId() async {
@@ -143,9 +163,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   String _formatDateTime(String? dateTimeStr) {
-    if (dateTimeStr == null) return '';
-    final dateTime = DateTime.parse(dateTimeStr).toLocal();
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    return DateFormatter.formatDateString(
+      dateTimeStr,
+      preferredFormat: _userDateFormat,
+      includeTime: true,
+    );
   }
 
   Future<void> _loadVoteStatus() async {
@@ -589,6 +611,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             // Optionally refresh specific comment state or reload all
             _loadComments();
           },
+          userDateFormat: _userDateFormat, // Pass user's date format preference
         );
       },
       separatorBuilder: (context, index) => const Divider(),
