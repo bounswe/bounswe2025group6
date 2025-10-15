@@ -3,7 +3,7 @@
 ## User Report Endpoints
 
 ### Create Report
-**POST** `/api/reports/`
+**POST** `/reports/reports/`
 
 **Description**: Create a new report for a post or recipe. Requires authentication.
 
@@ -53,7 +53,7 @@ Authorization: Bearer <access_token>
   ```
 
 ### List User's Reports
-**GET** `/api/reports/`
+**GET** `/reports/reports/`
 
 **Description**: Get a list of reports created by the authenticated user.
 
@@ -81,7 +81,7 @@ Authorization: Bearer <access_token>
   ```
 
 ### Get Single Report
-**GET** `/api/reports/{report_id}/`
+**GET** `/reports/reports/{report_id}/`
 
 **Description**: Retrieve a specific report by ID. Users can only access their own reports.
 
@@ -107,7 +107,7 @@ Authorization: Bearer <access_token>
   ```
 
 ### Update Report
-**PUT** `/api/reports/{report_id}/`
+**PUT** `/reports/reports/{report_id}/`
 
 **Description**: Update a report. Users can only update their own reports.
 
@@ -141,7 +141,7 @@ Authorization: Bearer <access_token>
   ```
 
 ### Delete Report
-**DELETE** `/api/reports/{report_id}/`
+**DELETE** `/reports/reports/{report_id}/`
 
 **Description**: Delete a report. Users can only delete their own reports.
 
@@ -187,11 +187,11 @@ Superuser created successfully.
 
 Now you can use these credentials to:
 1. Access the Django admin interface at `/admin/`
-2. Login using the admin login endpoint `/api/reports/admin/auth/login/`
+2. Login using the admin login endpoint `/reports/reports/admin/auth/login/`
 3. Use all admin-only endpoints with the obtained access token
 
 ### Admin Login
-**POST** `/api/reports/admin/auth/login/`
+**POST** `/reports/reports/admin/auth/login/`
 
 **Description**: Login endpoint specifically for admin users.
 
@@ -224,7 +224,7 @@ Now you can use these credentials to:
   ```
 
 ### List All Reports (Admin)
-**GET** `/api/reports/admin/reports/`
+**GET** `/reports/reports/admin/reports/`
 
 **Description**: Get a list of all reports. Requires admin privileges.
 
@@ -251,7 +251,7 @@ Authorization: Bearer <admin_access_token>
   ```
 
 ### Get Single Report (Admin)
-**GET** `/api/reports/admin/reports/{report_id}/`
+**GET** `/reports/reports/admin/reports/{report_id}/`
 
 **Description**: Retrieve a specific report by ID. Admins can access any report.
 
@@ -277,7 +277,7 @@ Authorization: Bearer <admin_access_token>
   ```
 
 ### Update Report (Admin)
-**PUT** `/api/reports/admin/reports/{report_id}/`
+**PUT** `/reports/reports/admin/reports/{report_id}/`
 
 **Description**: Update any report details. Admin only.
 
@@ -312,7 +312,7 @@ Authorization: Bearer <admin_access_token>
   ```
 
 ### Delete Report (Admin)
-**DELETE** `/api/reports/admin/reports/{report_id}/`
+**DELETE** `/reports/reports/admin/reports/{report_id}/`
 
 **Description**: Delete any report. Admin only.
 
@@ -326,7 +326,7 @@ Authorization: Bearer <admin_access_token>
   - Status: `204 No Content`
 
 ### Resolve Report - Keep Content
-**POST** `/api/reports/admin/reports/{report_id}/resolve_keep/`
+**POST** `/reports/reports/admin/reports/{report_id}/resolve_keep/`
 
 **Description**: Resolve a report while keeping the reported content. Requires admin privileges.
 
@@ -345,7 +345,7 @@ Authorization: Bearer <admin_access_token>
   ```
 
 ### Resolve Report - Delete Content
-**POST** `/api/reports/admin/reports/{report_id}/resolve_delete/`
+**POST** `/reports/reports/admin/reports/{report_id}/resolve_delete/`
 
 **Description**: Resolve a report by deleting the reported content. Requires admin privileges.
 
@@ -364,7 +364,7 @@ Authorization: Bearer <admin_access_token>
   ```
 
 ### Check Admin Status
-**GET** `/api/reports/admin/auth/check/`
+**GET** `/reports/reports/admin/auth/check/`
 
 **Description**: Check if the current user has admin privileges.
 
