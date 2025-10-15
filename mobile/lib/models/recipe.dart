@@ -29,6 +29,8 @@ class Recipe {
   final int totalRatings; // Assuming this is total_ratings
   final List<String> allergens; // Changed from alergens to allergens
   final List<String> dietaryInfo;
+  final String? imageFullUrl; // Image URL from Cloudinary
+  final String? imageRelativeUrl; // Relative path
 
   Recipe({
     required this.id,
@@ -58,6 +60,8 @@ class Recipe {
     required this.totalRatings,
     required this.allergens,
     required this.dietaryInfo,
+    this.imageFullUrl,
+    this.imageRelativeUrl,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -124,6 +128,8 @@ class Recipe {
       totalRatings: int.tryParse(json['total_ratings']?.toString() ?? '') ?? 0,
       allergens: allergensList,
       dietaryInfo: dietaryInfoList,
+      imageFullUrl: json['image_full_url']?.toString(),
+      imageRelativeUrl: json['image_relative_url']?.toString(),
     );
   }
 
@@ -167,6 +173,8 @@ class Recipe {
       totalRatings: 0, // Not in list view example
       allergens: [], // Not in list view example
       dietaryInfo: [], // Not in list view example
+      imageFullUrl: json['image_full_url']?.toString(),
+      imageRelativeUrl: json['image_relative_url']?.toString(),
     );
   }
 }
