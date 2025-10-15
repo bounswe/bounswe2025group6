@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
+import ReportButton from '../../components/report/ReportButton';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js';
@@ -518,6 +519,12 @@ const CommunityPage = () => {
                       <div className="post-stats">
                         <span>👁️ {post.view_count} views</span>
                       </div>
+                      {/* Report button for posts - only if not owner */}
+                      {currentUser && post.author !== currentUser.id && (
+                        <div style={{ marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                          <ReportButton targetType="post" targetId={post.id} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
