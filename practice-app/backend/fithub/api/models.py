@@ -206,3 +206,17 @@ class PasswordResetToken(models.Model):
 
     def is_expired(self):
         return timezone.now() > self.created_at + timedelta(minutes=15)
+
+class LoginAttempt(models.Model):
+    user = models.ForeignKey('RegisteredUser', on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    successful = models.BooleanField(default=False)
+
+    @classmethod
+    def get_recent_attempts(cls, user, minutes=15):
+        time_threshold = timezone.now() - timedelta(minutes=minutes)
+        return cls.objects.filter(
+            user=user,
+            timestamp__gt=time_threshold,
+            successful=False
+        ).count()

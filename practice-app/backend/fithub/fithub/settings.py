@@ -137,6 +137,11 @@ CACHES = {
     }
 }
 
+# Session timeout settings
+SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -146,6 +151,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'api.middleware.SessionTimeoutMiddleware',
 ]
 
 ROOT_URLCONF = 'fithub.urls'
@@ -198,7 +204,6 @@ if 'test' in sys.argv:
         'NAME': ':memory:',
     }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -250,7 +255,10 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
 AUTH_USER_MODEL = 'api.RegisteredUser'
 
 SITE_DOMAIN = "http://95.179.161.59:8000"
+
+# Login attempt settings
+LOGIN_ATTEMPT_LIMIT = 5
+LOGIN_ATTEMPT_TIMEOUT = 15  # minutes
