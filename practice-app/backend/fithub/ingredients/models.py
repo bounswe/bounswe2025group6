@@ -1,5 +1,6 @@
 from django.db import models
 from core.models import TimestampedModel  # New import path
+from decimal import Decimal
 
 class Ingredient(TimestampedModel):
     CATEGORY_CHOICES = [
@@ -31,15 +32,13 @@ class Ingredient(TimestampedModel):
         Return prices in user's preferred currency (USD or TRY).
         Prices are stored in USD by default.
         """
-
         user_currency = getattr(user, "preferredCurrency", "USD")
+        rate = Decimal("1.0")
 
-        # conversion multiplier
-        rate = 1.0
         if self.base_currency == "USD" and user_currency == "TRY":
-            rate = usd_to_try_rate
+            rate = Decimal(str(usd_to_try_rate))  # convert float to Decimal
         elif self.base_currency == "TRY" and user_currency == "USD":
-            rate = 1 / usd_to_try_rate
+            rate = Decimal("1.0") / Decimal(str(usd_to_try_rate))
 
         def convert_into_user_currency(value):
             return round(value * rate, 2) if value is not None else None
