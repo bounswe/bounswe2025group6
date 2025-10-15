@@ -71,6 +71,9 @@ yarn-error.log
 # Other
 *.backup
 *.bak
+practice-app/SETUP_COMPLETE.md
 
 # Backend Images
 **/backend/**/*.jpg
+practice-app/docker-compose.yml
+
