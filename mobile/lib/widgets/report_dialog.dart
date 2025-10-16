@@ -100,11 +100,22 @@ class _ReportDialogState extends State<ReportDialog> {
     }
   }
 
+  String _getContentTypeDisplayName() {
+    switch (widget.contentType) {
+      case ReportContentType.post:
+        return 'Post';
+      case ReportContentType.recipe:
+        return 'Recipe';
+      case ReportContentType.postcomment:
+        return 'Comment';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        'Report ${widget.contentType.value.toUpperCase()}',
+        'Report ${_getContentTypeDisplayName()}',
         style: const TextStyle(
           color: AppTheme.textOnLight,
           fontWeight: FontWeight.bold,
