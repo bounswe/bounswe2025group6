@@ -34,13 +34,14 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=False, allow_null=True, use_url=True)
     creator = serializers.IntegerField(read_only=True)
     ingredients_output = serializers.SerializerMethodField()
-    total_costs = serializers.SerializerMethodField()
+    recipe_costs = serializers.SerializerMethodField()
     
     class Meta:
         model = Recipe
         fields = [
             'id',
             'creator',
+            'recipe_costs',
             'image',
             'image_relative_url',
             'image_full_url',
@@ -66,7 +67,7 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
             class DummyUser:
                 preferredCurrency = "USD"
             user = DummyUser()
-        return obj.calculate_total_cost(user)
+        return obj.calculate_recipe_cost(user)
     
     def handle_ingredients(self, recipe, ingredients_json, clear_existing=True):
         """Shared helper for ingredient creation"""
@@ -162,7 +163,7 @@ class RecipeUpdateSerializer(RecipeBaseSerializer):
 # Used for list view of Recipe (Response)
 class RecipeListSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
-    total_costs = serializers.SerializerMethodField()
+    recipe_costs = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -176,6 +177,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'creator_id',
             'prep_time',
             'cook_time',
+            'recipe_costs',
             'cost_per_serving',
             'difficulty_rating',
             'difficulty_rating_count',
@@ -193,14 +195,14 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'image_full_url',      # for response (read_only)
         ]
 
-    def get_total_costs(self, obj):
+    def get_recipe_costs(self, obj):
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if not user or not user.is_authenticated:
             class DummyUser:
                 preferredCurrency = "USD"
             user = DummyUser()
-        return obj.calculate_total_cost(user)
+        return obj.calculate_recipe_cost(user)
     
     def get_image_relative_url(self, obj):
         return str(obj.image) if obj.image else None
@@ -211,10 +213,12 @@ class RecipeListSerializer(serializers.ModelSerializer):
     
 # Used for detail view of Recipe (Response)
 class RecipeDetailSerializer(serializers.ModelSerializer):
+    
     allergens = serializers.SerializerMethodField()
     dietary_info = serializers.SerializerMethodField()
     creator_id = serializers.IntegerField(source='creator.id')
     ingredients = serializers.SerializerMethodField()
+    recipe_costs = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -231,6 +235,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'creator_id',
             'ingredients',
             'cost_per_serving',
+            'recipe_costs',  
             'difficulty_rating',
             'taste_rating',
             'health_rating',
@@ -269,3 +274,13 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 
     def get_dietary_info(self, obj):
         return obj.check_dietary_info()
+    
+    def get_recipe_costs(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+        return obj.calculate_recipe_cost(user)
+    

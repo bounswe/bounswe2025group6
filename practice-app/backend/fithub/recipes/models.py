@@ -82,13 +82,15 @@ class Recipe(TimestampedModel):
         self.deleted_on = timezone.now()
         self.save()
 
-    def calculate_cost_per_serving(self):
+    def calculate_recipe_cost(self, user):
         """
-        Calculates the total cost per serving using the cheapest prices among all markets.
-        Assumes self.recipe_ingredients.all() exists and has quantity/unit info.
+        Calculates the recipe cost of the recipe for each market.
         """
-        total_cost = Decimal("0.0")
-
+        recipe_costs = {'price_A101': Decimal("0.0"),
+                      'price_SOK': Decimal("0.0"),
+                      'price_BIM': Decimal("0.0"),
+                      'price_MIGROS': Decimal("0.0")}
+        
         for ri in self.recipe_ingredients.all():
             ingredient = ri.ingredient
             quantity = Decimal(ri.quantity)
@@ -102,14 +104,38 @@ class Recipe(TimestampedModel):
                 Decimal(ingredient.price_MIGROS),
             ]
             
-            cheapest_price_per_base = min(prices)
-
             # Scale by quantity relative to base
-            cost_for_ri = cheapest_price_per_base * (quantity / base_qty)
-            total_cost += cost_for_ri
+            for price in prices:
+                cost_for_ri = price * (quantity / base_qty)
+                if price == Decimal(ingredient.price_A101):
+                    recipe_costs['price_A101'] += cost_for_ri
+                elif price == Decimal(ingredient.price_SOK):
+                    recipe_costs['price_SOK'] += cost_for_ri
+                elif price == Decimal(ingredient.price_BIM):
+                    recipe_costs['price_BIM'] += cost_for_ri
+                elif price == Decimal(ingredient.price_MIGROS):
+                    recipe_costs['price_MIGROS'] += cost_for_ri
 
-        return total_cost.quantize(Decimal("0.01"))  # round to 2 decimals
-        
+        return {market: cost.quantize(Decimal("0.01")) for market, cost in recipe_costs.items()}
+
+    def calculate_cost_per_serving(self, user=None):
+        """
+        Saves the minimum cost per serving among markets to the recipe's cost_per_serving field.
+        """
+        total_cost = Decimal("0.0")
+
+        if user is None:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+
+        market_costs = self.calculate_recipe_cost(user=user)
+        print("DEBUG: Market costs calculated:", market_costs)
+        if market_costs:
+            total_cost = min(market_costs.values())
+            print("DEBUG: Minimum cost per serving:", total_cost)
+        return total_cost.quantize(Decimal("0.01"))
+
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
         return list(set(
