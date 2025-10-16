@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert'; 
-import 'package:http/http.dart' as http; 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
-import './storage_service.dart'; 
+import './storage_service.dart';
 
 class ProfileServiceException implements Exception {
   final String message;
@@ -15,7 +15,7 @@ class ProfileServiceException implements Exception {
 }
 
 class ProfileService {
-  static const String baseUrl = 'http://95.179.161.59:8000';
+  static const String baseUrl = 'http://10.0.2.2:8000';
   String? token;
 
   ProfileService({this.token});

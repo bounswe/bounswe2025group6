@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/forum_comment.dart';
+import '../models/report.dart';
+import 'report_dialog.dart';
+import '../models/user_profile.dart';
 import '../services/community_service.dart';
+import '../utils/date_formatter.dart';
 
 class CommentCard extends StatefulWidget {
   final ForumComment comment;
@@ -9,6 +13,7 @@ class CommentCard extends StatefulWidget {
   final int? currentUserId;
   final VoidCallback onDelete;
   final VoidCallback onVoteChanged;
+  final DateFormat? userDateFormat;
 
   const CommentCard({
     Key? key,
@@ -18,6 +23,7 @@ class CommentCard extends StatefulWidget {
     required this.currentUserId,
     required this.onDelete,
     required this.onVoteChanged,
+    this.userDateFormat,
   }) : super(key: key);
 
   @override
@@ -150,14 +156,22 @@ class _CommentCardState extends State<CommentCard> {
   }
 
   String _formatDateTime(String? dateTimeStr) {
-    if (dateTimeStr == null) return '';
-    try {
-      final dateTime = DateTime.parse(dateTimeStr).toLocal();
-      // More detailed format
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return 'Invalid date'; // Handle parsing errors
-    }
+    return DateFormatter.formatDateString(
+      dateTimeStr,
+      preferredFormat: widget.userDateFormat,
+      includeTime: true,
+    );
+  }
+
+  Future<void> _showReportDialog(BuildContext context) async {
+    await ReportDialog.show(
+      context: context,
+      contentType: ReportContentType.postcomment,
+      objectId: widget.comment.id,
+      contentPreview: widget.comment.content.length > 50
+          ? '${widget.comment.content.substring(0, 50)}...'
+          : widget.comment.content,
+    );
   }
 
   @override
@@ -172,12 +186,15 @@ class _CommentCardState extends State<CommentCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'By ${widget.authorUsername}', // Use fetched username
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  'By ${widget.authorUsername}', // Use fetched username
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
               ),
+              // Show delete button for own comments
               if (isAuthor)
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
@@ -185,6 +202,15 @@ class _CommentCardState extends State<CommentCard> {
                   constraints: const BoxConstraints(),
                   tooltip: 'Delete Comment',
                   onPressed: widget.onDelete,
+                ),
+              // Show report button for other users' comments
+              if (!isAuthor && widget.currentUserId != null)
+                IconButton(
+                  icon: const Icon(Icons.flag_outlined, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Report Comment',
+                  onPressed: () => _showReportDialog(context),
                 ),
             ],
           ),
