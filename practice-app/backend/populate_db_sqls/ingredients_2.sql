@@ -29,4 +29,4 @@ INSERT IGNORE INTO ingredients_ingredient
 ('Peanuts', 'nuts', '["nuts"]', '["vegan","high-protein"]', 3.50, 3.40, 3.25, 3.60, 'USD', 'kg', 1, '["g","kg"]', NOW(), NOW(), NULL),
 ('Pineapple', 'fruits', '[]', '["vegan","gluten-free"]', 1.50, 1.55, 1.60, 1.45, 'USD', 'pcs', 1, '["pcs"]', NOW(), NOW(), NULL),
 ('Pumpkin', 'vegetables', '[]', '["vegan","gluten-free"]', 2.00, 1.90, 2.10, 2.05, 'USD', 'kg', 1, '["g","kg"]', NOW(), NOW(), NULL),
-('Raspberries', 'fruits', '[]', '["vegan","gluten-free"]', 6.50, 6.20, 6.80, 6.90, 'USD', 'kg', 1, '["g","kg"]', NOW(), NOW(), NULL),
+('Raspberries', 'fruits', '[]', '["vegan","gluten-free"]', 6.50, 6.20, 6.80, 6.90, 'USD', 'kg', 1, '["g","kg"]', NOW(), NOW(), NULL);

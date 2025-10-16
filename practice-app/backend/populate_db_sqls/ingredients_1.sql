@@ -36,7 +36,6 @@ INSERT IGNORE INTO ingredients_ingredient
 ('Rosemary', 'herbs_and_spices', '[]', '["vegan"]', 0.05, 0.05, 0.05, 0.06, 'USD', 'g', 5, '["g","kg"]', NOW(), NOW(), NULL),
 ('Salmon Fillet', 'proteins', '["fish"]', '["omega-3","keto-friendly"]', 1.50, 1.48, 1.45, 1.60, 'USD', 'g', 100, '["g","kg"]', NOW(), NOW(), NULL),
 ('Salt', 'herbs_and_spices', '[]', '["vegan","gluten-free"]', 0.05, 0.05, 0.05, 0.06, 'USD', 'g', 5, '["g","kg"]', NOW(), NOW(), NULL);
-('Soy Milk', 'dairy', '["soy"]', '["vegan","gluten-free"]', 2.30, 2.10, 2.30, 2.40, 'USD', 'ml', 1000, '["ml","l","cup","tbsp","tsp"]', NOW(), NOW(), NULL),
 ('Spinach', 'vegetables', '[]', '["vegan","gluten-free"]', 0.50, 0.48, 0.45, 0.55, 'USD', 'g', 50, '["g","kg"]', NOW(), NOW(), NULL),
 ('Strawberries', 'fruits', '[]', '["vegan","gluten-free"]', 1.50, 1.45, 1.40, 1.60, 'USD', 'g', 100, '["g","kg","cup"]', NOW(), NOW(), NULL),
 ('Sweet Potato', 'vegetables', '[]', '["gluten-free","vegan"]', 0.60, 0.58, 0.55, 0.65, 'USD', 'pcs', 1, '["pcs"]', NOW(), NOW(), NULL),
