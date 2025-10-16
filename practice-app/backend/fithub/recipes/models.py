@@ -82,18 +82,34 @@ class Recipe(TimestampedModel):
         self.deleted_on = timezone.now()
         self.save()
 
-    def calculate_total_cost(self, user, usd_to_try_rate=40.0):
-        totals = {m: Decimal("0.0") for m in ["A101", "SOK", "BIM", "MIGROS"]}
-        currency = getattr(user, "preferredCurrency", "USD")
+    def calculate_cost_per_serving(self):
+        """
+        Calculates the total cost per serving using the cheapest prices among all markets.
+        Assumes self.recipe_ingredients.all() exists and has quantity/unit info.
+        """
+        total_cost = Decimal("0.0")
 
         for ri in self.recipe_ingredients.all():
-            costs = ri.get_costs(user, usd_to_try_rate)
-            for market, val in costs.items():
-                if market != "currency" and val is not None:
-                    totals[market] += Decimal(str(val))
+            ingredient = ri.ingredient
+            quantity = Decimal(ri.quantity)
+            base_qty = Decimal(ingredient.base_quantity)
 
-        return {"currency": currency, **{k: round(v, 2) for k, v in totals.items()}}
+            # Cheapest price among markets
+            prices = [
+                Decimal(ingredient.price_A101),
+                Decimal(ingredient.price_SOK),
+                Decimal(ingredient.price_BIM),
+                Decimal(ingredient.price_MIGROS),
+            ]
+            
+            cheapest_price_per_base = min(prices)
 
+            # Scale by quantity relative to base
+            cost_for_ri = cheapest_price_per_base * (quantity / base_qty)
+            total_cost += cost_for_ri
+
+        return total_cost.quantize(Decimal("0.01"))  # round to 2 decimals
+        
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
         return list(set(
