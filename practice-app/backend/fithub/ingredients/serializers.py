@@ -15,22 +15,30 @@ class IngredientSerializer(serializers.ModelSerializer):
             "category",
             "allergens",
             "dietary_info",
+            "base_unit",
+            "base_quantity",
+            "allowed_units",
             "prices",
         ]
 
     def get_prices(self, obj: Ingredient):
-        """Return prices converted based on the user's preferred currency."""
+        """
+        Return prices converted based on the user's preferred currency.
+        Uses a quantity of 1 * base_quantity by default.
+        """
         request = self.context.get("request")
         user = getattr(request, "user", None)
 
-        # fallback for anonymous users (USD default)
         if not user or not user.is_authenticated:
             class DummyUser:
                 preferredCurrency = "USD"
             user = DummyUser()
 
-        return obj.get_prices_for_user(user)
-    
+        quantity = self.context.get("quantity", 1)
+        unit = self.context.get("unit", obj.base_unit)
+
+        return obj.get_price_for_user(user, quantity=quantity, unit=unit)
+
 # Needed for pagination
 class IngredientPagination(PageNumberPagination):
     page_size = 10  # Number of items per page
