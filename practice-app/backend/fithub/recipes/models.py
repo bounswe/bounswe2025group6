@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator
 from ingredients.models import Ingredient 
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
-
+from decimal import Decimal
 
 # Recipe model that will be used for the recipe
 class Recipe(TimestampedModel):
@@ -65,12 +65,34 @@ class Recipe(TimestampedModel):
     def total_ratings(self):
         return (self.difficulty_rating or 0) + (self.taste_rating or 0) + (self.health_rating or 0)
 
+    def clean(self):
+        """Custom clean method to validate ratings between 0 and 5."""
+        # Validate ratings if they are not None
+        for rating_field in ['difficulty_rating', 'taste_rating', 'health_rating']:
+            rating_value = getattr(self, rating_field)
+            if rating_value is not None:
+                if rating_value < 0 or rating_value > 5:
+                    raise ValidationError(f"{rating_field} must be between 0 and 5.")
+
+
     # Crutial for soft delete (also affects the recipeIngredient cascade delete)
     def delete(self, *args, **kwargs):
         if self.deleted_on: # Fixes the issue of deleting already deleted recipes
             return  # Already deleted
         self.deleted_on = timezone.now()
         self.save()
+
+    def calculate_total_cost(self, user, usd_to_try_rate=40.0):
+        totals = {m: Decimal("0.0") for m in ["A101", "SOK", "BIM", "MIGROS"]}
+        currency = getattr(user, "preferredCurrency", "USD")
+
+        for ri in self.recipe_ingredients.all():
+            costs = ri.get_costs(user, usd_to_try_rate)
+            for market, val in costs.items():
+                if market != "currency" and val is not None:
+                    totals[market] += Decimal(str(val))
+
+        return {"currency": currency, **{k: round(v, 2) for k, v in totals.items()}}
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
@@ -88,14 +110,6 @@ class Recipe(TimestampedModel):
             for info in ri.ingredient.dietary_info
         ))
 
-    def clean(self):
-        """Custom clean method to validate ratings between 0 and 5."""
-        # Validate ratings if they are not None
-        for rating_field in ['difficulty_rating', 'taste_rating', 'health_rating']:
-            rating_value = getattr(self, rating_field)
-            if rating_value is not None:
-                if rating_value < 0 or rating_value > 5:
-                    raise ValidationError(f"{rating_field} must be between 0 and 5.")
 
     #added to update relevant rating types after users provide ratings
     def update_ratings(self, rating_type, rating_value):
@@ -150,13 +164,26 @@ class Recipe(TimestampedModel):
 # Many-to-many relationship
 class RecipeIngredient(TimestampedModel):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, related_name="recipe_ingredients", on_delete=models.CASCADE)
-    quantity = models.FloatField(validators=[MinValueValidator(0.001)])  # Ensures value is > 0.001
+    recipe = models.ForeignKey("Recipe", related_name="recipe_ingredients", on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(Decimal("0.001"))])
     unit = models.CharField(max_length=20)
 
     def __str__(self):
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
 
+    def clean(self):
+        if self.unit not in (self.ingredient.allowed_units or []):
+            raise ValidationError(f"Invalid unit '{self.unit}' for ingredient '{self.ingredient.name}'")
+
+    def get_costs(self, user, usd_to_try_rate=40.0):
+        """Return cost dict (A101, SOK, BIM, MIGROS) for this ingredient usage."""
+        return self.ingredient.get_price_for_user(
+            user=user,
+            quantity=self.quantity,
+            unit=self.unit,
+            usd_to_try_rate=usd_to_try_rate,
+        )
+    
 # RecipeLike model that will be used for the recipe
 class RecipeLike(TimestampedModel):
     recipe = models.ForeignKey(Recipe, related_name="likes", on_delete=models.CASCADE)

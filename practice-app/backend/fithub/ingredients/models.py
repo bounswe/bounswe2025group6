@@ -1,15 +1,29 @@
 from django.db import models
 from core.models import TimestampedModel  # New import path
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 class Ingredient(TimestampedModel):
-    CATEGORY_CHOICES = [
-    ]
+    CATEGORY_CHOICES = []
 
-    CURRENCY_CHOICES = [
-        ("USD", "USD"),
-        ("TRY", "TRY"),
-    ]
+    CURRENCY_CHOICES = [("USD", "USD"), ("TRY", "TRY")]
+    
+    UNIT_CONVERSIONS = {
+        # Volume conversions
+        "l":    {"ml": 1000, "cup": 4, "tbsp": 40, "tsp": 200},
+        "ml":   {"l": 1/1000, "cup": 1/250, "tbsp": 1/25, "tsp": 1/5},
+        "cup":  {"ml": 250, "l": 0.250, "tbsp": 10, "tsp": 50},
+        "tbsp": {"ml": 25, "l": 0.025, "cup": 1/10, "tsp": 5},
+        "tsp":  {"ml": 5, "l": 0.005, "cup": 1/50, "tbsp": 1/5},
+
+        # Weight conversions
+        "kg":   {"g": 1000, "pcs": 10},       # 1 kg ≈ 10 pcs (example: 10 eggs ≈ 1 kg)
+        "g":    {"kg": 1/1000, "pcs": 1/100}, # 1 pcs ≈ 100 g
+        "pcs":  {"g": 100, "kg": 0.1},        # 1 pcs ≈ 100 g
+    }
+
+    POSSIBLE_UNITS =  [('pcs', 'pcs'), ('cup', 'cup'), ('tbsp', 'tbsp'), ('tsp', 'tsp'),
+                        ('g', 'g'), ('kg', 'kg'), ('ml', 'ml'), ('l', 'l')]
 
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default="other")
@@ -24,32 +38,70 @@ class Ingredient(TimestampedModel):
 
     base_currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default="USD")
 
+    base_unit = models.CharField(max_length=10, choices=POSSIBLE_UNITS, default="pcs")
+    base_quantity = models.DecimalField(max_digits=8, decimal_places=2, default=1.0, help_text="Quantity in base unit")
+
+    allowed_units = models.JSONField(default=list, blank=True, help_text="List of allowed units")
+
     def __str__(self):
         return self.name
 
-    def get_prices_for_user(self, user, usd_to_try_rate=40.0):
-        """
-        Return prices in user's preferred currency (USD or TRY).
-        Prices are stored in USD by default.
-        """
+    def clean(self):
+        if self.allowed_units:
+            invalid = [u for u in self.allowed_units if u not in dict(self.POSSIBLE_UNITS)]
+            if invalid:
+                raise ValidationError(f"Invalid units: {invalid}")
+            if self.base_unit not in self.allowed_units:
+                raise ValidationError("Base unit must be included in allowed_units.")
+
+    def convert_quantity_to_base(self, quantity, unit):
+        if unit == self.base_unit:
+            return Decimal(quantity)
+
+        # Direct conversion
+        if unit in self.UNIT_CONVERSIONS.get(self.base_unit, {}):
+            factor = self.UNIT_CONVERSIONS[self.base_unit][unit]
+            return Decimal(quantity) / Decimal(str(factor))
+
+        # Reverse lookup (e.g., ml → cup using cup → ml)
+        for u_from, mapping in self.UNIT_CONVERSIONS.items():
+            if self.base_unit in mapping and u_from == unit:
+                factor = mapping[self.base_unit]
+                return Decimal(quantity) * Decimal(str(factor))
+
+        raise ValidationError(f"Cannot convert from {unit} to {self.base_unit} for {self.name}")
+
+    # Get price per base quantity (e.g., per 100g)
+    def get_base_price(self, market):
+        return getattr(self, f"price_{market}", None)
+
+    # Compute cost in user’s currency for given quantity/unit
+    def get_price_for_user(self, user, quantity=1, unit=None, usd_to_try_rate=40.0):
         user_currency = getattr(user, "preferredCurrency", "USD")
         rate = Decimal("1.0")
+        usd_to_try_rate = Decimal(str(usd_to_try_rate))
 
         if self.base_currency == "USD" and user_currency == "TRY":
-            rate = Decimal(str(usd_to_try_rate))  # convert float to Decimal
+            rate = usd_to_try_rate
         elif self.base_currency == "TRY" and user_currency == "USD":
-            rate = Decimal("1.0") / Decimal(str(usd_to_try_rate))
+            rate = Decimal("1.0") / usd_to_try_rate
 
-        def convert_into_user_currency(value):
-            return round(value * rate, 2) if value is not None else None
+        base_qty = self.convert_quantity_to_base(quantity, unit or self.base_unit)
+
+        def calc(price):
+            if price is None:
+                return None
+            per_unit = Decimal(price) / Decimal(self.base_quantity)
+            return round(per_unit * base_qty * rate, 2)
 
         return {
             "currency": user_currency,
-            "A101": convert_into_user_currency(self.price_A101),
-            "SOK": convert_into_user_currency(self.price_SOK),
-            "BIM": convert_into_user_currency(self.price_BIM),
-            "MIGROS": convert_into_user_currency(self.price_MIGROS),
+            "A101": calc(self.price_A101),
+            "SOK": calc(self.price_SOK),
+            "BIM": calc(self.price_BIM),
+            "MIGROS": calc(self.price_MIGROS),
         }
+
 
 class WikidataInfo(models.Model):
     ingredient_id = models.IntegerField(unique=True)  # Store the ID of the linked Ingredient    
