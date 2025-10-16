@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import 'package:fithub/theme/app_theme.dart';
 import 'package:fithub/services/recipe_service.dart';
 import 'package:fithub/services/profile_service.dart';
@@ -27,6 +29,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   List<IngredientDetail> _allIngredients = [];
   bool _isLoadingIngredients = true;
   final RecipeService _recipeService = RecipeService();
+
+  // Image selection
+  File? _selectedImage;
+  String? _selectedImagePath;
 
   @override
   void initState() {
@@ -94,6 +100,36 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
     });
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _selectedImagePath = result.files.single.path;
+          _selectedImage = File(_selectedImagePath!);
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+      _selectedImagePath = null;
+    });
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -125,7 +161,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
       };
 
       try {
-        final success = await RecipeService().createRecipe(recipeData);
+        final success = await RecipeService().createRecipe(
+          recipeData,
+          imagePath: _selectedImagePath, // Pass the image path
+        );
         if (success) {
           try {
             final profileService = ProfileService();
@@ -196,6 +235,64 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+
+                // Image Picker Section
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Recipe Image (Optional)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (_selectedImage != null) ...[
+                          Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                ),
+                                onPressed: _removeImage,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.red.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          OutlinedButton.icon(
+                            onPressed: _pickImage,
+                            icon: const Icon(Icons.add_photo_alternate),
+                            label: const Text('Add Image'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 TextFormField(
                   controller: _prepTimeController,
                   decoration: const InputDecoration(
@@ -417,7 +514,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                   ),
                                   label: const Text(
                                     'Remove',
-                                    style: TextStyle(color: AppTheme.errorColor),
+                                    style: TextStyle(
+                                      color: AppTheme.errorColor,
+                                    ),
                                   ),
                                   onPressed:
                                       () => _removeIngredientField(index),

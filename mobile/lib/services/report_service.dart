@@ -50,7 +50,7 @@ class ReportService {
   }
 
   /// Create a new report for a post or recipe
-  /// 
+  ///
   /// Throws [ReportServiceException] if the request fails
   Future<Report> createReport(CreateReportRequest request) async {
     token = await StorageService.getJwtAccessToken();
@@ -101,7 +101,7 @@ class ReportService {
       } else if (response.statusCode == 400) {
         final error = jsonDecode(response.body);
         String errorMessage = 'Invalid request. Please check your input.';
-        
+
         // Parse specific error messages from the response
         if (error is Map) {
           List<String> errors = [];
@@ -116,7 +116,7 @@ class ReportService {
             errorMessage = errors.join('; ');
           }
         }
-        
+
         throw ReportServiceException(errorMessage, statusCode: 400);
       } else if (response.statusCode == 404) {
         throw ReportServiceException(
@@ -133,9 +133,7 @@ class ReportService {
       if (e is ReportServiceException) {
         rethrow;
       }
-      throw ReportServiceException(
-        'Network error: ${e.toString()}',
-      );
+      throw ReportServiceException('Network error: ${e.toString()}');
     }
   }
 
@@ -169,4 +167,3 @@ class ReportService {
     return createReport(request);
   }
 }
-
