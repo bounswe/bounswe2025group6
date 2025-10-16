@@ -55,7 +55,8 @@ class Report {
 /// Enum for content types that can be reported
 enum ReportContentType {
   post,
-  recipe;
+  recipe,
+  postcomment;
 
   String get value => name;
 }

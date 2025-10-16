@@ -168,5 +168,20 @@ class ReportService {
     );
     return createReport(request);
   }
+
+  /// Helper method to report a post comment
+  Future<Report> reportComment({
+    required int commentId,
+    required ReportType reportType,
+    String? description,
+  }) async {
+    final request = CreateReportRequest(
+      contentType: ReportContentType.postcomment,
+      objectId: commentId,
+      reportType: reportType,
+      description: description,
+    );
+    return createReport(request);
+  }
 }
 
