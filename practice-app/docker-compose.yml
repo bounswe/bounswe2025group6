@@ -9,7 +9,7 @@ services:
       MYSQL_DATABASE: fithub
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3307:3306"
     expose:
       - "3306"
     healthcheck:

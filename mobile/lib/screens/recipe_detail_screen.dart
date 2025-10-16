@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
-import '../services/report_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/report_button.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
@@ -18,6 +18,7 @@ class RecipeDetailScreen extends StatefulWidget {
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
   late Future<Recipe> _recipeFuture;
+  Recipe? _currentRecipe; // Store the loaded recipe for report button
 
   @override
   void initState() {
@@ -32,11 +33,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         title: const Text('Recipe Details'),
         backgroundColor: AppTheme.primaryGreen,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.flag_outlined),
-            tooltip: 'Report Recipe',
-            onPressed: () => _showReportDialog(context),
-          ),
+          if (_currentRecipe != null)
+            ReportButton(
+              contentType: ReportContentType.recipe,
+              objectId: widget.recipeId,
+              contentPreview: _currentRecipe!.name,
+            ),
         ],
       ),
       body: FutureBuilder<Recipe>(
@@ -48,6 +50,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final recipe = snapshot.data!;
+            // Store recipe for report button (only update if changed)
+            if (_currentRecipe == null || _currentRecipe!.id != recipe.id) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _currentRecipe = recipe;
+                  });
+                }
+              });
+            }
             return Container(
               color: AppTheme.backgroundGrey,
               child: SingleChildScrollView(
@@ -459,172 +471,4 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  // Show report dialog
-  void _showReportDialog(BuildContext context) {
-    ReportType? selectedReportType;
-    final descriptionController = TextEditingController();
-    bool isSubmitting = false;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Report Recipe'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Please select a reason for reporting this recipe:',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<ReportType>(
-                    value: selectedReportType,
-                    decoration: const InputDecoration(
-                      labelText: 'Report Type',
-                      border: OutlineInputBorder(),
-                    ),
-                    items:
-                        ReportType.values.map((type) {
-                          return DropdownMenuItem(
-                            value: type,
-                            child: Text(_getReportTypeLabel(type)),
-                          );
-                        }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedReportType = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Additional Details (Optional)',
-                      hintText: 'Provide more information...',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed:
-                      isSubmitting
-                          ? null
-                          : () {
-                            Navigator.of(dialogContext).pop();
-                          },
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed:
-                      isSubmitting
-                          ? null
-                          : () async {
-                            if (selectedReportType == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please select a report type'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-
-                            setState(() {
-                              isSubmitting = true;
-                            });
-
-                            try {
-                              await _submitReport(
-                                selectedReportType!,
-                                descriptionController.text.trim(),
-                              );
-
-                              if (dialogContext.mounted) {
-                                Navigator.of(dialogContext).pop();
-                              }
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Report submitted successfully',
-                                    ),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              setState(() {
-                                isSubmitting = false;
-                              });
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Failed to submit report: ${e.toString()}',
-                                    ),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                  ),
-                  child:
-                      isSubmitting
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                          : const Text('Submit Report'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Submit Report
-  Future<void> _submitReport(ReportType reportType, String description) async {
-    final reportService = ReportService();
-
-    await reportService.reportRecipe(
-      recipeId: widget.recipeId,
-      reportType: reportType,
-      description: description.isEmpty ? null : description,
-    );
-  }
-
-  // Helper to get report type label
-  String _getReportTypeLabel(ReportType type) {
-    switch (type) {
-      case ReportType.spam:
-        return 'Spam';
-      case ReportType.inappropriate:
-        return 'Inappropriate Content';
-      case ReportType.harassment:
-        return 'Harassment';
-      case ReportType.other:
-        return 'Other';
-    }
-  }
 }
