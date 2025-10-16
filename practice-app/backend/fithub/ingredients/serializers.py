@@ -34,7 +34,7 @@ class IngredientSerializer(serializers.ModelSerializer):
                 preferredCurrency = "USD"
             user = DummyUser()
 
-        quantity = self.context.get("quantity", 1)
+        quantity = self.context.get("quantity", obj.base_quantity)
         unit = self.context.get("unit", obj.base_unit)
 
         return obj.get_price_for_user(user, quantity=quantity, unit=unit)

@@ -102,7 +102,6 @@ class Ingredient(TimestampedModel):
             "MIGROS": calc(self.price_MIGROS),
         }
 
-
 class WikidataInfo(models.Model):
     ingredient_id = models.IntegerField(unique=True)  # Store the ID of the linked Ingredient    
     wikidata_id = models.CharField(max_length=255, null=True, blank=True)
