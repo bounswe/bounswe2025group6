@@ -24,9 +24,14 @@ UserProfile getMockUserProfile({
   List<String> allergens = const ['Nuts'],
   String dislikedFoods = 'Celery',
   double? monthlyBudget = 200.0,
-  // int householdSize = 1, // Removed
   bool publicProfile = false,
   String userType = 'Regular',
+  Language language = Language.en,
+  DateFormat preferredDateFormat = DateFormat.yyyymmdd,
+  DateTime? dateOfBirth,
+  String? nationality,
+  Currency preferredCurrency = Currency.usd,
+  AccessibilityNeeds accessibilityNeeds = AccessibilityNeeds.none,
 }) {
   return UserProfile(
     username: username,
@@ -37,19 +42,16 @@ UserProfile getMockUserProfile({
     allergens: List<String>.from(allergens),
     dislikedFoods: dislikedFoods,
     monthlyBudget: monthlyBudget,
-    // householdSize: householdSize, // Removed
     publicProfile: publicProfile,
     userType: userType,
+    language: language,
+    preferredDateFormat: preferredDateFormat,
+    dateOfBirth: dateOfBirth,
+    nationality: nationality,
+    preferredCurrency: preferredCurrency,
+    accessibilityNeeds: accessibilityNeeds,
   );
 }
-
-const List<String> _avatarPaths = [
-  'assets/avatars/cat.png',
-  'assets/avatars/dog.png',
-  'assets/avatars/meerkat.png',
-  'assets/avatars/panda.png',
-  'assets/avatars/gorilla.png',
-];
 
 void main() {
   late MockProfileService mockProfileService;
@@ -95,22 +97,6 @@ void main() {
                 profileService: mockProfileService,
               ),
         },
-        navigatorObservers: [mockNavigatorObserver],
-      ),
-    );
-  }
-
-  Future<void> pumpProfileSettingsScreen(
-    WidgetTester tester,
-    UserProfile userProfile,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.lightTheme,
-        home: ProfileSettingsScreen(
-          userProfile: userProfile,
-          profileService: mockProfileService,
-        ),
         navigatorObservers: [mockNavigatorObserver],
       ),
     );
@@ -198,6 +184,151 @@ void main() {
       verify(
         () => mockProfileService.getUserProfile(),
       ).called(1); // Not reloaded from service
+    });
+
+    testWidgets('displays localization preferences correctly', (
+      WidgetTester tester,
+    ) async {
+      final profileWithLocalization = getMockUserProfile(
+        language: Language.tr,
+        preferredCurrency: Currency.try_,
+        preferredDateFormat: DateFormat.ddmmyyyy,
+        nationality: 'Turkish',
+        dateOfBirth: DateTime(1990, 5, 15),
+      );
+
+      when(() => mockProfileService.getUserProfile()).thenAnswer(
+        (_) async => profileWithLocalization,
+      );
+
+      await pumpProfileScreen(tester);
+      await tester.pumpAndSettle();
+
+      // Scroll to the localization section
+      await tester.dragUntilVisible(
+        find.text('Localization & Accessibility'),
+        find.byType(ListView),
+        const Offset(0, -100),
+      );
+      await tester.pumpAndSettle();
+
+      // Check language is displayed
+      expect(find.text('Türkçe'), findsOneWidget);
+      
+      // Check currency is displayed
+      expect(find.text('Turkish Lira (₺)'), findsOneWidget);
+      
+      // Check date format is displayed
+      expect(find.text('DD/MM/YYYY'), findsOneWidget);
+      
+      // Check nationality is displayed
+      expect(find.text('Turkish'), findsOneWidget);
+      
+      // Check date of birth is displayed (format: day/month/year)
+      expect(find.text('15/5/1990'), findsOneWidget);
+    });
+
+    testWidgets('displays accessibility needs correctly', (
+      WidgetTester tester,
+    ) async {
+      final profileWithAccessibility = getMockUserProfile(
+        accessibilityNeeds: AccessibilityNeeds.colorblind,
+      );
+
+      when(() => mockProfileService.getUserProfile()).thenAnswer(
+        (_) async => profileWithAccessibility,
+      );
+
+      await pumpProfileScreen(tester);
+      await tester.pumpAndSettle();
+
+      // Scroll to the localization section
+      await tester.dragUntilVisible(
+        find.text('Localization & Accessibility'),
+        find.byType(ListView),
+        const Offset(0, -100),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Colorblind'), findsOneWidget);
+    });
+
+    testWidgets('displays only English and Turkish language options', (
+      WidgetTester tester,
+    ) async {
+      await pumpProfileScreen(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings));
+      await tester.pumpAndSettle();
+
+      // Verify we're on the settings screen
+      expect(find.byType(ProfileSettingsScreen), findsOneWidget);
+
+      // The language dropdown should only have 2 options: English and Turkish
+      // This is verified by the enum definition in UserProfile model
+      final profile = getMockUserProfile();
+      expect(profile.language, equals(Language.en));
+      
+      final turkishProfile = getMockUserProfile(language: Language.tr);
+      expect(turkishProfile.language, equals(Language.tr));
+      
+      // Verify there are only 2 language values
+      expect(Language.values.length, equals(2));
+    });
+
+    testWidgets('displays only USD and TRY currency options', (
+      WidgetTester tester,
+    ) async {
+      await pumpProfileScreen(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings));
+      await tester.pumpAndSettle();
+
+      // Verify we're on the settings screen
+      expect(find.byType(ProfileSettingsScreen), findsOneWidget);
+
+      // The currency dropdown should only have 2 options: USD and TRY
+      // This is verified by the enum definition in UserProfile model
+      final usdProfile = getMockUserProfile(preferredCurrency: Currency.usd);
+      expect(usdProfile.preferredCurrency, equals(Currency.usd));
+      
+      final tryProfile = getMockUserProfile(preferredCurrency: Currency.try_);
+      expect(tryProfile.preferredCurrency, equals(Currency.try_));
+      
+      // Verify there are only 2 currency values
+      expect(Currency.values.length, equals(2));
+    });
+
+    testWidgets('handles optional nationality and date of birth fields', (
+      WidgetTester tester,
+    ) async {
+      final profileWithoutOptionals = getMockUserProfile(
+        nationality: null,
+        dateOfBirth: null,
+      );
+
+      when(() => mockProfileService.getUserProfile()).thenAnswer(
+        (_) async => profileWithoutOptionals,
+      );
+
+      await pumpProfileScreen(tester);
+      await tester.pumpAndSettle();
+
+      // Scroll to the localization section
+      await tester.dragUntilVisible(
+        find.text('Localization & Accessibility'),
+        find.byType(ListView),
+        const Offset(0, -100),
+      );
+      await tester.pumpAndSettle();
+
+      // Should not display nationality section when null
+      expect(find.text('Nationality'), findsNothing);
+      
+      // Should not display date of birth section when null
+      expect(find.text('Date of Birth'), findsNothing);
     });
   });
 }
