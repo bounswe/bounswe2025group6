@@ -54,14 +54,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // const Text(
-              //   'Verify Reset Code',
-              //   style: TextStyle(
-              //     fontSize: 32,
-              //     fontWeight: FontWeight.bold,
-              //     color: AppTheme.primaryGreen,
-              //   ),
-              // ),
               Text(
                 AppLocalizations.of(context)!.verifyResetCodeHeading,
                 style: const TextStyle(
@@ -71,13 +63,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Text(
-              //   'Enter the 6-digit code sent to ${widget.email}',
-              //   style: const TextStyle(
-              //     fontSize: 16,
-              //     color: AppTheme.textSecondary,
-              //   ),
-              // ),
               Text(
                 AppLocalizations.of(context)!.enter6DigitCodeSentTo(widget.email),
                 style: const TextStyle(
@@ -91,17 +76,14 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 decoration: InputDecoration(
-                  // labelText: 'Reset Code',
                   labelText: AppLocalizations.of(context)!.resetCodeLabel,
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    // return 'Please enter the reset code';
                     return AppLocalizations.of(context)!.pleaseEnterResetCode;
                   }
                   if (value.length != 6) {
-                    // return 'Reset code must be 6 digits';
                     return AppLocalizations.of(context)!.resetCode6Digits;
                   }
                   return null;
@@ -124,7 +106,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                           ),
                         ),
                         child: Text(
-                          // 'Verify Code',
                           AppLocalizations.of(context)!.verifyCodeButton,
                           style: const TextStyle(
                             fontSize: 16,
@@ -156,7 +137,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              // content: Text('Code verified successfully'),
               content: Text(AppLocalizations.of(context)!.codeVerifiedSuccessfully),
               backgroundColor: AppTheme.primaryGreen,
             ),

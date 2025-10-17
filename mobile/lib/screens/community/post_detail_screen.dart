@@ -130,7 +130,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 onPressed: () => Navigator.of(context).pop(true),
                 child: Text(
                   AppLocalizations.of(context)!.delete,
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: Colors.red),
                 ),
               ),
             ],
@@ -243,7 +243,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            // Previously: 'Failed to add comment: ${e.toString()}'
             content: Text(AppLocalizations.of(context)!.failedToAddComment(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -274,7 +273,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 onPressed: () => Navigator.of(context).pop(true),
                 child: Text(
                   AppLocalizations.of(context)!.deleteCommentDelete,
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: Colors.red),
                 ),
               ),
             ],
@@ -293,7 +292,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            // Previously: 'Failed to delete comment: ${e.toString()}'
             content: Text(AppLocalizations.of(context)!.failedToDeleteComment(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -319,7 +317,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(AppLocalizations.of(context)!.voteRemoved),
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -404,7 +402,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(AppLocalizations.of(context)!.postNotFound, style: const TextStyle(fontSize: 18)),
+              Text(AppLocalizations.of(context)!.postNotFound, style: TextStyle(fontSize: 18)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -521,7 +519,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 const Divider(height: 32),
                 Text(
                   AppLocalizations.of(context)!.commentsTitle,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 const SizedBox(height: 8),
                 _buildCommentsSection(), // Call method to build comments UI
@@ -538,7 +536,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       controller: _commentController,
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(context)!.addCommentHint,
-                        border: const OutlineInputBorder(),
+                        border: OutlineInputBorder(),
                       ),
                     ),
                   ),

@@ -108,7 +108,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
               controller: _titleController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.titleLabel,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty)
@@ -125,21 +125,19 @@ class _EditPostScreenState extends State<EditPostScreen> {
               controller: _contentController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.contentLabel,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
               maxLines: 5,
               validator: (value) {
                 if (value == null || value.isEmpty)
-                  // 'Content is required'
                   return AppLocalizations.of(context)!.contentRequired;
                 if (value.length > 1000)
-                  // 'Content too long'
                   return AppLocalizations.of(context)!.contentTooLong;
                 return null;
               },
             ),
             const SizedBox(height: 16),
-            Text(AppLocalizations.of(context)!.tagsLabel, style: const TextStyle(fontSize: 16)),
+            Text(AppLocalizations.of(context)!.tagsLabel, style: TextStyle(fontSize: 16)),
             Wrap(
               spacing: 8,
               children: _validTags.map((tag) => FilterChip(

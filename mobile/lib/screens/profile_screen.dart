@@ -156,8 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppTheme.backgroundGrey,
       appBar: AppBar(
         title: Text(
-          // _userProfile == null && !_isLoading ? 'Profile' : 'My Profile',
-          // Localized version:
           _userProfile == null && !_isLoading
               ? AppLocalizations.of(context)!.profileTitle
               : AppLocalizations.of(context)!.myProfileTitle,
@@ -205,7 +203,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadUserProfile,
-                // child: Text('Retry'),
                 child: Text(AppLocalizations.of(context)!.retry),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryGreen,
@@ -219,7 +216,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (_userProfile == null) {
-      // return Center(child: Text('Profile data is not available.'));
       return Center(child: Text(AppLocalizations.of(context)!.profileDataNotAvailable));
     }
     return _buildProfileDisplay();
@@ -263,8 +259,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(height: 10),
         Center(
           child: Text(
-            // 'Joined: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
-            // localized prefix with date kept in the original format
             '${AppLocalizations.of(context)!.joinedLabel}: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
             style: Theme.of(
               context,
@@ -423,7 +417,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadAndFilterUserRecipes,
-                // child: Text('Retry'),
                 child: Text(AppLocalizations.of(context)!.retry),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryGreen,
@@ -441,7 +434,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0),
           child: Text(
-            // 'You haven\'t created any recipes yet.',
             AppLocalizations.of(context)!.noUserRecipesYet,
             style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
           ),

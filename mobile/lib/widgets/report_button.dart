@@ -50,7 +50,6 @@ class ReportButton extends StatelessWidget {
           color: AppTheme.errorColor,
         ),
         label: Text(
-          // label ?? 'Report'
           label ?? AppLocalizations.of(context)!.reportLabel,
           style: const TextStyle(
             color: AppTheme.errorColor,

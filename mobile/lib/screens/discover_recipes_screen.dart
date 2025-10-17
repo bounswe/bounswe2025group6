@@ -148,7 +148,6 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
               children: [
                 TextField(
                   decoration: InputDecoration(
-                    // labelText: 'Search Recipes',
                     labelText: AppLocalizations.of(context)!.searchRecipes,
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.search),
@@ -165,7 +164,6 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                 const SizedBox(height: 8), // Spacing
                 TextField(
                   decoration: InputDecoration(
-                    // labelText: 'Max Cost (e.g., 50.0)',
                     labelText: AppLocalizations.of(context)!.maxCost,
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.attach_money),
@@ -184,52 +182,12 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  // 'Dietary Options:',
                   AppLocalizations.of(context)!.dietaryOptions,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 Wrap(
                   spacing: 8.0,
-                  // Previous implementation (commented out) used hardcoded display
-                  // strings directly from the `_dietaryOptions` list. Kept here for
-                  // reference per localization audit instructions.
-                  /*
-                  children:
-                      _dietaryOptions.map((option) {
-                        final bool isSelected = _selectedDietaryFilters
-                            .contains(option);
-                        return ChoiceChip(
-                          label: Text(
-                            option,
-                            style: TextStyle(
-                              color:
-                                  isSelected
-                                      ? Colors.white
-                                      : Colors.black, // Text color
-                            ),
-                          ),
-                          selected: isSelected,
-                          selectedColor:
-                              AppTheme
-                                  .primaryGreen, // Selected background color
-                          backgroundColor:
-                              AppTheme
-                                  .backgroundGrey, // Unselected background color
-                          onSelected: (selected) {
-                            if (mounted) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedDietaryFilters.add(option);
-                                } else {
-                                  _selectedDietaryFilters.remove(option);
-                                }
-                                _applyFiltersAndSort();
-                              });
-                            }
-                          },
-                        );
-                      }).toList(),
-                  */
+                
                   children: _dietaryOptions.map((optionValue) {
                     // optionValue is the internal tag (e.g. 'High-Protein').
                     // We map it to a localized display label when rendering.
@@ -284,45 +242,12 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      // 'Sort By:',
                       AppLocalizations.of(context)!.sortBy,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: AppTheme.primaryGreen,
                       ),
                     ),
-                    // Old Dropdown implementation with hardcoded capitalized
-                    // values is preserved below (commented) for auditing.
-                    /*
-                    DropdownButton<String>(
-                      value: _sortBy,
-                      style: TextStyle(color: AppTheme.primaryGreen),
-                      dropdownColor: AppTheme.backgroundGrey,
-                      items:
-                          <String>[
-                            'name',
-                            'cost',
-                            'time',
-                          ].map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(
-                                value[0].toUpperCase() + value.substring(1),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                ), // Ensure dropdown text is readable
-                              ), // Capitalize
-                            );
-                          }).toList(),
-                      onChanged: (String? newValue) {
-                        if (mounted && newValue != null) {
-                          setState(() {
-                            _sortBy = newValue;
-                            _applyFiltersAndSort();
-                          });
-                        }
-                      },
-                    ),
-                    */
+                    
                     DropdownButton<String>(
                       value: _sortBy,
                       style: TextStyle(color: AppTheme.primaryGreen),

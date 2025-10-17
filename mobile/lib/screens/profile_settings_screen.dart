@@ -164,7 +164,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          // 'Profile Settings'
           AppLocalizations.of(context)!.profileSettingsTitle,
           style: TextStyle(
             color: AppTheme.primaryGreen,
@@ -187,7 +186,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
             Text(
-              // 'Choose Your Avatar:'
               AppLocalizations.of(context)!.chooseAvatar,
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -231,7 +229,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
-                // 'Username'
                 labelText: AppLocalizations.of(context)!.usernameLabel,
                 border: OutlineInputBorder(),
               ),
@@ -244,7 +241,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _emailController,
               decoration: InputDecoration(
-                // 'Email'
                 labelText: AppLocalizations.of(context)!.emailLabel,
                 border: OutlineInputBorder(),
               ),
@@ -253,7 +249,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ),
             SizedBox(height: 20),
             Text(
-              // 'Preferences'
               AppLocalizations.of(context)!.preferences,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
@@ -261,7 +256,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _dislikedFoodsController,
               decoration: InputDecoration(
-                // 'Disliked Foods (comma separated)'
                 labelText: AppLocalizations.of(context)!.dislikedFoodsHint,
                 border: OutlineInputBorder(),
               ),
@@ -270,7 +264,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _monthlyBudgetController,
               decoration: InputDecoration(
-                // 'Monthly Budget ($) (Optional)'
                 labelText: AppLocalizations.of(context)!.monthlyBudgetHint,
                 border: OutlineInputBorder(),
               ),
@@ -279,7 +272,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
             SizedBox(height: 12),
             SwitchListTile(
-              // 'Public Profile'
               title: Text(AppLocalizations.of(context)!.publicProfileLabel),
               value: _editableProfile.publicProfile,
               activeColor: AppTheme.primaryGreen,
@@ -293,21 +285,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ),
             SizedBox(height: 12),
             _buildChipSelection(
-              // 'Dietary Preferences'
               AppLocalizations.of(context)!.dietaryPreferencesLabel,
               _availableDietaryPreferences,
               _editableProfile.dietaryPreferences,
             ),
             SizedBox(height: 12),
             _buildChipSelection(
-              // 'Allergens'
               AppLocalizations.of(context)!.allergensLabel,
               _availableAllergens,
               _editableProfile.allergens,
             ),
             SizedBox(height: 30),
             Text(
-              // 'Localization & Accessibility'
               AppLocalizations.of(context)!.localizationAccessibility,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
@@ -317,7 +306,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             DropdownButtonFormField<Language>(
               value: _tempSelectedLanguage,
               decoration: InputDecoration(
-                // 'Language'
                 labelText: AppLocalizations.of(context)!.languageLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.language),
@@ -344,7 +332,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             DropdownButtonFormField<DateFormat>(
               value: _editableProfile.preferredDateFormat,
               decoration: InputDecoration(
-                // 'Date Format'
                 labelText: AppLocalizations.of(context)!.dateFormatLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.calendar_today),
@@ -394,7 +381,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             DropdownButtonFormField<AccessibilityNeeds>(
               value: _editableProfile.accessibilityNeeds,
               decoration: InputDecoration(
-                // 'Accessibility' (use existing key)
                 labelText: AppLocalizations.of(context)!.accessibilityLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.accessibility_new),
@@ -419,7 +405,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _nationalityController,
               decoration: InputDecoration(
-                // 'Nationality (Optional)'
                 labelText: AppLocalizations.of(context)!.nationalityLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.flag),
@@ -433,7 +418,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.cake, color: AppTheme.primaryGreen),
               title: Text(
-                // 'Date of Birth (Optional)'
                 AppLocalizations.of(context)!.dateOfBirthLabel,
               ),
               subtitle: Text(

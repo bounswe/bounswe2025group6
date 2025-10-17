@@ -197,13 +197,6 @@ class _RegisterPageState extends State<RegisterPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // const Text(
-                    //   'Create Account',
-                    //   style: TextStyle(
-                    //     fontSize: 22,
-                    //     fontWeight: FontWeight.bold,
-                    //   ),
-                    // ),
                     Text(
                       AppLocalizations.of(context)!.createAccountHeading,
                       style: const TextStyle(
@@ -226,7 +219,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       decoration: InputDecoration(
-                        // labelText: 'Email',
                         labelText: AppLocalizations.of(context)!.emailLabel,
                         border: const OutlineInputBorder(),
                       ),
@@ -238,7 +230,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       decoration: InputDecoration(
-                        // labelText: 'Password',
                         labelText: AppLocalizations.of(context)!.passwordLabel,
                         border: const OutlineInputBorder(),
                         helperText: AppLocalizations.of(context)!.passwordHelper,
@@ -270,7 +261,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
-                        // labelText: 'User Type',
                         labelText: AppLocalizations.of(context)!.userTypeLabel,
                         border: const OutlineInputBorder(),
                       ),
@@ -302,14 +292,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         onPressed: _pickPdfFile,
                         icon: const Icon(Icons.upload_file),
-                        // label: const Text('Upload PDF (Certificate)'),
                         label: Text(AppLocalizations.of(context)!.uploadPdfButton),
                       ),
                       if (_pdfFile != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                // 'Uploaded: ${_pdfFile!.name}',
                                 '${AppLocalizations.of(context)!.uploadedLabel}: ${_pdfFile!.name}',
                                 style: const TextStyle(
                                   color: AppTheme.primaryGreen,
@@ -333,7 +321,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         Expanded(
                           child: Row(
                             children: [
-                              // const Text('I accept the '),
                               Text(AppLocalizations.of(context)!.iAcceptThe),
                               GestureDetector(
                                 onTap: _showTermsDialog,

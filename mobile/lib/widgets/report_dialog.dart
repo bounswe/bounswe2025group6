@@ -72,13 +72,12 @@ class _ReportDialogState extends State<ReportDialog> {
 
       if (!mounted) return;
 
-      // Show success message (localized)
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          // Previously: 'Report submitted successfully. Thank you for your feedback.'
           content: Text(AppLocalizations.of(context)!.reportSubmittedSuccess),
           backgroundColor: AppTheme.successColor,
-          duration: const Duration(seconds: 3),
+          duration: Duration(seconds: 3),
         ),
       );
 
@@ -91,7 +90,7 @@ class _ReportDialogState extends State<ReportDialog> {
         _isSubmitting = false;
       });
 
-      // Show error message (localized)
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.reportSubmitFailed(e.toString())),
@@ -106,14 +105,12 @@ class _ReportDialogState extends State<ReportDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        // Previous hard-coded title: 'Report ${widget.contentType.value.toUpperCase()}'
         // Use localized label for content type (post/recipe) instead of raw enum value
         () {
           final loc = AppLocalizations.of(context)!;
       final typeLabel = widget.contentType == ReportContentType.post
         ? loc.postFallback
         : loc.recipeFallback;
-      // Avoid forcing upper-case on localized text (locale-specific rules may vary)
       return '${loc.reportLabel} $typeLabel';
         }(),
         style: const TextStyle(
@@ -149,9 +146,8 @@ class _ReportDialogState extends State<ReportDialog> {
 
               // Report type label
               Text(
-                // Previous hard-coded: 'Why are you reporting this?'
                 AppLocalizations.of(context)!.reportWhy,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.textOnLight,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -218,8 +214,6 @@ class _ReportDialogState extends State<ReportDialog> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                  // labelText: 'Additional details (optional)'
-                  // hintText: 'Provide more information about this report...'
                   labelText: AppLocalizations.of(context)!.reportAdditionalDetails,
                   hintText: AppLocalizations.of(context)!.reportAdditionalDetailsHint,
                   border: OutlineInputBorder(),
@@ -239,9 +233,8 @@ class _ReportDialogState extends State<ReportDialog> {
               ? null
               : () => Navigator.of(context).pop(false),
           child: Text(
-              // 'Cancel'
               AppLocalizations.of(context)!.cancel,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondary),
             ),
         ),
           ElevatedButton(

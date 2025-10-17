@@ -52,7 +52,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // title: const Text('Community'),
         title: Text(AppLocalizations.of(context)!.community),
         actions: [
           IconButton(
@@ -172,11 +171,9 @@ class _PostCardState extends State<PostCard> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            // const SnackBar(
             SnackBar(
-              // content: Text('Vote removed successfully'),
               content: Text(AppLocalizations.of(context)!.voteRemoved),
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }

@@ -81,8 +81,6 @@ class DashboardScreen extends StatelessWidget {
                   // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      // Previously hardcoded message (kept as comment for reference):
-                      // Text('Logout failed: ${e.toString()}'),
                       content: Text(AppLocalizations.of(context)!.logoutFailed(e.toString())),
                       backgroundColor: AppTheme.errorColor,
                     ),

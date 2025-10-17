@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fithub/theme/app_theme.dart';
 import 'package:fithub/services/auth_service.dart';
-import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../l10n/app_localizations.dart';
 import '../widgets/language_toggle.dart';
 
 
@@ -59,8 +59,6 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              // Previously: content: Text(e.toString()),
-              // Use localized generic error message with placeholder
               content: Text(AppLocalizations.of(context)!.genericError(e.toString())),
               backgroundColor: AppTheme.errorColor,
             ),
@@ -120,7 +118,7 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.newPasswordLabel,
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(),
                 ),
                 validator: _validatePassword,
               ),
@@ -130,7 +128,7 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.confirmPasswordLabel,
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value != _newPasswordController.text) {
@@ -157,7 +155,7 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
                       )
                     : Text(
                         AppLocalizations.of(context)!.savePassword,
-                        style: const TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
               ),
             ],

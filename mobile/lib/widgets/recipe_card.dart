@@ -14,8 +14,6 @@ class RecipeCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         title: Text(recipe.name),
-        // Previous hard-coded subtitle:
-        // 'Meal Type: ${recipe.mealType} | Total Time: ${recipe.totalTime} mins'
         subtitle: Text(
           '${AppLocalizations.of(context)!.mealTypeLabel}: ${recipe.mealType} | ${AppLocalizations.of(context)!.totalTimeLabel}: ${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
         ),

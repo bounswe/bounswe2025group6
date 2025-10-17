@@ -50,7 +50,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                // 'Reset Password',
                 AppLocalizations.of(context)!.resetPasswordHeading,
                 style: TextStyle(
                   fontSize: 32,
@@ -60,7 +59,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                // 'Enter your email address and we will send you instructions to reset your password.',
                 AppLocalizations.of(context)!.resetPasswordDescription,
                 style: TextStyle(
                   fontSize: 16,
@@ -101,7 +99,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                       ),
                       child: Text(
-                        // 'Send Reset Link',
                         AppLocalizations.of(context)!.sendResetLink,
                         style: TextStyle(
                           fontSize: 16,
@@ -148,8 +145,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              // Previously: content: Text(e.toString()),
-              // Use localized generic error message with placeholder
               content: Text(AppLocalizations.of(context)!.genericError(e.toString())),
               backgroundColor: AppTheme.errorColor,
             ),

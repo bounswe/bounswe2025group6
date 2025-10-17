@@ -78,7 +78,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       children: [
         Text(
           AppLocalizations.of(context)!.tagsLabel,
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -100,7 +100,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ),
         if (_tags.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text(AppLocalizations.of(context)!.selectedTagsLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(AppLocalizations.of(context)!.selectedTagsLabel, style: TextStyle(fontWeight: FontWeight.bold)),
           Wrap(
             spacing: 8,
             children: _tags.map(_buildTagChip).toList(),
@@ -114,7 +114,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: Text(AppLocalizations.of(context)!.createPostTitle), // 'Create Post'
+        title: Text(AppLocalizations.of(context)!.createPostTitle), // 'Create Post'
         actions: [
           _isLoading
               ? const Center(
@@ -127,7 +127,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   onPressed: _submitPost,
                   child: Text(
                     AppLocalizations.of(context)!.postButton, // 'Post'
-                    style: const TextStyle(color: Colors.black),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
         ],
@@ -141,20 +141,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               controller: _titleController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.titleLabel,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
                 helperText: AppLocalizations.of(context)!.titleHelper,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  // 'Title is required'
                   return AppLocalizations.of(context)!.titleRequired;
                 }
                 if (value.length > 255) {
-                  // 'Title must be less than 255 characters'
                   return AppLocalizations.of(context)!.titleTooLong;
                 }
                 if (value.length < 1) {
-                  // 'Title must be at least 1 character'
                   return AppLocalizations.of(context)!.titleTooShort;
                 }
                 return null;
@@ -165,21 +162,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               controller: _contentController,
                 decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.contentLabel,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
                 helperText: AppLocalizations.of(context)!.contentHelper,
               ),
               maxLines: 5,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  // 'Content is required'
                   return AppLocalizations.of(context)!.contentRequired;
                 }
                 if (value.length > 1000) {
-                  // 'Content must be less than 1000 characters'
                   return AppLocalizations.of(context)!.contentTooLong;
                 }
                 if (value.length < 1) {
-                  // 'Content must be at least 1 character'
                   return AppLocalizations.of(context)!.contentTooShort;
                 }
                 return null;

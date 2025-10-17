@@ -91,7 +91,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Title
                 Text(
-                  // 'Login',
                   AppLocalizations.of(context)!.loginTitle,
                   style: TextStyle(
                     fontSize: 32,
@@ -102,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Subtitle
                 Text(
-                  // 'Sign in to continue',
                   AppLocalizations.of(context)!.signInToContinue,
                   style: TextStyle(fontSize: 16, color: AppTheme.primaryGreen),
                 ),
@@ -136,7 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
                   decoration: InputDecoration(
-                    // labelText: 'PASSWORD',
                     labelText: AppLocalizations.of(context)!.passwordLabel,
                     border: OutlineInputBorder(),
                   ),
@@ -164,7 +161,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 4),
                     ),
                     child: Text(
-                      // 'Forgot Password?',
                       AppLocalizations.of(context)!.forgotPasswordQuestion,
                       style: TextStyle(
                         color: AppTheme.primaryGreen,
@@ -193,7 +189,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             child: Text(
-                            // 'Log In',
                             AppLocalizations.of(context)!.logInButton,
                             style: TextStyle(
                               fontSize: 16,
@@ -211,7 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      // "Don't have an account? ",
                       AppLocalizations.of(context)!.dontHaveAccount,
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                     ),
@@ -225,7 +219,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       child: Text(
-                        // 'Create Account',
                         AppLocalizations.of(context)!.createAccount,
                         style: TextStyle(
                           color: Color(0xFF006837),
@@ -286,8 +279,6 @@ class _LoginScreenState extends State<LoginScreen> {
         await StorageService.saveRefreshToken(jwtTokens['refresh']!);
       } catch (e) {
         if (!mounted) return;
-        // Old hardcoded message preserved for reference:
-        // _showErrorMessage(context, 'Failed to obtain JWT tokens: ${e.toString()}');
         // Show a specific localized error message about failing to obtain JWT tokens
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

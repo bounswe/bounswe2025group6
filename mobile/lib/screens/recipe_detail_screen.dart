@@ -28,7 +28,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-            // title: const Text('Recipe Details'),
             title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
       ),
@@ -119,7 +118,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         child:
                             recipe.ingredients.isEmpty
                                 ? Text(
-                                  // 'No ingredients listed.'
                                   AppLocalizations.of(context)!.noIngredients,
                                   style: TextStyle(fontStyle: FontStyle.italic),
                                 )
@@ -173,7 +171,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         child:
                             recipe.steps.isEmpty
                                 ? Text(
-                                  // 'No steps provided.'
                                   AppLocalizations.of(context)!.noStepsProvided,
                                   style: TextStyle(fontStyle: FontStyle.italic),
                                 )
