@@ -7,6 +7,7 @@ import RatingStars from '../../components/recipe/RatingStars';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
 import { getCurrentUser } from '../../services/authService';
+import ReportButton from '../../components/report/ReportButton';
 
 const RecipeDetailPage = () => {
   const { id } = useParams();  const [recipe, setRecipe] = useState(null);
@@ -110,7 +111,7 @@ const RecipeDetailPage = () => {
               <span className='recipe-detail-page-header-box-dietary'>None</span>
             )}
           </div>
-          <div className='recipe-detail-page-header-box'>
+          <div className='recipe-detail-page-header-box' style={{ position: 'relative' }}>
             <span className='recipe-detail-page-header-box-info'>Allergens: </span>
             {recipe.alergens && recipe.alergens.length > 0 ? (
             recipe.alergens.map((allergen, index) => (
@@ -122,6 +123,17 @@ const RecipeDetailPage = () => {
           ) : (
             <span className='recipe-detail-page-header-box-allergen'>None</span>
           )}
+            {/* Report button positioned at top right of allergens section */}
+            {currentUser && currentUser.id !== recipe.creator_id && (
+              <div style={{ 
+                position: 'absolute', 
+                top: '0', 
+                right: '0',
+                zIndex: 10
+              }}>
+                <ReportButton targetType="recipe" targetId={id} />
+              </div>
+            )}
           </div>
         </div>
 

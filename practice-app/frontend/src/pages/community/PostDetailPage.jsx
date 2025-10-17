@@ -8,6 +8,7 @@ import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js'; // Import userService
 import '../../styles/PostDetailPage.css';
+import ReportButton from '../../components/report/ReportButton';
 
 const PostDetailPage = () => {
   const { id } = useParams();
@@ -718,8 +719,14 @@ const PostDetailPage = () => {
                 You voted {userVote.voteType}
               </div>
             )}
-            <div className="post-stats">
+            <div className="post-stats" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>👁️ {post.view_count} views</span>
+              {/* Report button positioned at right of views */}
+              {currentUser && post.author !== currentUser.id && (
+                <div style={{ marginLeft: '16px' }}>
+                  <ReportButton targetType="post" targetId={id} />
+                </div>
+              )}
             </div>
           </div>
         </Card.Body>
@@ -794,6 +801,12 @@ const PostDetailPage = () => {
                           >
                             Delete
                           </Button>
+                        )}
+                        {/* Report button for comments - only if not owner */}
+                        {currentUser && comment.author !== currentUser.id && (
+                          <div style={{ marginLeft: '8px' }} onClick={(e) => e.stopPropagation()}>
+                            <ReportButton targetType="comment" targetId={comment.id} />
+                          </div>
                         )}
                       </div>
                       <p className="comment-text">{formatContent(comment.content)}</p>
