@@ -1,23 +1,25 @@
 // src/pages/DashboardPage.jsx
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import '../styles/DashboardPage.css';
-import { getCurrentUser } from '../services/authService';
-import userService from '../services/userService';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import "../styles/DashboardPage.css";
+import { getCurrentUser } from "../services/authService";
+import userService from "../services/userService";
+import { useTranslation } from "react-i18next";
 
 const DashboardPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [username, setUsername] = useState('User');
+  const [username, setUsername] = useState("User");
+  const { t } = useTranslation();
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t("goodMorning");
+    if (hour < 18) return t("goodAfternoon");
+    return t("goodEvening");
   };
 
   useEffect(() => {
@@ -25,13 +27,13 @@ const DashboardPage = () => {
       try {
         const user = await getCurrentUser();
         setCurrentUser(user);
-        
+
         if (user && user.id) {
           const fetchedUsername = await userService.getUsername(user.id);
           setUsername(fetchedUsername);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -40,7 +42,7 @@ const DashboardPage = () => {
   }, []);
 
   if (!currentUser) {
-    return <div>Loading...</div>;
+    return <div>{t("loading")}</div>;
   }
 
   return (
@@ -51,7 +53,8 @@ const DashboardPage = () => {
             {getWelcomeMessage()}, {username}!
           </h1>
           <p className="dashboard-subtitle">
-            Welcome to your meal planning dashboard. What would you like to do today?
+            Welcome to your meal planning dashboard. What would you like to do
+            today?
           </p>
         </div>
       </div>
@@ -62,7 +65,8 @@ const DashboardPage = () => {
             <div className="dashboard-card-icon">🍽️</div>
             <h2 className="dashboard-card-title">Plan Your Meals</h2>
             <p className="dashboard-card-content">
-              Create personalized meal plans based on your preferences and dietary needs.
+              Create personalized meal plans based on your preferences and
+              dietary needs.
             </p>
             <Link to="/meal-planner" className="mt-auto">
               <Button className="green-button">Plan Meals</Button>

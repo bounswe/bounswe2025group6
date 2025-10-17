@@ -1,9 +1,15 @@
 /* src/styles/HomePage.css */
 
 .homepage {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: #2d3748;
   background-color: #f7fafc;
+}
+
+.lang-dropdown {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 }
 
 /* Hero Section */
@@ -91,7 +97,7 @@
   background-color: #f9fafb;
   border-radius: 1rem;
   padding: 2rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
 }
 
@@ -125,7 +131,7 @@
   padding: 2rem;
   max-width: 280px;
   text-align: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .step-number {
