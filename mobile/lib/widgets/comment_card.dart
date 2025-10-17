@@ -3,6 +3,7 @@ import '../models/forum_comment.dart';
 import '../models/user_profile.dart';
 import '../services/community_service.dart';
 import '../utils/date_formatter.dart';
+import '../l10n/app_localizations.dart';
 
 class CommentCard extends StatefulWidget {
   final ForumComment comment;
@@ -73,9 +74,10 @@ class _CommentCardState extends State<CommentCard> {
   Future<void> _handleVote(String voteType) async {
     if (isVoteLoading) return;
     if (widget.currentUserId == null) {
+      // Previously: 'Please log in to vote.'
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please log in to vote.')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.pleaseLogInToVote)));
       return;
     }
 
@@ -102,9 +104,10 @@ class _CommentCardState extends State<CommentCard> {
               downvoteCount--;
             }
           });
+          // Previously: 'Vote removed'
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Vote removed')));
+          ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.voteRemoved)));
         }
       } else {
         // Add or change vote
@@ -125,11 +128,13 @@ class _CommentCardState extends State<CommentCard> {
             }
             currentVote = voteType;
           });
+          // Previously: vote confirmation text: 'Comment upvoted!' / 'Comment downvoted!'
+          final String voteMsg = voteType == 'up'
+              ? AppLocalizations.of(context)!.commentUpvoted
+              : AppLocalizations.of(context)!.commentDownvoted;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                voteType == 'up' ? 'Comment upvoted!' : 'Comment downvoted!',
-              ),
+              content: Text(voteMsg),
             ),
           );
         }
@@ -137,9 +142,10 @@ class _CommentCardState extends State<CommentCard> {
       widget.onVoteChanged(); // Notify parent
     } catch (e) {
       if (mounted) {
+        // Previously: 'Vote failed: ${e.toString()}'
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Vote failed: ${e.toString()}'),
+            content: Text(AppLocalizations.of(context)!.voteFailed(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -173,8 +179,9 @@ class _CommentCardState extends State<CommentCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Previously: 'By ${widget.authorUsername}'
               Text(
-                'By ${widget.authorUsername}', // Use fetched username
+                AppLocalizations.of(context)!.byAuthor(widget.authorUsername), // Use fetched username via localization
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -184,7 +191,8 @@ class _CommentCardState extends State<CommentCard> {
                   icon: const Icon(Icons.delete_outline, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip: 'Delete Comment',
+                  // Previously: 'Delete Comment'
+                  tooltip: AppLocalizations.of(context)!.deleteComment,
                   onPressed: widget.onDelete,
                 ),
             ],
@@ -212,7 +220,8 @@ class _CommentCardState extends State<CommentCard> {
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: 'Upvote',
+                    // Previously: 'Upvote'
+                    tooltip: AppLocalizations.of(context)!.upvote,
                     onPressed: isVoteLoading ? null : () => _handleVote('up'),
                   ),
                   const SizedBox(width: 4),
@@ -229,7 +238,8 @@ class _CommentCardState extends State<CommentCard> {
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: 'Downvote',
+                    // Previously: 'Downvote'
+                    tooltip: AppLocalizations.of(context)!.downvote,
                     onPressed: isVoteLoading ? null : () => _handleVote('down'),
                   ),
                   const SizedBox(width: 4),

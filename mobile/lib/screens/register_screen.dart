@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fithub/theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/language_toggle.dart';
 import '../services/auth_service.dart'; // Import AuthService
 import 'login_screen.dart'; // Import LoginScreen
 
@@ -41,8 +43,8 @@ class _RegisterPageState extends State<RegisterPage> {
     // Add this check before form submission
     if (!_acceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the terms and conditions to continue.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.pleaseAcceptTerms),
         ),
       );
       return;
@@ -52,8 +54,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (_userType == 'Dietitian' && _pdfFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dietitians must upload a PDF certificate.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.dietitianMustUploadPdf),
         ),
       );
       return;
@@ -81,10 +83,8 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Registration successful! Please check your email to verify.',
-          ),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.registrationSuccessfulCheckEmail),
         ),
       );
       // Navigate to login page or a "check your email" page
@@ -102,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An unexpected error occurred: ${e.toString()}'),
+          content: Text(AppLocalizations.of(context)!.genericError(e.toString())),
         ),
       );
     } finally {
@@ -129,22 +129,14 @@ class _RegisterPageState extends State<RegisterPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Terms and Conditions'),
+          title: Text(AppLocalizations.of(context)!.termsAndConditions),
           content: SingleChildScrollView(
-            child: const Text(
-              'By using FitHub, you agree to the following terms:\n\n'
-              '1. Your personal information will be handled according to our privacy policy.\n\n'
-              '2. You are responsible for maintaining the confidentiality of your account.\n\n'
-              '3. You agree to use the platform responsibly and not engage in any harmful activities.\n\n'
-              '4. Dietitians must provide valid certification documents.\n\n'
-              '5. We reserve the right to terminate accounts that violate our terms.\n\n'
-              // Add more terms as needed
-            ),
+            child: Text(AppLocalizations.of(context)!.termsDialogContent),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(AppLocalizations.of(context)!.close),
               style: TextButton.styleFrom(
                 foregroundColor: AppTheme.primaryGreen,
               ),
@@ -157,19 +149,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return AppLocalizations.of(context)!.passwordRequired;
     }
     if (value.length < 8) {
-      return 'Password must be at least 8 characters long';
+      return AppLocalizations.of(context)!.passwordMinLength;
     }
     if (!value.contains(RegExp(r'[A-Z]'))) {
-      return 'Password must contain at least one uppercase letter';
+      return AppLocalizations.of(context)!.passwordMustContainUppercase;
     }
     if (!value.contains(RegExp(r'[a-z]'))) {
-      return 'Password must contain at least one lowercase letter';
+      return AppLocalizations.of(context)!.passwordMustContainLowercase;
     }
     if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number';
+      return AppLocalizations.of(context)!.passwordMustContainNumber;
     }
     return null;
   }
@@ -181,8 +173,15 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
-        title: const Text('Register'),
+        // title: const Text('Register'),
+        title: Text(AppLocalizations.of(context)!.registerTitle),
         centerTitle: true,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: LanguageToggle(),
+          ),
+        ],
       ),
       body: Center(
         child: Card(
@@ -198,45 +197,51 @@ class _RegisterPageState extends State<RegisterPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
+                    // const Text(
+                    //   'Create Account',
+                    //   style: TextStyle(
+                    //     fontSize: 22,
+                    //     fontWeight: FontWeight.bold,
+                    //   ),
+                    // ),
+                    Text(
+                      AppLocalizations.of(context)!.createAccountHeading,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        // labelText: 'Username',
+                        labelText: AppLocalizations.of(context)!.usernameLabel,
+                        border: const OutlineInputBorder(),
                       ),
                       onSaved: (v) => _username = v ?? '',
-                      validator:
-                          (v) =>
-                              v != null && v.length >= 3
-                                  ? null
-                                  : 'Enter at least 3 characters',
+                      validator: (v) => v != null && v.length >= 3
+                          ? null
+                          : AppLocalizations.of(context)!.usernameEmptyError,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        // labelText: 'Email',
+                        labelText: AppLocalizations.of(context)!.emailLabel,
+                        border: const OutlineInputBorder(),
                       ),
                       onSaved: (v) => _email = v ?? '',
-                      validator:
-                          (v) =>
-                              v != null && v.contains('@')
-                                  ? null
-                                  : 'Enter a valid email',
+                      validator: (v) => v != null && v.contains('@')
+                          ? null
+                          : AppLocalizations.of(context)!.invalidEmail,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                        helperText: 'Must contain 8+ characters, uppercase, lowercase, and number',
+                      decoration: InputDecoration(
+                        // labelText: 'Password',
+                        labelText: AppLocalizations.of(context)!.passwordLabel,
+                        border: const OutlineInputBorder(),
+                        helperText: AppLocalizations.of(context)!.passwordHelper,
                       ),
                       obscureText: true,
                       controller: _passwordController, // Assign controller
@@ -246,33 +251,35 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       // Added Confirm Password field
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm Password',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        // labelText: 'Confirm Password',
+                        labelText: AppLocalizations.of(context)!.confirmPasswordLabel,
+                        border: const OutlineInputBorder(),
                       ),
                       obscureText: true,
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Please confirm your password';
+                          return AppLocalizations.of(context)!.pleaseConfirmPassword;
                         }
                         if (v != _passwordController.text) {
-                          return 'Passwords do not match';
+                          return AppLocalizations.of(context)!.passwordsDoNotMatch;
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'User Type',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        // labelText: 'User Type',
+                        labelText: AppLocalizations.of(context)!.userTypeLabel,
+                        border: const OutlineInputBorder(),
                       ),
                       value: _userType,
-                      items: const [
-                        DropdownMenuItem(value: 'User', child: Text('User')),
+                      items: [
+                        DropdownMenuItem(value: 'User', child: Text(AppLocalizations.of(context)!.user)),
                         DropdownMenuItem(
                           value: 'Dietitian',
-                          child: Text('Dietitian'),
+                          child: Text(AppLocalizations.of(context)!.dietitian),
                         ),
                       ],
                       onChanged: (v) {
@@ -295,17 +302,19 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         onPressed: _pickPdfFile,
                         icon: const Icon(Icons.upload_file),
-                        label: const Text('Upload PDF (Certificate)'),
+                        // label: const Text('Upload PDF (Certificate)'),
+                        label: Text(AppLocalizations.of(context)!.uploadPdfButton),
                       ),
                       if (_pdfFile != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            'Uploaded: ${_pdfFile!.name}',
-                            style: const TextStyle(
-                              color: AppTheme.primaryGreen,
-                            ),
-                          ),
+                              child: Text(
+                                // 'Uploaded: ${_pdfFile!.name}',
+                                '${AppLocalizations.of(context)!.uploadedLabel}: ${_pdfFile!.name}',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryGreen,
+                                ),
+                              ),
                         ),
                       const SizedBox(height: 16),
                     ],
@@ -324,12 +333,13 @@ class _RegisterPageState extends State<RegisterPage> {
                         Expanded(
                           child: Row(
                             children: [
-                              const Text('I accept the '),
+                              // const Text('I accept the '),
+                              Text(AppLocalizations.of(context)!.iAcceptThe),
                               GestureDetector(
                                 onTap: _showTermsDialog,
-                                child: const Text(
-                                  'Terms and Conditions',
-                                  style: TextStyle(
+                                child: Text(
+                                  AppLocalizations.of(context)!.termsAndConditions,
+                                  style: const TextStyle(
                                     color: AppTheme.primaryGreen,
                                     decoration: TextDecoration.underline,
                                     fontWeight: FontWeight.bold,
@@ -352,27 +362,23 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed:
-                            _isLoading
-                                ? null
-                                : _submitForm, // Disable button when loading
-                        child:
-                            _isLoading
-                                ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2.0,
-                                  ),
-                                )
-                                : const Text(
-                                  'Register',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
+                        onPressed: _isLoading ? null : _submitForm,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.0,
                                 ),
+                              )
+                            : Text(
+                                AppLocalizations.of(context)!.registerButton,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
                       ),
                     ),
                   ],

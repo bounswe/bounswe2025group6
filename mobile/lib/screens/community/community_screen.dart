@@ -4,6 +4,8 @@ import '../../models/report.dart';
 import '../../services/community_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/report_dialog.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -50,7 +52,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Community'),
+        // title: const Text('Community'),
+        title: Text(AppLocalizations.of(context)!.community),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -90,6 +93,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 }
+
+// localizedTagLabel is provided by lib/utils/tag_localization.dart
 
 class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -167,9 +172,11 @@ class _PostCardState extends State<PostCard> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vote removed successfully'),
-              duration: Duration(seconds: 2),
+            // const SnackBar(
+            SnackBar(
+              // content: Text('Vote removed successfully'),
+              content: Text(AppLocalizations.of(context)!.voteRemoved),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -189,7 +196,9 @@ class _PostCardState extends State<PostCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(voteType == 'up' ? 'Post upvoted!' : 'Post downvoted!'),
+              content: Text(voteType == 'up'
+                  ? AppLocalizations.of(context)!.postUpvoted
+                  : AppLocalizations.of(context)!.postDownvoted),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -269,11 +278,11 @@ class _PostCardState extends State<PostCard> {
                       itemBuilder: (context) => [
                         PopupMenuItem<String>(
                           value: 'report',
-                          child: const Row(
+                          child: Row(
                             children: [
                               Icon(Icons.flag_outlined, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Report Post'),
+                              const SizedBox(width: 8),
+                              Text(AppLocalizations.of(context)!.reportPost),
                             ],
                           ),
                           onTap: () async {
@@ -285,7 +294,7 @@ class _PostCardState extends State<PostCard> {
                               context: context,
                               contentType: ReportContentType.post,
                               objectId: widget.post['id'],
-                              contentPreview: widget.post['title'] ?? 'Post',
+                              contentPreview: widget.post['title'] ?? AppLocalizations.of(context)!.postFallback,
                             );
                           },
                         ),
@@ -305,8 +314,8 @@ class _PostCardState extends State<PostCard> {
                 Wrap(
                   spacing: 8,
                   children: (widget.post['tags'] as List)
-                      .map((tag) => Chip(
-                            label: Text(tag.toString()),
+          .map((tag) => Chip(
+            label: Text(localizedTagLabel(context, tag.toString())),
                             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ))
                       .toList(),
@@ -315,7 +324,9 @@ class _PostCardState extends State<PostCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('By ${widget.post['author']?.toString() ?? 'Unknown'}'),
+                  Text(AppLocalizations.of(context)!.byAuthor(
+                    widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown,
+                  )),
                   Row(
                     children: [
                       IconButton(

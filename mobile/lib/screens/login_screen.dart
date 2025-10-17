@@ -5,6 +5,9 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import 'package:fithub/screens/dashboard_screen.dart';
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../widgets/language_toggle.dart';
+
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -52,6 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                  // Language toggle
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: const LanguageToggle(),
+                    ),
+                  ),
                 // Logo
                 Center(
                   child: Container(
@@ -79,8 +90,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 50),
 
                 // Title
-                const Text(
-                  'Login',
+                Text(
+                  // 'Login',
+                  AppLocalizations.of(context)!.loginTitle,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -89,8 +101,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 // Subtitle
-                const Text(
-                  'Sign in to continue',
+                Text(
+                  // 'Sign in to continue',
+                  AppLocalizations.of(context)!.signInToContinue,
                   style: TextStyle(fontSize: 16, color: AppTheme.primaryGreen),
                 ),
                 const SizedBox(height: 32),
@@ -99,17 +112,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'EMAIL',
+                  decoration: InputDecoration(
+                    // labelText: 'EMAIL',
+                    labelText: AppLocalizations.of(context)!.emailLabel,
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context)!.pleaseEnterEmail;
                     }
                     // Basic email validation
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context)!.invalidEmail;
                     }
                     return null;
                   },
@@ -121,13 +135,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'PASSWORD',
+                  decoration: InputDecoration(
+                    // labelText: 'PASSWORD',
+                    labelText: AppLocalizations.of(context)!.passwordLabel,
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return AppLocalizations.of(context)!.pleaseEnterPassword;
                     }
                     return null;
                   },
@@ -148,8 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                     ),
-                    child: const Text(
-                      'Forgot Password?',
+                    child: Text(
+                      // 'Forgot Password?',
+                      AppLocalizations.of(context)!.forgotPasswordQuestion,
                       style: TextStyle(
                         color: AppTheme.primaryGreen,
                         fontSize: 14,
@@ -176,14 +192,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text(
-                              'Log In',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                            child: Text(
+                            // 'Log In',
+                            AppLocalizations.of(context)!.logInButton,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
+                          ),
                           ),
                 ),
 
@@ -193,8 +210,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Don't have an account? ",
+                    Text(
+                      // "Don't have an account? ",
+                      AppLocalizations.of(context)!.dontHaveAccount,
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                     ),
                     GestureDetector(
@@ -206,8 +224,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
-                        'Create Account',
+                      child: Text(
+                        // 'Create Account',
+                        AppLocalizations.of(context)!.createAccount,
                         style: TextStyle(
                           color: Color(0xFF006837),
                           fontSize: 14,
@@ -227,8 +246,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showSuccessMessage(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful!'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.loginSuccessful),
         backgroundColor: AppTheme.successColor,
       ),
     );
@@ -237,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showErrorMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Login failed: $message'),
+        content: Text(AppLocalizations.of(context)!.loginFailed(message)),
         backgroundColor: AppTheme.errorColor,
       ),
     );
@@ -267,7 +286,15 @@ class _LoginScreenState extends State<LoginScreen> {
         await StorageService.saveRefreshToken(jwtTokens['refresh']!);
       } catch (e) {
         if (!mounted) return;
-        _showErrorMessage(context, 'Failed to obtain JWT tokens: ${e.toString()}');
+        // Old hardcoded message preserved for reference:
+        // _showErrorMessage(context, 'Failed to obtain JWT tokens: ${e.toString()}');
+        // Show a specific localized error message about failing to obtain JWT tokens
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.failedToObtainJwtTokens(e.toString())),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       }
 
       if (!mounted) return;

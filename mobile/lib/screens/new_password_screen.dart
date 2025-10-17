@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fithub/theme/app_theme.dart';
 import 'package:fithub/services/auth_service.dart';
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../widgets/language_toggle.dart';
+
 
 class CreateNewPasswordPage extends StatefulWidget {
   final String email;
@@ -43,8 +46,8 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Password reset successful'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.passwordResetSuccessful),
               backgroundColor: AppTheme.primaryGreen,
             ),
           );
@@ -56,7 +59,9 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e.toString()),
+              // Previously: content: Text(e.toString()),
+              // Use localized generic error message with placeholder
+              content: Text(AppLocalizations.of(context)!.genericError(e.toString())),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -80,10 +85,10 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return AppLocalizations.of(context)!.passwordRequired;
     }
     if (value.length < 8) {
-      return 'Password must be at least 8 characters';
+      return AppLocalizations.of(context)!.passwordMinLength;
     }
     return null;
   }
@@ -93,10 +98,16 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundGrey,
       appBar: AppBar(
-        title: const Text('Create New Password'),
+        title: Text(AppLocalizations.of(context)!.createNewPasswordTitle),
         centerTitle: true,
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: LanguageToggle(),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -107,9 +118,9 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
               TextFormField(
                 controller: _newPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'New Password',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.newPasswordLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: _validatePassword,
               ),
@@ -117,13 +128,13 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
               TextFormField(
                 controller: _repeatPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm Password',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.confirmPasswordLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value != _newPasswordController.text) {
-                    return 'Passwords do not match';
+                    return AppLocalizations.of(context)!.passwordsDoNotMatch;
                   }
                   return null;
                 },
@@ -144,9 +155,9 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Save Password',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                    : Text(
+                        AppLocalizations.of(context)!.savePassword,
+                        style: const TextStyle(fontSize: 16, color: Colors.white),
                       ),
               ),
             ],

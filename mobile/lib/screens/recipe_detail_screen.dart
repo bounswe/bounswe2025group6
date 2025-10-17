@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
@@ -27,7 +28,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recipe Details'),
+            // title: const Text('Recipe Details'),
+            title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
       ),
       body: FutureBuilder<Recipe>(
@@ -36,7 +38,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text(AppLocalizations.of(context)!.errorLoadingRecipes(snapshot.error.toString())));
           } else if (snapshot.hasData) {
             final recipe = snapshot.data!;
             return Container(
@@ -72,24 +74,28 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: <Widget>[
-                            _buildInfoColumn(
-                              Icons.timer_outlined,
-                              '${recipe.prepTime} min',
-                              'Prep Time',
-                              context,
-                            ),
-                            _buildInfoColumn(
-                              Icons.whatshot_outlined,
-                              '${recipe.cookTime} min',
-                              'Cook Time',
-                              context,
-                            ),
-                            _buildInfoColumn(
-                              Icons.restaurant_menu_outlined,
-                              recipe.mealType,
-                              'Meal Type',
-                              context,
-                            ),
+                              _buildInfoColumn(
+                                Icons.timer_outlined,
+                                '${recipe.prepTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                AppLocalizations.of(context)!.prepTimeLabel,
+                                context,
+                              ),
+                              _buildInfoColumn(
+                                Icons.whatshot_outlined,
+                                '${recipe.cookTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                AppLocalizations.of(context)!.cookTimeLabel,
+                                context,
+                              ),
+                              _buildInfoColumn(
+                                Icons.restaurant_menu_outlined,
+                                recipe.mealType == 'breakfast'
+                                    ? AppLocalizations.of(context)!.breakfast
+                                    : recipe.mealType == 'lunch'
+                                        ? AppLocalizations.of(context)!.lunch
+                                        : AppLocalizations.of(context)!.dinner,
+                                AppLocalizations.of(context)!.mealTypeLabel,
+                                context,
+                              ),
                           ],
                         ),
                       ),
@@ -98,7 +104,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
                     // Ingredients Section
                     _buildSectionTitle(
-                      'Ingredients',
+                      AppLocalizations.of(context)!.ingredientsTitle,
                       Icons.kitchen_outlined,
                       context,
                     ),
@@ -112,8 +118,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child:
                             recipe.ingredients.isEmpty
-                                ? const Text(
-                                  'No ingredients listed.',
+                                ? Text(
+                                  // 'No ingredients listed.'
+                                  AppLocalizations.of(context)!.noIngredients,
                                   style: TextStyle(fontStyle: FontStyle.italic),
                                 )
                                 : Column(
@@ -151,7 +158,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
                     // Steps Section
                     _buildSectionTitle(
-                      'Preparation Steps',
+                      AppLocalizations.of(context)!.preparationStepsTitle,
                       Icons.format_list_numbered_outlined,
                       context,
                     ),
@@ -165,8 +172,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child:
                             recipe.steps.isEmpty
-                                ? const Text(
-                                  'No steps provided.',
+                                ? Text(
+                                  // 'No steps provided.'
+                                  AppLocalizations.of(context)!.noStepsProvided,
                                   style: TextStyle(fontStyle: FontStyle.italic),
                                 )
                                 : Column(
@@ -216,7 +224,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
                     // Additional Details Section
                     _buildSectionTitle(
-                      'Additional Information',
+                      AppLocalizations.of(context)!.additionalInformationTitle,
                       Icons.info_outline,
                       context,
                     ),
@@ -235,54 +243,62 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     if (recipe.costPerServing != null)
                                       _buildDetailRow(
                                         Icons.attach_money_outlined,
-                                        'Cost per Serving:',
+                                        // 'Cost per Serving:',
+                                        AppLocalizations.of(context)!.costPerServingLabel,
                                         '\$${recipe.costPerServing?.toStringAsFixed(2)}',
                                         context,
                                       ),
                                     if (recipe.difficultyRating != null)
                                       _buildDetailRow(
                                         Icons.star_border_outlined,
-                                        'Difficulty:',
+                                        // 'Difficulty:',
+                                        AppLocalizations.of(context)!.difficultyLabel,
                                         '${recipe.difficultyRating}/5',
                                         context,
                                       ),
                                     if (recipe.tasteRating != null)
                                       _buildDetailRow(
                                         Icons.thumb_up_alt_outlined,
-                                        'Taste Rating:',
+                                        // 'Taste Rating:',
+                                        AppLocalizations.of(context)!.tasteRatingLabel,
                                         '${recipe.tasteRating}/5',
                                         context,
                                       ),
                                     if (recipe.healthRating != null)
                                       _buildDetailRow(
                                         Icons.health_and_safety_outlined,
-                                        'Health Rating:',
+                                        // 'Health Rating:',
+                                        AppLocalizations.of(context)!.healthRatingLabel,
                                         '${recipe.healthRating}/5',
                                         context,
                                       ),
                                     _buildDetailRow(
                                       Icons.favorite_border_outlined,
-                                      'Likes:',
+                                      // 'Likes:',
+                                      AppLocalizations.of(context)!.likesLabel,
                                       '${recipe.likeCount}',
                                       context,
                                     ),
                                     _buildDetailRow(
                                       Icons.comment_outlined,
-                                      'Comments:',
+                                      // 'Comments:',
+                                      AppLocalizations.of(context)!.commentsLabel,
                                       '${recipe.commentCount}',
                                       context,
                                     ),
                                     if (recipe.allergens.isNotEmpty)
                                       _buildDetailRow(
                                         Icons.warning_amber_outlined,
-                                        'Allergens:',
+                                        // 'Allergens:',
+                                        AppLocalizations.of(context)!.allergensLabel,
                                         recipe.allergens.join(", "),
                                         context,
                                       ),
                                     if (recipe.dietaryInfo.isNotEmpty)
                                       _buildDetailRow(
                                         Icons.restaurant_outlined,
-                                        'Dietary Info:',
+                                        // 'Dietary Info:',
+                                        AppLocalizations.of(context)!.dietaryInfoLabel,
                                         recipe.dietaryInfo.join(", "),
                                         context,
                                       ),
@@ -299,7 +315,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ),
             );
           } else {
-            return const Center(child: Text('Recipe not found.'));
+            return Center(child: Text(AppLocalizations.of(context)!.recipeNotFound));
           }
         },
       ),

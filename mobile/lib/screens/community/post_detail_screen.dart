@@ -10,6 +10,8 @@ import '../../utils/date_formatter.dart';
 import './edit_post_screen.dart';
 import '../../widgets/comment_card.dart'; // Import CommentCard (will be created later)
 import '../../widgets/report_button.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 
 class PostDetailScreen extends StatefulWidget {
   const PostDetailScreen({Key? key}) : super(key: key);
@@ -117,18 +119,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Delete Post'),
-            content: const Text('Are you sure you want to delete this post?'),
+            title: Text(AppLocalizations.of(context)!.deletePostTitle),
+            content: Text(AppLocalizations.of(context)!.deletePostConfirmation),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context)!.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
+                child: Text(
+                  AppLocalizations.of(context)!.delete,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
@@ -234,14 +236,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Comment added!')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commentAdded)));
       }
       await _loadComments(); // Refresh comments list
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add comment: ${e.toString()}'),
+            // Previously: 'Failed to add comment: ${e.toString()}'
+            content: Text(AppLocalizations.of(context)!.failedToAddComment(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -260,20 +263,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Delete Comment'),
-            content: const Text(
-              'Are you sure you want to delete this comment?',
-            ),
+            title: Text(AppLocalizations.of(context)!.deleteCommentTitle),
+            content: Text(AppLocalizations.of(context)!.deleteCommentConfirmation),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context)!.deleteCommentCancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
+                child: Text(
+                  AppLocalizations.of(context)!.deleteCommentDelete,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
@@ -286,13 +287,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Comment deleted!')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commentDeleted)));
         await _loadComments(); // Refresh comments list
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to delete comment: ${e.toString()}'),
+            // Previously: 'Failed to delete comment: ${e.toString()}'
+            content: Text(AppLocalizations.of(context)!.failedToDeleteComment(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -315,9 +317,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vote removed successfully'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.voteRemoved),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -337,9 +339,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                voteType == 'up' ? 'Post upvoted!' : 'Post downvoted!',
-              ),
+              content: Text(voteType == 'up'
+                  ? AppLocalizations.of(context)!.postUpvoted
+                  : AppLocalizations.of(context)!.postDownvoted),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -392,7 +394,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (post == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Error'),
+          title: Text(AppLocalizations.of(context)!.errorTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
@@ -402,11 +404,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Post not found', style: TextStyle(fontSize: 18)),
+              Text(AppLocalizations.of(context)!.postNotFound, style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Go Back'),
+                child: Text(AppLocalizations.of(context)!.goBack),
               ),
             ],
           ),
@@ -416,7 +418,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post Detail'),
+        title: Text(AppLocalizations.of(context)!.postDetailTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -442,7 +444,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ReportButton(
               contentType: ReportContentType.post,
               objectId: post!['id'],
-              contentPreview: post!['title'] ?? 'Post',
+              contentPreview: post!['title'] ?? AppLocalizations.of(context)!.postFallback,
             ),
         ],
       ),
@@ -461,10 +463,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
-                    children:
-                        (post!['tags'] as List)
-                            .map((tag) => Chip(label: Text(tag.toString())))
-                            .toList(),
+                    children: (post!['tags'] as List)
+                        .map((tag) => Chip(label: Text(localizedTagLabel(context, tag.toString()))))
+                        .toList(),
                   ),
                 const SizedBox(height: 16),
                 Text(post!['content'] ?? ''),
@@ -472,7 +473,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('By ${post!['author']?.toString() ?? 'Unknown'}'),
+                    Text(AppLocalizations.of(context)!.byAuthor(
+                      post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown,
+                    )),
                     Row(
                       children: [
                         const Icon(Icons.remove_red_eye),
@@ -512,13 +515,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Created: ${_formatDateTime(post!['created_at'])}',
+                  '${AppLocalizations.of(context)!.createdLabel} ${_formatDateTime(post!['created_at'])}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const Divider(height: 32),
-                const Text(
-                  'Comments',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                Text(
+                  AppLocalizations.of(context)!.commentsTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 const SizedBox(height: 8),
                 _buildCommentsSection(), // Call method to build comments UI
@@ -533,9 +536,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   Expanded(
                     child: TextField(
                       controller: _commentController,
-                      decoration: const InputDecoration(
-                        hintText: 'Add a comment...',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context)!.addCommentHint,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ),
@@ -575,10 +578,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error loading comments: $_commentsError'),
+            Text('${AppLocalizations.of(context)!.errorLoadingComments} $_commentsError'),
             ElevatedButton(
               onPressed: _loadComments,
-              child: const Text('Retry'),
+              child: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
         ),
@@ -586,7 +589,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
 
     if (_comments.isEmpty) {
-      return const Center(child: Text('No comments yet. Be the first!'));
+      return Center(child: Text(AppLocalizations.of(context)!.noCommentsYet));
     }
 
     // Use ListView.separated for dividers between comments

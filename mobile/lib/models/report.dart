@@ -72,26 +72,42 @@ enum ReportType {
   String get displayName {
     switch (this) {
       case ReportType.spam:
-        return 'Spam';
+        // return 'Spam';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeSpam
+        return name;
       case ReportType.inappropriate:
-        return 'Inappropriate Content';
+        // return 'Inappropriate Content';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeInappropriate
+        return name;
       case ReportType.harassment:
-        return 'Harassment';
+        // return 'Harassment';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeHarassment
+        return name;
       case ReportType.other:
-        return 'Other';
+        // return 'Other';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeOther
+        return name;
     }
   }
 
   String get description {
     switch (this) {
       case ReportType.spam:
-        return 'Unsolicited or repetitive content';
+        // return 'Unsolicited or repetitive content';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeSpamDescription
+        return '';
       case ReportType.inappropriate:
-        return 'Offensive or inappropriate material';
+        // return 'Offensive or inappropriate material';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeInappropriateDescription
+        return '';
       case ReportType.harassment:
-        return 'Bullying or harassment';
+        // return 'Bullying or harassment';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeHarassmentDescription
+        return '';
       case ReportType.other:
-        return 'Other issues';
+        // return 'Other issues';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeOtherDescription
+        return '';
     }
   }
 }

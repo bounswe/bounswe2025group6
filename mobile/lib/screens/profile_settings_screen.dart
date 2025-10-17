@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../providers/locale_provider.dart';
 import '../models/user_profile.dart';
 import '../services/profile_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/label_localization.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   static const String routeName = '/profile-settings';
@@ -22,6 +26,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   late ProfileService _profileService; // To be initialized from widget
   late UserProfile _editableProfile;
+  // Temporary language selection that won't update app locale until saved
+  late Language _tempSelectedLanguage;
 
   final List<String> _avatarPaths = [
     'assets/avatars/cat.png',
@@ -75,6 +81,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       text: _editableProfile.nationality ?? '',
     );
     _selectedDateOfBirth = _editableProfile.dateOfBirth;
+    _tempSelectedLanguage = _editableProfile.language;
   }
 
   @override
@@ -118,29 +125,37 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         clearNationality: _nationalityController.text.isEmpty,
         dateOfBirth: _selectedDateOfBirth,
         clearDateOfBirth: _selectedDateOfBirth == null,
+        language: _tempSelectedLanguage,
       );
 
-      try {
-        await _profileService.updateUserProfile(
-          finalProfileToSave,
-        );
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Settings saved!')));
+          try {
+            final updatedProfile = await _profileService.updateUserProfile(
+              finalProfileToSave,
+            );
+            if (mounted) {
+              // Ensure provider reflects the saved language
+              try {
+                // Update the app locale only after backend confirmed the change.
+                Provider.of<LocaleProvider>(context, listen: false)
+                    .setLocaleFromLanguage(updatedProfile.language);
+              } catch (_) {}
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.settingsSaved)));
 
-          Navigator.pop(context, finalProfileToSave);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to save settings: ${e.toString()}'),
-              backgroundColor: AppTheme.errorColor,
-            ),
-          );
-        }
-      }
+              Navigator.pop(context, finalProfileToSave);
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  // content: Text('Failed to save settings: ${e.toString()}'),
+                  content: Text(AppLocalizations.of(context)!.failedToSaveSettings(e.toString())),
+                  backgroundColor: AppTheme.errorColor,
+                ),
+              );
+            }
+          }
     }
   }
 
@@ -149,7 +164,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Profile Settings',
+          // 'Profile Settings'
+          AppLocalizations.of(context)!.profileSettingsTitle,
           style: TextStyle(
             color: AppTheme.primaryGreen,
             fontWeight: FontWeight.bold,
@@ -171,7 +187,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
             Text(
-              'Choose Your Avatar:',
+              // 'Choose Your Avatar:'
+              AppLocalizations.of(context)!.chooseAvatar,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             SizedBox(height: 10),
@@ -214,20 +231,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Username',
+                // 'Username'
+                labelText: AppLocalizations.of(context)!.usernameLabel,
                 border: OutlineInputBorder(),
               ),
-              validator:
-                  (value) =>
-                      value == null || value.isEmpty
-                          ? 'Username cannot be empty'
-                          : null,
+              validator: (value) => value == null || value.isEmpty
+                  ? // 'Username cannot be empty'
+                      AppLocalizations.of(context)!.usernameEmptyError
+                  : null,
             ),
             SizedBox(height: 12),
             TextFormField(
               controller: _emailController,
               decoration: InputDecoration(
-                labelText: 'Email',
+                // 'Email'
+                labelText: AppLocalizations.of(context)!.emailLabel,
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
@@ -235,14 +253,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ),
             SizedBox(height: 20),
             Text(
-              'Preferences',
+              // 'Preferences'
+              AppLocalizations.of(context)!.preferences,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             SizedBox(height: 10),
             TextFormField(
               controller: _dislikedFoodsController,
               decoration: InputDecoration(
-                labelText: 'Disliked Foods (comma separated)',
+                // 'Disliked Foods (comma separated)'
+                labelText: AppLocalizations.of(context)!.dislikedFoodsHint,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -250,7 +270,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _monthlyBudgetController,
               decoration: InputDecoration(
-                labelText: 'Monthly Budget (\$) (Optional)',
+                // 'Monthly Budget ($) (Optional)'
+                labelText: AppLocalizations.of(context)!.monthlyBudgetHint,
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -258,7 +279,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
             SizedBox(height: 12),
             SwitchListTile(
-              title: Text('Public Profile'),
+              // 'Public Profile'
+              title: Text(AppLocalizations.of(context)!.publicProfileLabel),
               value: _editableProfile.publicProfile,
               activeColor: AppTheme.primaryGreen,
               onChanged: (bool value) {
@@ -271,28 +293,32 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ),
             SizedBox(height: 12),
             _buildChipSelection(
-              'Dietary Preferences',
+              // 'Dietary Preferences'
+              AppLocalizations.of(context)!.dietaryPreferencesLabel,
               _availableDietaryPreferences,
               _editableProfile.dietaryPreferences,
             ),
             SizedBox(height: 12),
             _buildChipSelection(
-              'Allergens',
+              // 'Allergens'
+              AppLocalizations.of(context)!.allergensLabel,
               _availableAllergens,
               _editableProfile.allergens,
             ),
             SizedBox(height: 30),
             Text(
-              'Localization & Accessibility',
+              // 'Localization & Accessibility'
+              AppLocalizations.of(context)!.localizationAccessibility,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             SizedBox(height: 12),
             
             // Language Dropdown
             DropdownButtonFormField<Language>(
-              value: _editableProfile.language,
+              value: _tempSelectedLanguage,
               decoration: InputDecoration(
-                labelText: 'Language',
+                // 'Language'
+                labelText: AppLocalizations.of(context)!.languageLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.language),
               ),
@@ -305,6 +331,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
+                    // Only change temporary selection — don't update app locale yet
+                    _tempSelectedLanguage = value;
                     _editableProfile = _editableProfile.copyWith(language: value);
                   });
                 }
@@ -316,7 +344,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             DropdownButtonFormField<DateFormat>(
               value: _editableProfile.preferredDateFormat,
               decoration: InputDecoration(
-                labelText: 'Date Format',
+                // 'Date Format'
+                labelText: AppLocalizations.of(context)!.dateFormatLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.calendar_today),
               ),
@@ -340,7 +369,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             DropdownButtonFormField<Currency>(
               value: _editableProfile.preferredCurrency,
               decoration: InputDecoration(
-                labelText: 'Preferred Currency',
+                  // 'Preferred Currency' (use existing key)
+                  labelText: AppLocalizations.of(context)!.currencyLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.attach_money),
               ),
@@ -364,7 +394,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             DropdownButtonFormField<AccessibilityNeeds>(
               value: _editableProfile.accessibilityNeeds,
               decoration: InputDecoration(
-                labelText: 'Accessibility Needs',
+                // 'Accessibility' (use existing key)
+                labelText: AppLocalizations.of(context)!.accessibilityLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.accessibility_new),
               ),
@@ -388,7 +419,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             TextFormField(
               controller: _nationalityController,
               decoration: InputDecoration(
-                labelText: 'Nationality (Optional)',
+                // 'Nationality (Optional)'
+                labelText: AppLocalizations.of(context)!.nationalityLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.flag),
               ),
@@ -400,11 +432,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.cake, color: AppTheme.primaryGreen),
-              title: Text('Date of Birth (Optional)'),
+              title: Text(
+                // 'Date of Birth (Optional)'
+                AppLocalizations.of(context)!.dateOfBirthLabel,
+              ),
               subtitle: Text(
                 _selectedDateOfBirth != null
                     ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
-                    : 'Not set',
+                    : // 'Not set'
+                        AppLocalizations.of(context)!.notSet,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -460,7 +496,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               availableItems.map((item) {
                 final bool isSelected = selectedItems.contains(item);
                 return FilterChip(
-                  label: Text(item),
+                      label: Text(localizedItemLabel(context, item)),
                   selected: isSelected,
                   onSelected: (bool selected) {
                     _toggleSelection(selectedItems, item);
@@ -473,4 +509,5 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       ],
     );
   }
+      
 }
