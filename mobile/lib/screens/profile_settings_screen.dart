@@ -339,7 +339,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               items: DateFormat.values.map((format) {
                 return DropdownMenuItem(
                   value: format,
-                  child: Text(format.displayName),
+                  child: Text(localizedDateFormatLabel(context, format)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -364,7 +364,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               items: Currency.values.map((currency) {
                 return DropdownMenuItem(
                   value: currency,
-                  child: Text(currency.displayName),
+                  child: Text(localizedCurrencyLabel(context, currency)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -388,7 +388,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               items: AccessibilityNeeds.values.map((needs) {
                 return DropdownMenuItem(
                   value: needs,
-                  child: Text(needs.displayName),
+                  child: Text(localizedAccessibilityLabel(context, needs)),
                 );
               }).toList(),
               onChanged: (value) {

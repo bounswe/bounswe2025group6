@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/recipe_card.dart'; 
 import './profile_settings_screen.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../utils/label_localization.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';
@@ -334,22 +335,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildInfoTile(
             Icons.language,
             AppLocalizations.of(context)!.languageLabel,
+            // Language names are small and kept on the enum for now
             profile.language.displayName,
           ),
           _buildInfoTile(
             Icons.calendar_today,
             AppLocalizations.of(context)!.dateFormatLabel,
-            profile.preferredDateFormat.displayName,
+            localizedDateFormatLabel(context, profile.preferredDateFormat),
           ),
           _buildInfoTile(
             Icons.attach_money,
             AppLocalizations.of(context)!.currencyLabel,
-            profile.preferredCurrency.displayName,
+            localizedCurrencyLabel(context, profile.preferredCurrency),
           ),
           _buildInfoTile(
             Icons.accessibility_new,
             AppLocalizations.of(context)!.accessibilityLabel,
-            profile.accessibilityNeeds.displayName,
+            localizedAccessibilityLabel(context, profile.accessibilityNeeds),
           ),
           if (profile.nationality != null)
             _buildInfoTile(

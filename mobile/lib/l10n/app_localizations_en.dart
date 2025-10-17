@@ -897,4 +897,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passwordMustContainNumber =>
       'Password must contain at least one number';
+
+  @override
+  String get currencyUsd => 'US Dollar (\$)';
+
+  @override
+  String get currencyTry => 'Turkish Lira (₺)';
+
+  @override
+  String get dateFormatMmddyyyy => 'MM/DD/YYYY';
+
+  @override
+  String get dateFormatDdmmyyyy => 'DD/MM/YYYY';
+
+  @override
+  String get dateFormatYyyymmdd => 'YYYY-MM-DD';
+
+  @override
+  String get accessibilityNone => 'None';
+
+  @override
+  String get accessibilityColorblind => 'Colorblind';
+
+  @override
+  String get accessibilityVisual => 'Visual Impairment';
+
+  @override
+  String get accessibilityHearing => 'Hearing Impairment';
 }

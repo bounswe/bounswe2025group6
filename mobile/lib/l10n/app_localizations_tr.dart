@@ -897,4 +897,31 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get passwordMustContainNumber => 'Parola en az bir rakam içermelidir';
+
+  @override
+  String get currencyUsd => 'ABD Doları (\$)';
+
+  @override
+  String get currencyTry => 'Türk Lirası (₺)';
+
+  @override
+  String get dateFormatMmddyyyy => 'MM/DD/YYYY';
+
+  @override
+  String get dateFormatDdmmyyyy => 'DD/MM/YYYY';
+
+  @override
+  String get dateFormatYyyymmdd => 'YYYY-MM-DD';
+
+  @override
+  String get accessibilityNone => 'Yok';
+
+  @override
+  String get accessibilityColorblind => 'Renk Körlüğü';
+
+  @override
+  String get accessibilityVisual => 'Görme Engeli';
+
+  @override
+  String get accessibilityHearing => 'İşitme Engeli';
 }

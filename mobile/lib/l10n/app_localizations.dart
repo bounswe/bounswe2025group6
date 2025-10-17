@@ -1783,6 +1783,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password must contain at least one number'**
   String get passwordMustContainNumber;
+
+  /// Label for US Dollar currency
+  ///
+  /// In en, this message translates to:
+  /// **'US Dollar (\$)'**
+  String get currencyUsd;
+
+  /// Label for Turkish Lira currency
+  ///
+  /// In en, this message translates to:
+  /// **'Turkish Lira (₺)'**
+  String get currencyTry;
+
+  /// Date format label MM/DD/YYYY
+  ///
+  /// In en, this message translates to:
+  /// **'MM/DD/YYYY'**
+  String get dateFormatMmddyyyy;
+
+  /// Date format label DD/MM/YYYY
+  ///
+  /// In en, this message translates to:
+  /// **'DD/MM/YYYY'**
+  String get dateFormatDdmmyyyy;
+
+  /// Date format label YYYY-MM-DD
+  ///
+  /// In en, this message translates to:
+  /// **'YYYY-MM-DD'**
+  String get dateFormatYyyymmdd;
+
+  /// Accessibility: none
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get accessibilityNone;
+
+  /// Accessibility: colorblind
+  ///
+  /// In en, this message translates to:
+  /// **'Colorblind'**
+  String get accessibilityColorblind;
+
+  /// Accessibility: visual impairment
+  ///
+  /// In en, this message translates to:
+  /// **'Visual Impairment'**
+  String get accessibilityVisual;
+
+  /// Accessibility: hearing impairment
+  ///
+  /// In en, this message translates to:
+  /// **'Hearing Impairment'**
+  String get accessibilityHearing;
 }
 
 class _AppLocalizationsDelegate

@@ -645,4 +645,26 @@
   "@passwordMustContainLowercase": { "description": "Password validation message" },
   "passwordMustContainNumber": "Password must contain at least one number",
   "@passwordMustContainNumber": { "description": "Password validation message" }
+
+  ,
+  "currencyUsd": "US Dollar ($)",
+  "@currencyUsd": { "description": "Label for US Dollar currency" },
+  "currencyTry": "Turkish Lira (₺)",
+  "@currencyTry": { "description": "Label for Turkish Lira currency" },
+
+  "dateFormatMmddyyyy": "MM/DD/YYYY",
+  "@dateFormatMmddyyyy": { "description": "Date format label MM/DD/YYYY" },
+  "dateFormatDdmmyyyy": "DD/MM/YYYY",
+  "@dateFormatDdmmyyyy": { "description": "Date format label DD/MM/YYYY" },
+  "dateFormatYyyymmdd": "YYYY-MM-DD",
+  "@dateFormatYyyymmdd": { "description": "Date format label YYYY-MM-DD" },
+
+  "accessibilityNone": "None",
+  "@accessibilityNone": { "description": "Accessibility: none" },
+  "accessibilityColorblind": "Colorblind",
+  "@accessibilityColorblind": { "description": "Accessibility: colorblind" },
+  "accessibilityVisual": "Visual Impairment",
+  "@accessibilityVisual": { "description": "Accessibility: visual impairment" },
+  "accessibilityHearing": "Hearing Impairment",
+  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" }
 }

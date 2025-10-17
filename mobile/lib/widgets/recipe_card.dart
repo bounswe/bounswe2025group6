@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../screens/recipe_detail_screen.dart'; 
 import '../l10n/app_localizations.dart';
+import '../utils/meal_type_localization.dart';
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -15,7 +16,7 @@ class RecipeCard extends StatelessWidget {
       child: ListTile(
         title: Text(recipe.name),
         subtitle: Text(
-          '${AppLocalizations.of(context)!.mealTypeLabel}: ${recipe.mealType} | ${AppLocalizations.of(context)!.totalTimeLabel}: ${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+          '${AppLocalizations.of(context)!.mealTypeLabel}: ${localizeMealType(recipe.mealType, context)} | ${AppLocalizations.of(context)!.totalTimeLabel}: ${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
         ),
         // TODO: Add more details like image, cost, ratings
         onTap: () {

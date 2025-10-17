@@ -509,6 +509,28 @@
     "passwordMustContainNumber": "Parola en az bir rakam içermelidir",
     "@passwordMustContainNumber": { "description": "Password validation message" }
 
+    ,
+    "currencyUsd": "ABD Doları ($)",
+    "@currencyUsd": { "description": "Label for US Dollar currency in Turkish" },
+    "currencyTry": "Türk Lirası (₺)",
+    "@currencyTry": { "description": "Label for Turkish Lira currency in Turkish" },
+
+    "dateFormatMmddyyyy": "MM/DD/YYYY",
+    "@dateFormatMmddyyyy": { "description": "Date format label MM/DD/YYYY" },
+    "dateFormatDdmmyyyy": "DD/MM/YYYY",
+    "@dateFormatDdmmyyyy": { "description": "Date format label DD/MM/YYYY" },
+    "dateFormatYyyymmdd": "YYYY-MM-DD",
+    "@dateFormatYyyymmdd": { "description": "Date format label YYYY-MM-DD" },
+
+    "accessibilityNone": "Yok",
+    "@accessibilityNone": { "description": "Accessibility: none in Turkish" },
+    "accessibilityColorblind": "Renk Körlüğü",
+    "@accessibilityColorblind": { "description": "Accessibility: colorblind in Turkish" },
+    "accessibilityVisual": "Görme Engeli",
+    "@accessibilityVisual": { "description": "Accessibility: visual impairment in Turkish" },
+    "accessibilityHearing": "İşitme Engeli",
+    "@accessibilityHearing": { "description": "Accessibility: hearing impairment in Turkish" }
+
     ,"failedToObtainJwtTokens": "JWT tokenleri alınamadı: {error}",
     "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } }
 }
