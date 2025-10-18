@@ -3,6 +3,8 @@ from pyexpat import model
 from rest_framework import serializers
 from .models import Ingredient, WikidataInfo
 from rest_framework.pagination import PageNumberPagination  
+import math
+from rest_framework.response import Response
 
 class IngredientSerializer(serializers.ModelSerializer):
     prices = serializers.SerializerMethodField()
@@ -39,12 +41,24 @@ class IngredientSerializer(serializers.ModelSerializer):
 
         return obj.get_price_for_user(user, quantity=quantity, unit=unit)
 
-# Needed for pagination
 class IngredientPagination(PageNumberPagination):
-    page_size = 10  # Number of items per page
-    page_size_query_param = 'page_size'  # Allow clients to specify a page size
-    max_page_size = 100  # Maximum page size the client can request
+    page_size = 10  # Default items per page
+    page_size_query_param = 'page_size'  # Let clients override page size
+    max_page_size = 100  # Max allowed page size
 
+    def get_paginated_response(self, data):
+        page_size = self.get_page_size(self.request)
+        total_count = self.page.paginator.count
+        total_pages = math.ceil(total_count / page_size) if page_size else 1
+
+        return Response({
+            'page': self.page.number,
+            'page_size': page_size,
+            'count': total_count,
+            'total_pages': total_pages,
+            'results': data,
+        })
+    
 #Wikidata Info Serializer
 # This serializer is used to serialize the WikidataInfo model
 # which contains additional information about the ingredient from Wikidata.

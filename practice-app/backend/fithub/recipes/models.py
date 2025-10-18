@@ -1,6 +1,5 @@
 from django.db import models
-# from api.models import TimestampedModel
-from core.models import TimestampedModel  # New import path
+from core.models import TimestampedModel 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from ingredients.models import Ingredient 

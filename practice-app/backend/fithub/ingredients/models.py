@@ -1,5 +1,5 @@
 from django.db import models
-from core.models import TimestampedModel  # New import path
+from core.models import TimestampedModel  
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 
