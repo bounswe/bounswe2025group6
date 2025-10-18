@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/recipe.dart';
+import '../providers/currency_provider.dart';
 import '../screens/recipe_detail_screen.dart';
+import '../l10n/app_localizations.dart';
+import '../utils/meal_type_localization.dart';
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -99,7 +103,9 @@ class RecipeCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        recipe.mealType,
+                        // recipe.mealType,
+                        // Localize meal type using helper to keep backend identifiers mapping
+                        localizeMealType(recipe.mealType, context),
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(width: 16),
@@ -110,7 +116,8 @@ class RecipeCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${recipe.totalTime} mins',
+                        // '${recipe.totalTime} mins',
+                        '${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
@@ -125,7 +132,8 @@ class RecipeCard extends StatelessWidget {
                           color: Colors.grey[600],
                         ),
                         Text(
-                          '${recipe.costPerServing!.toStringAsFixed(2)} per serving',
+                          // '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)} per serving',
+                          '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)} ${AppLocalizations.of(context)!.costPerServingSuffix}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],

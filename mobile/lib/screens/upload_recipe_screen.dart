@@ -7,6 +7,7 @@ import 'package:fithub/services/profile_service.dart';
 import 'package:fithub/models/user_profile.dart';
 import 'package:fithub/models/ingredient.dart'; // Import IngredientDetail
 import 'package:flutter_typeahead/flutter_typeahead.dart'; // Import flutter_typeahead
+import '../l10n/app_localizations.dart';
 
 class UploadRecipeScreen extends StatefulWidget {
   const UploadRecipeScreen({super.key});
@@ -54,13 +55,13 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
+        if (mounted) {
         setState(() {
           _isLoadingIngredients = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load ingredients: ${e.toString()}'),
+            content: Text(AppLocalizations.of(context)!.failedToLoadIngredients(e.toString())),
           ),
         );
       }
@@ -116,8 +117,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
     } catch (e) {
       print('Error picking image: $e');
       if (mounted) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
+        // );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToPickImage(e.toString()))),
         );
       }
     }
@@ -179,9 +183,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
               // Check if the widget is still in the tree
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    'Recipe uploaded, but failed to update profile count: ${e.toString()}',
-                  ),
+                  content: Text(AppLocalizations.of(context)!.recipeUploadedButProfileCountFailed(e.toString())),
                   backgroundColor: AppTheme.warningColor, // Use a warning color
                 ),
               );
@@ -189,18 +191,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
           }
           // Show success message regardless of count update success for now
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Recipe uploaded successfully!')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.recipeUploadedSuccess)),
           );
           Navigator.of(context).pop(); // Go back after successful upload
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to upload recipe.')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.failedToUploadRecipe)),
           );
         }
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.genericError(e.toString()))),
+        );
       } finally {
         setState(() {
           _isSubmitting = false;
@@ -213,7 +215,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upload New Recipe'),
+  title: Text(AppLocalizations.of(context)!.uploadRecipeTitle),
         backgroundColor: AppTheme.primaryGreen,
       ),
       body: Padding(
@@ -226,10 +228,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
               children: <Widget>[
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Recipe Name'),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.recipeNameLabel),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter the recipe name';
+                      return AppLocalizations.of(context)!.enterRecipeNameValidation;
                     }
                     return null;
                   },
@@ -244,9 +246,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Recipe Image (Optional)',
-                          style: TextStyle(
+                        Text(
+                          // 'Recipe Image (Optional)',
+                          AppLocalizations.of(context)!.recipeImageOptional,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -281,7 +284,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                           OutlinedButton.icon(
                             onPressed: _pickImage,
                             icon: const Icon(Icons.add_photo_alternate),
-                            label: const Text('Add Image'),
+                            label: Text(AppLocalizations.of(context)!.addImage),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
@@ -295,20 +298,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
 
                 TextFormField(
                   controller: _prepTimeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Preparation Time (minutes)',
-                  ),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.preparationTimeLabel),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter preparation time';
+                      return AppLocalizations.of(context)!.enterPreparationTime;
                     }
                     final n = int.tryParse(value);
                     if (n == null) {
-                      return 'Please enter a valid number';
+                      return AppLocalizations.of(context)!.enterValidNumber;
                     }
                     if (n <= 0) {
-                      return 'Time must be positive';
+                      return AppLocalizations.of(context)!.timeMustBePositive;
                     }
                     return null;
                   },
@@ -316,27 +317,25 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _cookTimeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Cooking Time (minutes)',
-                  ),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.cookingTimeLabel),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter cooking time';
+                      return AppLocalizations.of(context)!.enterPreparationTime;
                     }
                     final n = int.tryParse(value);
                     if (n == null) {
-                      return 'Please enter a valid number';
+                      return AppLocalizations.of(context)!.enterValidNumber;
                     }
                     if (n <= 0) {
-                      return 'Time must be positive';
+                      return AppLocalizations.of(context)!.timeMustBePositive;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Meal Type'),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.mealTypeLabel),
                   value: _selectedMealType,
                   items:
                       ['breakfast', 'lunch', 'dinner']
@@ -344,7 +343,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                             (label) => DropdownMenuItem(
                               value: label,
                               child: Text(
-                                label[0].toUpperCase() + label.substring(1),
+                                label == 'breakfast'
+                                    ? AppLocalizations.of(context)!.breakfast
+                                    : label == 'lunch'
+                                        ? AppLocalizations.of(context)!.lunch
+                                        : AppLocalizations.of(context)!.dinner,
                               ),
                             ),
                           )
@@ -356,7 +359,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please select a meal type';
+                      return AppLocalizations.of(context)!.selectMealTypeValidation;
                     }
                     return null;
                   },
@@ -364,22 +367,22 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _stepsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Steps',
-                    hintText: 'Enter each step on a new line...',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.stepsLabel,
+                    hintText: AppLocalizations.of(context)!.stepsHint,
                   ),
                   maxLines: null, // Allows for multi-line input
                   keyboardType: TextInputType.multiline,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter the steps';
+                      return AppLocalizations.of(context)!.enterStepsValidation;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Ingredients',
+                  AppLocalizations.of(context)!.ingredientsTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -422,12 +425,14 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                       controller:
                                           controller, // Use the controller from TypeAheadField's builder
                                       focusNode: focusNode,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Ingredient Name',
-                                      ),
+                                      // decoration: const InputDecoration(
+                                      //   labelText: 'Ingredient Name',
+                                      // ),
+                                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.ingredientNameLabel),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Enter ingredient name';
+                                          // return 'Enter ingredient name';
+                                          return AppLocalizations.of(context)!.enterIngredientNameValidation;
                                         }
                                         // Optional: Validate if the entered ingredient is in the list
                                         // if (!_allIngredients.any((ing) => ing.name.toLowerCase() == value.toLowerCase())) {
@@ -450,10 +455,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                         suggestion.name;
                                   },
                                   emptyBuilder: // Changed from noItemsFoundBuilder
-                                      (context) => const Padding(
-                                        padding: EdgeInsets.all(8.0),
+                                      (context) => Padding(
+                                        padding: const EdgeInsets.all(8.0),
                                         child: Text(
-                                          'No ingredients found.',
+                                          AppLocalizations.of(context)!.noIngredientsFound,
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
@@ -464,23 +469,21 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _ingredients[index]['quantity'],
-                                    decoration: const InputDecoration(
-                                      labelText: 'Quantity',
-                                    ),
+                                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.quantityLabel),
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return 'Enter quantity';
+                                        return AppLocalizations.of(context)!.enterQuantityValidation;
                                       }
                                       final n = double.tryParse(value);
                                       if (n == null) {
-                                        return 'Enter a valid number';
+                                        return AppLocalizations.of(context)!.enterValidNumber;
                                       }
                                       if (n <= 0) {
-                                        return 'Quantity must be positive';
+                                        return AppLocalizations.of(context)!.quantityPositiveValidation;
                                       }
                                       return null;
                                     },
@@ -490,12 +493,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _ingredients[index]['unit'],
-                                    decoration: const InputDecoration(
-                                      labelText: 'Unit (e.g., pcs, cup)',
-                                    ),
+                                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.unitLabel),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return 'Enter unit';
+                                        // return 'Enter unit';
+                                        return AppLocalizations.of(context)!.enterIngredientNameValidation;
                                       }
                                       return null;
                                     },
@@ -512,11 +514,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     Icons.remove_circle_outline,
                                     color: AppTheme.errorColor,
                                   ),
-                                  label: const Text(
-                                    'Remove',
-                                    style: TextStyle(
-                                      color: AppTheme.errorColor,
-                                    ),
+                                  label: Text(
+                                    AppLocalizations.of(context)!.removeLabel,
+                                    style: const TextStyle(color: AppTheme.errorColor),
                                   ),
                                   onPressed:
                                       () => _removeIngredientField(index),
@@ -531,7 +531,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                 const SizedBox(height: 16),
                 TextButton.icon(
                   icon: const Icon(Icons.add_circle_outline),
-                  label: const Text('Add Ingredient'),
+                  label: Text(AppLocalizations.of(context)!.addIngredientLabel),
                   onPressed: _addIngredientField,
                   style: TextButton.styleFrom(
                     foregroundColor: AppTheme.primaryGreen,
@@ -557,8 +557,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                               strokeWidth: 2.0,
                             ),
                           )
-                          : const Text(
-                            'Upload Recipe',
+                          : Text(
+                            AppLocalizations.of(context)!.uploadRecipeButton,
                             style: TextStyle(color: Colors.white),
                           ),
                 ),

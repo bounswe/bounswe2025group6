@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/report.dart';
 import '../services/report_service.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 /// A reusable dialog for reporting content (posts or recipes)
 class ReportDialog extends StatefulWidget {
@@ -73,8 +74,8 @@ class _ReportDialogState extends State<ReportDialog> {
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Report submitted successfully. Thank you for your feedback.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.reportSubmittedSuccess),
           backgroundColor: AppTheme.successColor,
           duration: Duration(seconds: 3),
         ),
@@ -92,7 +93,7 @@ class _ReportDialogState extends State<ReportDialog> {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to submit report: ${e.toString()}'),
+          content: Text(AppLocalizations.of(context)!.reportSubmitFailed(e.toString())),
           backgroundColor: AppTheme.errorColor,
           duration: const Duration(seconds: 4),
         ),
@@ -115,7 +116,14 @@ class _ReportDialogState extends State<ReportDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        'Report ${_getContentTypeDisplayName()}',
+        // Use localized label for content type (post/recipe) instead of raw enum value
+        () {
+          final loc = AppLocalizations.of(context)!;
+      final typeLabel = widget.contentType == ReportContentType.post
+        ? loc.postFallback
+        : loc.recipeFallback;
+      return '${loc.reportLabel} $typeLabel';
+        }(),
         style: const TextStyle(
           color: AppTheme.textOnLight,
           fontWeight: FontWeight.bold,
@@ -148,8 +156,8 @@ class _ReportDialogState extends State<ReportDialog> {
               const SizedBox(height: 16),
 
               // Report type label
-              const Text(
-                'Why are you reporting this?',
+              Text(
+                AppLocalizations.of(context)!.reportWhy,
                 style: TextStyle(
                   color: AppTheme.textOnLight,
                   fontWeight: FontWeight.bold,
@@ -160,16 +168,38 @@ class _ReportDialogState extends State<ReportDialog> {
 
               // Report type selection
               ...ReportType.values.map((type) {
+                final loc = AppLocalizations.of(context)!;
+                String title;
+                String subtitle;
+                switch (type) {
+                  case ReportType.spam:
+                    title = loc.reportTypeSpam;
+                    subtitle = loc.reportTypeSpamDescription;
+                    break;
+                  case ReportType.inappropriate:
+                    title = loc.reportTypeInappropriate;
+                    subtitle = loc.reportTypeInappropriateDescription;
+                    break;
+                  case ReportType.harassment:
+                    title = loc.reportTypeHarassment;
+                    subtitle = loc.reportTypeHarassmentDescription;
+                    break;
+                  case ReportType.other:
+                    title = loc.reportTypeOther;
+                    subtitle = loc.reportTypeOtherDescription;
+                    break;
+                }
+
                 return RadioListTile<ReportType>(
                   title: Text(
-                    type.displayName,
+                    title,
                     style: const TextStyle(
                       color: AppTheme.textOnLight,
                       fontSize: 15,
                     ),
                   ),
                   subtitle: Text(
-                    type.description,
+                    subtitle,
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 13,
@@ -194,9 +224,9 @@ class _ReportDialogState extends State<ReportDialog> {
               // Description field
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Additional details (optional)',
-                  hintText: 'Provide more information about this report...',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.reportAdditionalDetails,
+                  hintText: AppLocalizations.of(context)!.reportAdditionalDetailsHint,
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
@@ -213,28 +243,28 @@ class _ReportDialogState extends State<ReportDialog> {
           onPressed: _isSubmitting
               ? null
               : () => Navigator.of(context).pop(false),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: AppTheme.textSecondary),
-          ),
+          child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
         ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _submitReport,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.errorColor,
-            foregroundColor: AppTheme.textOnDark,
+          ElevatedButton(
+            onPressed: _isSubmitting ? null : _submitReport,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: AppTheme.textOnDark,
+            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(AppLocalizations.of(context)!.submitReport),
           ),
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text('Submit Report'),
-        ),
       ],
     );
   }

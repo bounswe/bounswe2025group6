@@ -34,12 +34,17 @@ enum Currency {
   const Currency(this.value);
 
   String get displayName {
-    switch (this) {
-      case Currency.usd:
-        return 'US Dollar (\$)';
-      case Currency.try_:
-        return 'Turkish Lira (₺)';
-    }
+    // Localized labels are provided via AppLocalizations in the frontend.
+    // Enum-level display names for Currency are commented out to avoid
+    // duplication and to ensure localization is centralized.
+    //
+    // switch (this) {
+    //   case Currency.usd:
+    //     return 'US Dollar (\$)';
+    //   case Currency.try_:
+    //     return 'Turkish Lira (₺)';
+    // }
+    throw UnimplementedError('Use localizedCurrencyLabel(context, currency) instead');
   }
 }
 
@@ -51,17 +56,21 @@ enum AccessibilityNeeds {
   hearing;
 
   String get displayName {
-    switch (this) {
-      case AccessibilityNeeds.none:
-        return 'None';
-      case AccessibilityNeeds.colorblind:
-        return 'Colorblind';
-      case AccessibilityNeeds.visual:
-        return 'Visual Impairment';
-      case AccessibilityNeeds.hearing:
-        return 'Hearing Impairment';
-    }
-  }
+    // Accessibility labels are localized via AppLocalizations in the UI.
+    // The enum-level displayName is commented out to avoid hard-coded strings.
+    //
+    // switch (this) {
+    //   case AccessibilityNeeds.none:
+    //     return 'None';
+    //   case AccessibilityNeeds.colorblind:
+    //     return 'Colorblind';
+    //   case AccessibilityNeeds.visual:
+    //     return 'Visual Impairment';
+    //   case AccessibilityNeeds.hearing:
+    //     return 'Hearing Impairment';
+    // }
+    throw UnimplementedError('Use localizedAccessibilityLabel(context, accessibilityNeeds) instead');
+  } 
 }
 
 class UserProfile {

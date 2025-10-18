@@ -7,6 +7,7 @@ import 'discover_recipes_screen.dart';
 import 'upload_recipe_screen.dart'; // Added import for UploadRecipeScreen
 import '../services/auth_service.dart';
 import 'community/community_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AuthService? authService;
@@ -21,7 +22,8 @@ class DashboardScreen extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              'FitHub',
+              // 'FitHub'
+              AppLocalizations.of(context)!.appTitle,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -43,16 +45,16 @@ class DashboardScreen extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure you want to logout?'),
+                    title: Text(AppLocalizations.of(context)!.logout),
+                    content: Text(AppLocalizations.of(context)!.logoutConfirmation),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
+                        child: Text(AppLocalizations.of(context)!.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Logout'),
+                        child: Text(AppLocalizations.of(context)!.logout),
                       ),
                     ],
                   );
@@ -79,7 +81,7 @@ class DashboardScreen extends StatelessWidget {
                   // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Logout failed: ${e.toString()}'),
+                      content: Text(AppLocalizations.of(context)!.logoutFailed(e.toString())),
                       backgroundColor: AppTheme.errorColor,
                     ),
                   );
@@ -103,12 +105,13 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome section
-              const Text(
-                'Welcome back!',
+              Text(
+                AppLocalizations.of(context)!.welcomeBack,
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              const Text(
-                'Manage your meals, recipes, and plans here.',
+              Text(
+                // 'Manage your meals, recipes, and plans here.',
+                AppLocalizations.of(context)!.dashboardSubtitle,
                 style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 24),
@@ -123,7 +126,7 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   _buildDashboardCard(
                     icon: Icons.restaurant_menu,
-                    title: 'Discover Recipes',
+                    title: AppLocalizations.of(context)!.discoverRecipes,
                     color: Colors.blue,
                     onTap: () {
                       Navigator.push(
@@ -136,7 +139,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   _buildDashboardCard(
                     icon: Icons.upload_file,
-                    title: 'Upload Recipe',
+                    title: AppLocalizations.of(context)!.uploadRecipe,
                     color: AppTheme.primaryGreen,
                     onTap: () {
                       Navigator.push(
@@ -149,7 +152,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   _buildDashboardCard(
                     icon: Icons.group,
-                    title: 'Join Community',
+                    title: AppLocalizations.of(context)!.joinCommunity,
                     color: Colors.purple,
                     onTap: () {
                       Navigator.pushNamed(context, '/community');
@@ -157,7 +160,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   _buildDashboardCard(
                     icon: Icons.calendar_today,
-                    title: 'Plan a Meal',
+                    title: AppLocalizations.of(context)!.planMeal,
                     color: Colors.orange,
                     onTap: () {},
                   ),
@@ -171,18 +174,18 @@ class DashboardScreen extends StatelessWidget {
         currentIndex: 0,
         selectedItemColor: AppTheme.primaryGreen,
         unselectedItemColor: AppTheme.textSecondary,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.group),
-            label: 'Community',
+            label: AppLocalizations.of(context)!.community,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: AppLocalizations.of(context)!.profile,
           ),
         ],
         onTap: (index) {

@@ -3,6 +3,7 @@ import '../models/recipe.dart';
 import '../services/recipe_service.dart';
 import '../widgets/recipe_card.dart'; // Ensure this path is correct
 import '../theme/app_theme.dart'; // Import AppTheme
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
 
 class DiscoverRecipesScreen extends StatefulWidget {
   const DiscoverRecipesScreen({Key? key}) : super(key: key);
@@ -29,6 +30,12 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
     'High-Protein', 'Low-Carbohydrate', 'Vegetarian', 'Vegan', 'Gluten-Free',
     // 'Quick', 'Budget-Friendly' // These might need specific backend fields or logic
   ];
+
+  // NOTE: The visual labels for these dietary options are localized via
+  // AppLocalizations. The list above contains the internal values that may
+  // match backend tags (kept for filtering logic). The old hardcoded display
+  // strings are preserved above; localization getters are used when showing
+  // labels to the user.
 
   @override
   void initState() {
@@ -129,7 +136,7 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Discover Recipes'),
+        title: Text(AppLocalizations.of(context)!.discoverRecipesTitle),
         // TODO: Add filter/sort actions
       ),
       body: Column(
@@ -140,8 +147,8 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
               // Wrap in a Column to add more filter controls
               children: [
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Search Recipes',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.searchRecipes,
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.search),
                   ),
@@ -156,8 +163,8 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                 ),
                 const SizedBox(height: 8), // Spacing
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Max Cost (e.g., 50.0)',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.maxCost,
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.attach_money),
                   ),
@@ -175,77 +182,100 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Dietary Options:',
+                  AppLocalizations.of(context)!.dietaryOptions,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 Wrap(
                   spacing: 8.0,
-                  children:
-                      _dietaryOptions.map((option) {
-                        final bool isSelected = _selectedDietaryFilters
-                            .contains(option);
-                        return ChoiceChip(
-                          label: Text(
-                            option,
-                            style: TextStyle(
-                              color:
-                                  isSelected
-                                      ? Colors.white
-                                      : Colors.black, // Text color
-                            ),
-                          ),
-                          selected: isSelected,
-                          selectedColor:
-                              AppTheme
-                                  .primaryGreen, // Selected background color
-                          backgroundColor:
-                              AppTheme
-                                  .backgroundGrey, // Unselected background color
-                          onSelected: (selected) {
-                            if (mounted) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedDietaryFilters.add(option);
-                                } else {
-                                  _selectedDietaryFilters.remove(option);
-                                }
-                                _applyFiltersAndSort();
-                              });
+                
+                  children: _dietaryOptions.map((optionValue) {
+                    // optionValue is the internal tag (e.g. 'High-Protein').
+                    // We map it to a localized display label when rendering.
+                    final bool isSelected = _selectedDietaryFilters
+                        .contains(optionValue);
+
+                    String _localizedLabel() {
+                      final loc = AppLocalizations.of(context)!;
+                      switch (optionValue) {
+                        case 'High-Protein':
+                          return loc.dietaryHighProtein;
+                        case 'Low-Carbohydrate':
+                          return loc.dietaryLowCarbohydrate;
+                        case 'Vegetarian':
+                          return loc.dietaryVegetarian;
+                        case 'Vegan':
+                          return loc.dietaryVegan;
+                        case 'Gluten-Free':
+                          return loc.dietaryGlutenFree;
+                        default:
+                          return optionValue;
+                      }
+                    }
+
+                    return ChoiceChip(
+                      label: Text(
+                        _localizedLabel(),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedColor: AppTheme.primaryGreen,
+                      backgroundColor: AppTheme.backgroundGrey,
+                      onSelected: (selected) {
+                        if (mounted) {
+                          setState(() {
+                            if (selected) {
+                              _selectedDietaryFilters.add(optionValue);
+                            } else {
+                              _selectedDietaryFilters.remove(optionValue);
                             }
-                          },
-                        );
-                      }).toList(),
+                            _applyFiltersAndSort();
+                          });
+                        }
+                      },
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Sort By:',
+                      AppLocalizations.of(context)!.sortBy,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: AppTheme.primaryGreen,
                       ),
                     ),
+                    
                     DropdownButton<String>(
                       value: _sortBy,
                       style: TextStyle(color: AppTheme.primaryGreen),
                       dropdownColor: AppTheme.backgroundGrey,
-                      items:
-                          <String>[
-                            'name',
-                            'cost',
-                            'time',
-                          ].map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(
-                                value[0].toUpperCase() + value.substring(1),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                ), // Ensure dropdown text is readable
-                              ), // Capitalize
-                            );
-                          }).toList(),
+                      items: <String>['name', 'cost', 'time']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        String label;
+                        final loc = AppLocalizations.of(context)!;
+                        switch (value) {
+                          case 'cost':
+                            label = loc.sortCost;
+                            break;
+                          case 'time':
+                            label = loc.sortTime;
+                            break;
+                          case 'name':
+                          default:
+                            label = loc.sortName;
+                            break;
+                        }
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            label,
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        );
+                      }).toList(),
                       onChanged: (String? newValue) {
                         if (mounted && newValue != null) {
                           setState(() {
@@ -283,13 +313,13 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(child: Text(AppLocalizations.of(context)!.errorLoadingRecipes(snapshot.error ?? '')));
                 } else if (snapshot.hasData && snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No recipes found.'));
+                  return Center(child: Text(AppLocalizations.of(context)!.noRecipesFound));
                 } else if (snapshot.hasData) {
                   if (_filteredRecipes.isEmpty && _allRecipes.isNotEmpty) {
-                    return const Center(
-                      child: Text('No recipes match your current filters.'),
+                    return Center(
+                      child: Text(AppLocalizations.of(context)!.noRecipesMatchFilters),
                     );
                   }
                   return ListView.builder(
@@ -300,7 +330,7 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                     },
                   );
                 } else {
-                  return const Center(child: Text('No recipes available.'));
+                  return Center(child: Text(AppLocalizations.of(context)!.noRecipesAvailable));
                 }
               },
             ),

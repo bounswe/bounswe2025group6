@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import './new_password_screen.dart'; 
+import '../l10n/app_localizations.dart';
+import '../widgets/language_toggle.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
   final String email;
@@ -33,10 +35,17 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify Code'),
+        // title: const Text('Verify Code'),
+        title: Text(AppLocalizations.of(context)!.verifyCodeTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.primaryGreen),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: LanguageToggle(),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -45,9 +54,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Verify Reset Code',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.verifyResetCodeHeading,
+                style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryGreen,
@@ -55,7 +64,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Enter the 6-digit code sent to ${widget.email}',
+                AppLocalizations.of(context)!.enter6DigitCodeSentTo(widget.email),
                 style: const TextStyle(
                   fontSize: 16,
                   color: AppTheme.textSecondary,
@@ -66,16 +75,16 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                 controller: _resetCodeController,
                 keyboardType: TextInputType.number,
                 maxLength: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Reset Code',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.resetCodeLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the reset code';
+                    return AppLocalizations.of(context)!.pleaseEnterResetCode;
                   }
                   if (value.length != 6) {
-                    return 'Reset code must be 6 digits';
+                    return AppLocalizations.of(context)!.resetCode6Digits;
                   }
                   return null;
                 },
@@ -96,9 +105,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Verify Code',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context)!.verifyCodeButton,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -127,8 +136,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Code verified successfully'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.codeVerifiedSuccessfully),
               backgroundColor: AppTheme.primaryGreen,
             ),
           );

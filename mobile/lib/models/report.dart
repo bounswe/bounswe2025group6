@@ -70,32 +70,50 @@ enum ReportType {
 
   String get value => name;
 
+/*
+Since this is now localized in the UI, we don't need hardcoded display names here.
+
   String get displayName {
     switch (this) {
       case ReportType.spam:
         return 'Spam';
       case ReportType.inappropriate:
         return 'Inappropriate Content';
+        return name;
       case ReportType.harassment:
         return 'Harassment';
+        return name;
       case ReportType.other:
         return 'Other';
+        return name;
     }
+*/
   }
+
+/* Since descriptions are now localized in the UI, we don't need hardcoded descriptions here.
 
   String get description {
     switch (this) {
       case ReportType.spam:
-        return 'Unsolicited or repetitive content';
+        // return 'Unsolicited or repetitive content';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeSpamDescription
+        return '';
       case ReportType.inappropriate:
-        return 'Offensive or inappropriate material';
+        // return 'Offensive or inappropriate material';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeInappropriateDescription
+        return '';
       case ReportType.harassment:
-        return 'Bullying or harassment';
+        // return 'Bullying or harassment';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeHarassmentDescription
+        return '';
       case ReportType.other:
-        return 'Other issues';
+        // return 'Other issues';
+        // Localize in UI: AppLocalizations.of(context)!.reportTypeOtherDescription
+        return '';
     }
   }
 }
+*/
 
 /// Request model for creating a report
 class CreateReportRequest {

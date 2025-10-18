@@ -2,6 +2,9 @@ import 'package:fithub/screens/verify_code_screen.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../widgets/language_toggle.dart';
+
 
 class ForgotPasswordScreen extends StatefulWidget {
   final AuthService? authService;
@@ -28,10 +31,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Forgot Password'),
+        title: Text(AppLocalizations.of(context)!.forgotPasswordTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.primaryGreen),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: LanguageToggle(),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -40,8 +49,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Reset Password',
+              Text(
+                AppLocalizations.of(context)!.resetPasswordHeading,
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -49,8 +58,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Enter your email address and we will send you instructions to reset your password.',
+              Text(
+                AppLocalizations.of(context)!.resetPasswordDescription,
                 style: TextStyle(
                   fontSize: 16,
                   color: AppTheme.textSecondary,
@@ -60,17 +69,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'EMAIL',
+                decoration: InputDecoration(
+                  // labelText: 'EMAIL',
+                  labelText: AppLocalizations.of(context)!.emailLabel,
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
+                    return AppLocalizations.of(context)!.pleaseEnterEmail;
                   }
                   // Basic email validation
                   if (!value.contains('@')) {
-                    return 'Please enter a valid email';
+                    return AppLocalizations.of(context)!.invalidEmail;
                   }
                   return null;
                 },
@@ -88,8 +98,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        'Send Reset Link',
+                      child: Text(
+                        AppLocalizations.of(context)!.sendResetLink,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -116,8 +126,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Password reset code has been sent to your email'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.passwordResetSent),
               backgroundColor: AppTheme.primaryGreen,
             ),
           );
@@ -135,7 +145,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e.toString()),
+              content: Text(AppLocalizations.of(context)!.genericError(e.toString())),
               backgroundColor: AppTheme.errorColor,
             ),
           );

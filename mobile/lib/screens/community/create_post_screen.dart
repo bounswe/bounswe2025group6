@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../services/community_service.dart';
 import '../../services/storage_service.dart';
 import '../../screens/login_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({Key? key}) : super(key: key);
@@ -16,6 +18,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
+  // Keep English values for tags (backend expects these); comment left for reference
   final List<String> _validTags = [
     'Budget', 'Meal Prep', 'Family', 'No Waste', 'Sustainability',
     'Tips', 'Gluten Free', 'Vegan', 'Vegetarian', 'Quick',
@@ -58,7 +61,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Widget _buildTagChip(String tag) {
     return Chip(
-      label: Text(tag),
+      // Display localized label for stored English tag value
+      label: Text(localizedTagLabel(context, tag)),
       deleteIcon: const Icon(Icons.close, size: 18),
       onDeleted: () {
         setState(() {
@@ -72,8 +76,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Tags*',
+        Text(
+          AppLocalizations.of(context)!.tagsLabel,
           style: TextStyle(fontSize: 16),
         ),
         const SizedBox(height: 8),
@@ -81,22 +85,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           spacing: 8,
           runSpacing: 8,
           children: _validTags.map((tag) => FilterChip(
-            label: Text(tag),
-            selected: _tags.contains(tag),
-            onSelected: (selected) {
-              setState(() {
-                if (selected) {
-                  _tags.add(tag);
-                } else {
-                  _tags.remove(tag);
-                }
-              });
-            },
-          )).toList(),
+              label: Text(localizedTagLabel(context, tag)),
+              selected: _tags.contains(tag),
+              onSelected: (selected) {
+                setState(() {
+                  if (selected) {
+                    _tags.add(tag);
+                  } else {
+                    _tags.remove(tag);
+                  }
+                });
+              },
+            )).toList(),
         ),
         if (_tags.isNotEmpty) ...[
           const SizedBox(height: 16),
-          const Text('Selected Tags:', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(AppLocalizations.of(context)!.selectedTagsLabel, style: TextStyle(fontWeight: FontWeight.bold)),
           Wrap(
             spacing: 8,
             children: _tags.map(_buildTagChip).toList(),
@@ -110,7 +114,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Post'),
+        title: Text(AppLocalizations.of(context)!.createPostTitle), // 'Create Post'
         actions: [
           _isLoading
               ? const Center(
@@ -121,8 +125,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 )
               : TextButton(
                   onPressed: _submitPost,
-                  child: const Text(
-                    'Post',
+                  child: Text(
+                    AppLocalizations.of(context)!.postButton, // 'Post'
                     style: TextStyle(color: Colors.black),
                   ),
                 ),
@@ -135,20 +139,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title*',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.titleLabel,
                 border: OutlineInputBorder(),
-                helperText: 'Maximum 255 characters',
+                helperText: AppLocalizations.of(context)!.titleHelper,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Title is required';
+                  return AppLocalizations.of(context)!.titleRequired;
                 }
                 if (value.length > 255) {
-                  return 'Title must be less than 255 characters';
+                  return AppLocalizations.of(context)!.titleTooLong;
                 }
                 if (value.length < 1) {
-                  return 'Title must be at least 1 character';
+                  return AppLocalizations.of(context)!.titleTooShort;
                 }
                 return null;
               },
@@ -156,21 +160,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _contentController,
-              decoration: const InputDecoration(
-                labelText: 'Content*',
+                decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.contentLabel,
                 border: OutlineInputBorder(),
-                helperText: 'Maximum 1000 characters',
+                helperText: AppLocalizations.of(context)!.contentHelper,
               ),
               maxLines: 5,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Content is required';
+                  return AppLocalizations.of(context)!.contentRequired;
                 }
                 if (value.length > 1000) {
-                  return 'Content must be less than 1000 characters';
+                  return AppLocalizations.of(context)!.contentTooLong;
                 }
                 if (value.length < 1) {
-                  return 'Content must be at least 1 character';
+                  return AppLocalizations.of(context)!.contentTooShort;
                 }
                 return null;
               },
@@ -179,7 +183,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             _buildTagSection(),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Allow Comments'),
+              title: Text(AppLocalizations.of(context)!.allowComments),
               value: _isCommentable,
               onChanged: (bool value) {
                 setState(() {
@@ -216,7 +220,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post created successfully')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.postCreatedSuccess)),
         );
         Navigator.pop(context, true);
       } catch (e) {

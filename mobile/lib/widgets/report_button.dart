@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/report.dart';
 import '../theme/app_theme.dart';
 import 'report_dialog.dart';
+import '../l10n/app_localizations.dart';
 
 /// A reusable button for reporting content
 /// Can be used in posts, recipes, or any other reportable content
@@ -49,7 +50,7 @@ class ReportButton extends StatelessWidget {
           color: AppTheme.errorColor,
         ),
         label: Text(
-          label ?? 'Report',
+          label ?? AppLocalizations.of(context)!.reportLabel,
           style: const TextStyle(
             color: AppTheme.errorColor,
             fontSize: 14,
@@ -63,7 +64,7 @@ class ReportButton extends StatelessWidget {
         icon ?? Icons.flag_outlined,
         color: AppTheme.errorColor,
       ),
-      tooltip: label ?? 'Report this content',
+      tooltip: label ?? AppLocalizations.of(context)!.reportThisContent,
       onPressed: () => _handleReport(context),
     );
   }
@@ -77,23 +78,26 @@ class ReportMenuItem extends PopupMenuItem<String> {
   }) : super(
           value: 'report',
           onTap: onTap,
-          child: const Row(
-            children: [
-              Icon(
-                Icons.flag_outlined,
-                color: AppTheme.errorColor,
-                size: 20,
-              ),
-              SizedBox(width: 12),
-              Text(
-                'Report',
-                style: TextStyle(
+          child: Builder(builder: (context) {
+            final loc = AppLocalizations.of(context)!;
+            return Row(
+              children: [
+                const Icon(
+                  Icons.flag_outlined,
                   color: AppTheme.errorColor,
-                  fontSize: 14,
+                  size: 20,
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Text(
+                  loc.reportLabel,
+                  style: const TextStyle(
+                    color: AppTheme.errorColor,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            );
+          }),
         );
 }
 
