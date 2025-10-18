@@ -351,7 +351,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dislikedFoodsHint => 'Sevmediklerim (virgülle ayırın)';
 
   @override
-  String get monthlyBudgetHint => 'Aylık Bütçe (\$) (Opsiyonel)';
+  String get monthlyBudgetHint => 'Aylık Bütçe (Opsiyonel)';
 
   @override
   String get publicProfileLabel => 'Genel Profil';

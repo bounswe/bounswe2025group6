@@ -349,7 +349,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dislikedFoodsHint => 'Disliked Foods (comma separated)';
 
   @override
-  String get monthlyBudgetHint => 'Monthly Budget (\$) (Optional)';
+  String get monthlyBudgetHint => 'Monthly Budget (Optional)';
 
   @override
   String get publicProfileLabel => 'Public Profile';

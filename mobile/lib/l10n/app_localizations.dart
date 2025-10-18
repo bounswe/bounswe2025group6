@@ -749,7 +749,7 @@ abstract class AppLocalizations {
   /// Hint for monthly budget input
   ///
   /// In en, this message translates to:
-  /// **'Monthly Budget (\$) (Optional)'**
+  /// **'Monthly Budget (Optional)'**
   String get monthlyBudgetHint;
 
   /// Label for public profile switch

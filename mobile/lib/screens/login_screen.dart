@@ -7,6 +7,10 @@ import '../services/storage_service.dart';
 import 'package:fithub/screens/dashboard_screen.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import '../widgets/language_toggle.dart';
+import 'package:provider/provider.dart';
+import '../services/profile_service.dart';
+import '../providers/locale_provider.dart';
+import '../providers/currency_provider.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -291,6 +295,22 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       _showSuccessMessage(context);
+
+      // Fetch latest user profile from backend and apply backend language preference
+      try {
+        final profileService = ProfileService();
+        final profile = await profileService.getUserProfile();
+        // Update the app locale based on backend preference immediately.
+        if (context.mounted) {
+          Provider.of<LocaleProvider>(context, listen: false)
+              .setLocaleFromLanguage(profile.language);
+          // Also update currency provider based on backend preference.
+          Provider.of<CurrencyProvider>(context, listen: false)
+              .setCurrency(profile.preferredCurrency);
+        }
+      } catch (e) {
+        // If profile fetch fails, ignore and proceed to dashboard. Do not persist any pre-login manual language or currency.
+      }
 
       // Navigate to dashboard and remove all previous routes
       Navigator.of(context).pushAndRemoveUntil(
