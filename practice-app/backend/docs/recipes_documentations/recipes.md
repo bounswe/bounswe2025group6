@@ -18,8 +18,8 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     "Heat oil in a pan, sauté vegetables, then pour in eggs.",
     "Cook until set and fold the omelette in half."
   ],
-  "prep_time": 8,
-  "cook_time": 7,
+  "prep_time": 3,
+  "cook_time": 5,
   "meal_type": "breakfast",
   "ingredients": [
     {
@@ -29,8 +29,13 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     },
     {
       "ingredient_name": "Bell Pepper",
-      "quantity": 0.5,
-      "unit": "cup"
+      "quantity": 1,
+      "unit": "pcs"
+    },
+    {
+      "ingredient_name": "Olive Oil",
+      "quantity": 1,
+      "unit": "tbsp"
     }
   ],
   "image": "<any image file in png or jpg format>"
@@ -134,6 +139,167 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
   "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
   "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
+}
+
+{
+  "id": 52,
+  "name": "Omlette",
+  "steps": [
+    "Crack the eggs into a bowl and whisk them.",
+    "Chop the vegetables finely."
+  ],
+  "prep_time": 3,
+  "cook_time": 5,
+  "meal_type": "lunch",
+  "creator_id": 1,
+  "ingredients": [
+    {
+      "ingredient": {
+        "id": 225,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
+        "deleted_on": null,
+        "name": "Eggs",
+        "category": "proteins",
+        "allergens": [
+          "egg"
+        ],
+        "dietary_info": [
+          "high-protein",
+          "gluten-free"
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 0.2,
+          "SOK": 0.23,
+          "BIM": 0.23,
+          "MIGROS": 0.26
+        }
+      },
+      "quantity": "3.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.6,
+        "SOK": 0.69,
+        "BIM": 0.69,
+        "MIGROS": 0.78
+      }
+    },
+    {
+      "ingredient": {
+        "id": 212,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
+        "deleted_on": null,
+        "name": "Bell Pepper",
+        "category": "vegetables",
+        "allergens": [],
+        "dietary_info": [
+          "vegan",
+          "gluten-free"
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 0.75,
+          "SOK": 0.7,
+          "BIM": 0.65,
+          "MIGROS": 0.8
+        }
+      },
+      "quantity": "1.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.75,
+        "SOK": 0.7,
+        "BIM": 0.65,
+        "MIGROS": 0.8
+      }
+    },
+    {
+      "ingredient": {
+        "id": 233,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
+        "deleted_on": null,
+        "name": "Olive Oil",
+        "category": "oils_and_fats",
+        "allergens": [],
+        "dietary_info": [
+          "healthy-fat"
+        ],
+        "base_unit": "ml",
+        "base_quantity": "100.00",
+        "allowed_units": [
+          "ml",
+          "l",
+          "tbsp"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 1.2,
+          "SOK": 1.35,
+          "BIM": 1.1,
+          "MIGROS": 1.25
+        }
+      },
+      "quantity": "1.00",
+      "unit": "tbsp",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.3,
+        "SOK": 0.34,
+        "BIM": 0.28,
+        "MIGROS": 0.31
+      }
+    }
+  ],
+  "cost_per_serving": "0.66",
+  "recipe_costs": { // Wrong calculation in the backend, fix it
+    "price_A101": 1.36,
+    "price_SOK": 2.09,
+    "price_BIM": 0.66,
+    "price_MIGROS": 1.59
+  },
+  "difficulty_rating": null,
+  "taste_rating": null,
+  "health_rating": null,
+  "like_count": 0,
+  "comment_count": 0,
+  "difficulty_rating_count": 0,
+  "taste_rating_count": 0,
+  "health_rating_count": 0,
+  "is_approved": false,
+  "is_featured": false,
+  "created_at": "2025-10-18T08:34:48.934143Z",
+  "updated_at": "2025-10-18T08:34:48.934170Z",
+  "deleted_on": null,
+  "total_time": 8,
+  "total_user_ratings": 0,
+  "total_ratings": 0,
+  "allergens": [
+    "egg"
+  ],
+  "dietary_info": [
+    "vegan",
+    "healthy-fat",
+    "gluten-free",
+    "high-protein"
+  ],
+  "image": "image/upload/v1760776490/flpxvivt6jyj0xllbpws.png",
+  "image_relative_url": "flpxvivt6jyj0xllbpws",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760776490/flpxvivt6jyj0xllbpws.png"
 }
 ```
 
@@ -243,7 +409,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 
 #### 🔍 Request Format
 - Path variable:
-  - "id": 12
+  - "id": 52
 
 - Must be provided:
   - `id`: The ID of the recipe to retrieve.
@@ -252,24 +418,21 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 12,
-  "name": "Veggie Omelette",
+  "id": 52,
+  "name": "Omlette",
   "steps": [
-    "Crack the eggs into a bowl and whisk them.",
-    "Chop the vegetables finely.",
-    "Heat oil in a pan, sauté vegetables, then pour in eggs.",
-    "Cook until set and fold the omelette in half."
+    "Crack the eggs into a bowl and whisk them.,Chop the vegetables finely."
   ],
-  "prep_time": 8,
-  "cook_time": 7,
-  "meal_type": "breakfast",
+  "prep_time": 3,
+  "cook_time": 5,
+  "meal_type": "lunch",
   "creator_id": 1,
   "ingredients": [
     {
       "ingredient": {
-        "id": 4,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
+        "id": 225,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
         "deleted_on": null,
         "name": "Eggs",
         "category": "proteins",
@@ -279,47 +442,111 @@ This document describes how to use the Recipe API endpoint, which allows for cre
         "dietary_info": [
           "high-protein",
           "gluten-free"
-        ]
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 0.2,
+          "SOK": 0.23,
+          "BIM": 0.23,
+          "MIGROS": 0.26
+        }
       },
-      "quantity": 3,
-      "unit": "pcs"
+      "quantity": "3.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.6,
+        "SOK": 0.69,
+        "BIM": 0.69,
+        "MIGROS": 0.78
+      }
     },
     {
       "ingredient": {
-        "id": 5,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
+        "id": 212,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
         "deleted_on": null,
-        "name": "Tofu",
-        "category": "proteins",
-        "allergens": [],
-        "dietary_info": [
-          "vegan",
-          "soy-based"
-        ]
-      },
-      "quantity": 0.5,
-      "unit": "cup"
-    },
-    {
-      "ingredient": {
-        "id": 6,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
-        "deleted_on": null,
-        "name": "Spinach",
+        "name": "Bell Pepper",
         "category": "vegetables",
         "allergens": [],
         "dietary_info": [
           "vegan",
           "gluten-free"
-        ]
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 0.75,
+          "SOK": 0.7,
+          "BIM": 0.65,
+          "MIGROS": 0.8
+        }
       },
-      "quantity": 1,
-      "unit": "pcs"
+      "quantity": "1.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.75,
+        "SOK": 0.7,
+        "BIM": 0.65,
+        "MIGROS": 0.8
+      }
+    },
+    {
+      "ingredient": {
+        "id": 233,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
+        "deleted_on": null,
+        "name": "Olive Oil",
+        "category": "oils_and_fats",
+        "allergens": [],
+        "dietary_info": [
+          "healthy-fat"
+        ],
+        "base_unit": "ml",
+        "base_quantity": "100.00",
+        "allowed_units": [
+          "ml",
+          "l",
+          "tbsp"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 1.2,
+          "SOK": 1.35,
+          "BIM": 1.1,
+          "MIGROS": 1.25
+        }
+      },
+      "quantity": "1.00",
+      "unit": "tbsp",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.3,
+        "SOK": 0.34,
+        "BIM": 0.28,
+        "MIGROS": 0.31
+      }
     }
   ],
-  "cost_per_serving": null,
+  "cost_per_serving": "0.66",
+  "recipe_costs": {
+    "price_A101": 1.36,
+    "price_SOK": 2.09,
+    "price_BIM": 0.66,
+    "price_MIGROS": 1.59
+  },
   "difficulty_rating": null,
   "taste_rating": null,
   "health_rating": null,
@@ -330,24 +557,24 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-05-04T22:24:17.814577Z",
-  "updated_at": "2025-05-04T22:24:17.814642Z",
+  "created_at": "2025-10-18T08:34:48.934143Z",
+  "updated_at": "2025-10-18T08:34:48.934170Z",
   "deleted_on": null,
-  "total_time": 15,
+  "total_time": 8,
   "total_user_ratings": 0,
   "total_ratings": 0,
-  "alergens": [
+  "allergens": [
     "egg"
   ],
   "dietary_info": [
-    "high-protein",
+    "vegan",
+    "healthy-fat",
     "gluten-free",
-    "soy-based",
-    "vegan"
+    "high-protein"
   ],
-  "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
-  "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
-  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
+  "image": "image/upload/v1760776490/flpxvivt6jyj0xllbpws.png",
+  "image_relative_url": "flpxvivt6jyj0xllbpws",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760776490/flpxvivt6jyj0xllbpws.png"
 }
 ```
 
@@ -361,7 +588,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 ```json
 
 {
-  "name": "Omelette",
+  "name": "Updated Omelette",
   "steps": [
     "Crack the eggs into a bowl and whisk them.",
     "Chop the vegetables finely."
@@ -377,8 +604,8 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     },
     {
       "ingredient_name": "Bell Pepper",
-      "quantity": 2,
-      "unit": "cups"
+      "quantity": 4,
+      "unit": "pcs"
     }
   ],
   "image": "<any image file in png or jpg format>"
@@ -386,7 +613,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 ```
 
 - Path variable:
-  - "id": 13
+  - "id": 52
 
 - Must be provided:
   - `id`: The ID of the recipe to retrieve.
@@ -406,11 +633,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 20,
-  "name": "omelette",
+  "id": 52,
+  "name": "Updated Omelette",
   "steps": [
-    "Crack the eggs into a bowl and whisk them.",
-    "Chop the vegetables finely."
+    "Crack the eggs into a bowl and whisk them.,Chop the vegetables finely."
   ],
   "prep_time": 5,
   "cook_time": 5,
@@ -419,9 +645,9 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "ingredients": [
     {
       "ingredient": {
-        "id": 19,
-        "created_at": "2025-10-13T11:28:00Z",
-        "updated_at": "2025-10-13T11:28:00Z",
+        "id": 225,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
         "deleted_on": null,
         "name": "Eggs",
         "category": "proteins",
@@ -431,16 +657,35 @@ This document describes how to use the Recipe API endpoint, which allows for cre
         "dietary_info": [
           "high-protein",
           "gluten-free"
-        ]
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 0.2,
+          "SOK": 0.23,
+          "BIM": 0.23,
+          "MIGROS": 0.26
+        }
       },
-      "quantity": 3,
-      "unit": "pcs"
+      "quantity": "2.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 0.4,
+        "SOK": 0.46,
+        "BIM": 0.46,
+        "MIGROS": 0.52
+      }
     },
     {
       "ingredient": {
-        "id": 6,
-        "created_at": "2025-10-13T11:28:00Z",
-        "updated_at": "2025-10-13T11:28:00Z",
+        "id": 212,
+        "created_at": "2025-10-16T21:02:31Z",
+        "updated_at": "2025-10-16T21:02:31Z",
         "deleted_on": null,
         "name": "Bell Pepper",
         "category": "vegetables",
@@ -448,13 +693,38 @@ This document describes how to use the Recipe API endpoint, which allows for cre
         "dietary_info": [
           "vegan",
           "gluten-free"
-        ]
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 0.75,
+          "SOK": 0.7,
+          "BIM": 0.65,
+          "MIGROS": 0.8
+        }
       },
-      "quantity": 0.5,
-      "unit": "cup"
+      "quantity": "4.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 3,
+        "SOK": 2.8,
+        "BIM": 2.6,
+        "MIGROS": 3.2
+      }
     }
   ],
-  "cost_per_serving": null,
+  "cost_per_serving": "2.60",
+  "recipe_costs": { // Wrong calculation in the backend, fix it
+    "price_A101": 3.4,
+    "price_SOK": 3.72,
+    "price_BIM": 2.6,
+    "price_MIGROS": 3.72
+  },
   "difficulty_rating": null,
   "taste_rating": null,
   "health_rating": null,
@@ -465,23 +735,23 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-10-13T17:50:08.450819Z",
-  "updated_at": "2025-10-13T17:50:08.450850Z",
+  "created_at": "2025-10-18T08:34:48.934143Z",
+  "updated_at": "2025-10-18T08:42:13.585971Z",
   "deleted_on": null,
   "total_time": 10,
   "total_user_ratings": 0,
   "total_ratings": 0,
-  "alergens": [
+  "allergens": [
     "egg"
   ],
   "dietary_info": [
-    "gluten-free",
     "vegan",
+    "gluten-free",
     "high-protein"
   ],
-  "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
-  "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
-  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
+  "image": "image/upload/v1760776490/flpxvivt6jyj0xllbpws.png",
+  "image_relative_url": "flpxvivt6jyj0xllbpws",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760776490/flpxvivt6jyj0xllbpws.png"
 }
 ```
 
@@ -492,7 +762,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 
 #### 🔍 Request Format
 - Path variable:
-  - "id": 12
+  - "id": 52
 
 - Must be provided:
   - `id`: The ID of the recipe to retrieve.
