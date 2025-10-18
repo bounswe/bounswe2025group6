@@ -55,6 +55,10 @@ class Ingredient(TimestampedModel):
                 raise ValidationError("Base unit must be included in allowed_units.")
 
     def convert_quantity_to_base(self, quantity, unit):
+        """
+        Convert given quantity in specified unit to base unit quantity.
+        Example: if base_unit is 'g' and quantity=5, unit='kg', returns 5000
+        """
         if unit == self.base_unit:
             return Decimal(quantity)
 

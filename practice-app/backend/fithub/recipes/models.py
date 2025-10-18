@@ -85,37 +85,36 @@ class Recipe(TimestampedModel):
         """
         Calculates the recipe cost of the recipe for each market.
         """
-        recipe_costs = {'price_A101': Decimal("0.0"),
-                      'price_SOK': Decimal("0.0"),
-                      'price_BIM': Decimal("0.0"),
-                      'price_MIGROS': Decimal("0.0")}
+        print(f"DEBUG: Calculating recipe cost for recipe '{self.name}'")
+        
+        total_market_prices = {
+            "A101": Decimal("0.0"),
+            "SOK": Decimal("0.0"),
+            "BIM": Decimal("0.0"),
+            "MIGROS": Decimal("0.0"),
+        }
         
         for ri in self.recipe_ingredients.all():
             ingredient = ri.ingredient
-            quantity = Decimal(ri.quantity)
-            base_qty = Decimal(ingredient.base_quantity)
 
             # Cheapest price among markets
-            prices = [
-                Decimal(ingredient.price_A101),
-                Decimal(ingredient.price_SOK),
-                Decimal(ingredient.price_BIM),
-                Decimal(ingredient.price_MIGROS),
-            ]
+            market_prices = ingredient.get_price_for_user(
+                user=user,
+                quantity=ri.quantity,
+                unit=ri.unit,
+            )
             
             # Scale by quantity relative to base
-            for price in prices:
-                cost_for_ri = price * (quantity / base_qty)
-                if price == Decimal(ingredient.price_A101):
-                    recipe_costs['price_A101'] += cost_for_ri
-                elif price == Decimal(ingredient.price_SOK):
-                    recipe_costs['price_SOK'] += cost_for_ri
-                elif price == Decimal(ingredient.price_BIM):
-                    recipe_costs['price_BIM'] += cost_for_ri
-                elif price == Decimal(ingredient.price_MIGROS):
-                    recipe_costs['price_MIGROS'] += cost_for_ri
-
-        return {market: cost.quantize(Decimal("0.01")) for market, cost in recipe_costs.items()}
+            for market in total_market_prices.keys():
+                price = market_prices.get(market)
+                if price is not None:
+                    total_market_prices[market] += Decimal(price)
+                else:
+                    print(f"DEBUG: No price for ingredient '{ingredient.name}' in market '{market}'")
+                    print(f"DEBUG: Market prices: {market_prices}")
+                    
+        # Round all values to 2 decimals for output
+        return {m: c.quantize(Decimal("0.01")) for m, c in total_market_prices.items()}
 
     def calculate_cost_per_serving(self, user=None):
         """
@@ -129,10 +128,8 @@ class Recipe(TimestampedModel):
             user = DummyUser()
 
         market_costs = self.calculate_recipe_cost(user=user)
-        print("DEBUG: Market costs calculated:", market_costs)
         if market_costs:
             total_cost = min(market_costs.values())
-            print("DEBUG: Minimum cost per serving:", total_cost)
         return total_cost.quantize(Decimal("0.01"))
 
     # Will dynamically return alergens, if updated anything no problem
