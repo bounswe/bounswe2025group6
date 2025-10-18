@@ -29,4 +29,9 @@ INSERT IGNORE INTO ingredients_ingredient
 ('Kidney Beans', 'legumes', '[]', '["vegan","gluten-free"]', 2.00, 1.95, 2.05, 1.90, 'USD', 'kg', 1, '["g","kg"]', NOW(), NOW(), NULL),
 ('Leek', 'vegetables', '[]', '["vegan","gluten-free"]', 1.80, 1.75, 1.85, 1.70, 'USD', 'pcs', 1, '["pcs"]', NOW(), NOW(), NULL),
 ('Maple Syrup', 'sweeteners', '[]', '["vegan","gluten-free"]', 6.00, 5.90, 5.85, 6.10, 'USD', 'ml', 100, '["ml","l","tbsp"]', NOW(), NOW(), NULL),
-('Yellow Onion', 'vegetables', '[]', '["vegan","gluten-free"]', 1.20, 1.15, 1.25, 1.10, 'USD', 'pcs', 1, '["pcs"]', NOW(), NOW(), NULL);
+('Yellow Onion', 'vegetables', '[]', '["vegan","gluten-free"]', 1.20, 1.15, 1.25, 1.10, 'USD', 'pcs', 1, '["pcs"]', NOW(), NOW(), NULL),
+('Bread', 'bakery', '[]', '["vegan","gluten-free"]', 0.10, 0.06, 0.06, 0.07, 'USD', 'pcs', 1, '["pcs"]', NOW(), NOW(), NULL),
+('Pasta', 'grains', '[]', '["vegan","gluten-free"]', 1.50, 1.45, 1.55, 1.60, 'USD', 'kg', 1, '["g","kg"]', NOW(), NOW(), NULL),
+('Water', 'liquids', '[]', '["vegan","gluten-free"]', 1.0, 1.2, 1.5, 0.8, 'USD', 'ml', 1000, '["ml","l"]', NOW(), NOW(), NULL);
+
+

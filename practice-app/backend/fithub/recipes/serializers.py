@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from ingredients.serializers import IngredientSerializer
 from rest_framework.response import Response
 import json
+from django.db import transaction
 
 class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer()
@@ -123,13 +124,48 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
         fields = RecipeBaseSerializer.Meta.fields + [
             'name', 'steps', 'prep_time', 'cook_time', 'meal_type', 'ingredients'
         ]
-
+    
     def create(self, validated_data):
         ingredients_json = validated_data.pop('ingredients')
         user = self.context['request'].user
-        recipe = Recipe.objects.create(creator=user, **validated_data)
-        self.handle_ingredients(recipe, ingredients_json)
-        return recipe
+
+        try:
+            with transaction.atomic():  # <- start atomic transaction
+                # Create the recipe
+                recipe = Recipe.objects.create(creator=user, **validated_data)
+
+                # Parse and handle ingredients
+                try:
+                    ingredients_list = json.loads(ingredients_json)
+                except json.JSONDecodeError:
+                    raise serializers.ValidationError("Ingredients must be a valid JSON array.")
+
+                for ing in ingredients_list:
+                    ingredient_obj = Ingredient.objects.get(name=ing['ingredient_name'])
+                    unit = ing['unit']
+                    
+                    # Optional: validate unit
+                    if unit not in ingredient_obj.allowed_units:
+                        raise serializers.ValidationError(
+                            f"Unit '{unit}' is not allowed for ingredient '{ingredient_obj.name}'"
+                        )
+
+                    RecipeIngredient.objects.create(
+                        recipe=recipe,
+                        ingredient=ingredient_obj,
+                        quantity=ing['quantity'],
+                        unit=unit
+                    )
+
+                # Optional: calculate and save cost
+                recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
+                recipe.save()
+
+                return recipe  # If all succeeds, transaction is committed
+
+        except Exception as e:
+            # Any exception will rollback all DB changes
+            raise serializers.ValidationError(f"Failed to create recipe: {str(e)}")
 
 class RecipeUpdateSerializer(RecipeBaseSerializer):
     name = serializers.CharField(required=False)
