@@ -7,6 +7,8 @@ import '../theme/app_theme.dart';
 import '../widgets/recipe_card.dart'; 
 import './profile_settings_screen.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import 'package:provider/provider.dart';
+import '../providers/currency_provider.dart';
 import '../utils/label_localization.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -304,7 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icons.attach_money_outlined,
             AppLocalizations.of(context)!.monthlyBudgetLabel,
             profile.monthlyBudget != null
-                ? '\$${profile.monthlyBudget!.toStringAsFixed(2)}'
+                ? '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${profile.monthlyBudget!.toStringAsFixed(2)}'
                 : AppLocalizations.of(context)!.notSet,
           ),
         ]),

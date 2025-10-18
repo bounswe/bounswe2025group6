@@ -127,7 +127,7 @@
     "usernameLabel": "Kullanıcı Adı",
     "usernameEmptyError": "Kullanıcı adı boş bırakılamaz",
     "dislikedFoodsHint": "Sevmediklerim (virgülle ayırın)",
-    "monthlyBudgetHint": "Aylık Bütçe ($) (Opsiyonel)",
+    "monthlyBudgetHint": "Aylık Bütçe (Opsiyonel)",
     "publicProfileLabel": "Genel Profil",
     "preferredCurrencyLabel": "Tercih Edilen Para Birimi",
     "accessibilityNeedsLabel": "Erişilebilirlik İhtiyaçları",

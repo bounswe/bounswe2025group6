@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/currency_provider.dart';
 
 
 class RecipeDetailScreen extends StatefulWidget {
@@ -313,7 +315,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                         Icons.attach_money_outlined,
                                         // 'Cost per Serving:',
                                         AppLocalizations.of(context)!.costPerServingLabel,
-                                        '\$${recipe.costPerServing?.toStringAsFixed(2)}',
+                                        '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing?.toStringAsFixed(2)}',
                                         context,
                                       ),
                                     if (recipe.difficultyRating != null)

@@ -230,7 +230,7 @@
   "@usernameEmptyError": { "description": "Validation when username is empty" },
   "dislikedFoodsHint": "Disliked Foods (comma separated)",
   "@dislikedFoodsHint": { "description": "Hint text for disliked foods input" },
-  "monthlyBudgetHint": "Monthly Budget ($) (Optional)",
+  "monthlyBudgetHint": "Monthly Budget (Optional)",
   "@monthlyBudgetHint": { "description": "Hint for monthly budget input" },
   "publicProfileLabel": "Public Profile",
   "@publicProfileLabel": { "description": "Label for public profile switch" },

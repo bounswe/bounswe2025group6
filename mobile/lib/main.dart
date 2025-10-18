@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/currency_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/community/community_screen.dart';
@@ -18,32 +19,40 @@ void main() async {
   // Ensure bindings for async work before runApp
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize LocaleProvider with backend preference if the user is logged in.
+  // Initialize LocaleProvider and CurrencyProvider with backend preference if the user is logged in.
   final localeProvider = LocaleProvider();
+  final currencyProvider = CurrencyProvider();
   try {
     final profileService = ProfileService();
     final profile = await profileService.getUserProfile();
-    // If we successfully fetched the profile, set the app locale accordingly.
+    // If we successfully fetched the profile, set the app locale and currency accordingly.
     localeProvider.setLocaleFromLanguage(profile.language);
+    currencyProvider.setCurrency(profile.preferredCurrency);
   } catch (_) {
-    // If not logged in or fetch failed, keep default (null) so unauthenticated
+    // If not logged in or fetch failed, keep defaults so unauthenticated
     // screens can still allow manual switching.
   }
 
-  runApp(MyApp(initialLocaleProvider: localeProvider));
+  runApp(MyApp(initialLocaleProvider: localeProvider, initialCurrencyProvider: currencyProvider));
 }
 
 class MyApp extends StatelessWidget {
   final LocaleProvider? initialLocaleProvider;
+  final CurrencyProvider? initialCurrencyProvider;
 
-  const MyApp({super.key, this.initialLocaleProvider});
+  const MyApp({super.key, this.initialLocaleProvider, this.initialCurrencyProvider});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      // Use the pre-initialized provider if present so the app starts
-      // with the backend language when logged in.
-      create: (_) => initialLocaleProvider ?? LocaleProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<LocaleProvider>(
+          create: (_) => initialLocaleProvider ?? LocaleProvider(),
+        ),
+        ChangeNotifierProvider<CurrencyProvider>(
+          create: (_) => initialCurrencyProvider ?? CurrencyProvider(),
+        ),
+      ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
           return MaterialApp(

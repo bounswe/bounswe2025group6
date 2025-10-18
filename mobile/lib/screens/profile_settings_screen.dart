@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import '../providers/locale_provider.dart';
+import '../providers/currency_provider.dart';
 import '../models/user_profile.dart';
 import '../services/profile_service.dart';
 import '../theme/app_theme.dart';
@@ -138,6 +139,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 // Update the app locale only after backend confirmed the change.
                 Provider.of<LocaleProvider>(context, listen: false)
                     .setLocaleFromLanguage(updatedProfile.language);
+                    // Update currency provider after backend confirms change.
+                    try {
+                      Provider.of<CurrencyProvider>(context, listen: false)
+                          .setCurrency(updatedProfile.preferredCurrency);
+                    } catch (_) {}
               } catch (_) {}
               ScaffoldMessenger.of(
                 context,
