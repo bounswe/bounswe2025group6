@@ -44,6 +44,14 @@ const RecipeCard = ({ recipe }) => {
       
       try {
         setIsLoading(true);
+        
+        // First check if recipe has an uploaded image
+        if (recipe.image_full_url) {
+          setRecipeImage(recipe.image_full_url);
+          return;
+        }
+        
+        // If no uploaded image, try to get from Wikidata
         if (recipe.name) {
           const imageUrl = await getWikidataImage(recipe.name);
           if (imageUrl) {
@@ -58,7 +66,7 @@ const RecipeCard = ({ recipe }) => {
     };
 
     loadImage();
-  }, [recipe.name, isVisible, isLoading, recipeImage]);
+  }, [recipe.name, recipe.image_full_url, isVisible, isLoading, recipeImage]);
   
   // Fetch creator's username
   useEffect(() => {

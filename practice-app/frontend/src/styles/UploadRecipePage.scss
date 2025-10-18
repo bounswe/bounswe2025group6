@@ -337,9 +337,92 @@
     margin-left: 10px;
     width: 300px; // Adjust based on label width
   }
-  input[name="image_url"] {
+  // Image upload styles
+  .image-upload-container {
     margin-left: 10px;
-    width: calc(100% - 120px); // Adjust based on label width
+    
+    .image-upload-area {
+      position: relative;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
+      }
+      
+      .image-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+      
+      .image-upload-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: #666;
+        
+        span:first-child {
+          font-size: 2rem;
+        }
+        
+        span:last-child {
+          font-size: 0.9rem;
+        }
+      }
+    }
+    
+    .image-preview {
+      position: relative;
+      display: inline-block;
+      
+      .preview-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .remove-image-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ff4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        
+        &:hover {
+          background: #cc0000;
+          transform: scale(1.1);
+        }
+        
+        &::before {
+          content: "×";
+          font-size: 16px;
+          font-weight: bold;
+          line-height: 1;
+        }
+      }
+    }
   }
 
   input[name="cooking_time"],

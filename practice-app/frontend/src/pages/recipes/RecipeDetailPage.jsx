@@ -56,15 +56,20 @@ const RecipeDetailPage = () => {
             setCreatorName(name);
           }
           
-          // Fetch image from Wikidata API
-          try {
-            const imageUrl = await getWikidataImage(recipeData.name);
-            if (imageUrl) {
-              setRecipeImage(imageUrl);
+          // First check if recipe has an uploaded image
+          if (recipeData.image_full_url) {
+            setRecipeImage(recipeData.image_full_url);
+          } else {
+            // If no uploaded image, try to get from Wikidata API
+            try {
+              const imageUrl = await getWikidataImage(recipeData.name);
+              if (imageUrl) {
+                setRecipeImage(imageUrl);
+              }
+            } catch (imageError) {
+              console.error('Failed to load recipe image:', imageError);
+              // Don't set error state, just continue without image
             }
-          } catch (imageError) {
-            console.error('Failed to load recipe image:', imageError);
-            // Don't set error state, just continue without image
           }
         } else {
           setError('Recipe not found');
