@@ -13,6 +13,9 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = [
             "id",
+            "created_at",
+            "updated_at",
+            "deleted_on",
             "name",
             "category",
             "allergens",
