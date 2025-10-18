@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert'; 
-import 'package:http/http.dart' as http; 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
-import './storage_service.dart'; 
+import './storage_service.dart';
 
 class ProfileServiceException implements Exception {
   final String message;

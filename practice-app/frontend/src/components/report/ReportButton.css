@@ -1,0 +1,22 @@
+.report-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px !important;
+  height: 32px !important;
+  aspect-ratio: 1 / 1;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #dc2626 !important; /* red-600 */
+  color: #fff !important;
+  line-height: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.2s ease;
+}
+.report-icon-btn:hover { background: #b91c1c !important; }
+.report-icon-btn:active { transform: scale(0.96); }
+.report-icon-btn:focus { outline: 2px solid #fca5a5; outline-offset: 2px; }
+.report-icon-btn svg { width: 20px; height: 18px; display: block; }
+
+

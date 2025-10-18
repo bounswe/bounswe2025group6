@@ -1,38 +1,89 @@
 // src/pages/HomePage.jsx
 
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import '../styles/HomePage.css';
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import "../styles/HomePage.css";
+import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 
 const HomePage = () => {
   const { currentUser } = useAuth();
 
+  const { t } = useTranslation();
+
   const features = [
-    { icon: '🍽️', title: 'Smart Meal Planning', desc: 'Create balanced meal plans tailored to your preferences and budget.' },
-    { icon: '📊', title: 'Nutritional Analysis', desc: 'Access nutrition info for all your meals and recipes.' },
-    { icon: '🛒', title: 'Shopping Lists', desc: 'Auto-generate shopping lists from your weekly plans.' },
-    { icon: '💰', title: 'Budget-Friendly', desc: 'Optimize your grocery spending with cost-effective meals.' },
-    { icon: '👨‍👩‍👧‍👦', title: 'Family Friendly', desc: 'Easily scale meals for different household sizes.' },
-    { icon: '🥦', title: 'Dietary Preferences', desc: 'Filter meals by vegetarian, vegan, keto and more.' },
+    {
+      icon: "🍽️",
+      title: "Smart Meal Planning",
+      desc: "Create balanced meal plans tailored to your preferences and budget.",
+    },
+    {
+      icon: "📊",
+      title: "Nutritional Analysis",
+      desc: "Access nutrition info for all your meals and recipes.",
+    },
+    {
+      icon: "🛒",
+      title: "Shopping Lists",
+      desc: "Auto-generate shopping lists from your weekly plans.",
+    },
+    {
+      icon: "💰",
+      title: "Budget-Friendly",
+      desc: "Optimize your grocery spending with cost-effective meals.",
+    },
+    {
+      icon: "👨‍👩‍👧‍👦",
+      title: "Family Friendly",
+      desc: "Easily scale meals for different household sizes.",
+    },
+    {
+      icon: "🥦",
+      title: "Dietary Preferences",
+      desc: "Filter meals by vegetarian, vegan, keto and more.",
+    },
   ];
   useEffect(() => {
     document.title = "Home - FitHub";
   }, []);
+
+  const langChangeHandler = (e) => {
+    const lang = e.target.value;
+    i18next.changeLanguage(lang);
+  };
+
   return (
     <div className="homepage">
       {/* Hero */}
       <section className="hero">
         <div className="hero-content">
-          <h1 className="hero-title">Plan Your Meals with Ease</h1>
-          <p className="hero-subtitle">Simplify meal planning, discover healthy recipes, and save money on groceries.</p>
+          <select
+            className="lang-dropdown"
+            onChange={langChangeHandler}
+            defaultValue={i18next.language}
+          >
+            <option value="en">English</option>
+            <option value="tr">Türkçe</option>
+          </select>
+          <h1 className="hero-title">{t("homePageTitle")}</h1>
+          <p className="hero-subtitle">
+            Simplify meal planning, discover healthy recipes, and save money on
+            groceries.
+          </p>
           <div className="hero-buttons">
             {currentUser ? (
-              <Link to="/dashboard" className="btn btn-primary">Go to Dashboard</Link>
+              <Link to="/dashboard" className="btn btn-primary">
+                Go to Dashboard
+              </Link>
             ) : (
               <>
-                <Link to="/login" className="btn btn-secondary">Login</Link>
-                <Link to="/register" className="btn btn-primary">Sign Up Free</Link>
+                <Link to="/login" className="btn btn-secondary">
+                  Login
+                </Link>
+                <Link to="/register" className="btn btn-primary">
+                  Sign Up Free
+                </Link>
               </>
             )}
           </div>
@@ -42,7 +93,9 @@ const HomePage = () => {
       {/* Features */}
       <section className="features">
         <h2 className="section-title">Everything You Need for Meal Planning</h2>
-        <p className="section-subtitle">Our tools help you plan, shop, and cook better every day.</p>
+        <p className="section-subtitle">
+          Our tools help you plan, shop, and cook better every day.
+        </p>
         <div className="feature-grid">
           {features.map((f, i) => (
             <div key={i} className="feature-card">
@@ -80,8 +133,11 @@ const HomePage = () => {
       <section className="cta">
         <h2>Ready to Simplify Your Meal Planning?</h2>
         <p>Join thousands of users saving time and money every day.</p>
-        <Link to={currentUser ? '/dashboard' : '/register'} className="btn btn-primary">
-          {currentUser ? 'Go to Dashboard' : 'Sign Up Free'}
+        <Link
+          to={currentUser ? "/dashboard" : "/register"}
+          className="btn btn-primary"
+        >
+          {currentUser ? "Go to Dashboard" : "Sign Up Free"}
         </Link>
       </section>
     </div>

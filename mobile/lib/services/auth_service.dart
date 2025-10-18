@@ -14,19 +14,15 @@ class AuthenticationException implements Exception {
 }
 
 class AuthService {
-  static const String baseUrl =
-      'http://10.0.2.2:8000';
-      
+  static const String baseUrl = 'http://10.0.2.2:8000';
+
   Future<LoginResponse> login(String email, String password) async {
     try {
       // First, authenticate user with login endpoint
       final loginResponse = await http.post(
         Uri.parse('$baseUrl/api/login/'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       switch (loginResponse.statusCode) {
@@ -81,7 +77,7 @@ class AuthService {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/register/'), 
+        Uri.parse('$baseUrl/api/register/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -255,7 +251,10 @@ class AuthService {
   }
 
   // New method to get JWT access token
-  Future<Map<String, String>> getJwtAccessToken(String email, String password) async {
+  Future<Map<String, String>> getJwtAccessToken(
+    String email,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/token/'),
@@ -284,7 +283,8 @@ class AuthService {
             errorMessage = errorBody['detail'];
           }
         } catch (_) {
-          errorMessage = 'Failed to obtain JWT tokens (status ${response.statusCode})';
+          errorMessage =
+              'Failed to obtain JWT tokens (status ${response.statusCode})';
         }
         throw AuthenticationException(
           errorMessage,

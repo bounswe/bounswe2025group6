@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../models/report.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/report_button.dart';
 import '../l10n/app_localizations.dart';
+
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
@@ -17,6 +20,7 @@ class RecipeDetailScreen extends StatefulWidget {
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
   late Future<Recipe> _recipeFuture;
+  Recipe? _currentRecipe; // Store the loaded recipe for report button
 
   @override
   void initState() {
@@ -30,6 +34,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
+        actions: [
+          if (_currentRecipe != null)
+            ReportButton(
+              contentType: ReportContentType.recipe,
+              objectId: widget.recipeId,
+              contentPreview: _currentRecipe!.name,
+            ),
+        ],
       ),
       body: FutureBuilder<Recipe>(
         future: _recipeFuture,
@@ -40,67 +52,126 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             return Center(child: Text(AppLocalizations.of(context)!.errorLoadingRecipes(snapshot.error.toString())));
           } else if (snapshot.hasData) {
             final recipe = snapshot.data!;
+            // Store recipe for report button (only update if changed)
+            if (_currentRecipe == null || _currentRecipe!.id != recipe.id) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _currentRecipe = recipe;
+                  });
+                }
+              });
+            }
             return Container(
               color: AppTheme.backgroundGrey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.zero, // Remove padding for full-width image
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    // Recipe Name
-                    Center(
-                      child: Text(
-                        recipe.name,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryGreen,
+                    // Recipe Image Banner
+                    if (recipe.imageFullUrl != null &&
+                        recipe.imageFullUrl!.isNotEmpty)
+                      Hero(
+                        tag: 'recipe_image_${recipe.id}',
+                        child: Container(
+                          width: double.infinity,
+                          height: 250,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: NetworkImage(recipe.imageFullUrl!),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.3),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
+                      )
+                    else
+                      Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.restaurant,
+                          size: 80,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
 
-                    // Quick Info Section
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                              _buildInfoColumn(
-                                Icons.timer_outlined,
-                                '${recipe.prepTime} ${AppLocalizations.of(context)!.minutesAbbr}',
-                                AppLocalizations.of(context)!.prepTimeLabel,
+                    // Content with padding
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Recipe Name
+                          Center(
+                            child: Text(
+                              recipe.name,
+                              style: Theme.of(
                                 context,
+                              ).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryGreen,
                               ),
-                              _buildInfoColumn(
-                                Icons.whatshot_outlined,
-                                '${recipe.cookTime} ${AppLocalizations.of(context)!.minutesAbbr}',
-                                AppLocalizations.of(context)!.cookTimeLabel,
-                                context,
-                              ),
-                              _buildInfoColumn(
-                                Icons.restaurant_menu_outlined,
-                                recipe.mealType == 'breakfast'
-                                    ? AppLocalizations.of(context)!.breakfast
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Quick Info Section
+                          Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: <Widget>[
+                                    _buildInfoColumn(
+                                      Icons.timer_outlined,
+                                      '${recipe.prepTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                      AppLocalizations.of(context)!.prepTimeLabel,
+                                      context,
+                                    ),
+                                    _buildInfoColumn(
+                                      Icons.whatshot_outlined,
+                                      '${recipe.cookTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                      AppLocalizations.of(context)!.cookTimeLabel,
+                                      context,
+                                    ),
+                                    _buildInfoColumn(
+                                      Icons.restaurant_menu_outlined,
+                                      recipe.mealType == 'breakfast'
+                                          ? AppLocalizations.of(context)!.breakfast
                                     : recipe.mealType == 'lunch'
                                         ? AppLocalizations.of(context)!.lunch
                                         : AppLocalizations.of(context)!.dinner,
                                 AppLocalizations.of(context)!.mealTypeLabel,
-                                context,
+                                      context,
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
-                      ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ]
+                      )
                     ),
-                    const SizedBox(height: 24),
-
                     // Ingredients Section
                     _buildSectionTitle(
                       AppLocalizations.of(context)!.ingredientsTitle,
@@ -401,4 +472,5 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
     );
   }
+
 }
