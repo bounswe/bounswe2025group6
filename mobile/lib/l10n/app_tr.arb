@@ -328,6 +328,18 @@
     "minutesAbbr": "dk",
     "@minutesAbbr": { "description": "Abbreviation for minutes" },
 
+    "costPerServingSuffix": "porsiyon başına",
+    "@costPerServingSuffix": { "description": "Suffix shown after cost value in recipe card e.g. '10.00 ₺ porsiyon başına'" },
+
+    "recipeImageOptional": "Tarif Görseli (Opsiyonel)",
+    "@recipeImageOptional": { "description": "Label shown above image picker in Upload Recipe screen" },
+
+    "addImage": "Görsel Ekle",
+    "@addImage": { "description": "Button label to add an image" },
+
+    "failedToPickImage": "Görsel seçilemedi: {error}",
+    "@failedToPickImage": { "description": "Error shown when image picker fails", "placeholders": { "error": {} } },
+
     "additionalInformationTitle": "Ek Bilgiler",
     "@additionalInformationTitle": { "description": "Section title for additional recipe information" },
 

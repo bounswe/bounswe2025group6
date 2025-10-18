@@ -117,8 +117,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
     } catch (e) {
       print('Error picking image: $e');
       if (mounted) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
+        // );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToPickImage(e.toString()))),
         );
       }
     }
@@ -243,9 +246,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Recipe Image (Optional)',
-                          style: TextStyle(
+                        Text(
+                          // 'Recipe Image (Optional)',
+                          AppLocalizations.of(context)!.recipeImageOptional,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -280,7 +284,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                           OutlinedButton.icon(
                             onPressed: _pickImage,
                             icon: const Icon(Icons.add_photo_alternate),
-                            label: const Text('Add Image'),
+                            label: Text(AppLocalizations.of(context)!.addImage),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),

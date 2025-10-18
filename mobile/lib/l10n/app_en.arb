@@ -455,6 +455,18 @@
   "minutesAbbr": "mins",
   "@minutesAbbr": { "description": "Abbreviation for minutes" },
 
+  "costPerServingSuffix": "per serving",
+  "@costPerServingSuffix": { "description": "Suffix shown after cost value in recipe card e.g. '10.00 $ per serving'" },
+
+  "recipeImageOptional": "Recipe Image (Optional)",
+  "@recipeImageOptional": { "description": "Label shown above image picker in Upload Recipe screen" },
+
+  "addImage": "Add Image",
+  "@addImage": { "description": "Button label to add an image" },
+
+  "failedToPickImage": "Failed to pick image: {error}",
+  "@failedToPickImage": { "description": "Error shown when image picker fails", "placeholders": { "error": {} } },
+
   "additionalInformationTitle": "Additional Information",
   "@additionalInformationTitle": { "description": "Section title for additional recipe information" },
 
