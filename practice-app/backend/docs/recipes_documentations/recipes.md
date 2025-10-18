@@ -13,14 +13,12 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 {
   "name": "Veggie Omelette",
   "steps": [
-    "Crack the eggs into a bowl and whisk them.",
-    "Chop the vegetables finely.",
-    "Heat oil in a pan, sauté vegetables, then pour in eggs.",
-    "Cook until set and fold the omelette in half."
+    "Crack the eggs into a bowl and whisk them",
+    "Chop the vegetables finely",
   ],
   "prep_time": 3,
   "cook_time": 5,
-  "meal_type": "breakfast",
+  "meal_type": "lunch",
   "ingredients": [
     {
       "ingredient_name": "Eggs",
@@ -61,92 +59,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 14,
-  "name": "Veggie Omelette",
+  "id": 59,
+  "name": "Veggie Omlette",
   "steps": [
-    "Crack the eggs into a bowl and whisk them.",
-    "Chop the vegetables finely.",
-    "Heat oil in a pan, sauté vegetables, then pour in eggs.",
-    "Cook until set and fold the omelette in half."
-  ],
-  "prep_time": 8,
-  "cook_time": 7,
-  "meal_type": "breakfast",
-  "creator_id": 1,
-  "ingredients": [
-    {
-      "ingredient": {
-        "id": 4,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
-        "deleted_on": null,
-        "name": "Eggs",
-        "category": "proteins",
-        "allergens": [
-          "egg"
-        ],
-        "dietary_info": [
-          "high-protein",
-          "gluten-free"
-        ]
-      },
-      "quantity": 3,
-      "unit": "pcs"
-    },
-    {
-      "ingredient": {
-        "id": 43,
-        "created_at": "2025-05-05T00:21:45Z",
-        "updated_at": "2025-05-05T00:21:45Z",
-        "deleted_on": null,
-        "name": "Bell Pepper",
-        "category": "vegetables",
-        "allergens": [],
-        "dietary_info": [
-          "vegan",
-          "gluten-free"
-        ]
-      },
-      "quantity": 0.5,
-      "unit": "cup"
-    }
-  ],
-  "cost_per_serving": null,
-  "difficulty_rating": null,
-  "taste_rating": null,
-  "health_rating": null,
-  "like_count": 0,
-  "comment_count": 0,
-  "difficulty_rating_count": 0,
-  "taste_rating_count": 0,
-  "health_rating_count": 0,
-  "is_approved": false,
-  "is_featured": false,
-  "created_at": "2025-05-05T10:06:53.123490Z",
-  "updated_at": "2025-05-05T10:06:53.123538Z",
-  "deleted_on": null,
-  "total_time": 15,
-  "total_user_ratings": 0,
-  "total_ratings": 0,
-  "alergens": [
-    "egg"
-  ],
-  "dietary_info": [
-    "high-protein",
-    "gluten-free",
-    "vegan"
-  ],
-  "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
-  "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
-  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
-}
-
-{
-  "id": 52,
-  "name": "Omlette",
-  "steps": [
-    "Crack the eggs into a bowl and whisk them.",
-    "Chop the vegetables finely."
+    "Crack the eggs into a bowl and whisk them,Chop the vegetables finely"
   ],
   "prep_time": 3,
   "cook_time": 5,
@@ -265,12 +181,12 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       }
     }
   ],
-  "cost_per_serving": "0.66",
-  "recipe_costs": { // Wrong calculation in the backend, fix it
-    "price_A101": 1.36,
-    "price_SOK": 2.09,
-    "price_BIM": 0.66,
-    "price_MIGROS": 1.59
+  "cost_per_serving": "1.62",
+  "recipe_costs": {
+    "A101": 1.65,
+    "SOK": 1.73,
+    "BIM": 1.62,
+    "MIGROS": 1.89
   },
   "difficulty_rating": null,
   "taste_rating": null,
@@ -282,8 +198,8 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-10-18T08:34:48.934143Z",
-  "updated_at": "2025-10-18T08:34:48.934170Z",
+  "created_at": "2025-10-18T09:52:56.727695Z",
+  "updated_at": "2025-10-18T09:52:56.727727Z",
   "deleted_on": null,
   "total_time": 8,
   "total_user_ratings": 0,
@@ -292,14 +208,14 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     "egg"
   ],
   "dietary_info": [
-    "vegan",
     "healthy-fat",
+    "high-protein",
     "gluten-free",
-    "high-protein"
+    "vegan"
   ],
-  "image": "image/upload/v1760776490/flpxvivt6jyj0xllbpws.png",
-  "image_relative_url": "flpxvivt6jyj0xllbpws",
-  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760776490/flpxvivt6jyj0xllbpws.png"
+  "image": "image/upload/v1760781176/yepwgq9gxqvkjl4eakev.jpg",
+  "image_relative_url": "yepwgq9gxqvkjl4eakev",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760781176/yepwgq9gxqvkjl4eakev.jpg"
 }
 ```
 
@@ -312,7 +228,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 🔍 Request Format
 ```json
 {
-  "page": 2,
+  "page": 7,
   "page_size": 3
 }
 ```
@@ -325,18 +241,24 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "page": 2,
+  "page": 7,
   "page_size": 3,
-  "total": 7,
+  "total": 22,
   "results": [
     {
-      "id": 6,
-      "name": "Pancakes",
-      "meal_type": "breakfast",
+      "id": 58,
+      "name": "Omlette",
+      "meal_type": "lunch",
       "creator_id": 1,
-      "prep_time": 10,
-      "cook_time": 15,
-      "cost_per_serving": null,
+      "prep_time": 3,
+      "cook_time": 5,
+      "recipe_costs": {
+        "A101": 1.65,
+        "SOK": 1.73,
+        "BIM": 1.62,
+        "MIGROS": 1.89
+      },
+      "cost_per_serving": "1.62",
       "difficulty_rating": null,
       "difficulty_rating_count": 0,
       "taste_rating": null,
@@ -347,19 +269,25 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "comment_count": 0,
       "is_approved": false,
       "is_featured": false,
-      "total_time": 25,
-      "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
-      "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
-      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
+      "total_time": 8,
+      "image": "image/upload/v1760780815/c6lexq9mkrillls9r4zw.png",
+      "image_relative_url": "c6lexq9mkrillls9r4zw",
+      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760780815/c6lexq9mkrillls9r4zw.png"
     },
     {
-      "id": 7,
-      "name": "Pancakes",
-      "meal_type": "breakfast",
+      "id": 59,
+      "name": "Veggie Omlette",
+      "meal_type": "lunch",
       "creator_id": 1,
-      "prep_time": 10,
-      "cook_time": 15,
-      "cost_per_serving": null,
+      "prep_time": 3,
+      "cook_time": 5,
+      "recipe_costs": {
+        "A101": 1.65,
+        "SOK": 1.73,
+        "BIM": 1.62,
+        "MIGROS": 1.89
+      },
+      "cost_per_serving": "1.62",
       "difficulty_rating": null,
       "difficulty_rating_count": 0,
       "taste_rating": null,
@@ -370,19 +298,25 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "comment_count": 0,
       "is_approved": false,
       "is_featured": false,
-      "total_time": 25,
-      "image": null,
-      "image_relative_url": null,
-      "image_full_url": null
+      "total_time": 8,
+      "image": "image/upload/v1760781176/yepwgq9gxqvkjl4eakev.jpg",
+      "image_relative_url": "yepwgq9gxqvkjl4eakev",
+      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760781176/yepwgq9gxqvkjl4eakev.jpg"
     },
     {
-      "id": 13,
-      "name": "Veggie Omelette",
-      "meal_type": "dinner",
+      "id": 64,
+      "name": "Avocado Toast",
+      "meal_type": "breakfast",
       "creator_id": 1,
-      "prep_time": 8,
-      "cook_time": 12,
-      "cost_per_serving": null,
+      "prep_time": 5,
+      "cook_time": 5,
+      "recipe_costs": {
+        "A101": 3.66,
+        "SOK": 3.52,
+        "BIM": 3.86,
+        "MIGROS": 3.51
+      },
+      "cost_per_serving": "3.51",
       "difficulty_rating": null,
       "difficulty_rating_count": 0,
       "taste_rating": null,
@@ -393,10 +327,10 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       "comment_count": 0,
       "is_approved": false,
       "is_featured": false,
-      "total_time": 20,
-      "image": "image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png",
-      "image_relative_url": "qn8qtgwb3cm3ibjpoqlu",
-      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760377809/qn8qtgwb3cm3ibjpoqlu.png"
+      "total_time": 10,
+      "image": "image/upload/v1760781582/ackafdvoi7mdd4venbxb.jpg",
+      "image_relative_url": "ackafdvoi7mdd4venbxb",
+      "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760781582/ackafdvoi7mdd4venbxb.jpg"
     }
   ]
 }
@@ -409,7 +343,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 
 #### 🔍 Request Format
 - Path variable:
-  - "id": 52
+  - "id": 64
 
 - Must be provided:
   - `id`: The ID of the recipe to retrieve.
@@ -418,62 +352,24 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 📦 Response Format
 ```json
 {
-  "id": 52,
-  "name": "Omlette",
+  "id": 64,
+  "name": "Avocado Toast",
   "steps": [
-    "Crack the eggs into a bowl and whisk them.,Chop the vegetables finely."
+    "Toast the bread slices until golden brown,Mash the avocado and spread it on the toast"
   ],
-  "prep_time": 3,
+  "prep_time": 5,
   "cook_time": 5,
-  "meal_type": "lunch",
+  "meal_type": "breakfast",
   "creator_id": 1,
   "ingredients": [
     {
       "ingredient": {
-        "id": 225,
-        "created_at": "2025-10-16T21:02:31Z",
-        "updated_at": "2025-10-16T21:02:31Z",
+        "id": 293,
+        "created_at": "2025-10-18T12:59:15Z",
+        "updated_at": "2025-10-18T12:59:15Z",
         "deleted_on": null,
-        "name": "Eggs",
-        "category": "proteins",
-        "allergens": [
-          "egg"
-        ],
-        "dietary_info": [
-          "high-protein",
-          "gluten-free"
-        ],
-        "base_unit": "pcs",
-        "base_quantity": "1.00",
-        "allowed_units": [
-          "pcs"
-        ],
-        "prices": {
-          "currency": "USD",
-          "A101": 0.2,
-          "SOK": 0.23,
-          "BIM": 0.23,
-          "MIGROS": 0.26
-        }
-      },
-      "quantity": "3.00",
-      "unit": "pcs",
-      "costs": {
-        "currency": "USD",
-        "A101": 0.6,
-        "SOK": 0.69,
-        "BIM": 0.69,
-        "MIGROS": 0.78
-      }
-    },
-    {
-      "ingredient": {
-        "id": 212,
-        "created_at": "2025-10-16T21:02:31Z",
-        "updated_at": "2025-10-16T21:02:31Z",
-        "deleted_on": null,
-        "name": "Bell Pepper",
-        "category": "vegetables",
+        "name": "Bread",
+        "category": "bakery",
         "allergens": [],
         "dietary_info": [
           "vegan",
@@ -486,20 +382,56 @@ This document describes how to use the Recipe API endpoint, which allows for cre
         ],
         "prices": {
           "currency": "USD",
-          "A101": 0.75,
-          "SOK": 0.7,
-          "BIM": 0.65,
-          "MIGROS": 0.8
+          "A101": 1.2,
+          "SOK": 1.15,
+          "BIM": 1.25,
+          "MIGROS": 1.1
+        }
+      },
+      "quantity": "2.00",
+      "unit": "pcs",
+      "costs": {
+        "currency": "USD",
+        "A101": 2.4,
+        "SOK": 2.3,
+        "BIM": 2.5,
+        "MIGROS": 2.2
+      }
+    },
+    {
+      "ingredient": {
+        "id": 246,
+        "created_at": "2025-10-16T21:02:59Z",
+        "updated_at": "2025-10-16T21:02:59Z",
+        "deleted_on": null,
+        "name": "Avocado",
+        "category": "fruits",
+        "allergens": [],
+        "dietary_info": [
+          "vegan",
+          "healthy-fat"
+        ],
+        "base_unit": "pcs",
+        "base_quantity": "1.00",
+        "allowed_units": [
+          "pcs"
+        ],
+        "prices": {
+          "currency": "USD",
+          "A101": 1.2,
+          "SOK": 1.15,
+          "BIM": 1.3,
+          "MIGROS": 1.25
         }
       },
       "quantity": "1.00",
       "unit": "pcs",
       "costs": {
         "currency": "USD",
-        "A101": 0.75,
-        "SOK": 0.7,
-        "BIM": 0.65,
-        "MIGROS": 0.8
+        "A101": 1.2,
+        "SOK": 1.15,
+        "BIM": 1.3,
+        "MIGROS": 1.25
       }
     },
     {
@@ -530,22 +462,22 @@ This document describes how to use the Recipe API endpoint, which allows for cre
         }
       },
       "quantity": "1.00",
-      "unit": "tbsp",
+      "unit": "tsp",
       "costs": {
         "currency": "USD",
-        "A101": 0.3,
-        "SOK": 0.34,
-        "BIM": 0.28,
-        "MIGROS": 0.31
+        "A101": 0.06,
+        "SOK": 0.07,
+        "BIM": 0.06,
+        "MIGROS": 0.06
       }
     }
   ],
-  "cost_per_serving": "0.66",
+  "cost_per_serving": "3.51",
   "recipe_costs": {
-    "price_A101": 1.36,
-    "price_SOK": 2.09,
-    "price_BIM": 0.66,
-    "price_MIGROS": 1.59
+    "A101": 3.66,
+    "SOK": 3.52,
+    "BIM": 3.86,
+    "MIGROS": 3.51
   },
   "difficulty_rating": null,
   "taste_rating": null,
@@ -557,24 +489,21 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "health_rating_count": 0,
   "is_approved": false,
   "is_featured": false,
-  "created_at": "2025-10-18T08:34:48.934143Z",
-  "updated_at": "2025-10-18T08:34:48.934170Z",
+  "created_at": "2025-10-18T09:59:42.482660Z",
+  "updated_at": "2025-10-18T09:59:42.482697Z",
   "deleted_on": null,
-  "total_time": 8,
+  "total_time": 10,
   "total_user_ratings": 0,
   "total_ratings": 0,
-  "allergens": [
-    "egg"
-  ],
+  "allergens": [],
   "dietary_info": [
-    "vegan",
-    "healthy-fat",
     "gluten-free",
-    "high-protein"
+    "vegan",
+    "healthy-fat"
   ],
-  "image": "image/upload/v1760776490/flpxvivt6jyj0xllbpws.png",
-  "image_relative_url": "flpxvivt6jyj0xllbpws",
-  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760776490/flpxvivt6jyj0xllbpws.png"
+  "image": "image/upload/v1760781582/ackafdvoi7mdd4venbxb.jpg",
+  "image_relative_url": "ackafdvoi7mdd4venbxb",
+  "image_full_url": "http://res.cloudinary.com/damwfwbjd/image/upload/v1760781582/ackafdvoi7mdd4venbxb.jpg"
 }
 ```
 
@@ -586,7 +515,6 @@ This document describes how to use the Recipe API endpoint, which allows for cre
 #### 🔍 Request Format
 - Data:
 ```json
-
 {
   "name": "Updated Omelette",
   "steps": [
@@ -718,12 +646,12 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       }
     }
   ],
-  "cost_per_serving": "2.60",
-  "recipe_costs": { // Wrong calculation in the backend, fix it
-    "price_A101": 3.4,
-    "price_SOK": 3.72,
-    "price_BIM": 2.6,
-    "price_MIGROS": 3.72
+  "cost_per_serving": "3.06",
+  "recipe_costs": {
+    "A101": 3.4,
+    "SOK": 3.26,
+    "BIM": 3.06,
+    "MIGROS": 3.72
   },
   "difficulty_rating": null,
   "taste_rating": null,
@@ -736,7 +664,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   "is_approved": false,
   "is_featured": false,
   "created_at": "2025-10-18T08:34:48.934143Z",
-  "updated_at": "2025-10-18T08:42:13.585971Z",
+  "updated_at": "2025-10-18T10:19:40.866151Z",
   "deleted_on": null,
   "total_time": 10,
   "total_user_ratings": 0,
@@ -745,8 +673,8 @@ This document describes how to use the Recipe API endpoint, which allows for cre
     "egg"
   ],
   "dietary_info": [
-    "vegan",
     "gluten-free",
+    "vegan",
     "high-protein"
   ],
   "image": "image/upload/v1760776490/flpxvivt6jyj0xllbpws.png",
