@@ -114,15 +114,15 @@ const CreatePostPage = () => {
   return (
     <div className="create-post-container">
       <div className="create-post-header">
-        <h1 className="create-post-title">Create a Post</h1>
-        <p className="create-post-subtitle">Share your thoughts, questions, or ideas with the community</p>
+        <h1 className="create-post-title">{t("createPostPageTitle")}</h1>
+        <p className="create-post-subtitle">{t("createPostPageSubTitle")}</p>
       </div>
 
       <Card>
         <Card.Body>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="title" className="form-label">Title *</label>
+              <label htmlFor="title" className="form-label">{t("Title")} *</label>
               <input
                 type="text"
                 id="title"
@@ -138,7 +138,7 @@ const CreatePostPage = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="content" className="form-label">Content *</label>
+              <label htmlFor="content" className="form-label">{t("Content")} *</label>
               <textarea
                 id="content"
                 name="content"
@@ -160,12 +160,12 @@ const CreatePostPage = () => {
                   checked={formData.is_commentable}
                   onChange={handleChange}
                 />
-                <label htmlFor="is_commentable">Allow comments on this post</label>
+                <label htmlFor="is_commentable">{t("createPostPoageAllowComments")}</label>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Tags * (Select up to 5)</label>
+              <label className="form-label">{t("createPostPageTags")}</label>
               <div className="tag-selector">
                 {availableTags.map(tag => (
                   <button

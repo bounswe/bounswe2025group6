@@ -74,13 +74,13 @@ const RecipeDiscoveryPage = () => {
     navigate('/uploadRecipe');
   };
 
-  if (loading) return <div>Loading recipes...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (loading) return <div>{t("recipeDiscoveryPageLoading")}</div>;
+  if (error) return <div className="text-red-500">{t("recipeDiscoveryPageError")}: {error}</div>;
 
   return (
     <div id='recipeDiscoveryPage' className='container'>
 
-      <h1>Discover Recipes</h1>
+      <h1>{t("recipeDiscoveryPagHeader")}</h1>
 
       <div className='recipe-discovery-page-header'>
         <input
@@ -91,7 +91,7 @@ const RecipeDiscoveryPage = () => {
             className="recipe-discovery-page-header-item"
         />
         <button onClick={handleNavigateToUpload} className="green-button">
-                  Upload New Recipe
+                  {t("recipeDiscoveryUploadRecipe")}
         </button>
       </div>
 
@@ -103,11 +103,11 @@ const RecipeDiscoveryPage = () => {
 
       <div className="pagination-controls">
           <button onClick={handlePreviousPage} disabled={currentPage === 1} className='pagination-green-button'>
-            Previous
+            {t("previous")}
           </button>
           <span> {currentPage} </span>
           <button onClick={handleNextPage} disabled={currentPage === totalPages} className='pagination-green-button'>
-            Next
+            {t("next")}
           </button>
       </div>
 
