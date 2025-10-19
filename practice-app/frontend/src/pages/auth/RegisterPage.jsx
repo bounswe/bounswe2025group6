@@ -62,14 +62,14 @@ const RegisterPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.username.trim()) newErrors.username = 'Username is required';
-    else if (formData.username.length < 3) newErrors.username = 'Username must be at least 3 characters';
+    if (!formData.username.trim()) newErrors.username = t("registerPageWarningOne");
+    else if (formData.username.length < 3) newErrors.username = t("registerPageWarningTwo");
     
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
+    if (!formData.email.trim()) newErrors.email = t("registerPageWarningThree");
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t("registerPageWarningFour");
     
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t("registerPageWarningFive");
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {
@@ -78,15 +78,15 @@ const RegisterPage = () => {
     }
     
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t("registerPageWarningSix");
     }
     
     if (formData.userType === 'dietitian' && !formData.certificationUrl) {
-      newErrors.certificationUrl = 'Certification URL is required for dietitians';
+      newErrors.certificationUrl = t("registerPageWarningSeven");
     }
     
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = 'You must accept the terms and conditions';
+      newErrors.acceptTerms = t("registerPageWarningEight");
     }
     
     setErrors(newErrors);
@@ -123,13 +123,13 @@ const RegisterPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
               </svg>
             </div>
-            <h2 className="success-title">Registration Successful!</h2>
+            <h2 className="success-title">{t("registerPageSuccessTitle")}</h2>
             <p className="success-message">
-              We've sent a verification email to <span className="success-email">{formData.email}</span>.
-              Please check your email and click the verification link to activate your account.
+               {t("registerPageSuccessEmailOne")} <span className="success-email">{formData.email}</span>.
+              {t("registerPageSuccessEmailTwo")}
             </p>
             <Link to="/login">
-              <Button variant="primary">Go to Login</Button>
+              <Button variant="primary">{t("registerPageLogin")}</Button>
             </Link>
           </div>
         </div>
@@ -141,26 +141,26 @@ const RegisterPage = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Create Your Account</h1>
-          <p className="auth-subtitle">Join the FitHub community</p>
+          <h1 className="auth-title">{t("registerPageAuthHeader")}</h1>
+          <p className="auth-subtitle">{t("registerPageAuthSubtitle")}</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
           <div>
-            <label className="block text-sm font-medium mb-2">Account Type</label>
+            <label className="block text-sm font-medium mb-2">{t("registerPageAccountType")}</label>
             <div className="account-type-buttons">
               <button
                 type="button"
                 onClick={() => handleUserTypeSelect('user')}
                 className={`account-type-button ${formData.userType === 'user' ? 'active' : ''}`}
               >
-                Regular User
+                {t("registerPageAccountTypeUser")}
               </button>
               <button
                 type="button"
                 onClick={() => handleUserTypeSelect('dietitian')}
                 className={`account-type-button ${formData.userType === 'dietitian' ? 'active' : ''}`}
               >
-                Dietitian
+                {t("registerPageAccountTypeDietitian")}
               </button>
             </div>
             <p className="account-type-info">
@@ -171,7 +171,7 @@ const RegisterPage = () => {
           </div>
 
           <div>
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">{t("registerPageUsername")}</label>
             <input
               type="text"
               id="username"
@@ -185,7 +185,7 @@ const RegisterPage = () => {
           </div>
 
           <div>
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">{t("registerPageEmail")}</label>
             <input
               type="email"
               id="email"
@@ -199,7 +199,7 @@ const RegisterPage = () => {
           </div>
 
           <div>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t("registerPagePassword")}</label>
             <input
               type="password"
               id="password"
@@ -211,13 +211,12 @@ const RegisterPage = () => {
             />
             {errors.password && <p className="text-error">{errors.password}</p>}
             <p className="password-info">
-              Password must contain at least 8 characters, including one uppercase letter, 
-              one lowercase letter, and one number
+              {t("registerPagePasswordMessage")}
             </p>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">{t("registerPagePasswordConfirm")}</label>
             <input
               type="password"
               id="confirmPassword"
@@ -232,7 +231,7 @@ const RegisterPage = () => {
 
           {formData.userType === 'dietitian' && (
             <div>
-              <label htmlFor="certificationUrl">Certification URL</label>
+              <label htmlFor="certificationUrl">{t("registerPageCertificationUrl")}</label>
               <input
                 type="text"
                 id="certificationUrl"
@@ -243,7 +242,7 @@ const RegisterPage = () => {
                 placeholder="https://example.com/certifications/your-certification"
               />
               {errors.certificationUrl && <p className="text-error">{errors.certificationUrl}</p>}
-              <p className="text-xs text-gray-500">URL to your professional certification document</p>
+              <p className="text-xs text-gray-500">{t("registerPageCertificationUrlMessage")}</p>
             </div>
           )}          <div className="checkbox-container">
             <input
@@ -301,8 +300,8 @@ const RegisterPage = () => {
 
         <div className="auth-link">
           <p>
-            Already have an account?{' '}
-            <Link to="/login">Log in</Link>
+            {t("registerPageAlreadyAccount")}?{' '}
+            <Link to="/login">{t("homePageLogin")}</Link>
           </p>
         </div>
       </div>

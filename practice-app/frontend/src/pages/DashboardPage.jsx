@@ -71,8 +71,7 @@ const DashboardPage = () => {
             {getWelcomeMessage()}, {username}!
           </h1>
           <p className="dashboard-subtitle">
-            Welcome to your meal planning dashboard. What would you like to do
-            today?
+            {t("dashbboardSubtitle")}
           </p>
         </div>
       </div>
@@ -81,13 +80,12 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">🍽️</div>
-            <h2 className="dashboard-card-title">Plan Your Meals</h2>
+            <h2 className="dashboard-card-title">{t("dashboardCardOneTitle")}</h2>
             <p className="dashboard-card-content">
-              Create personalized meal plans based on your preferences and
-              dietary needs.
+              {t("dashboardCardOneContent")}
             </p>
             <Link to="/meal-planner" className="mt-auto">
-              <Button className="green-button">Plan Meals</Button>
+              <Button className="green-button">{t("dashboardCardOneButton")}</Button>
             </Link>
           </Card.Body>
         </Card>
@@ -95,12 +93,12 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">📖</div>
-            <h2 className="dashboard-card-title">Discover Recipes</h2>
+            <h2 className="dashboard-card-title">{t("dashboardCardTwoTitle")}</h2>
             <p className="dashboard-card-content">
-              Browse our collection of recipes or search for something specific.
+              {t("dashboardCardTwoContent")}
             </p>
             <Link to="/recipes" className="mt-auto">
-              <Button className="green-button">Find Recipes</Button>
+              <Button className="green-button">{t("dashboardCardTwoButton")}</Button>
             </Link>
           </Card.Body>
         </Card>
@@ -108,12 +106,12 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">🛒</div>
-            <h2 className="dashboard-card-title">Shopping List</h2>
+            <h2 className="dashboard-card-title">{t("dashboardCardThreeTitle")}</h2>
             <p className="dashboard-card-content">
-              View and manage your shopping list based on your meal plans.
+              {t("dashboardCardThreeContent")}
             </p>
             <Link to="/shopping-list" className="mt-auto">
-              <Button className="green-button">Shopping List</Button>
+              <Button className="green-button">{t("dashboardCardThreeTitle")}</Button>
             </Link>
           </Card.Body>
         </Card>
@@ -121,12 +119,12 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">💬</div>
-            <h2 className="dashboard-card-title">Community</h2>
+            <h2 className="dashboard-card-title">{t("dashboardCardFourTitle")}</h2>
             <p className="dashboard-card-content">
-              Friendly and collaborative community.
+              {t("dashboardCardFourContent")}
             </p>
             <Link to="/community" className="mt-auto">
-              <Button className="green-button">Community</Button>
+              <Button className="green-button">{t("dashboardCardFourTitle")}</Button>
             </Link>
           </Card.Body>
         </Card>

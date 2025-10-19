@@ -193,10 +193,10 @@ const UploadRecipePage = () => {
 
   return (
     <div className="upload-page-container">
-      <h1>Upload a New Recipe</h1>
+      <h1>{t("uploadRecipePageHeader")}</h1>
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="form-group">
-          <label htmlFor="name">Recipe Name *</label>
+          <label htmlFor="name">{t("uploadRecipePageName")} *</label>
           <input
             id="name"
             name="name"
@@ -207,7 +207,7 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="image">Recipe Image</label>
+          <label htmlFor="image">{t("uploadRecipePageImage")}</label>
           <div className="image-upload-container">
             {recipeData.imagePreview ? (
               <div className="image-preview">
@@ -236,7 +236,7 @@ const UploadRecipePage = () => {
                 />
                 <label htmlFor="image" className="image-upload-label">
                   <span>📷</span>
-                  <span>Click to upload image (PNG/JPG, max 5MB)</span>
+                  <span>{t("uploadRecipePageImageInfo")}</span>
                 </label>
               </div>
             )}
@@ -244,7 +244,7 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="cooking_time">Cooking Time (minutes) *</label>
+          <label htmlFor="cooking_time">{t("uploadRecipePageCookingTime")} *</label>
           <input
             id="cooking_time"
             name="cooking_time"
@@ -264,7 +264,7 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="prep_time">Prep Time (minutes) *</label>
+          <label htmlFor="prep_time">{t("uploadRecipePagePrepTime")} *</label>
           <input
             id="prep_time"
             name="prep_time"
@@ -284,7 +284,7 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="meal_type">Meal Type *</label>
+          <label htmlFor="meal_type">{t("uploadRecipePageMealType")} *</label>
           <select
             id="meal_type"
             name="meal_type"
@@ -292,15 +292,15 @@ const UploadRecipePage = () => {
             onChange={handleChange}
             required
           >
-            <option value="">Select meal type</option>
-            <option value="breakfast">Breakfast</option>
-            <option value="lunch">Lunch</option>
-            <option value="dinner">Dinner</option>
+            <option value="">{t("uploadRecipePageMealTypeSelect")}</option>
+            <option value="breakfast">{t("breakfast")}</option>
+            <option value="lunch">{t("Lunch")}</option>
+            <option value="dinner">{t("Dinner")}</option>
           </select>
         </div>
 
         <div className="form-group ingredients-section">
-          <label>Ingredients *</label>
+          <label>{t("Ingredients")} *</label>
           <div className="ingredient-search">
             <input
               type="text"
@@ -382,14 +382,14 @@ const UploadRecipePage = () => {
                     }}
                     className="unit-select"
                   >
-                    <option value="pcs">pcs</option>
+                    <option value="pcs">{t("Pcs")}</option>
                     <option value="g">g</option>
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="l">l</option>
-                    <option value="cup">cup</option>
-                    <option value="tbsp">tbsp</option>
-                    <option value="tsp">tsp</option>
+                    <option value="cup">{t("Cup")}</option>
+                    <option value="tbsp">{t("Tbsp")}</option>
+                    <option value="tsp">{t("Tsp")}</option>
                   </select>
                   <button
                     type="button"
@@ -412,7 +412,7 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="steps">Recipe Steps *</label>
+          <label htmlFor="steps">{t("uploadRecipePageSteps")} *</label>
           <textarea
             id="steps"
             name="stepsText" // Changed from steps to stepsText
@@ -432,7 +432,7 @@ const UploadRecipePage = () => {
 
         <div className="form-actions">
           <button type="button" onClick={() => navigate("/recipes")}>
-            Cancel
+            {t("Cancel")}
           </button>
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Uploading..." : "Upload Recipe"}

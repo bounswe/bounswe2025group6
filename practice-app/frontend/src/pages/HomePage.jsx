@@ -15,33 +15,33 @@ const HomePage = () => {
   const features = [
     {
       icon: "🍽️",
-      title: "Smart Meal Planning",
-      desc: "Create balanced meal plans tailored to your preferences and budget.",
+      title: t("homePageIconOne"),
+      desc: t("homePageIconOneDetail"),
     },
     {
       icon: "📊",
-      title: "Nutritional Analysis",
-      desc: "Access nutrition info for all your meals and recipes.",
+      title: t("homePageIconTwo"),
+      desc: t("homePageIconTwoDetail"),
     },
     {
       icon: "🛒",
-      title: "Shopping Lists",
-      desc: "Auto-generate shopping lists from your weekly plans.",
+      title: t("homePageIconThree"),
+      desc: t("homePageIconThreeDetail"),
     },
     {
       icon: "💰",
-      title: "Budget-Friendly",
-      desc: "Optimize your grocery spending with cost-effective meals.",
+      title: t("homePageIconFour"),
+      desc: t("homePageIconFourDetail"),
     },
     {
       icon: "👨‍👩‍👧‍👦",
-      title: "Family Friendly",
-      desc: "Easily scale meals for different household sizes.",
+      title: t("homePageIconFive"),
+      desc: t("homePageIconFiveDetail"),
     },
     {
       icon: "🥦",
-      title: "Dietary Preferences",
-      desc: "Filter meals by vegetarian, vegan, keto and more.",
+      title: t("homePageIconSix"),
+      desc: t("homePageIconSixDetail"),
     },
   ];
   useEffect(() => {
@@ -67,22 +67,17 @@ const HomePage = () => {
             <option value="tr">Türkçe</option>
           </select>
           <h1 className="hero-title">{t("homePageTitle")}</h1>
-          <p className="hero-subtitle">
-            Simplify meal planning, discover healthy recipes, and save money on
-            groceries.
-          </p>
+          <p className="hero-subtitle">{t("homePageSubtitle")}</p>
           <div className="hero-buttons">
             {currentUser ? (
-              <Link to="/dashboard" className="btn btn-primary">
-                Go to Dashboard
-              </Link>
+              <Link to="/dashboard" className="btn btn-primary">{t("homePageGotoDashboard")}</Link>
             ) : (
               <>
                 <Link to="/login" className="btn btn-secondary">
-                  Login
+                  {t("homePageLogin")}
                 </Link>
                 <Link to="/register" className="btn btn-primary">
-                  Sign Up Free
+                  {t("homePageSignUp")}
                 </Link>
               </>
             )}
@@ -92,9 +87,9 @@ const HomePage = () => {
 
       {/* Features */}
       <section className="features">
-        <h2 className="section-title">Everything You Need for Meal Planning</h2>
+        <h2 className="section-title">{t("homePageSecondTitle")}</h2>
         <p className="section-subtitle">
-          Our tools help you plan, shop, and cook better every day.
+          {t("homePageSecondSubtitle")}
         </p>
         <div className="feature-grid">
           {features.map((f, i) => (
@@ -109,35 +104,35 @@ const HomePage = () => {
 
       {/* How It Works */}
       <section className="how-it-works">
-        <h2 className="section-title">How It Works</h2>
+        <h2 className="section-title">{t("homePageThirdTitle")}</h2>
         <div className="steps">
           <div className="step">
             <span className="step-number">1</span>
-            <h4>Create Your Profile</h4>
-            <p>Set your dietary goals, budget and preferences.</p>
+            <h4>{t("homePageStepOne")}</h4>
+            <p>{t("homePageStepOneDetail")}</p>
           </div>
           <div className="step">
             <span className="step-number">2</span>
-            <h4>Build a Meal Plan</h4>
-            <p>Select from thousands of nutritious recipes.</p>
+            <h4>{t("homePageStepTwo")}</h4>
+            <p>{t("homePageStepTwoDetail")}</p>
           </div>
           <div className="step">
             <span className="step-number">3</span>
-            <h4>Shop & Cook</h4>
-            <p>Follow your personalized shopping list.</p>
+            <h4>{t("homePageStepThree")}</h4>
+            <p>{t("homePageStepThreeDetail")}</p>
           </div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="cta">
-        <h2>Ready to Simplify Your Meal Planning?</h2>
-        <p>Join thousands of users saving time and money every day.</p>
+        <h2>{t("homePageCtaHeader")}</h2>
+        <p>{t("homePageCtaDetail")}</p>
         <Link
           to={currentUser ? "/dashboard" : "/register"}
           className="btn btn-primary"
         >
-          {currentUser ? "Go to Dashboard" : "Sign Up Free"}
+          {currentUser ? t("homePageGotoDashboard") : t("homePageSignUp")}
         </Link>
       </section>
     </div>

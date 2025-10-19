@@ -23,17 +23,17 @@ const IngredientDetailPage = () => {
     }
   }, [ing]);
 
-  if (loading) return <div>Loading…</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
-  if (!ing) return <div>Not found</div>;
+  if (loading) return <div>{t("loading")}...</div>;
+  if (error) return <div className="text-red-500">{t("Error")}: {error}</div>;
+  if (!ing) return <div>{t("NotFound")}</div>;
 
   return (
     <div className="ingredient-detail-page">
       <h1>{ing.name}</h1>
-      <p><strong>Category:</strong> {ing.category}</p>
-      <p><strong>Allergens:</strong> {ing.allergens.join(', ') || 'None'}</p>
-      <p><strong>Dietary Info:</strong> {ing.dietary_info.join(', ')}</p>
-      <p><small>Created: {new Date(ing.created_at).toLocaleString()}</small></p>
+      <p><strong>{t("Category")}:</strong> {ing.category}</p>
+      <p><strong>{t("Allergens")}:</strong> {ing.allergens.join(', ') || 'None'}</p>
+      <p><strong>{t("DietaryInfo")}:</strong> {ing.dietary_info.join(', ')}</p>
+      <p><small>{t("Created")}: {new Date(ing.created_at).toLocaleString()}</small></p>
       <button
         className="ingredient-back-btn"
         onClick={() => navigate('/ingredients')}
@@ -48,7 +48,7 @@ const IngredientDetailPage = () => {
           cursor: 'pointer'
         }}
       >
-        ← Back
+        ← {t("Back")}
       </button>
     </div>
   );

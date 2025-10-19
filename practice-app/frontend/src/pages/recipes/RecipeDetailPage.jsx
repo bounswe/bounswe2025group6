@@ -103,21 +103,21 @@ const RecipeDetailPage = () => {
           : 'url("https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")'
 			}}>        <h1>{recipe.name}</h1>
         <p className="creator-name" style={{ color: 'white', fontStyle: 'italic', marginTop: '5px' }}>
-          Created by: {creatorName || 'Loading...'}
+          {t("recipeDetailPageCreatedBy")}: {creatorName || t("recipeDetailPageLoading")}
         </p>
         <div className='recipe-detail-page-header-boxes'>
           <div className='recipe-detail-page-header-box'>
-            <span className='recipe-detail-page-header-box-info'>Dietary Info: </span>
+            <span className='recipe-detail-page-header-box-info'>{t("recipeDetailPageDietaryInfo")}: </span>
             {recipe.dietary_info && recipe.dietary_info.length > 0 ? (
               recipe.dietary_info.map((info, index) => (
                 <span className='recipe-detail-page-header-box-dietary' key={index} >{info}</span>
               ))
             ) : (
-              <span className='recipe-detail-page-header-box-dietary'>None</span>
+              <span className='recipe-detail-page-header-box-dietary'>{t("recipeDetailPageNone")}</span>
             )}
           </div>
           <div className='recipe-detail-page-header-box' style={{ position: 'relative' }}>
-            <span className='recipe-detail-page-header-box-info'>Allergens: </span>
+            <span className='recipe-detail-page-header-box-info'>{t("recipeDetailPageAllergens")}: </span>
             {recipe.alergens && recipe.alergens.length > 0 ? (
             recipe.alergens.map((allergen, index) => (
               <span className='recipe-detail-page-header-box-allergen' key={index}>
@@ -126,7 +126,7 @@ const RecipeDetailPage = () => {
               </span>
             ))
           ) : (
-            <span className='recipe-detail-page-header-box-allergen'>None</span>
+            <span className='recipe-detail-page-header-box-allergen'>{t("recipeDetailPageNone")}</span>
           )}
             {/* Report button positioned at top right of allergens section */}
             {currentUser && currentUser.id !== recipe.creator_id && (
@@ -145,12 +145,12 @@ const RecipeDetailPage = () => {
         {/*DELETE BUTTON EDIT BUTTON*/}
         {currentUser && currentUser.id === recipe.creator_id && (
           <div className='recipe-detail-page-header-buttons'>
-            <button className="delete-recipe-button" onClick={handleDelete}>Delete Recipe</button>
+            <button className="delete-recipe-button" onClick={handleDelete}>{t("recipeDetailPageDeleteRecipe")}</button>
             <button 
               className="edit-recipe-button" 
               onClick={() => navigate(`/recipes/${id}/edit`)}
             >
-              Edit Recipe
+              {t("recipeDetailPageEditRecipe")}
             </button>
           </div>
         )}
@@ -159,7 +159,7 @@ const RecipeDetailPage = () => {
 
       <div className='recipe-detail-page-boxes'>
         <div className="recipe-detail-page-box">
-          <span className='recipe-detail-page-box-header'>MEAL TYPE</span>
+          <span className='recipe-detail-page-box-header'>{t("recipeDetailPageMealType")}</span>
           <span className='recipe-detail-page-box-title'>
             {recipe.meal_type
             ? recipe.meal_type.charAt(0).toUpperCase() + recipe.meal_type.slice(1)
@@ -168,36 +168,36 @@ const RecipeDetailPage = () => {
         </div>
 
         <div className="recipe-detail-page-box">
-          <span className='recipe-detail-page-box-header'>PREP TIME</span>
-          <span className='recipe-detail-page-box-title'>{recipe.prep_time} mins</span>
+          <span className='recipe-detail-page-box-header'>{t("recipeDetailPagePrepTime")}</span>
+          <span className='recipe-detail-page-box-title'>{recipe.prep_time} {t("recipeDetailTime")}</span>
         </div>
 
         <div className="recipe-detail-page-box">
-          <span className='recipe-detail-page-box-header'>COOK TIME</span>
-          <span className='recipe-detail-page-box-title'>{recipe.cook_time} mins</span>
+          <span className='recipe-detail-page-box-header'>{t("recipeDetailPageCookTime")}</span>
+          <span className='recipe-detail-page-box-title'>{recipe.cook_time} {t("recipeDetailTime")}</span>
         </div>
 
         <div className="recipe-detail-page-box">
-          <span className='recipe-detail-page-box-header'>COST</span>
+          <span className='recipe-detail-page-box-header'>{t("recipeDetailPageCost")}</span>
           <span className='recipe-detail-page-box-title'>{recipe.cost_per_serving || 'None'} $</span>
         </div>  
       </div>
 
       <div className='recipe-detail-page-stars'>
           <div className='recipe-detail-page-star'>
-              <span className='recipe-detail-page-star-header'>DIFFICULTY RATING</span>
+              <span className='recipe-detail-page-star-header'>{t("recipeDetailPageDifficultyRating")}</span>
               <div className='recipe-detail-page-star-title'>
                 <RatingStars rating={recipe.difficulty_rating || 0} maxRating={5} />
               </div>
           </div>
           <div className='recipe-detail-page-star'>
-              <span className='recipe-detail-page-star-header'>TASTE RATING</span>
+              <span className='recipe-detail-page-star-header'>{t("recipeDetailPageTasteRating")}</span>
               <div className='recipe-detail-page-star-title'>
                 <RatingStars rating={recipe.taste_rating || 0} maxRating={5} />
               </div>
           </div>
           <div className='recipe-detail-page-star'>
-              <span className='recipe-detail-page-star-header'>HEALTH RATING</span>
+              <span className='recipe-detail-page-star-header'>{t("recipeDetailPageHealthRating")}</span>
               <div className='recipe-detail-page-star-title'>
                 <RatingStars rating={recipe.health_rating || 0} maxRating={5} />
               </div>
@@ -206,7 +206,7 @@ const RecipeDetailPage = () => {
 
       <div className='recipe-detail-page-content'>
         <div className='recipe-detail-page-content-steps'>
-          <h2>INSTRUCTIONS</h2>
+          <h2>{t("recipeDetailPageInstructions")}</h2>
           {recipe.steps && recipe.steps.length > 0 ? (
             <ol>
               {recipe.steps.map((step, index) => (
@@ -214,11 +214,11 @@ const RecipeDetailPage = () => {
               ))}
             </ol>
           ) : (
-            <p>No steps provided</p>
+            <p>{t("recipeDetailPageNoSteps")}</p>
           )}
         </div>
         <div className='recipe-detail-page-ingredients'>
-          <h2>INGREDIENTS</h2>
+          <h2>{t("recipeDetailPageIngredients")}</h2>
           {recipe.ingredients && recipe.ingredients.length > 0 ? (
           <ul>
             {recipe.ingredients.map((item, index) => (
@@ -228,7 +228,7 @@ const RecipeDetailPage = () => {
             ))}
           </ul>
           ) : (
-            <p>No ingredients provided</p>
+            <p>{t("recipeDetailPageNoIngredients")}</p>
           )}
         </div>
         
