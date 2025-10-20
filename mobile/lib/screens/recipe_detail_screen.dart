@@ -8,7 +8,6 @@ import '../widgets/report_button.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
 
-
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
 
@@ -34,7 +33,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-            title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
+        title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
         actions: [
           if (_currentRecipe != null)
@@ -51,7 +50,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text(AppLocalizations.of(context)!.errorLoadingRecipes(snapshot.error.toString())));
+            return Center(
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                )!.errorLoadingRecipes(snapshot.error.toString()),
+              ),
+            );
           } else if (snapshot.hasData) {
             final recipe = snapshot.data!;
             // Store recipe for report button (only update if changed)
@@ -76,25 +81,46 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         recipe.imageFullUrl!.isNotEmpty)
                       Hero(
                         tag: 'recipe_image_${recipe.id}',
-                        child: Container(
-                          width: double.infinity,
-                          height: 250,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(recipe.imageFullUrl!),
-                              fit: BoxFit.cover,
-                            ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: 350,
+                            minHeight: 200,
                           ),
                           child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.3),
-                                ],
-                              ),
+                            width: double.infinity,
+                            color: Colors.grey[900],
+                            child: Stack(
+                              fit: StackFit.passthrough,
+                              children: [
+                                Image.network(
+                                  recipe.imageFullUrl!,
+                                  width: double.infinity,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      height: 200,
+                                      color: Colors.grey[300],
+                                      child: const Icon(
+                                        Icons.restaurant,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.3),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -144,35 +170,37 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: <Widget>[
-                                    _buildInfoColumn(
-                                      Icons.timer_outlined,
-                                      '${recipe.prepTime} ${AppLocalizations.of(context)!.minutesAbbr}',
-                                      AppLocalizations.of(context)!.prepTimeLabel,
-                                      context,
-                                    ),
-                                    _buildInfoColumn(
-                                      Icons.whatshot_outlined,
-                                      '${recipe.cookTime} ${AppLocalizations.of(context)!.minutesAbbr}',
-                                      AppLocalizations.of(context)!.cookTimeLabel,
-                                      context,
-                                    ),
-                                    _buildInfoColumn(
-                                      Icons.restaurant_menu_outlined,
-                                      recipe.mealType == 'breakfast'
-                                          ? AppLocalizations.of(context)!.breakfast
-                                    : recipe.mealType == 'lunch'
+                                  _buildInfoColumn(
+                                    Icons.timer_outlined,
+                                    '${recipe.prepTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                    AppLocalizations.of(context)!.prepTimeLabel,
+                                    context,
+                                  ),
+                                  _buildInfoColumn(
+                                    Icons.whatshot_outlined,
+                                    '${recipe.cookTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                    AppLocalizations.of(context)!.cookTimeLabel,
+                                    context,
+                                  ),
+                                  _buildInfoColumn(
+                                    Icons.restaurant_menu_outlined,
+                                    recipe.mealType == 'breakfast'
+                                        ? AppLocalizations.of(
+                                          context,
+                                        )!.breakfast
+                                        : recipe.mealType == 'lunch'
                                         ? AppLocalizations.of(context)!.lunch
                                         : AppLocalizations.of(context)!.dinner,
-                                AppLocalizations.of(context)!.mealTypeLabel,
-                                      context,
-                                    ),
+                                    AppLocalizations.of(context)!.mealTypeLabel,
+                                    context,
+                                  ),
                                 ],
                               ),
                             ),
                           ),
                           const SizedBox(height: 24),
-                        ]
-                      )
+                        ],
+                      ),
                     ),
                     // Ingredients Section
                     _buildSectionTitle(
@@ -314,7 +342,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       _buildDetailRow(
                                         Icons.attach_money_outlined,
                                         // 'Cost per Serving:',
-                                        AppLocalizations.of(context)!.costPerServingLabel,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.costPerServingLabel,
                                         '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing?.toStringAsFixed(2)}',
                                         context,
                                       ),
@@ -322,7 +352,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       _buildDetailRow(
                                         Icons.star_border_outlined,
                                         // 'Difficulty:',
-                                        AppLocalizations.of(context)!.difficultyLabel,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.difficultyLabel,
                                         '${recipe.difficultyRating}/5',
                                         context,
                                       ),
@@ -330,7 +362,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       _buildDetailRow(
                                         Icons.thumb_up_alt_outlined,
                                         // 'Taste Rating:',
-                                        AppLocalizations.of(context)!.tasteRatingLabel,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.tasteRatingLabel,
                                         '${recipe.tasteRating}/5',
                                         context,
                                       ),
@@ -338,7 +372,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       _buildDetailRow(
                                         Icons.health_and_safety_outlined,
                                         // 'Health Rating:',
-                                        AppLocalizations.of(context)!.healthRatingLabel,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.healthRatingLabel,
                                         '${recipe.healthRating}/5',
                                         context,
                                       ),
@@ -352,7 +388,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     _buildDetailRow(
                                       Icons.comment_outlined,
                                       // 'Comments:',
-                                      AppLocalizations.of(context)!.commentsLabel,
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.commentsLabel,
                                       '${recipe.commentCount}',
                                       context,
                                     ),
@@ -360,7 +398,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       _buildDetailRow(
                                         Icons.warning_amber_outlined,
                                         // 'Allergens:',
-                                        AppLocalizations.of(context)!.allergensLabel,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.allergensLabel,
                                         recipe.allergens.join(", "),
                                         context,
                                       ),
@@ -368,7 +408,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       _buildDetailRow(
                                         Icons.restaurant_outlined,
                                         // 'Dietary Info:',
-                                        AppLocalizations.of(context)!.dietaryInfoLabel,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.dietaryInfoLabel,
                                         recipe.dietaryInfo.join(", "),
                                         context,
                                       ),
@@ -385,7 +427,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ),
             );
           } else {
-            return Center(child: Text(AppLocalizations.of(context)!.recipeNotFound));
+            return Center(
+              child: Text(AppLocalizations.of(context)!.recipeNotFound),
+            );
           }
         },
       ),
@@ -474,5 +518,4 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
     );
   }
-
 }
