@@ -355,6 +355,19 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
         (route) => false,
       );
+    } on AuthenticationException catch (e) {
+      if (!mounted) return;
+      // Check if it's a 429 error (too many requests)
+      if (e.statusCode == 429) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.tooManyLoginAttempts),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      } else {
+        _showErrorMessage(context, e.message);
+      }
     } catch (e) {
       if (!mounted) return;
       _showErrorMessage(context, e.toString());

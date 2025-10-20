@@ -68,6 +68,8 @@
     "createAccount": "Hesap Oluştur",
     "loginSuccessful": "Giriş başarılı!",
     "loginFailed": "Giriş başarısız: {message}",
+    "tooManyLoginAttempts": "Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin.",
+    "@tooManyLoginAttempts": { "description": "Kullanıcının çok fazla başarısız giriş denemesi olduğunda gösterilen hata mesajı (429 hatası)" },
 
     "createNewPasswordTitle": "Yeni Parola Oluştur",
     "newPasswordLabel": "Yeni Parola",
