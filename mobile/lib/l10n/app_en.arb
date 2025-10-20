@@ -116,6 +116,8 @@
   "@loginSuccessful": { "description": "Snackbar text on successful login" },
   "loginFailed": "Login failed: {message}",
   "@loginFailed": { "description": "Snackbar text when login fails" },
+  "tooManyLoginAttempts": "Too many failed login attempts. Please try again later.",
+  "@tooManyLoginAttempts": { "description": "Error message when user has too many failed login attempts (429 error)" },
 
   "failedToObtainJwtTokens": "Failed to obtain JWT tokens: {error}",
   "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } },
