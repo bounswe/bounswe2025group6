@@ -68,7 +68,7 @@ def send_verification_email(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     domain = get_current_site(request).domain
     link = reverse('email-verify', kwargs={'uidb64': uid, 'token': token})
-    verify_url = f'http://{domain}{link}'
+    verify_url = f'https://{domain}{link}'
 
     subject = 'Verify your email'
     message = f'Click the link to verify your account: {verify_url}'
@@ -170,7 +170,7 @@ def forgot_password(request):
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     reset_url = reverse('password-reset', kwargs={'uidb64': uid, 'token': token})
-    reset_link = f'http://{settings.SITE_DOMAIN}{reset_url}'
+    reset_link = f'https://{settings.SITE_DOMAIN}{reset_url}'
 
     subject = "Fithub Password Reset Request"
     message = f"To reset your password, click the following link: {reset_link}"
