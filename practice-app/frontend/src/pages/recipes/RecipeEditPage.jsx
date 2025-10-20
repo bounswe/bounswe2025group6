@@ -4,6 +4,7 @@ import { getRecipeById, updateRecipe } from '../../services/recipeService';
 import { getCurrentUser } from '../../services/authService';
 import '../../styles/UploadRecipePage.scss';
 import { useToast } from '../../components/ui/Toast';
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -14,6 +15,7 @@ const RecipeEditPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
 
   const [recipeData, setRecipeData] = useState({
     name: '',

@@ -3,6 +3,7 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import '../../styles/VoteButtons.css';
+import { useTranslation } from "react-i18next";
 
 const VoteButtons = ({ 
   upvotes, 
@@ -29,6 +30,8 @@ const VoteButtons = ({
       onDownvote();
     }
   };
+
+  const { t } = useTranslation();
 
   const handleRemoveVote = () => {
     if (!currentUser) {

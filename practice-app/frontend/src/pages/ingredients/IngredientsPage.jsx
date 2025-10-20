@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/IngredientList.css';
 import '../../styles/IngredientsPage.css';
+import { useTranslation } from "react-i18next";
 
 // Main component for displaying and managing ingredients with pagination and search
 const IngredientsPage = () => {
   // State declarations for managing ingredients, pagination, and UI state
+  const { t } = useTranslation();
   const [allIngredients, setAllIngredients] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [filteredIngredients, setFilteredIngredients] = useState([]);

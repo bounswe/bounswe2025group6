@@ -4,8 +4,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import '../../styles/CommentForm.css';
+import { useTranslation } from "react-i18next";
 
 const CommentForm = ({ postId, onCommentAdded }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { currentUser } = useAuth();

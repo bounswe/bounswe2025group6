@@ -6,8 +6,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import '../../styles/AuthPages.css';
+import { useTranslation } from "react-i18next";
 
 const ResetPasswordPage = () => {
+  const { t } = useTranslation();
   const { token } = useParams();
   const navigate = useNavigate();
   const { resetPassword, isLoading } = useAuth();

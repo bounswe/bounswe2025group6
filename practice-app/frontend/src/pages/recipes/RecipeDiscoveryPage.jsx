@@ -5,9 +5,11 @@ import RecipeCard from '../../components/recipe/RecipeCard';
 import Button from '../../components/ui/Button';
 import '../../styles/RecipeDiscoveryPage.css';
 import '../../styles/style.css';
+import { useTranslation } from "react-i18next";
 
 const RecipeDiscoveryPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);

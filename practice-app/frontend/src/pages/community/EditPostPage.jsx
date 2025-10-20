@@ -7,8 +7,10 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import '../../styles/CreatePostPage.css'; // Reuse the same CSS
+import { useTranslation } from "react-i18next";
 
 const EditPostPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();

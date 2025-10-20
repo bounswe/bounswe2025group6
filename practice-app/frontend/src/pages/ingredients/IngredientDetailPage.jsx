@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getIngredientById } from '../../services/ingredientService';
 import '../../styles/IngredientDetailPage.css';
+import { useTranslation } from "react-i18next";
 
 const IngredientDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [ing, setIng] = useState(null);

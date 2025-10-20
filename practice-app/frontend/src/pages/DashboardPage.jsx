@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import "../styles/DashboardPage.css";
@@ -70,9 +69,7 @@ const DashboardPage = () => {
           <h1 className="dashboard-title">
             {getWelcomeMessage()}, {username}!
           </h1>
-          <p className="dashboard-subtitle">
-            {t("dashbboardSubtitle")}
-          </p>
+          <p className="dashboard-subtitle">{t("dashbboardSubtitle")}</p>
         </div>
       </div>
 
@@ -80,12 +77,16 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">🍽️</div>
-            <h2 className="dashboard-card-title">{t("dashboardCardOneTitle")}</h2>
+            <h2 className="dashboard-card-title">
+              {t("dashboardCardOneTitle")}
+            </h2>
             <p className="dashboard-card-content">
               {t("dashboardCardOneContent")}
             </p>
             <Link to="/meal-planner" className="mt-auto">
-              <Button className="green-button">{t("dashboardCardOneButton")}</Button>
+              <Button className="green-button">
+                {t("dashboardCardOneButton")}
+              </Button>
             </Link>
           </Card.Body>
         </Card>
@@ -93,12 +94,16 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">📖</div>
-            <h2 className="dashboard-card-title">{t("dashboardCardTwoTitle")}</h2>
+            <h2 className="dashboard-card-title">
+              {t("dashboardCardTwoTitle")}
+            </h2>
             <p className="dashboard-card-content">
               {t("dashboardCardTwoContent")}
             </p>
             <Link to="/recipes" className="mt-auto">
-              <Button className="green-button">{t("dashboardCardTwoButton")}</Button>
+              <Button className="green-button">
+                {t("dashboardCardTwoButton")}
+              </Button>
             </Link>
           </Card.Body>
         </Card>
@@ -106,12 +111,16 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">🛒</div>
-            <h2 className="dashboard-card-title">{t("dashboardCardThreeTitle")}</h2>
+            <h2 className="dashboard-card-title">
+              {t("dashboardCardThreeTitle")}
+            </h2>
             <p className="dashboard-card-content">
               {t("dashboardCardThreeContent")}
             </p>
             <Link to="/shopping-list" className="mt-auto">
-              <Button className="green-button">{t("dashboardCardThreeTitle")}</Button>
+              <Button className="green-button">
+                {t("dashboardCardThreeTitle")}
+              </Button>
             </Link>
           </Card.Body>
         </Card>
@@ -119,12 +128,16 @@ const DashboardPage = () => {
         <Card className="dashboard-card">
           <Card.Body className="dashboard-card-body">
             <div className="dashboard-card-icon">💬</div>
-            <h2 className="dashboard-card-title">{t("dashboardCardFourTitle")}</h2>
+            <h2 className="dashboard-card-title">
+              {t("dashboardCardFourTitle")}
+            </h2>
             <p className="dashboard-card-content">
               {t("dashboardCardFourContent")}
             </p>
             <Link to="/community" className="mt-auto">
-              <Button className="green-button">{t("dashboardCardFourTitle")}</Button>
+              <Button className="green-button">
+                {t("dashboardCardFourTitle")}
+              </Button>
             </Link>
           </Card.Body>
         </Card>

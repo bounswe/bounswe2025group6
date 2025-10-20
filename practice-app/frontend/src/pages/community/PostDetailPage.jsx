@@ -9,8 +9,10 @@ import forumService from '../../services/forumService';
 import userService from '../../services/userService.js'; // Import userService
 import '../../styles/PostDetailPage.css';
 import ReportButton from '../../components/report/ReportButton';
+import { useTranslation } from "react-i18next";
 
 const PostDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
