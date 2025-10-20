@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import '../services/profile_service.dart';
 import '../providers/locale_provider.dart';
 import '../providers/currency_provider.dart';
-
+import '../models/user_profile.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -59,14 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                  // Language toggle
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: const LanguageToggle(),
-                    ),
+                // Language toggle
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: const LanguageToggle(),
                   ),
+                ),
                 // Logo
                 Center(
                   child: Container(
@@ -193,13 +193,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             child: Text(
-                            AppLocalizations.of(context)!.logInButton,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              AppLocalizations.of(context)!.logInButton,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
                           ),
                 ),
 
@@ -211,7 +211,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       AppLocalizations.of(context)!.dontHaveAccount,
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 14,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -267,11 +270,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Call login method and get the LoginResponse
-      final loginResponse = await _authService.login(
-        _emailController.text,
-        _passwordController.text,
-      );
+      // Call login method (response not needed here)
+      await _authService.login(_emailController.text, _passwordController.text);
 
       // Also fetch and store the JWT access token
       try {
@@ -286,7 +286,11 @@ class _LoginScreenState extends State<LoginScreen> {
         // Show a specific localized error message about failing to obtain JWT tokens
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToObtainJwtTokens(e.toString())),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.failedToObtainJwtTokens(e.toString()),
+            ),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -296,20 +300,54 @@ class _LoginScreenState extends State<LoginScreen> {
 
       _showSuccessMessage(context);
 
-      // Fetch latest user profile from backend and apply backend language preference
+      // After saving JWT tokens, persist the language the user selected on the login screen
+      // to the backend and immediately update the app locale.
       try {
+        final localeProvider = Provider.of<LocaleProvider>(
+          context,
+          listen: false,
+        );
+        final selectedCode = localeProvider.locale?.languageCode ?? 'en';
+        final selectedLanguage =
+            selectedCode == 'tr' ? Language.tr : Language.en;
+
         final profileService = ProfileService();
         final profile = await profileService.getUserProfile();
-        // Update the app locale based on backend preference immediately.
+
+        // If the selected language differs from backend value, update it on the server.
+        if (profile.language != selectedLanguage) {
+          final updated = profile.copyWith(language: selectedLanguage);
+          try {
+            await profileService.updateUserProfile(updated);
+          } catch (e) {
+            // Non-fatal: show snackbar but continue. We still apply the UI change locally.
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.genericError(e.toString()),
+                  ),
+                  backgroundColor: AppTheme.errorColor,
+                ),
+              );
+            }
+          }
+        }
+
+        // Ensure the app uses the selected language immediately.
         if (context.mounted) {
-          Provider.of<LocaleProvider>(context, listen: false)
-              .setLocaleFromLanguage(profile.language);
+          Provider.of<LocaleProvider>(
+            context,
+            listen: false,
+          ).setLocaleFromLanguage(selectedLanguage);
           // Also update currency provider based on backend preference.
-          Provider.of<CurrencyProvider>(context, listen: false)
-              .setCurrency(profile.preferredCurrency);
+          Provider.of<CurrencyProvider>(
+            context,
+            listen: false,
+          ).setCurrency(profile.preferredCurrency);
         }
       } catch (e) {
-        // If profile fetch fails, ignore and proceed to dashboard. Do not persist any pre-login manual language or currency.
+        // If profile fetch or update fails, proceed without blocking login.
       }
 
       // Navigate to dashboard and remove all previous routes
