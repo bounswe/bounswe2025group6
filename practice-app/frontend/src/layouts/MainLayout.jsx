@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../components/ui/Toast";
 import "../styles/Layout.css";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 
 const MainLayout = () => {
   const { logout } = useAuth();
@@ -17,11 +18,16 @@ const MainLayout = () => {
       await logout();
       toast.success(t("loggedOutSuccessfully"));
       navigate("/login");
-    } catch (error) {
+    } catch (e) {
+      console.error("Logout failed:", e);
       toast.error(t("failedToLogOut"));
     }
   };
 
+  const langChangeHandler = (e) => {
+    const lang = e.target.value;
+    i18next.changeLanguage(lang);
+  };
   const navItems = [
     { path: "/dashboard", label: t("dashboard") },
     { path: "/meal-planner", label: t("mealPlanner") },
@@ -69,9 +75,13 @@ const MainLayout = () => {
         </nav>
         <div className="layout-header-right">
           <button className="layout-logout green-button" onClick={handleLogout}>
-            Logout
+            {t("logout")}
           </button>
         </div>
+        <select onChange={langChangeHandler} defaultValue={i18next.language}>
+          <option value="en">English</option>
+          <option value="tr">Türkçe</option>
+        </select>
       </header>
 
       <main className="layout-main">
