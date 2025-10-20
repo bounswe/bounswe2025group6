@@ -55,13 +55,17 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
         });
       }
     } catch (e) {
-        if (mounted) {
+      if (mounted) {
         setState(() {
           _isLoadingIngredients = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToLoadIngredients(e.toString())),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.failedToLoadIngredients(e.toString()),
+            ),
           ),
         );
       }
@@ -121,7 +125,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
         //   SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
         // );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.failedToPickImage(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToPickImage(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -183,7 +191,11 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
               // Check if the widget is still in the tree
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(AppLocalizations.of(context)!.recipeUploadedButProfileCountFailed(e.toString())),
+                  content: Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.recipeUploadedButProfileCountFailed(e.toString()),
+                  ),
                   backgroundColor: AppTheme.warningColor, // Use a warning color
                 ),
               );
@@ -191,17 +203,27 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
           }
           // Show success message regardless of count update success for now
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.recipeUploadedSuccess)),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.recipeUploadedSuccess,
+              ),
+            ),
           );
           Navigator.of(context).pop(); // Go back after successful upload
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.failedToUploadRecipe)),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.failedToUploadRecipe),
+            ),
           );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.genericError(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.genericError(e.toString()),
+            ),
+          ),
         );
       } finally {
         setState(() {
@@ -215,7 +237,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: Text(AppLocalizations.of(context)!.uploadRecipeTitle),
+        title: Text(AppLocalizations.of(context)!.uploadRecipeTitle),
         backgroundColor: AppTheme.primaryGreen,
       ),
       body: Padding(
@@ -228,10 +250,14 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
               children: <Widget>[
                 TextFormField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.recipeNameLabel),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.recipeNameLabel,
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)!.enterRecipeNameValidation;
+                      return AppLocalizations.of(
+                        context,
+                      )!.enterRecipeNameValidation;
                     }
                     return null;
                   },
@@ -261,32 +287,56 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 300,
+                                    minHeight: 150,
+                                  ),
+                                  child: Image.file(
+                                    _selectedImage!,
+                                    width: double.infinity,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                ),
-                                onPressed: _removeImage,
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Colors.red.withOpacity(0.7),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.8),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    onPressed: _removeImage,
+                                    padding: const EdgeInsets.all(4),
+                                    constraints: const BoxConstraints(),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ] else ...[
-                          OutlinedButton.icon(
-                            onPressed: _pickImage,
-                            icon: const Icon(Icons.add_photo_alternate),
-                            label: Text(AppLocalizations.of(context)!.addImage),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _pickImage,
+                              icon: const Icon(Icons.add_photo_alternate),
+                              label: Text(
+                                AppLocalizations.of(context)!.addImage,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 12,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -298,7 +348,10 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
 
                 TextFormField(
                   controller: _prepTimeController,
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.preparationTimeLabel),
+                  decoration: InputDecoration(
+                    labelText:
+                        AppLocalizations.of(context)!.preparationTimeLabel,
+                  ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -317,7 +370,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _cookTimeController,
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.cookingTimeLabel),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.cookingTimeLabel,
+                  ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -335,7 +390,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.mealTypeLabel),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.mealTypeLabel,
+                  ),
                   value: _selectedMealType,
                   items:
                       ['breakfast', 'lunch', 'dinner']
@@ -346,8 +403,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 label == 'breakfast'
                                     ? AppLocalizations.of(context)!.breakfast
                                     : label == 'lunch'
-                                        ? AppLocalizations.of(context)!.lunch
-                                        : AppLocalizations.of(context)!.dinner,
+                                    ? AppLocalizations.of(context)!.lunch
+                                    : AppLocalizations.of(context)!.dinner,
                               ),
                             ),
                           )
@@ -359,7 +416,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)!.selectMealTypeValidation;
+                      return AppLocalizations.of(
+                        context,
+                      )!.selectMealTypeValidation;
                     }
                     return null;
                   },
@@ -428,11 +487,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                       // decoration: const InputDecoration(
                                       //   labelText: 'Ingredient Name',
                                       // ),
-                                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.ingredientNameLabel),
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.ingredientNameLabel,
+                                      ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
                                           // return 'Enter ingredient name';
-                                          return AppLocalizations.of(context)!.enterIngredientNameValidation;
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.enterIngredientNameValidation;
                                         }
                                         // Optional: Validate if the entered ingredient is in the list
                                         // if (!_allIngredients.any((ing) => ing.name.toLowerCase() == value.toLowerCase())) {
@@ -458,7 +524,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                       (context) => Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
-                                          AppLocalizations.of(context)!.noIngredientsFound,
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.noIngredientsFound,
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
@@ -469,21 +537,32 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _ingredients[index]['quantity'],
-                                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.quantityLabel),
+                                    decoration: InputDecoration(
+                                      labelText:
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.quantityLabel,
+                                    ),
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return AppLocalizations.of(context)!.enterQuantityValidation;
+                                        return AppLocalizations.of(
+                                          context,
+                                        )!.enterQuantityValidation;
                                       }
                                       final n = double.tryParse(value);
                                       if (n == null) {
-                                        return AppLocalizations.of(context)!.enterValidNumber;
+                                        return AppLocalizations.of(
+                                          context,
+                                        )!.enterValidNumber;
                                       }
                                       if (n <= 0) {
-                                        return AppLocalizations.of(context)!.quantityPositiveValidation;
+                                        return AppLocalizations.of(
+                                          context,
+                                        )!.quantityPositiveValidation;
                                       }
                                       return null;
                                     },
@@ -493,11 +572,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _ingredients[index]['unit'],
-                                    decoration: InputDecoration(labelText: AppLocalizations.of(context)!.unitLabel),
+                                    decoration: InputDecoration(
+                                      labelText:
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.unitLabel,
+                                    ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         // return 'Enter unit';
-                                        return AppLocalizations.of(context)!.enterIngredientNameValidation;
+                                        return AppLocalizations.of(
+                                          context,
+                                        )!.enterIngredientNameValidation;
                                       }
                                       return null;
                                     },
@@ -516,7 +602,9 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                   ),
                                   label: Text(
                                     AppLocalizations.of(context)!.removeLabel,
-                                    style: const TextStyle(color: AppTheme.errorColor),
+                                    style: const TextStyle(
+                                      color: AppTheme.errorColor,
+                                    ),
                                   ),
                                   onPressed:
                                       () => _removeIngredientField(index),
