@@ -48,6 +48,7 @@ const ProfilePage = () => {
           email: user.email || "No email provided",
           currencyPreference:
             userData?.preferredCurrency || "No currency preference set",
+          preferredDateFormat: userData?.preferredDateFormat || "DD/MM/YYYY",
           id: user.id,
         });
       } catch (error) {
@@ -65,6 +66,15 @@ const ProfilePage = () => {
     const updatedProfile = {
       ...userProfile,
       currencyPreference: newCurrency,
+    };
+    await userService.updateUserById(userProfile.id, updatedProfile);
+    setUserProfile(updatedProfile);
+  };
+  const handleDateChange = async (e) => {
+    const newDatePref = e.target.value;
+    const updatedProfile = {
+      ...userProfile,
+      preferredDateFormat: newDatePref,
     };
     await userService.updateUserById(userProfile.id, updatedProfile);
     setUserProfile(updatedProfile);
@@ -153,6 +163,16 @@ const ProfilePage = () => {
               >
                 <option value="USD">USD</option>
                 <option value="TRY">TRY</option>
+              </select>
+            </p>
+            <p>
+              <strong>{t("datePreference")}: </strong>
+              <select
+                defaultValue={userProfile.preferredDateFormat}
+                onChange={handleDateChange}
+              >
+                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               </select>
             </p>
           </div>

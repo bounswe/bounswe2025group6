@@ -45,6 +45,7 @@
   "recipes": "Tarifler",
   "recipeName": "Tarif İsmi",
   "currencyPreference": "Birim Tercihi",
+  "datePreference": "Tarih Biçimi",
   "savedRecipes": "Kaydedilen Tarifler",
   "Ingredients": "İçindekiler",
   "ingredients": "Malzemeler",
