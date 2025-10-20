@@ -8,8 +8,10 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import '../../styles/CreatePostPage.css';
+import { useTranslation } from "react-i18next";
 
 const CreatePostPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const toast = useToast();

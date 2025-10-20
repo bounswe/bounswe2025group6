@@ -8,8 +8,10 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import TermsContent from '../../components/info/TermsContent';
 import '../../styles/AuthPages.css';
+import { useTranslation } from "react-i18next";
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const { register, isLoading } = useAuth();
   const toast = useToast();
   const [showTermsModal, setShowTermsModal] = useState(false);

@@ -6,8 +6,10 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import '../../styles/UserProfilePage.css';
+import { useTranslation } from "react-i18next";
 
 const UserProfilePage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();

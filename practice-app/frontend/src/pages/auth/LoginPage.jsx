@@ -6,8 +6,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import '../../styles/AuthPages.css';
+import { useTranslation } from "react-i18next";
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading } = useAuth();
@@ -21,7 +23,7 @@ const LoginPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-
+ console.log("Deneme")
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
@@ -45,9 +47,22 @@ const LoginPage = () => {
       toast.success('Login successful!');
       navigate(redirectPath);
     } catch (error) {
-      toast.error(error.message || 'Failed to login');
-      if (error.message.toLowerCase().includes('email')) setErrors(prev => ({ ...prev, email: error.message }));
-      else if (error.message.toLowerCase().includes('password')) setErrors(prev => ({ ...prev, password: error.message }));
+      if (error.response && error.response.status === 429) {
+        toast.error('Login failed 5 times. Please wait 5 minutes to try again.', {
+          duration: 5000,
+          style: {
+            background: '#ff4b4b',
+            color: '#fff',
+            fontWeight: 'bold',
+            padding: '16px',
+            borderRadius: '8px',
+          },
+        });
+      } else {
+        toast.error(error.message || 'Failed to login');
+        if (error.message.toLowerCase().includes('email')) setErrors(prev => ({ ...prev, email: error.message }));
+        else if (error.message.toLowerCase().includes('password')) setErrors(prev => ({ ...prev, password: error.message }));
+      }
     }
   };
   useEffect(() => {

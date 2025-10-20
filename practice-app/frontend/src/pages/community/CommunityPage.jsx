@@ -9,8 +9,10 @@ import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js';
 import '../../styles/CommunityPage.css';
+import { useTranslation } from "react-i18next";
 
 const CommunityPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const toast = useToast();

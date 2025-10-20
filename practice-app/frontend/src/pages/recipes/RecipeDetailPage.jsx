@@ -8,6 +8,7 @@ import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
 import { getCurrentUser } from '../../services/authService';
 import ReportButton from '../../components/report/ReportButton';
+import { useTranslation } from "react-i18next";
 
 const RecipeDetailPage = () => {
   const { id } = useParams();  const [recipe, setRecipe] = useState(null);
@@ -18,6 +19,7 @@ const RecipeDetailPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [recipeImage, setRecipeImage] = useState(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleDelete = async () => {
     try {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getCurrentUser } from '../../services/authService';
 import userService from '../../services/userService';
 import '../../styles/ProfilePage.css';
+import { useTranslation } from "react-i18next";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -12,6 +13,8 @@ const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
   const fileInputRef = useRef(null);
+  const { t } = useTranslation();
+  
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];

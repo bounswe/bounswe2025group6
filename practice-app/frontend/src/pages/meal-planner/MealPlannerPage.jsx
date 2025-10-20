@@ -5,6 +5,7 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import '../../styles/MealPlannerPage.css';
+import { useTranslation } from "react-i18next";
 
 const MealPlannerPage = () => {
   const {
@@ -17,6 +18,8 @@ const MealPlannerPage = () => {
     calculateTotalNutrition,
     isLoading,
   } = useMealPlan();
+  const { t } = useTranslation();
+  
 
   const toast = useToast();
 

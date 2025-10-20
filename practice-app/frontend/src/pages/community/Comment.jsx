@@ -5,8 +5,10 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import VoteButtons from './VoteButtons';
 import '../../styles/Comment.css';
+import { useTranslation } from "react-i18next";
 
 const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const toast = useToast();
 

@@ -6,6 +6,7 @@ import { addRecipe } from "../../services/recipeService";
 import IngredientList from "../../components/recipe/IngredientList";
 import { useToast } from "../../components/ui/Toast";
 import "../../styles/UploadRecipePage.scss";
+import { useTranslation } from "react-i18next";
 
 const UploadRecipePage = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const UploadRecipePage = () => {
   const [pageSize, setPageSize] = useState(10);
   const [selectedColumn, setSelectedColumn] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
 
   const [recipeData, setRecipeData] = useState({
     name: "",
