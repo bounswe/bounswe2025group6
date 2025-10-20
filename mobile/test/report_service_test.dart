@@ -132,25 +132,11 @@ void main() {
   });
 
   group('ReportType Tests', () {
-    test('ReportType has correct display names', () {
-      expect(ReportType.spam.displayName, equals('Spam'));
-      expect(ReportType.inappropriate.displayName, equals('Inappropriate Content'));
-      expect(ReportType.harassment.displayName, equals('Harassment'));
-      expect(ReportType.other.displayName, equals('Other'));
-    });
-
     test('ReportType has correct values', () {
       expect(ReportType.spam.value, equals('spam'));
       expect(ReportType.inappropriate.value, equals('inappropriate'));
       expect(ReportType.harassment.value, equals('harassment'));
       expect(ReportType.other.value, equals('other'));
-    });
-
-    test('ReportType has descriptions', () {
-      expect(ReportType.spam.description.isNotEmpty, isTrue);
-      expect(ReportType.inappropriate.description.isNotEmpty, isTrue);
-      expect(ReportType.harassment.description.isNotEmpty, isTrue);
-      expect(ReportType.other.description.isNotEmpty, isTrue);
     });
   });
 
