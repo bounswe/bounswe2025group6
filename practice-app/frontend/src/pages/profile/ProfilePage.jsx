@@ -9,6 +9,7 @@ const ProfilePage = () => {
   const [userProfile, setUserProfile] = useState({
     username: "",
     email: "",
+    id: undefined,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
@@ -36,13 +37,19 @@ const ProfilePage = () => {
         const user = await getCurrentUser();
         // Fetch username using userService
         let username = "User";
+        let userData = null;
         if (user && user.id) {
-          username = await userService.getUsername(user.id);
+          userData = await userService.getUserById(user.id);
+          username = userData.username || "User";
         }
 
         setUserProfile({
           username: username,
           email: user.email || "No email provided",
+          currencyPreference:
+            userData?.preferredCurrency || "No currency preference set",
+          preferredDateFormat: userData?.preferredDateFormat || "DD/MM/YYYY",
+          id: user.id,
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -53,6 +60,25 @@ const ProfilePage = () => {
 
     fetchUserData();
   }, []);
+
+  const handleCurrencyChange = async (e) => {
+    const newCurrency = e.target.value;
+    const updatedProfile = {
+      ...userProfile,
+      currencyPreference: newCurrency,
+    };
+    await userService.updateUserById(userProfile.id, updatedProfile);
+    setUserProfile(updatedProfile);
+  };
+  const handleDateChange = async (e) => {
+    const newDatePref = e.target.value;
+    const updatedProfile = {
+      ...userProfile,
+      preferredDateFormat: newDatePref,
+    };
+    await userService.updateUserById(userProfile.id, updatedProfile);
+    setUserProfile(updatedProfile);
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -124,6 +150,30 @@ const ProfilePage = () => {
             <p>
               <strong>{t("email")}: </strong>
               <span>{userProfile.email}</span>
+            </p>
+
+            <p>
+              <strong>{t("currencyPreference")}: </strong>
+              {/* <span>
+                {userProfile.currencyPreference || "No currency preference set"}
+              </span> */}
+              <select
+                defaultValue={userProfile.currencyPreference}
+                onChange={handleCurrencyChange}
+              >
+                <option value="USD">USD</option>
+                <option value="TRY">TRY</option>
+              </select>
+            </p>
+            <p>
+              <strong>{t("datePreference")}: </strong>
+              <select
+                defaultValue={userProfile.preferredDateFormat}
+                onChange={handleDateChange}
+              >
+                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+              </select>
             </p>
           </div>
         )}

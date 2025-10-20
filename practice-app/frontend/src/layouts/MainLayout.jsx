@@ -5,6 +5,9 @@ import { useToast } from "../components/ui/Toast";
 import "../styles/Layout.css";
 import { useTranslation } from "react-i18next";
 import i18next from "i18next";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "../services/authService";
+import userService from "../services/userService";
 
 const MainLayout = () => {
   const { logout } = useAuth();
@@ -12,6 +15,8 @@ const MainLayout = () => {
   const location = useLocation();
   const toast = useToast();
   const { t } = useTranslation();
+  const [currentUser, setCurrentUser] = useState(null);
+  // const
 
   const handleLogout = async () => {
     try {
@@ -24,9 +29,41 @@ const MainLayout = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getCurrentUser();
+
+        if (user && user.id) {
+          const fetchedUser = await userService.getUserById(user.id);
+          setCurrentUser(fetchedUser);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser || !currentUser.language) return;
+    i18next.changeLanguage(currentUser.language);
+  }, [currentUser]);
+
   const langChangeHandler = (e) => {
     const lang = e.target.value;
-    i18next.changeLanguage(lang);
+    const updatedUser = { ...currentUser, language: lang };
+    setCurrentUser(updatedUser);
+    userService
+      .updateUserById(currentUser?.id, updatedUser)
+      .then(() => {
+        i18next.changeLanguage(lang);
+      })
+      .catch((error) => {
+        console.error("Error updating language preference:", error);
+        toast.error(t("failedToUpdateLanguagePreference"));
+      });
   };
   const navItems = [
     { path: "/dashboard", label: t("dashboard") },

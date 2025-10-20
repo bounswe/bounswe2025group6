@@ -1,18 +1,18 @@
 // src/contexts/AuthContext.jsx
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  registerUser, 
-  loginUser, 
-  logoutUser, 
-  getCurrentUser, 
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getCurrentUser,
   isAuthenticated,
   verifyEmail,
   requestPasswordReset,
   resetPassword,
   requestPasswordResetCode,
-  verifyResetCode
-} from '../services/authService';
+  verifyResetCode,
+} from "../services/authService";
 
 // Create the context
 const AuthContext = createContext(null);
@@ -35,11 +35,12 @@ export const AuthProvider = ({ children }) => {
         if (isAuthenticated()) {
           const user = await getCurrentUser();
           setCurrentUser(user);
+          console.log("User loaded:", user);
           setUserType(user.userType);
         }
       } catch (err) {
-        console.error('Error loading user:', err);
-        setError('Failed to load user data');
+        console.error("Error loading user:", err);
+        setError("Failed to load user data");
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +61,7 @@ export const AuthProvider = ({ children }) => {
       // Don't set current user since email verification is required
       return user;
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || "Registration failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -80,7 +81,7 @@ export const AuthProvider = ({ children }) => {
       setUserType(user.userType);
       return user;
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || "Login failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(null);
       setUserType(null);
     } catch (err) {
-      setError(err.message || 'Logout failed');
+      setError(err.message || "Logout failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -116,7 +117,7 @@ export const AuthProvider = ({ children }) => {
       const result = await verifyEmail(token);
       return result;
     } catch (err) {
-      setError(err.message || 'Email verification failed');
+      setError(err.message || "Email verification failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }) => {
       const result = await requestPasswordReset(email);
       return result;
     } catch (err) {
-      setError(err.message || 'Password reset request failed');
+      setError(err.message || "Password reset request failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -153,7 +154,7 @@ export const AuthProvider = ({ children }) => {
       const result = await resetPassword(token, newPassword);
       return result;
     } catch (err) {
-      setError(err.message || 'Password reset failed');
+      setError(err.message || "Password reset failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -171,7 +172,7 @@ export const AuthProvider = ({ children }) => {
       const result = await requestPasswordResetCode(email);
       return result;
     } catch (err) {
-      setError(err.message || 'Reset code request failed');
+      setError(err.message || "Reset code request failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -190,7 +191,7 @@ export const AuthProvider = ({ children }) => {
       const result = await verifyResetCode(email, resetCode);
       return result;
     } catch (err) {
-      setError(err.message || 'Code verification failed');
+      setError(err.message || "Code verification failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -211,14 +212,10 @@ export const AuthProvider = ({ children }) => {
     requestPasswordReset: handlePasswordReset,
     resetPassword: handleResetPassword,
     requestResetCode: handleRequestResetCode,
-    verifyResetCode: handleVerifyResetCode
+    verifyResetCode: handleVerifyResetCode,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 /**
@@ -227,7 +224,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
