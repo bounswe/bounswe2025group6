@@ -209,15 +209,39 @@ const RecipeDetailPage = () => {
       <div className='recipe-detail-page-content'>
         <div className='recipe-detail-page-content-steps'>
           <h2>{t("recipeDetailPageInstructions")}</h2>
-          {recipe.steps && recipe.steps.length > 0 ? (
-            <ol>
-              {recipe.steps.map((step, index) => (
-                <li key={index}>{step}</li>
-              ))}
-            </ol>
-          ) : (
-            <p>{t("recipeDetailPageNoSteps")}</p>
-          )}
+          {(() => {
+            let steps = recipe.steps;
+            
+            // Handle different formats of steps
+            if (typeof steps === 'string') {
+              // If it's a string, try to parse it as JSON
+              try {
+                steps = JSON.parse(steps);
+              } catch (e) {
+                // If JSON parsing fails, split by comma and clean up
+                steps = steps
+                  .replace(/[\[\]"]/g, '') // Remove brackets and quotes
+                  .split(',')
+                  .map(step => step.trim())
+                  .filter(step => step.length > 0);
+              }
+            }
+            
+            // Ensure it's an array
+            if (!Array.isArray(steps)) {
+              steps = [];
+            }
+            
+            return steps && steps.length > 0 ? (
+              <ol>
+                {steps.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+            ) : (
+              <p>{t("recipeDetailPageNoSteps")}</p>
+            );
+          })()}
         </div>
         <div className='recipe-detail-page-ingredients'>
           <h2>{t("recipeDetailPageIngredients")}</h2>

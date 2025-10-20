@@ -42,8 +42,30 @@ const RecipeEditPage = () => {
           return;
         }
 
+        // Handle different formats of steps
+        let steps = recipe.steps;
+        
+        if (typeof steps === 'string') {
+          // If it's a string, try to parse it as JSON
+          try {
+            steps = JSON.parse(steps);
+          } catch (e) {
+            // If JSON parsing fails, split by comma and clean up
+            steps = steps
+              .replace(/[\[\]"]/g, '') // Remove brackets and quotes
+              .split(',')
+              .map(step => step.trim())
+              .filter(step => step.length > 0);
+          }
+        }
+        
+        // Ensure it's an array
+        if (!Array.isArray(steps)) {
+          steps = [];
+        }
+        
         // Transform steps array to text
-        const stepsText = recipe.steps.join('\n');
+        const stepsText = steps.join('\n');
 
         setRecipeData({
           name: recipe.name,
