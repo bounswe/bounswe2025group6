@@ -29,7 +29,13 @@ class Ingredient(TimestampedModel):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default="other")
     allergens = models.JSONField(default=list, blank=True)
     dietary_info = models.JSONField(default=list, blank=True)
-
+    
+    # Nutrition info
+    calories = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    protein = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    fat = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    carbs = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
     # Prices for 4 Turkish markets (stored in USD)
     price_A101 = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     price_SOK = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
@@ -78,6 +84,22 @@ class Ingredient(TimestampedModel):
     # Get price per base quantity (e.g., per 100g)
     def get_base_price(self, market):
         return getattr(self, f"price_{market}", None)
+
+    def get_nutrion_info(self, quantity=1, unit=None):
+        base_qty = self.convert_quantity_to_base(quantity, unit or self.base_unit)
+        
+        def scale(nutrient):
+            if nutrient is None:
+                return None
+            per_unit = Decimal(nutrient) / Decimal(self.base_quantity)
+            return round(per_unit * base_qty, 2)
+
+        return {
+            "calories": scale(self.calories),
+            "protein": scale(self.protein),
+            "fat": scale(self.fat),
+            "carbs": scale(self.carbs),
+        }
 
     # Compute cost in user’s currency for given quantity/unit
     def get_price_for_user(self, user, quantity=1, unit=None, usd_to_try_rate=40.0):
