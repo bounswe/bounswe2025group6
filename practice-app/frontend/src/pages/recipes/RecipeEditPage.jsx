@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getRecipeById, updateRecipe } from '../../services/recipeService';
 import { getCurrentUser } from '../../services/authService';
@@ -17,6 +17,17 @@ const RecipeEditPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
 
+  // Ingredients state
+  const [ingredients, setIngredients] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredIngredients, setFilteredIngredients] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState(0);
+  const dropdownRef = useRef(null);
+
   const [recipeData, setRecipeData] = useState({
     name: '',
     image: null, // File object for image upload
@@ -27,6 +38,53 @@ const RecipeEditPage = () => {
     ingredients: [],
     stepsText: '',
   });
+
+  // Fetch ingredients
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      try {
+        let allData = [];
+        let nextUrl = import.meta.env.VITE_API_URL + "/ingredients/";
+
+        while (nextUrl) {
+          const res = await fetch(nextUrl);
+          if (!res.ok)
+            throw new Error("API Error: ${res.status} ${res.statusText}");
+          const data = await res.json();
+          allData = [...allData, ...data.results];
+          nextUrl = data.next;
+        }
+
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedData = allData.slice(startIndex, endIndex);
+        setIngredients(paginatedData);
+        setHasNextPage(allData.length > endIndex);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    if (ingredients.length === 0) {
+      setLoading(true);
+    }
+    fetchIngredients();
+  }, [pageSize, selectedColumn, page]);
+
+  // Filter ingredients based on search
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredIngredients(ingredients);
+    } else {
+      setFilteredIngredients(
+        ingredients.filter((ingredient) =>
+          ingredient.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+    }
+  }, [searchQuery, ingredients]);
 
   useEffect(() => {
     const loadRecipe = async () => {
@@ -42,24 +100,9 @@ const RecipeEditPage = () => {
           return;
         }
 
-        // Handle different formats of steps
+        // Steps should already be an array from backend
         let steps = recipe.steps;
         
-        if (typeof steps === 'string') {
-          // If it's a string, try to parse it as JSON
-          try {
-            steps = JSON.parse(steps);
-          } catch (e) {
-            // If JSON parsing fails, split by comma and clean up
-            steps = steps
-              .replace(/[\[\]"]/g, '') // Remove brackets and quotes
-              .split(',')
-              .map(step => step.trim())
-              .filter(step => step.length > 0);
-          }
-        }
-        
-        // Ensure it's an array
         if (!Array.isArray(steps)) {
           steps = [];
         }
@@ -101,6 +144,28 @@ const RecipeEditPage = () => {
     }
     
     setRecipeData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddIngredient = (ingredient) => {
+    if (!ingredient || !ingredient.id) return;
+
+    if (recipeData.ingredients.some((ing) => ing.id === ingredient.id)) {
+      toast.error("This ingredient is already added");
+      return;
+    }
+
+    setRecipeData((prev) => ({
+      ...prev,
+      ingredients: [
+        ...prev.ingredients,
+        {
+          ingredient_name: ingredient.name,
+          id: ingredient.id,
+          quantity: "1",
+          unit: "pcs",
+        },
+      ],
+    }));
   };
 
   // Handle image file selection
@@ -180,7 +245,7 @@ const RecipeEditPage = () => {
 
   return (
     <div className="upload-page-container">
-      <h1>{t("uploadRecipePageHeader")}</h1>
+      <h1>{t("editRecipePageHeader")}</h1>
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="form-group">
           <label htmlFor="name">{t("uploadRecipePageName")} *</label>
@@ -244,7 +309,7 @@ const RecipeEditPage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="prep_time">{t("uploadRecipePagePrepTime")} (minutes) *</label>
+          <label htmlFor="prep_time">{t("uploadRecipePagePrepTime")} *</label>
           <input 
             id="prep_time" 
             name="prep_time" 
@@ -270,6 +335,119 @@ const RecipeEditPage = () => {
             <option value="lunch">{t("Lunch")}</option>
             <option value="dinner">{t("Dinner")}</option>
           </select>
+        </div>
+
+        <div className="form-group ingredients-section">
+          <label>{t("uploadRecipePageIngredients")} *</label>
+          <div className="ingredient-search">
+            <input
+              type="text"
+              placeholder="Search ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowDropdown(true)}
+              className="search-input"
+            />
+            {showDropdown && filteredIngredients.length > 0 && (
+              <ul className="ingredients-dropdown" ref={dropdownRef}>
+                {filteredIngredients.map((ingredient) => (
+                  <li
+                    key={ingredient.id}
+                    onClick={() => {
+                      handleAddIngredient(ingredient);
+                      setSearchQuery("");
+                      setShowDropdown(false);
+                    }}
+                    className="ingredient-option"
+                  >
+                    {ingredient.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {recipeData.ingredients.length > 0 && (
+            <div className="selected-ingredients">
+              {recipeData.ingredients.map((ing, index) => (
+                <div key={ing.id} className="ingredient-item">
+                  <span className="ingredient-name">{ing.ingredient_name}</span>
+                  <input
+                    type="number"
+                    value={ing.quantity}
+                    onChange={(e) => {
+                      // Only allow numbers and decimal points
+                      if (!/^\d*\.?\d*$/.test(e.target.value)) {
+                        return;
+                      }
+
+                      // Prevent negative values
+                      if (parseFloat(e.target.value) < 0) {
+                        return;
+                      }
+
+                      const newIngredients = [...recipeData.ingredients];
+                      newIngredients[index] = {
+                        ...ing,
+                        quantity: e.target.value,
+                      };
+                      setRecipeData((prev) => ({
+                        ...prev,
+                        ingredients: newIngredients,
+                      }));
+                    }}
+                    onKeyPress={(e) => {
+                      if (!/[\d.]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="quantity-input"
+                    min="0"
+                    step="0.1"
+                    pattern="[0-9]*\.?[0-9]*"
+                  />
+                  <select
+                    value={ing.unit}
+                    onChange={(e) => {
+                      const newIngredients = [...recipeData.ingredients];
+                      newIngredients[index] = {
+                        ...ing,
+                        unit: e.target.value,
+                      };
+                      setRecipeData((prev) => ({
+                        ...prev,
+                        ingredients: newIngredients,
+                      }));
+                    }}
+                    className="unit-select"
+                  >
+                    <option value="pcs">{t("Pcs")}</option>
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="l">l</option>
+                    <option value="cup">{t("Cup")}</option>
+                    <option value="tbsp">{t("Tbsp")}</option>
+                    <option value="tsp">{t("Tsp")}</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRecipeData((prev) => ({
+                        ...prev,
+                        ingredients: prev.ingredients.filter(
+                          (i) => i.id !== ing.id
+                        ),
+                      }));
+                    }}
+                    className="remove-ingredient"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="form-group">
