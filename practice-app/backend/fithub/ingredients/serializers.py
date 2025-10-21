@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 class IngredientSerializer(serializers.ModelSerializer):
     prices = serializers.SerializerMethodField()
+    nutrition_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Ingredient
