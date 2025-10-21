@@ -102,7 +102,12 @@ export const addRecipe = async (recipeData) => {
     
     // Add basic recipe data
     formData.append('name', recipeData.name.trim());
-    formData.append('steps', JSON.stringify(recipeData.steps));
+    // Add steps as individual form fields for ListField
+    console.log('Sending steps:', recipeData.steps);
+    recipeData.steps.forEach((step, index) => {
+      formData.append('steps', step);
+      console.log(`Added step ${index}:`, step);
+    });
     formData.append('prep_time', recipeData.prep_time);
     formData.append('cook_time', recipeData.cooking_time);
     formData.append('meal_type', recipeData.meal_type);
@@ -193,7 +198,12 @@ export const updateRecipe = async (id, updatedRecipe) => {
     
     // Add basic recipe data
     if (updatedRecipe.name) formData.append('name', updatedRecipe.name.trim());
-    if (updatedRecipe.steps) formData.append('steps', JSON.stringify(updatedRecipe.steps));
+    if (updatedRecipe.steps) {
+      // Add steps as individual form fields for ListField
+      updatedRecipe.steps.forEach((step, index) => {
+        formData.append('steps', step);
+      });
+    }
     if (updatedRecipe.prep_time) formData.append('prep_time', updatedRecipe.prep_time);
     if (updatedRecipe.cooking_time) formData.append('cook_time', updatedRecipe.cooking_time);
     if (updatedRecipe.meal_type) formData.append('meal_type', updatedRecipe.meal_type);

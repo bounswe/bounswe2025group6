@@ -110,7 +110,7 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(RecipeBaseSerializer):
     name = serializers.CharField(required=True)
-    steps = serializers.CharField(required=True)  # Accept as string, will parse in create method
+    steps = serializers.ListField(child=serializers.CharField(), required=True)
     prep_time = serializers.IntegerField(required=True)
     cook_time = serializers.IntegerField(required=True)
     meal_type = serializers.ChoiceField(choices=Recipe.MEAL_TYPES, required=True)
@@ -127,14 +127,6 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
     
     def create(self, validated_data):
         ingredients_json = validated_data.pop('ingredients')
-        steps_json = validated_data.pop('steps')
-        
-        # Parse steps from JSON string
-        try:
-            steps = json.loads(steps_json)
-        except json.JSONDecodeError:
-            raise serializers.ValidationError({"steps": "Invalid JSON format for steps."})
-        
         user = self.context['request'].user
 
         try:
@@ -177,7 +169,7 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
 
 class RecipeUpdateSerializer(RecipeBaseSerializer):
     name = serializers.CharField(required=False)
-    steps = serializers.CharField(required=False)  # Accept as string, will parse in update method
+    steps = serializers.ListField(child=serializers.CharField(), required=False)
     prep_time = serializers.IntegerField(required=False)
     cook_time = serializers.IntegerField(required=False)
     meal_type = serializers.ChoiceField(choices=Recipe.MEAL_TYPES, required=False)
@@ -194,15 +186,6 @@ class RecipeUpdateSerializer(RecipeBaseSerializer):
 
     def update(self, instance, validated_data):
         ingredients_json = validated_data.pop('ingredients', None)
-        steps_json = validated_data.pop('steps', None)
-        
-        # Parse steps from JSON string if provided
-        if steps_json:
-            try:
-                steps = json.loads(steps_json)
-                validated_data['steps'] = steps
-            except json.JSONDecodeError:
-                raise serializers.ValidationError({"steps": "Invalid JSON format for steps."})
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
