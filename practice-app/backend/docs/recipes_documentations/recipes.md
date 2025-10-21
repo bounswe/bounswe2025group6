@@ -99,7 +99,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "3.00",
       "unit": "pcs",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 0.6,
         "SOK": 0.69,
@@ -135,7 +135,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "1.00",
       "unit": "pcs",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 0.75,
         "SOK": 0.7,
@@ -172,7 +172,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "1.00",
       "unit": "tbsp",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 0.3,
         "SOK": 0.34,
@@ -390,7 +390,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "2.00",
       "unit": "pcs",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 2.4,
         "SOK": 2.3,
@@ -426,7 +426,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "1.00",
       "unit": "pcs",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 1.2,
         "SOK": 1.15,
@@ -463,7 +463,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "1.00",
       "unit": "tsp",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 0.06,
         "SOK": 0.07,
@@ -601,7 +601,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "2.00",
       "unit": "pcs",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 0.4,
         "SOK": 0.46,
@@ -637,7 +637,7 @@ This document describes how to use the Recipe API endpoint, which allows for cre
       },
       "quantity": "4.00",
       "unit": "pcs",
-      "costs": {
+      "costs_for_recipe": {
         "currency": "USD",
         "A101": 3,
         "SOK": 2.8,

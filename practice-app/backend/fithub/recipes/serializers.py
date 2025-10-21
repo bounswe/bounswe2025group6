@@ -11,13 +11,13 @@ from django.db import transaction
 
 class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer()
-    costs = serializers.SerializerMethodField()
+    costs_for_recipe = serializers.SerializerMethodField()
 
     class Meta:
         model = RecipeIngredient
-        fields = ['ingredient', 'quantity', 'unit', 'costs']
+        fields = ['ingredient', 'quantity', 'unit', 'costs_for_recipe']
 
-    def get_costs(self, obj):
+    def get_costs_for_recipe(self, obj):
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if not user or not user.is_authenticated:
