@@ -19,6 +19,12 @@ class Recipe(TimestampedModel):
     image = CloudinaryField('image', blank=True, null=True)
     creator = models.ForeignKey("api.RegisteredUser", on_delete=models.CASCADE, related_name="recipes")
 
+    # Nutrion info for the recipe
+    calories = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    protein = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    fat = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    carbs = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+   
     # Null first, will be filled with scraped data later
     cost_per_serving = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
@@ -131,6 +137,29 @@ class Recipe(TimestampedModel):
         if market_costs:
             total_cost = min(market_costs.values())
         return total_cost.quantize(Decimal("0.01"))
+    
+    def calculate_nutrition_info(self):
+        """
+        Calculates the total nutrition info for the recipe based on its ingredients.
+        """
+        total_nutrition = {
+            "calories": Decimal("0.0"),
+            "protein": Decimal("0.0"),
+            "fat": Decimal("0.0"),
+            "carbs": Decimal("0.0"),
+        }
+        
+        for ri in self.recipe_ingredients.all():
+            ingredient_nutrition = ri.get_nutrition_info()
+            
+            for key in total_nutrition.keys():
+                value = ingredient_nutrition.get(key)
+                if value is not None:
+                    total_nutrition[key] += Decimal(value)
+        
+        # Round all values to 2 decimals for output
+        return {k: v.quantize(Decimal("0.01")) for k, v in total_nutrition.items()}
+    
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
@@ -220,6 +249,13 @@ class RecipeIngredient(TimestampedModel):
             quantity=self.quantity,
             unit=self.unit,
             usd_to_try_rate=usd_to_try_rate,
+        )
+    
+    def get_nutrition_info(self):
+        """Return nutrition info scaled for this ingredient usage."""
+        return self.ingredient.get_nutrion_info(
+            quantity=self.quantity,
+            unit=self.unit,
         )
     
 # RecipeLike model that will be used for the recipe

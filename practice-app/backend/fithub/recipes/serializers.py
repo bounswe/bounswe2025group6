@@ -12,10 +12,11 @@ from django.db import transaction
 class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer()
     costs_for_recipe = serializers.SerializerMethodField()
+    nutrion_info_for_recipe = serializers.SerializerMethodField()
 
     class Meta:
         model = RecipeIngredient
-        fields = ['ingredient', 'quantity', 'unit', 'costs_for_recipe']
+        fields = ['ingredient', 'quantity', 'unit', 'costs_for_recipe', 'nutrion_info_for_recipe']
 
     def get_costs_for_recipe(self, obj):
         request = self.context.get("request")
@@ -25,6 +26,9 @@ class RecipeIngredientOutputSerializer(serializers.ModelSerializer):
                 preferredCurrency = "USD"
             user = DummyUser()
         return obj.get_costs(user)
+    
+    def get_nutrion_info_for_recipe(self, obj):
+        return obj.get_nutrition_info()
 
 # ============================================================
 # 🧩 BASE SERIALIZER (only shared logic, no required model fields)
@@ -36,6 +40,7 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
     creator = serializers.IntegerField(read_only=True)
     ingredients_output = serializers.SerializerMethodField()
     recipe_costs = serializers.SerializerMethodField()
+    recipe_nutritions = serializers.SerializerMethodField()
     
     class Meta:
         model = Recipe
@@ -43,6 +48,7 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
             'id',
             'creator',
             'recipe_costs',
+            'recipe_nutritions',
             'image',
             'image_relative_url',
             'image_full_url',
@@ -69,6 +75,9 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
                 preferredCurrency = "USD"
             user = DummyUser()
         return obj.calculate_recipe_cost(user)
+    
+    def get_recipe_nutritions(self, obj):
+        return obj.calculate_nutrition_info()
     
     def handle_ingredients(self, recipe, ingredients_json, clear_existing=True):
         """Shared helper for ingredient creation"""
@@ -200,6 +209,7 @@ class RecipeUpdateSerializer(RecipeBaseSerializer):
 class RecipeListSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
     recipe_costs = serializers.SerializerMethodField()
+    recipe_nutritions = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -214,6 +224,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'prep_time',
             'cook_time',
             'recipe_costs',
+            'recipe_nutritions',
             'cost_per_serving',
             'difficulty_rating',
             'difficulty_rating_count',
@@ -240,6 +251,9 @@ class RecipeListSerializer(serializers.ModelSerializer):
             user = DummyUser()
         return obj.calculate_recipe_cost(user)
     
+    def get_recipe_nutritions(self, obj):
+        return obj.calculate_nutrition_info()
+    
     def get_image_relative_url(self, obj):
         return str(obj.image) if obj.image else None
     
@@ -255,6 +269,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
     ingredients = serializers.SerializerMethodField()
     recipe_costs = serializers.SerializerMethodField()
+    recipe_nutritions = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -272,6 +287,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'ingredients',
             'cost_per_serving',
             'recipe_costs',  
+            'recipe_nutritions',
             'difficulty_rating',
             'taste_rating',
             'health_rating',
@@ -319,4 +335,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
                 preferredCurrency = "USD"
             user = DummyUser()
         return obj.calculate_recipe_cost(user)
+    
+    def get_recipe_nutritions(self, obj):
+        return obj.calculate_nutrition_info()
     
