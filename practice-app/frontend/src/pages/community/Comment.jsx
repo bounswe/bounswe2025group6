@@ -5,8 +5,10 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import VoteButtons from './VoteButtons';
 import '../../styles/Comment.css';
+import { useTranslation } from "react-i18next";
 
 const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const toast = useToast();
 
@@ -64,7 +66,7 @@ const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
     <div className="comment">
       <div className="comment-header">
         <div className="comment-meta">
-          <span className="comment-author">User #{comment.author}</span>
+          <span className="comment-author">{t("User")} #{comment.author}</span>
           <span className="comment-time">{formatDate(comment.created_at)}</span>
         </div>
         {currentUser && currentUser.id === comment.author && (
@@ -73,7 +75,7 @@ const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
             size="sm" 
             onClick={handleDelete}
           >
-            Delete
+            {t("Delete")}
           </Button>
         )}
       </div>

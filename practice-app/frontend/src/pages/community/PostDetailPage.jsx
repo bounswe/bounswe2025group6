@@ -8,8 +8,11 @@ import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js'; // Import userService
 import '../../styles/PostDetailPage.css';
+import ReportButton from '../../components/report/ReportButton';
+import { useTranslation } from "react-i18next";
 
 const PostDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -619,11 +622,11 @@ const PostDetailPage = () => {
   };
 
   if (isLoading) {
-    return <div className="post-detail-loading">Loading post...</div>;
+    return <div className="post-detail-loading">{t("editPostPageisLoading")}...</div>;
   }
 
   if (!post) {
-    return <div className="post-detail-not-found">Post not found</div>;
+    return <div className="post-detail-not-found">{t("postDetailPagePostNotFound")}</div>;
   }
 
   return (
@@ -666,7 +669,7 @@ const PostDetailPage = () => {
                   onClick={handleEditPost}
                   className="edit-button"
                 >
-                  Edit
+                  {t("Edit")}
                 </Button>
                 <Button 
                   variant="danger" 
@@ -674,7 +677,7 @@ const PostDetailPage = () => {
                   onClick={handleDeletePost}
                   className='delete-button'
                 >
-                  Delete
+                  {t("Delete")}
                 </Button>
               </div>
             )}
@@ -710,16 +713,22 @@ const PostDetailPage = () => {
                 disabled={isVoting || !userVote.hasVoted}
                 aria-label="Remove vote"
               >
-                Remove Vote
+                {t("postDetailPageRemoveVote")}
               </button>
             </div>
             {userVote.hasVoted && (
               <div style={{ marginLeft: '10px', fontSize: '0.9rem', color: userVote.voteType === 'up' ? 'green' : 'red' }}>
-                You voted {userVote.voteType}
+                {t("postDetailPageVoted")} {userVote.voteType}
               </div>
             )}
-            <div className="post-stats">
-              <span>👁️ {post.view_count} views</span>
+            <div className="post-stats" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>👁️ {post.view_count} {t("Views")}</span>
+              {/* Report button positioned at right of views */}
+              {currentUser && post.author !== currentUser.id && (
+                <div style={{ marginLeft: '16px' }}>
+                  <ReportButton targetType="post" targetId={id} />
+                </div>
+              )}
             </div>
           </div>
         </Card.Body>
@@ -727,7 +736,7 @@ const PostDetailPage = () => {
 
       {post.is_commentable ? (
         <div className="comments-section">
-          <h2 className="comments-title">Comments</h2>
+          <h2 className="comments-title">{t("Comments")}</h2>
           
           {currentUser ? (
             <Card className="comment-form">
@@ -754,13 +763,13 @@ const PostDetailPage = () => {
           ) : (
             <Card>
               <Card.Body className="login-to-comment">
-                <p>Please <Link to="/login">log in</Link> to comment on this post.</p>
+                <p>{t("Please")} <Link to="/login">{t("homePageLogin")}</Link> {t("postDetailPageToComment")}.</p>
               </Card.Body>
             </Card>
           )}
 
           {isLoadingComments ? (
-            <div className="comments-loading">Loading comments...</div>
+            <div className="comments-loading">{t("loading")} {t("Comments")}...</div>
           ) : comments.length > 0 ? (
             <>
               <div className="comments-list">
@@ -770,7 +779,7 @@ const PostDetailPage = () => {
                       <div className="comment-header">
                         <div className="comment-meta">
                           <div className="comment-author">
-                            Comment by{" "}
+                            {t("postDetailPageCommentBy")}{" "}
                             <span 
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -792,8 +801,14 @@ const PostDetailPage = () => {
                             onClick={() => handleDeleteComment(comment.id)}
                             className='delete-button'
                           >
-                            Delete
+                            {t("Delete")}
                           </Button>
+                        )}
+                        {/* Report button for comments - only if not owner */}
+                        {currentUser && comment.author !== currentUser.id && (
+                          <div style={{ marginLeft: '8px' }} onClick={(e) => e.stopPropagation()}>
+                            <ReportButton targetType="comment" targetId={comment.id} />
+                          </div>
                         )}
                       </div>
                       <p className="comment-text">{formatContent(comment.content)}</p>
@@ -823,12 +838,12 @@ const PostDetailPage = () => {
                               cursor: comment.userVote?.hasVoted ? 'pointer' : 'not-allowed'
                             }}
                           >
-                            Remove Vote
+                            {t("postDetailPageRemoveVote")}
                           </button>
                         </div>
                         {comment.userVote?.hasVoted && (
                           <div style={{ marginLeft: '10px', fontSize: '0.9rem', color: comment.userVote.voteType === 'up' ? 'green' : 'red' }}>
-                            You voted {comment.userVote.voteType}
+                            {t("postDetailPageVoted")} {comment.userVote.voteType}
                           </div>
                         )}
                       </div>
@@ -845,7 +860,7 @@ const PostDetailPage = () => {
                     disabled={commentPagination.page === 1}
                     className="pagination-button"
                   >
-                    Previous
+                    {t("previous")}
                   </button>
                   <span className="pagination-info">
                     Page {commentPagination.page} of {Math.ceil(commentPagination.total / commentPagination.page_size)}
@@ -855,7 +870,7 @@ const PostDetailPage = () => {
                     disabled={commentPagination.page >= Math.ceil(commentPagination.total / commentPagination.page_size)}
                     className="pagination-button"
                   >
-                    Next
+                    {t("next")}
                   </button>
                 </div>
               )}
@@ -863,7 +878,7 @@ const PostDetailPage = () => {
           ) : (
             <Card>
               <Card.Body className="no-comments">
-                No comments yet. Be the first to comment!
+                {t("postDetailPageNoComments")}
               </Card.Body>
             </Card>
           )}
@@ -871,7 +886,7 @@ const PostDetailPage = () => {
       ) : (
         <Card className="comments-disabled">
           <Card.Body>
-            <p>Comments are disabled for this post.</p>
+            <p>{t("postDetailPageDisabledComments")}</p>
           </Card.Body>
         </Card>
       )}

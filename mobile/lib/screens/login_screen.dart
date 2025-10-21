@@ -5,6 +5,13 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import 'package:fithub/screens/dashboard_screen.dart';
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import '../widgets/language_toggle.dart';
+import 'package:provider/provider.dart';
+import '../services/profile_service.dart';
+import '../providers/locale_provider.dart';
+import '../providers/currency_provider.dart';
+import '../models/user_profile.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -52,6 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Language toggle
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: const LanguageToggle(),
+                  ),
+                ),
                 // Logo
                 Center(
                   child: Container(
@@ -79,8 +94,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 50),
 
                 // Title
-                const Text(
-                  'Login',
+                Text(
+                  AppLocalizations.of(context)!.loginTitle,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -89,8 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 // Subtitle
-                const Text(
-                  'Sign in to continue',
+                Text(
+                  AppLocalizations.of(context)!.signInToContinue,
                   style: TextStyle(fontSize: 16, color: AppTheme.primaryGreen),
                 ),
                 const SizedBox(height: 32),
@@ -99,17 +114,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'EMAIL',
+                  decoration: InputDecoration(
+                    // labelText: 'EMAIL',
+                    labelText: AppLocalizations.of(context)!.emailLabel,
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context)!.pleaseEnterEmail;
                     }
                     // Basic email validation
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context)!.invalidEmail;
                     }
                     return null;
                   },
@@ -121,13 +137,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'PASSWORD',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.passwordLabel,
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return AppLocalizations.of(context)!.pleaseEnterPassword;
                     }
                     return null;
                   },
@@ -148,8 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                     ),
-                    child: const Text(
-                      'Forgot Password?',
+                    child: Text(
+                      AppLocalizations.of(context)!.forgotPasswordQuestion,
                       style: TextStyle(
                         color: AppTheme.primaryGreen,
                         fontSize: 14,
@@ -176,8 +192,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text(
-                              'Log In',
+                            child: Text(
+                              AppLocalizations.of(context)!.logInButton,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -193,9 +209,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Don't have an account? ",
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                    Text(
+                      AppLocalizations.of(context)!.dontHaveAccount,
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 14,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -206,8 +225,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
-                        'Create Account',
+                      child: Text(
+                        AppLocalizations.of(context)!.createAccount,
                         style: TextStyle(
                           color: Color(0xFF006837),
                           fontSize: 14,
@@ -227,8 +246,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showSuccessMessage(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful!'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.loginSuccessful),
         backgroundColor: AppTheme.successColor,
       ),
     );
@@ -237,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showErrorMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Login failed: $message'),
+        content: Text(AppLocalizations.of(context)!.loginFailed(message)),
         backgroundColor: AppTheme.errorColor,
       ),
     );
@@ -251,11 +270,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Call login method and get the LoginResponse
-      final loginResponse = await _authService.login(
-        _emailController.text,
-        _passwordController.text,
-      );
+      // Call login method (response not needed here)
+      await _authService.login(_emailController.text, _passwordController.text);
 
       // Also fetch and store the JWT access token
       try {
@@ -267,18 +283,91 @@ class _LoginScreenState extends State<LoginScreen> {
         await StorageService.saveRefreshToken(jwtTokens['refresh']!);
       } catch (e) {
         if (!mounted) return;
-        _showErrorMessage(context, 'Failed to obtain JWT tokens: ${e.toString()}');
+        // Show a specific localized error message about failing to obtain JWT tokens
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.failedToObtainJwtTokens(e.toString()),
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       }
 
       if (!mounted) return;
 
       _showSuccessMessage(context);
 
+      // After saving JWT tokens, persist the language the user selected on the login screen
+      // to the backend and immediately update the app locale.
+      try {
+        final localeProvider = Provider.of<LocaleProvider>(
+          context,
+          listen: false,
+        );
+        final selectedCode = localeProvider.locale?.languageCode ?? 'en';
+        final selectedLanguage =
+            selectedCode == 'tr' ? Language.tr : Language.en;
+
+        final profileService = ProfileService();
+        final profile = await profileService.getUserProfile();
+
+        // If the selected language differs from backend value, update it on the server.
+        if (profile.language != selectedLanguage) {
+          final updated = profile.copyWith(language: selectedLanguage);
+          try {
+            await profileService.updateUserProfile(updated);
+          } catch (e) {
+            // Non-fatal: show snackbar but continue. We still apply the UI change locally.
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.genericError(e.toString()),
+                  ),
+                  backgroundColor: AppTheme.errorColor,
+                ),
+              );
+            }
+          }
+        }
+
+        // Ensure the app uses the selected language immediately.
+        if (context.mounted) {
+          Provider.of<LocaleProvider>(
+            context,
+            listen: false,
+          ).setLocaleFromLanguage(selectedLanguage);
+          // Also update currency provider based on backend preference.
+          Provider.of<CurrencyProvider>(
+            context,
+            listen: false,
+          ).setCurrency(profile.preferredCurrency);
+        }
+      } catch (e) {
+        // If profile fetch or update fails, proceed without blocking login.
+      }
+
       // Navigate to dashboard and remove all previous routes
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
         (route) => false,
       );
+    } on AuthenticationException catch (e) {
+      if (!mounted) return;
+      // Check if it's a 429 error (too many requests)
+      if (e.statusCode == 429) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.tooManyLoginAttempts),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      } else {
+        _showErrorMessage(context, e.message);
+      }
     } catch (e) {
       if (!mounted) return;
       _showErrorMessage(context, e.toString());

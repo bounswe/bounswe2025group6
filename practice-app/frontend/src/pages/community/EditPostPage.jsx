@@ -7,8 +7,10 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import '../../styles/CreatePostPage.css'; // Reuse the same CSS
+import { useTranslation } from "react-i18next";
 
 const EditPostPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -140,21 +142,21 @@ const EditPostPage = () => {
   };
 
   if (isLoading) {
-    return <div className="create-post-loading">Loading post data...</div>;
+    return <div className="create-post-loading">{t("editPostPageisLoading")}...</div>;
   }
 
   return (
     <div className="create-post-container">
       <div className="create-post-header">
-        <h1 className="create-post-title">Edit Post</h1>
-        <p className="create-post-subtitle">Update your post</p>
+        <h1 className="create-post-title">{t("editPostPageTitle")}</h1>
+        <p className="create-post-subtitle">{t("editPostPageSubtitle")}</p>
       </div>
 
       <Card>
         <Card.Body>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="title" className="form-label">Title *</label>
+              <label htmlFor="title" className="form-label">{t("Title")} *</label>
               <input
                 type="text"
                 id="title"
@@ -170,7 +172,7 @@ const EditPostPage = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="content" className="form-label">Content *</label>
+              <label htmlFor="content" className="form-label">{t("Content")} *</label>
               <textarea
                 id="content"
                 name="content"
@@ -192,12 +194,12 @@ const EditPostPage = () => {
                   checked={formData.is_commentable}
                   onChange={handleChange}
                 />
-                <label htmlFor="is_commentable">Allow comments on this post</label>
+                <label htmlFor="is_commentable">{t("createPostPoageAllowComments")}</label>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Tags * (Select up to 5)</label>
+              <label className="form-label">{t("createPostPageTags")}</label>
               <div className="tag-selector">
                 {availableTags.map(tag => (
                   <button
@@ -220,7 +222,7 @@ const EditPostPage = () => {
                 onClick={() => navigate(`/community/post/${id}`)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Updating...' : 'Update Post'}

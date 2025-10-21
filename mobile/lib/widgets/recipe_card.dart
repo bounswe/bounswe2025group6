@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/recipe.dart';
+import '../providers/currency_provider.dart';
 import '../screens/recipe_detail_screen.dart';
+import '../l10n/app_localizations.dart';
+import '../utils/meal_type_localization.dart';
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -28,49 +32,57 @@ class RecipeCard extends StatelessWidget {
           children: [
             // Recipe Image
             if (recipe.imageFullUrl != null && recipe.imageFullUrl!.isNotEmpty)
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Image.network(
-                  recipe.imageFullUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Icon(
-                          Icons.restaurant,
-                          size: 64,
-                          color: Colors.grey,
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxHeight: 200,
+                  minHeight: 150,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.grey[100],
+                  child: Image.network(
+                    recipe.imageFullUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 150,
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(
+                            Icons.restaurant,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: Colors.grey[200],
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value:
-                              loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 150,
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value:
+                                loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               )
             else
               // Placeholder if no image
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: Icon(Icons.restaurant, size: 64, color: Colors.grey),
-                  ),
+              Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: const Center(
+                  child: Icon(Icons.restaurant, size: 64, color: Colors.grey),
                 ),
               ),
 
@@ -99,7 +111,9 @@ class RecipeCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        recipe.mealType,
+                        // recipe.mealType,
+                        // Localize meal type using helper to keep backend identifiers mapping
+                        localizeMealType(recipe.mealType, context),
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(width: 16),
@@ -110,7 +124,8 @@ class RecipeCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${recipe.totalTime} mins',
+                        // '${recipe.totalTime} mins',
+                        '${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
@@ -125,7 +140,8 @@ class RecipeCard extends StatelessWidget {
                           color: Colors.grey[600],
                         ),
                         Text(
-                          '${recipe.costPerServing!.toStringAsFixed(2)} per serving',
+                          // '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)} per serving',
+                          '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)} ${AppLocalizations.of(context)!.costPerServingSuffix}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],

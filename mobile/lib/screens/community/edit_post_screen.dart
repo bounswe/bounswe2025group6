@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/community_service.dart';
 import '../../services/storage_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 
 class EditPostScreen extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -18,6 +20,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
   late bool _isCommentable;
   late List<String> _tags;
   final List<String> _validTags = [
+    // Keep English tag values for backend compatibility
     'Budget', 'Meal Prep', 'Family', 'No Waste', 'Sustainability',
     'Tips', 'Gluten Free', 'Vegan', 'Vegetarian', 'Quick',
     'Healthy', 'Student', 'Nutrition', 'Healthy Eating', 'Snacks'
@@ -75,11 +78,13 @@ class _EditPostScreenState extends State<EditPostScreen> {
     }
   }
 
+  // localizedTagLabel helper provided by lib/utils/tag_localization.dart
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Post'),
+  title: Text(AppLocalizations.of(context)!.editPostTitle), // 'Edit Post'
         actions: [
           _isLoading
               ? const Center(
@@ -90,7 +95,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
                 )
               : TextButton(
                   onPressed: _updatePost,
-                  child: const Text('Save', style: TextStyle(color: Colors.black)),
+                  child: Text(AppLocalizations.of(context)!.saveButton, style: const TextStyle(color: Colors.black)), // 'Save'
                 ),
         ],
       ),
@@ -101,36 +106,42 @@ class _EditPostScreenState extends State<EditPostScreen> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title*',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.titleLabel,
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Title is required';
-                if (value.length > 255) return 'Title too long';
+                if (value == null || value.isEmpty)
+                  // 'Title is required'
+                  return AppLocalizations.of(context)!.titleRequired;
+                if (value.length > 255)
+                  // 'Title too long'
+                  return AppLocalizations.of(context)!.titleTooLong;
                 return null;
               },
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _contentController,
-              decoration: const InputDecoration(
-                labelText: 'Content*',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.contentLabel,
                 border: OutlineInputBorder(),
               ),
               maxLines: 5,
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Content is required';
-                if (value.length > 1000) return 'Content too long';
+                if (value == null || value.isEmpty)
+                  return AppLocalizations.of(context)!.contentRequired;
+                if (value.length > 1000)
+                  return AppLocalizations.of(context)!.contentTooLong;
                 return null;
               },
             ),
             const SizedBox(height: 16),
-            const Text('Tags*', style: TextStyle(fontSize: 16)),
+            Text(AppLocalizations.of(context)!.tagsLabel, style: TextStyle(fontSize: 16)),
             Wrap(
               spacing: 8,
               children: _validTags.map((tag) => FilterChip(
-                label: Text(tag),
+                label: Text(localizedTagLabel(context, tag)),
                 selected: _tags.contains(tag),
                 onSelected: (selected) {
                   setState(() {
@@ -145,7 +156,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Allow Comments'),
+              title: Text(AppLocalizations.of(context)!.allowComments),
               value: _isCommentable,
               onChanged: (value) => setState(() => _isCommentable = value),
             ),

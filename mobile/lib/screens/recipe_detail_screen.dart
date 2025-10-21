@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/currency_provider.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
@@ -30,7 +33,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recipe Details'),
+        title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
         actions: [
           if (_currentRecipe != null)
@@ -47,7 +50,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                )!.errorLoadingRecipes(snapshot.error.toString()),
+              ),
+            );
           } else if (snapshot.hasData) {
             final recipe = snapshot.data!;
             // Store recipe for report button (only update if changed)
@@ -72,25 +81,46 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         recipe.imageFullUrl!.isNotEmpty)
                       Hero(
                         tag: 'recipe_image_${recipe.id}',
-                        child: Container(
-                          width: double.infinity,
-                          height: 250,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(recipe.imageFullUrl!),
-                              fit: BoxFit.cover,
-                            ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: 350,
+                            minHeight: 200,
                           ),
                           child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.3),
-                                ],
-                              ),
+                            width: double.infinity,
+                            color: Colors.grey[900],
+                            child: Stack(
+                              fit: StackFit.passthrough,
+                              children: [
+                                Image.network(
+                                  recipe.imageFullUrl!,
+                                  width: double.infinity,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      height: 200,
+                                      color: Colors.grey[300],
+                                      child: const Icon(
+                                        Icons.restaurant,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.3),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -142,20 +172,26 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 children: <Widget>[
                                   _buildInfoColumn(
                                     Icons.timer_outlined,
-                                    '${recipe.prepTime} min',
-                                    'Prep Time',
+                                    '${recipe.prepTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                    AppLocalizations.of(context)!.prepTimeLabel,
                                     context,
                                   ),
                                   _buildInfoColumn(
                                     Icons.whatshot_outlined,
-                                    '${recipe.cookTime} min',
-                                    'Cook Time',
+                                    '${recipe.cookTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                                    AppLocalizations.of(context)!.cookTimeLabel,
                                     context,
                                   ),
                                   _buildInfoColumn(
                                     Icons.restaurant_menu_outlined,
-                                    recipe.mealType,
-                                    'Meal Type',
+                                    recipe.mealType == 'breakfast'
+                                        ? AppLocalizations.of(
+                                          context,
+                                        )!.breakfast
+                                        : recipe.mealType == 'lunch'
+                                        ? AppLocalizations.of(context)!.lunch
+                                        : AppLocalizations.of(context)!.dinner,
+                                    AppLocalizations.of(context)!.mealTypeLabel,
                                     context,
                                   ),
                                 ],
@@ -163,225 +199,237 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-
-                          // Ingredients Section
-                          _buildSectionTitle(
-                            'Ingredients',
-                            Icons.kitchen_outlined,
-                            context,
-                          ),
-                          const SizedBox(height: 8),
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child:
-                                  recipe.ingredients.isEmpty
-                                      ? const Text(
-                                        'No ingredients listed.',
-                                        style: TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      )
-                                      : Column(
-                                        children:
-                                            recipe.ingredients.map((item) {
-                                              return Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 4.0,
-                                                    ),
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(
-                                                      Icons
-                                                          .check_circle_outline,
-                                                      color:
-                                                          AppTheme.primaryGreen,
-                                                      size: 20,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: Text(
-                                                        '${item.ingredient.name} (${item.quantity} ${item.unit})',
-                                                        style:
-                                                            Theme.of(context)
-                                                                .textTheme
-                                                                .bodyLarge,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }).toList(),
-                                      ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Steps Section
-                          _buildSectionTitle(
-                            'Preparation Steps',
-                            Icons.format_list_numbered_outlined,
-                            context,
-                          ),
-                          const SizedBox(height: 8),
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child:
-                                  recipe.steps.isEmpty
-                                      ? const Text(
-                                        'No steps provided.',
-                                        style: TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      )
-                                      : Column(
-                                        children:
-                                            recipe.steps.asMap().entries.map((
-                                              entry,
-                                            ) {
-                                              int idx = entry.key;
-                                              String step = entry.value;
-                                              return Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 8.0,
-                                                    ),
-                                                child: Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    CircleAvatar(
-                                                      backgroundColor:
-                                                          AppTheme.primaryGreen,
-                                                      radius: 12,
-                                                      child: Text(
-                                                        '${idx + 1}',
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Text(
-                                                        step,
-                                                        style:
-                                                            Theme.of(context)
-                                                                .textTheme
-                                                                .bodyLarge,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }).toList(),
-                                      ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Additional Details Section
-                          _buildSectionTitle(
-                            'Additional Information',
-                            Icons.info_outline,
-                            context,
-                          ),
-                          const SizedBox(height: 8),
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children:
-                                    [
-                                          if (recipe.costPerServing != null)
-                                            _buildDetailRow(
-                                              Icons.attach_money_outlined,
-                                              'Cost per Serving:',
-                                              '\$${recipe.costPerServing?.toStringAsFixed(2)}',
-                                              context,
-                                            ),
-                                          if (recipe.difficultyRating != null)
-                                            _buildDetailRow(
-                                              Icons.star_border_outlined,
-                                              'Difficulty:',
-                                              '${recipe.difficultyRating}/5',
-                                              context,
-                                            ),
-                                          if (recipe.tasteRating != null)
-                                            _buildDetailRow(
-                                              Icons.thumb_up_alt_outlined,
-                                              'Taste Rating:',
-                                              '${recipe.tasteRating}/5',
-                                              context,
-                                            ),
-                                          if (recipe.healthRating != null)
-                                            _buildDetailRow(
-                                              Icons.health_and_safety_outlined,
-                                              'Health Rating:',
-                                              '${recipe.healthRating}/5',
-                                              context,
-                                            ),
-                                          _buildDetailRow(
-                                            Icons.favorite_border_outlined,
-                                            'Likes:',
-                                            '${recipe.likeCount}',
-                                            context,
-                                          ),
-                                          _buildDetailRow(
-                                            Icons.comment_outlined,
-                                            'Comments:',
-                                            '${recipe.commentCount}',
-                                            context,
-                                          ),
-                                          if (recipe.allergens.isNotEmpty)
-                                            _buildDetailRow(
-                                              Icons.warning_amber_outlined,
-                                              'Allergens:',
-                                              recipe.allergens.join(", "),
-                                              context,
-                                            ),
-                                          if (recipe.dietaryInfo.isNotEmpty)
-                                            _buildDetailRow(
-                                              Icons.restaurant_outlined,
-                                              'Dietary Info:',
-                                              recipe.dietaryInfo.join(", "),
-                                              context,
-                                            ),
-                                        ]
-                                        .where((widget) => widget != null)
-                                        .cast<Widget>()
-                                        .toList(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
                         ],
                       ),
                     ),
+                    // Ingredients Section
+                    _buildSectionTitle(
+                      AppLocalizations.of(context)!.ingredientsTitle,
+                      Icons.kitchen_outlined,
+                      context,
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child:
+                            recipe.ingredients.isEmpty
+                                ? Text(
+                                  AppLocalizations.of(context)!.noIngredients,
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                )
+                                : Column(
+                                  children:
+                                      recipe.ingredients.map((item) {
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.check_circle_outline,
+                                                color: AppTheme.primaryGreen,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  '${item.ingredient.name} (${item.quantity} ${item.unit})',
+                                                  style:
+                                                      Theme.of(
+                                                        context,
+                                                      ).textTheme.bodyLarge,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Steps Section
+                    _buildSectionTitle(
+                      AppLocalizations.of(context)!.preparationStepsTitle,
+                      Icons.format_list_numbered_outlined,
+                      context,
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child:
+                            recipe.steps.isEmpty
+                                ? Text(
+                                  AppLocalizations.of(context)!.noStepsProvided,
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                )
+                                : Column(
+                                  children:
+                                      recipe.steps.asMap().entries.map((entry) {
+                                        int idx = entry.key;
+                                        String step = entry.value;
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8.0,
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              CircleAvatar(
+                                                backgroundColor:
+                                                    AppTheme.primaryGreen,
+                                                radius: 12,
+                                                child: Text(
+                                                  '${idx + 1}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  step,
+                                                  style:
+                                                      Theme.of(
+                                                        context,
+                                                      ).textTheme.bodyLarge,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Additional Details Section
+                    _buildSectionTitle(
+                      AppLocalizations.of(context)!.additionalInformationTitle,
+                      Icons.info_outline,
+                      context,
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:
+                              [
+                                    if (recipe.costPerServing != null)
+                                      _buildDetailRow(
+                                        Icons.attach_money_outlined,
+                                        // 'Cost per Serving:',
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.costPerServingLabel,
+                                        '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing?.toStringAsFixed(2)}',
+                                        context,
+                                      ),
+                                    if (recipe.difficultyRating != null)
+                                      _buildDetailRow(
+                                        Icons.star_border_outlined,
+                                        // 'Difficulty:',
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.difficultyLabel,
+                                        '${recipe.difficultyRating}/5',
+                                        context,
+                                      ),
+                                    if (recipe.tasteRating != null)
+                                      _buildDetailRow(
+                                        Icons.thumb_up_alt_outlined,
+                                        // 'Taste Rating:',
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.tasteRatingLabel,
+                                        '${recipe.tasteRating}/5',
+                                        context,
+                                      ),
+                                    if (recipe.healthRating != null)
+                                      _buildDetailRow(
+                                        Icons.health_and_safety_outlined,
+                                        // 'Health Rating:',
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.healthRatingLabel,
+                                        '${recipe.healthRating}/5',
+                                        context,
+                                      ),
+                                    _buildDetailRow(
+                                      Icons.favorite_border_outlined,
+                                      // 'Likes:',
+                                      AppLocalizations.of(context)!.likesLabel,
+                                      '${recipe.likeCount}',
+                                      context,
+                                    ),
+                                    _buildDetailRow(
+                                      Icons.comment_outlined,
+                                      // 'Comments:',
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.commentsLabel,
+                                      '${recipe.commentCount}',
+                                      context,
+                                    ),
+                                    if (recipe.allergens.isNotEmpty)
+                                      _buildDetailRow(
+                                        Icons.warning_amber_outlined,
+                                        // 'Allergens:',
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.allergensLabel,
+                                        recipe.allergens.join(", "),
+                                        context,
+                                      ),
+                                    if (recipe.dietaryInfo.isNotEmpty)
+                                      _buildDetailRow(
+                                        Icons.restaurant_outlined,
+                                        // 'Dietary Info:',
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.dietaryInfoLabel,
+                                        recipe.dietaryInfo.join(", "),
+                                        context,
+                                      ),
+                                  ]
+                                  .where((widget) => widget != null)
+                                  .cast<Widget>()
+                                  .toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
             );
           } else {
-            return const Center(child: Text('Recipe not found.'));
+            return Center(
+              child: Text(AppLocalizations.of(context)!.recipeNotFound),
+            );
           }
         },
       ),
@@ -470,5 +518,4 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
     );
   }
-
 }

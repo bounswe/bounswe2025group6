@@ -87,15 +87,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.UserRateThrottle',
-        'rest_framework.throttling.AnonRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'user': '100/hour',
-        'anon': '50/hour',
-    },
+    ]
+    # Removed throttling for now, can be added later if needed
+    #'DEFAULT_THROTTLE_CLASSES': [
+    #    'rest_framework.throttling.UserRateThrottle',
+    #    'rest_framework.throttling.AnonRateThrottle',
+    #],
+    #'DEFAULT_THROTTLE_RATES': {
+    #    'user': '100/hour',
+    #    'anon': '50/hour',
+    #},
 }
 
 

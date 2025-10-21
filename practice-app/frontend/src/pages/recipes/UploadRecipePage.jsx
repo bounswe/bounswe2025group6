@@ -1,76 +1,80 @@
 // src/pages/recipes/UploadRecipePage.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { addRecipe } from '../../services/recipeService';
-import IngredientList from '../../components/recipe/IngredientList';
-import { useToast } from '../../components/ui/Toast';
-import '../../styles/UploadRecipePage.scss';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { addRecipe } from "../../services/recipeService";
+import IngredientList from "../../components/recipe/IngredientList";
+import { useToast } from "../../components/ui/Toast";
+import "../../styles/UploadRecipePage.scss";
+import { useTranslation } from "react-i18next";
 
 const UploadRecipePage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedColumn, setSelectedColumn] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const { t } = useTranslation();
+
   const [recipeData, setRecipeData] = useState({
-    name: '',
-    image_url: '',
-    cooking_time: '',
-    prep_time: '',
-    meal_type: '',
+    name: "",
+    image: null, // File object for image upload
+    imagePreview: null, // URL for image preview
+    cooking_time: "",
+    prep_time: "",
+    meal_type: "",
     ingredients: [],
     steps: [], // This will hold the final array
-    stepsText: '' // This will hold the raw textarea input
+    stepsText: "", // This will hold the raw textarea input
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredIngredients, setFilteredIngredients] = useState([]);
   const [allIngredients, setAllIngredients] = useState([]);
   const dropdownRef = useRef(null);
 
   // Fetch ingredients
   useEffect(() => {
-      const fetchAllIngredients = async () => {
-        try {
-          let allData = [];
-          let nextUrl = import.meta.env.VITE_API_URL + '/ingredients/';
-  
-          while (nextUrl) {
-            const res = await fetch(nextUrl);
-            if (!res.ok) throw new Error('API Error: ${res.status} ${res.statusText}');
-            const data = await res.json();
-            allData = [...allData, ...data.results];
-            nextUrl = data.next;
-          }
-  
-          const startIndex = (page - 1) * pageSize;
-          const endIndex = startIndex + pageSize;
-          
-          setAllIngredients(allData);
-          setIngredients(allData.slice(startIndex, endIndex));
-          setHasNextPage(allData.length > endIndex);
-          setLoading(false);
-        } catch (err) {
-          setError(err.message);
-          setLoading(false);
+    const fetchAllIngredients = async () => {
+      try {
+        let allData = [];
+        let nextUrl = import.meta.env.VITE_API_URL + "/ingredients/";
+
+        while (nextUrl) {
+          const res = await fetch(nextUrl);
+          if (!res.ok)
+            throw new Error("API Error: ${res.status} ${res.statusText}");
+          const data = await res.json();
+          allData = [...allData, ...data.results];
+          nextUrl = data.next;
         }
-      };
-  
-      if (ingredients.length === 0) {
-        setLoading(true);
+
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+
+        setAllIngredients(allData);
+        setIngredients(allData.slice(startIndex, endIndex));
+        setHasNextPage(allData.length > endIndex);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
       }
-      fetchAllIngredients();
-    }, [pageSize, selectedColumn, page]);
+    };
+
+    if (ingredients.length === 0) {
+      setLoading(true);
+    }
+    fetchAllIngredients();
+  }, [pageSize, selectedColumn, page]);
 
   // Filter ingredients based on search
   useEffect(() => {
-    if (searchQuery.trim() === '') {
+    if (searchQuery.trim() === "") {
       setFilteredIngredients([]);
     } else {
       const filtered = allIngredients.filter((ingredient) =>
@@ -82,39 +86,83 @@ const UploadRecipePage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Validate time inputs (cooking_time and prep_time)
-    if (name === 'cooking_time' || name === 'prep_time') {
+    if (name === "cooking_time" || name === "prep_time") {
       // Only allow numbers and decimal points
       if (!/^\d*\.?\d*$/.test(value)) {
         return; // Don't update if input contains non-numeric characters
       }
-      
+
       // Prevent negative values
       if (parseFloat(value) < 0) {
         return;
       }
     }
+
+    setRecipeData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle image file selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.match('image.*')) {
+      toast.error('Please select an image file (PNG or JPG)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+
+    setRecipeData((prev) => ({
+      ...prev,
+      image: file,
+      imagePreview: previewUrl,
+      image_url: '' // Clear URL if file is selected
+    }));
+  };
+
+  // Handle image removal
+  const handleImageRemove = () => {
+    if (recipeData.imagePreview) {
+      URL.revokeObjectURL(recipeData.imagePreview);
+    }
     
-    setRecipeData(prev => ({ ...prev, [name]: value }));
+    setRecipeData((prev) => ({
+      ...prev,
+      image: null,
+      imagePreview: null
+    }));
   };
 
   const handleAddIngredient = (ingredient) => {
     if (!ingredient || !ingredient.id) return;
-    
-    if (recipeData.ingredients.some(ing => ing.id === ingredient.id)) {
-      toast.error('This ingredient is already added');
+
+    if (recipeData.ingredients.some((ing) => ing.id === ingredient.id)) {
+      toast.error("This ingredient is already added");
       return;
     }
 
-    setRecipeData(prev => ({
+    setRecipeData((prev) => ({
       ...prev,
-      ingredients: [...prev.ingredients, { 
-        ingredient_name: ingredient.name,
-        id: ingredient.id,
-        quantity: '1',
-        unit: 'pcs'
-      }]
+      ingredients: [
+        ...prev.ingredients,
+        {
+          ingredient_name: ingredient.name,
+          id: ingredient.id,
+          quantity: "1",
+          unit: "pcs",
+        },
+      ],
     }));
   };
 
@@ -125,21 +173,21 @@ const UploadRecipePage = () => {
     try {
       // Process steps text into array
       const processedSteps = recipeData.stepsText
-        .split('\n')
-        .map(step => step.trim())
-        .filter(step => step.length > 0);
+        .split("\n")
+        .map((step) => step.trim())
+        .filter((step) => step.length > 0);
 
       // Create submission data with processed steps
       const submissionData = {
         ...recipeData,
-        steps: processedSteps
+        steps: processedSteps,
       };
 
       const newRecipe = await addRecipe(submissionData);
-      toast.success('Recipe uploaded successfully!');
+      toast.success("Recipe uploaded successfully!");
       navigate(`/recipes/${newRecipe.id}`);
     } catch (error) {
-      toast.error(error.message || 'Failed to upload recipe');
+      toast.error(error.message || "Failed to upload recipe");
     } finally {
       setIsSubmitting(false);
     }
@@ -147,38 +195,65 @@ const UploadRecipePage = () => {
 
   return (
     <div className="upload-page-container">
-      <h1>Upload a New Recipe</h1>
+      <h1>{t("uploadRecipePageHeader")}</h1>
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="form-group">
-          <label htmlFor="name">Recipe Name *</label>
-          <input 
-            id="name" 
-            name="name" 
-            value={recipeData.name} 
-            onChange={handleChange} 
-            required 
+          <label htmlFor="name">{t("uploadRecipePageName")} *</label>
+          <input
+            id="name"
+            name="name"
+            value={recipeData.name}
+            onChange={handleChange}
+            required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="image_url">Image URL</label>
-          <input 
-            id="image_url" 
-            name="image_url" 
-            value={recipeData.image_url} 
-            onChange={handleChange} 
-          />
+          <label htmlFor="image">{t("uploadRecipePageImage")}</label>
+          <div className="image-upload-container">
+            {recipeData.imagePreview ? (
+              <div className="image-preview">
+                <img 
+                  src={recipeData.imagePreview} 
+                  alt="Recipe preview" 
+                  className="preview-image"
+                />
+                <button 
+                  type="button" 
+                  onClick={handleImageRemove}
+                  className="remove-image-btn"
+                  title="Remove Image"
+                >
+                </button>
+              </div>
+            ) : (
+              <div className="image-upload-area">
+                <input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="image-input"
+                />
+                <label htmlFor="image" className="image-upload-label">
+                  <span>📷</span>
+                  <span>{t("uploadRecipePageImageInfo")}</span>
+                </label>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="form-group">
-          <label htmlFor="cooking_time">Cooking Time (minutes) *</label>
-          <input 
-            id="cooking_time" 
-            name="cooking_time" 
-            type="number" 
-            value={recipeData.cooking_time} 
-            onChange={handleChange} 
-            required 
+          <label htmlFor="cooking_time">{t("uploadRecipePageCookingTime")} *</label>
+          <input
+            id="cooking_time"
+            name="cooking_time"
+            type="number"
+            value={recipeData.cooking_time}
+            onChange={handleChange}
+            required
             min="0"
             step="0.1"
             pattern="[0-9]*\.?[0-9]*"
@@ -191,14 +266,14 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="prep_time">Prep Time (minutes) *</label>
-          <input 
-            id="prep_time" 
-            name="prep_time" 
-            type="number" 
-            value={recipeData.prep_time} 
-            onChange={handleChange} 
-            required 
+          <label htmlFor="prep_time">{t("uploadRecipePagePrepTime")} *</label>
+          <input
+            id="prep_time"
+            name="prep_time"
+            type="number"
+            value={recipeData.prep_time}
+            onChange={handleChange}
+            required
             min="0"
             step="0.1"
             pattern="[0-9]*\.?[0-9]*"
@@ -211,23 +286,23 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="meal_type">Meal Type *</label>
-          <select 
-            id="meal_type" 
-            name="meal_type" 
-            value={recipeData.meal_type} 
-            onChange={handleChange} 
+          <label htmlFor="meal_type">{t("uploadRecipePageMealType")} *</label>
+          <select
+            id="meal_type"
+            name="meal_type"
+            value={recipeData.meal_type}
+            onChange={handleChange}
             required
           >
-            <option value="">Select meal type</option>
-            <option value="breakfast">Breakfast</option>
-            <option value="lunch">Lunch</option>
-            <option value="dinner">Dinner</option>
+            <option value="">{t("uploadRecipePageMealTypeSelect")}</option>
+            <option value="breakfast">{t("breakfast")}</option>
+            <option value="lunch">{t("Lunch")}</option>
+            <option value="dinner">{t("Dinner")}</option>
           </select>
         </div>
 
         <div className="form-group ingredients-section">
-          <label>Ingredients *</label>
+          <label>{t("Ingredients")} *</label>
           <div className="ingredient-search">
             <input
               type="text"
@@ -243,7 +318,7 @@ const UploadRecipePage = () => {
                     key={ingredient.id}
                     onClick={() => {
                       handleAddIngredient(ingredient);
-                      setSearchQuery('');
+                      setSearchQuery("");
                       setFilteredIngredients([]);
                     }}
                     className="ingredient-option"
@@ -254,7 +329,7 @@ const UploadRecipePage = () => {
               </ul>
             )}
           </div>
-          
+
           {recipeData.ingredients.length > 0 && (
             <div className="selected-ingredients">
               {recipeData.ingredients.map((ing, index) => (
@@ -268,7 +343,7 @@ const UploadRecipePage = () => {
                       if (!/^\d*\.?\d*$/.test(e.target.value)) {
                         return;
                       }
-                      
+
                       // Prevent negative values
                       if (parseFloat(e.target.value) < 0) {
                         return;
@@ -277,11 +352,11 @@ const UploadRecipePage = () => {
                       const newIngredients = [...recipeData.ingredients];
                       newIngredients[index] = {
                         ...ing,
-                        quantity: e.target.value
+                        quantity: e.target.value,
                       };
-                      setRecipeData(prev => ({
+                      setRecipeData((prev) => ({
                         ...prev,
-                        ingredients: newIngredients
+                        ingredients: newIngredients,
                       }));
                     }}
                     onKeyPress={(e) => {
@@ -300,30 +375,32 @@ const UploadRecipePage = () => {
                       const newIngredients = [...recipeData.ingredients];
                       newIngredients[index] = {
                         ...ing,
-                        unit: e.target.value
+                        unit: e.target.value,
                       };
-                      setRecipeData(prev => ({
+                      setRecipeData((prev) => ({
                         ...prev,
-                        ingredients: newIngredients
+                        ingredients: newIngredients,
                       }));
                     }}
                     className="unit-select"
                   >
-                    <option value="pcs">pcs</option>
+                    <option value="pcs">{t("Pcs")}</option>
                     <option value="g">g</option>
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="l">l</option>
-                    <option value="cup">cup</option>
-                    <option value="tbsp">tbsp</option>
-                    <option value="tsp">tsp</option>
+                    <option value="cup">{t("Cup")}</option>
+                    <option value="tbsp">{t("Tbsp")}</option>
+                    <option value="tsp">{t("Tsp")}</option>
                   </select>
                   <button
                     type="button"
                     onClick={() => {
-                      setRecipeData(prev => ({
+                      setRecipeData((prev) => ({
                         ...prev,
-                        ingredients: prev.ingredients.filter(i => i.id !== ing.id)
+                        ingredients: prev.ingredients.filter(
+                          (i) => i.id !== ing.id
+                        ),
                       }));
                     }}
                     className="remove-ingredient"
@@ -337,15 +414,15 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="steps">Recipe Steps *</label>
+          <label htmlFor="steps">{t("uploadRecipePageSteps")} *</label>
           <textarea
             id="steps"
             name="stepsText" // Changed from steps to stepsText
             value={recipeData.stepsText}
             onChange={(e) => {
-              setRecipeData(prev => ({
+              setRecipeData((prev) => ({
                 ...prev,
-                stepsText: e.target.value
+                stepsText: e.target.value,
               }));
             }}
             placeholder="Enter each step on a new line"
@@ -356,9 +433,11 @@ const UploadRecipePage = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" onClick={() => navigate('/recipes')}>Cancel</button>
+          <button type="button" onClick={() => navigate("/recipes")}>
+            {t("Cancel")}
+          </button>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Uploading...' : 'Upload Recipe'}
+            {isSubmitting ? "Uploading..." : "Upload Recipe"}
           </button>
         </div>
       </form>

@@ -6,8 +6,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import '../../styles/AuthPages.css';
+import { useTranslation } from "react-i18next";
 
 const ForgotPasswordPage = () => {
+  const { t } = useTranslation();
 
   const { requestResetCode, verifyResetCode, resetPassword, isLoading } = useAuth();
   const toast = useToast();

@@ -6,6 +6,10 @@ import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/recipe_card.dart'; 
 import './profile_settings_screen.dart';
+import '../l10n/app_localizations.dart'; // Import AppLocalizations
+import 'package:provider/provider.dart';
+import '../providers/currency_provider.dart';
+import '../utils/label_localization.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';
@@ -62,7 +66,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Failed to load profile: $e';
+        // _errorMessage = 'Failed to load profile: $e';
+        _errorMessage = AppLocalizations.of(context)!.failedToLoadProfile(e.toString());
       });
     }
   }
@@ -72,7 +77,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() {
           _isLoadingRecipes = false;
-          _recipesErrorMessage = 'User ID not available to load recipes.';
+          // _recipesErrorMessage = 'User ID not available to load recipes.';
+          _recipesErrorMessage = AppLocalizations.of(context)!.userIdNotAvailable;
         });
       }
       return;
@@ -104,7 +110,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingRecipes = false;
-        _recipesErrorMessage = 'Failed to load recipes: $e';
+        // _recipesErrorMessage = 'Failed to load recipes: $e';
+        _recipesErrorMessage = AppLocalizations.of(context)!.failedToLoadRecipes(e.toString());
       });
     }
   }
@@ -152,7 +159,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppTheme.backgroundGrey,
       appBar: AppBar(
         title: Text(
-          _userProfile == null && !_isLoading ? 'Profile' : 'My Profile',
+          _userProfile == null && !_isLoading
+              ? AppLocalizations.of(context)!.profileTitle
+              : AppLocalizations.of(context)!.myProfileTitle,
           style: TextStyle(
             color: AppTheme.primaryGreen,
             fontWeight: FontWeight.bold,
@@ -161,17 +170,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 2,
         iconTheme: IconThemeData(color: AppTheme.primaryGreen),
-        actions:
-            _userProfile != null
-                ? [
-                  IconButton(
-                    icon: Icon(Icons.settings),
-                    color: AppTheme.primaryGreen,
-                    onPressed: _navigateToSettings,
-                    tooltip: 'Profile Settings',
-                  ),
-                ]
-                : null,
+        actions: _userProfile != null
+            ? [
+                IconButton(
+                  icon: Icon(Icons.settings),
+                  color: AppTheme.primaryGreen,
+                  onPressed: _navigateToSettings,
+                  // tooltip: 'Profile Settings',
+                  tooltip: AppLocalizations.of(context)!.profileSettingsTooltip,
+                ),
+              ]
+            : null,
       ),
       body: _buildBody(),
     );
@@ -186,7 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    if (_errorMessage != null) {
+      if (_errorMessage != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -197,7 +206,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadUserProfile,
-                child: Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.retry),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
@@ -210,7 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (_userProfile == null) {
-      return Center(child: Text('Profile data is not available.'));
+      return Center(child: Text(AppLocalizations.of(context)!.profileDataNotAvailable));
     }
     return _buildProfileDisplay();
   }
@@ -253,138 +262,139 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(height: 10),
         Center(
           child: Text(
-            'Joined: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
+            '${AppLocalizations.of(context)!.joinedLabel}: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
           ),
         ),
         SizedBox(height: 30),
-        _buildSectionTitle(context, 'Personal Information'),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.personalInformation),
         _buildInfoCard([
-          _buildInfoTile(Icons.person_outline, 'User Type', profile.userType),
+          _buildInfoTile(Icons.person_outline, AppLocalizations.of(context)!.userType, profile.userType),
           _buildInfoTile(
             Icons.public_outlined,
-            'Profile Status',
-            profile.publicProfile ? 'Public' : 'Private',
+            AppLocalizations.of(context)!.profileStatus,
+            profile.publicProfile ? AppLocalizations.of(context)!.public : AppLocalizations.of(context)!.private,
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, 'Preferences'),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.preferences),
         _buildInfoCard([
           _buildInfoTile(
             Icons.restaurant_menu_outlined,
-            'Dietary Preferences',
+            AppLocalizations.of(context)!.dietaryPreferencesLabel,
             profile.dietaryPreferences.join(', ').isNotEmpty
                 ? profile.dietaryPreferences.join(', ')
-                : 'None specified',
+                : AppLocalizations.of(context)!.notSet,
           ),
           _buildInfoTile(
             Icons.warning_amber_outlined,
-            'Allergens',
+            AppLocalizations.of(context)!.allergensLabel,
             profile.allergens.join(', ').isNotEmpty
                 ? profile.allergens.join(', ')
-                : 'None specified',
+                : AppLocalizations.of(context)!.notSet,
           ),
           _buildInfoTile(
             Icons.no_food_outlined,
-            'Disliked Foods',
+            AppLocalizations.of(context)!.dislikedFoodsLabel,
             profile.dislikedFoods.isNotEmpty
                 ? profile.dislikedFoods
-                : 'None specified',
+                : AppLocalizations.of(context)!.notSet,
           ),
           _buildInfoTile(
             Icons.attach_money_outlined,
-            'Monthly Budget',
+            AppLocalizations.of(context)!.monthlyBudgetLabel,
             profile.monthlyBudget != null
-                ? '\$${profile.monthlyBudget!.toStringAsFixed(2)}'
-                : 'Not set',
+                ? '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${profile.monthlyBudget!.toStringAsFixed(2)}'
+                : AppLocalizations.of(context)!.notSet,
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, 'Activity Stats'),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.activityStats),
         _buildInfoCard([
           _buildInfoTile(
             Icons.receipt_long_outlined, // Changed icon
-            'Recipes Created',
-            profile.recipeCount?.toString() ?? 'N/A',
+            AppLocalizations.of(context)!.recipesCreated,
+            profile.recipeCount?.toString() ?? AppLocalizations.of(context)!.notSet,
           ),
           _buildInfoTile(
             Icons.star_border_outlined, // Changed icon
-            'Average Recipe Rating',
+            AppLocalizations.of(context)!.avgRecipeRating,
             profile.avgRecipeRating != null
                 ? '${profile.avgRecipeRating!.toStringAsFixed(1)} ★'
-                : 'N/A',
+                : AppLocalizations.of(context)!.notSet,
           ),
           _buildInfoTile(
             Icons.soup_kitchen_outlined, // Changed icon
-            'Cooking Skill',
-            profile.typeOfCook ?? 'N/A',
+            AppLocalizations.of(context)!.cookingSkill,
+            profile.typeOfCook ?? AppLocalizations.of(context)!.notSet,
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, 'Localization & Accessibility'),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.localizationAccessibility),
         _buildInfoCard([
           _buildInfoTile(
             Icons.language,
-            'Language',
+            AppLocalizations.of(context)!.languageLabel,
+            // Language names are small and kept on the enum for now
             profile.language.displayName,
           ),
           _buildInfoTile(
             Icons.calendar_today,
-            'Date Format',
-            profile.preferredDateFormat.displayName,
+            AppLocalizations.of(context)!.dateFormatLabel,
+            localizedDateFormatLabel(context, profile.preferredDateFormat),
           ),
           _buildInfoTile(
             Icons.attach_money,
-            'Currency',
-            profile.preferredCurrency.displayName,
+            AppLocalizations.of(context)!.currencyLabel,
+            localizedCurrencyLabel(context, profile.preferredCurrency),
           ),
           _buildInfoTile(
             Icons.accessibility_new,
-            'Accessibility',
-            profile.accessibilityNeeds.displayName,
+            AppLocalizations.of(context)!.accessibilityLabel,
+            localizedAccessibilityLabel(context, profile.accessibilityNeeds),
           ),
           if (profile.nationality != null)
             _buildInfoTile(
               Icons.flag,
-              'Nationality',
+              AppLocalizations.of(context)!.nationalityLabel,
               profile.nationality!,
             ),
           if (profile.dateOfBirth != null)
             _buildInfoTile(
               Icons.cake,
-              'Date of Birth',
+              AppLocalizations.of(context)!.dateOfBirthLabel,
               '${profile.dateOfBirth!.day}/${profile.dateOfBirth!.month}/${profile.dateOfBirth!.year}',
             ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, 'Community'),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.communitySection),
         _buildInfoCard([
           _buildInfoTile(
             Icons.people_outline,
-            'Following',
+            AppLocalizations.of(context)!.followingLabel,
             profile.followedUsers != null
-                ? '${profile.followedUsers!.length} users'
-                : '0 users',
+                ? '${profile.followedUsers!.length} ${AppLocalizations.of(context)!.users}'
+                : '0 ${AppLocalizations.of(context)!.users}',
           ),
           _buildInfoTile(
             Icons.bookmark_border_outlined,
-            'Bookmarked Recipes',
+            AppLocalizations.of(context)!.bookmarkedRecipesLabel,
             profile.bookmarkRecipes != null
-                ? '${profile.bookmarkRecipes!.length} recipes'
-                : '0 recipes',
+                ? '${profile.bookmarkRecipes!.length} ${AppLocalizations.of(context)!.recipes}'
+                : '0 ${AppLocalizations.of(context)!.recipes}',
           ),
           _buildInfoTile(
             Icons.favorite_border_outlined,
-            'Liked Recipes',
+            AppLocalizations.of(context)!.likedRecipesLabel,
             profile.likedRecipes != null
-                ? '${profile.likedRecipes!.length} recipes'
-                : '0 recipes',
+                ? '${profile.likedRecipes!.length} ${AppLocalizations.of(context)!.recipes}'
+                : '0 ${AppLocalizations.of(context)!.recipes}',
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, 'My Recipes'),
+  _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
         _buildUserRecipesSection(),
         SizedBox(height: 40),
       ],
@@ -411,7 +421,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadAndFilterUserRecipes,
-                child: Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.retry),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
@@ -428,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0),
           child: Text(
-            'You haven\'t created any recipes yet.',
+            AppLocalizations.of(context)!.noUserRecipesYet,
             style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
           ),
         ),
@@ -482,7 +492,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       leading: Icon(icon, color: AppTheme.primaryGreen),
       title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: Text(
-        subtitle.isNotEmpty ? subtitle : 'N/A',
+        subtitle.isNotEmpty ? subtitle : AppLocalizations.of(context)!.notSet,
         style: TextStyle(color: Colors.grey.shade700),
       ),
     );

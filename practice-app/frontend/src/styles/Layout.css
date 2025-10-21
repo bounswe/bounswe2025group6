@@ -282,3 +282,58 @@ body, html {
   margin-left: 1px;
   color: #e1febb;
 }
+
+/* Admin Navigation Link Styling */
+.layout-nav-link.admin-nav-link {
+  color: #dc2626 !important;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.layout-nav-link.admin-nav-link:hover {
+  color: #b91c1c !important;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15);
+}
+
+.layout-nav-link.admin-nav-link.active {
+  color: #991b1b !important;
+  background: #fecaca;
+  border-color: #f87171;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+/* Add a small admin badge icon */
+.layout-nav-link.admin-nav-link::before {
+  content: "⚙️";
+  margin-right: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .layout-nav-link.admin-nav-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .layout-nav-link.admin-nav-link::before {
+    margin-right: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .layout-nav-link.admin-nav-link {
+    margin-left: 1rem;
+    border-left: 2px solid #dc2626;
+    padding-left: 1rem;
+  }
+}

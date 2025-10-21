@@ -44,6 +44,11 @@ class AuthService {
             'Invalid credentials. Please check your email and password.',
             statusCode: 401,
           );
+        case 429:
+          throw AuthenticationException(
+            'Too many failed login attempts. Please try again later.',
+            statusCode: 429,
+          );
         default:
           throw AuthenticationException(
             'An error occurred. Please try again later.',

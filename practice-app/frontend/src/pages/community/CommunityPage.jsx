@@ -4,12 +4,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
+import ReportButton from '../../components/report/ReportButton';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js';
 import '../../styles/CommunityPage.css';
+import { useTranslation } from "react-i18next";
 
 const CommunityPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const toast = useToast();
@@ -407,10 +410,10 @@ const CommunityPage = () => {
     <div className="forum-container">
       <div className="forum-header">
         <div>
-          <h1 className="forum-title">Community Forum</h1>
-          <p className="forum-subtitle">Join discussions, share ideas, and connect with others</p>
+          <h1 className="forum-title">{t("communityPageTitle")}</h1>
+          <p className="forum-subtitle">{t("communityPageSubTitle")}</p>
         </div>
-        <Button className="forum-create-button" onClick={() => navigate('/community/create')}>Create Post</Button>
+        <Button className="forum-create-button" onClick={() => navigate('/community/create')}>{t("communityPageCreatePost")}</Button>
       </div>
 
       <Card className="forum-filters">
@@ -424,20 +427,20 @@ const CommunityPage = () => {
               className="forum-input"
             />
             <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="forum-select">
-              <option value="">All Tags</option>
+              <option value="">{t("communityPageAllTags")}</option>
               {availableTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
             </select>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="forum-select">
-              <option value="recent">Most Recent</option>
-              <option value="popular">Most Popular</option>
-              <option value="comments">Most Comments</option>
+              <option value="recent">{t("communityPageMostRecent")}</option>
+              <option value="popular">{t("communityPageMostPopular")}</option>
+              <option value="comments">{t("communityPageMostComments")}</option>
             </select>
           </div>
           
           {/* Filter action buttons */}
           <div className="filter-actions">
-            <Button onClick={applyFilters} style={{ marginTop: '10px', marginRight: '10px' }}>Apply Filters</Button>
-            <Button onClick={resetFilters} style={{ marginTop: '10px' }}>Reset Filters</Button>
+            <Button onClick={applyFilters} style={{ marginTop: '10px', marginRight: '10px' }}>{t("communityPageApplyFilters")}</Button>
+            <Button onClick={resetFilters} style={{ marginTop: '10px' }}>{t("communityPageResetFilters")}</Button>
           </div>
         </Card.Body>
       </Card>
@@ -445,15 +448,15 @@ const CommunityPage = () => {
       {error && (
         <Card className="forum-error">
           <Card.Body>
-            <h2>Error Loading Posts</h2>
+            <h2>{t("communityPageErrorLoading")}</h2>
             <p>{error}</p>
-            <Button onClick={loadPosts}>Try Again</Button>
+            <Button onClick={loadPosts}>{t("TryAgain")}</Button>
           </Card.Body>
         </Card>
       )}
 
       {isLoading ? (
-        <div className="forum-loading">Loading posts...</div>
+        <div className="forum-loading">{t("communityPageLoadingPosts")}</div>
       ) : filteredPosts.length > 0 ? (
         <div className="forum-posts">
           {filteredPosts.map(post => (
@@ -512,12 +515,18 @@ const CommunityPage = () => {
                           aria-label="Remove vote"
                           disabled={!userVotes[post.id]}
                         >
-                          Remove Vote
+                          {t("communityPageRemoveVote")}
                         </button>
                       </div>
                       <div className="post-stats">
-                        <span>👁️ {post.view_count} views</span>
+                        <span>👁️ {post.view_count} {t("communityPageViews")}</span>
                       </div>
+                      {/* Report button for posts - only if not owner */}
+                      {currentUser && post.author !== currentUser.id && (
+                        <div style={{ marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                          <ReportButton targetType="post" targetId={post.id} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -533,7 +542,7 @@ const CommunityPage = () => {
                 disabled={pagination.page === 1}
                 className="pagination-button"
               >
-                Previous
+                {t("previous")}
               </button>
               <span className="pagination-info">
                 Page {pagination.page} of {Math.ceil(pagination.total / pagination.page_size)}
@@ -543,7 +552,7 @@ const CommunityPage = () => {
                 disabled={pagination.page >= Math.ceil(pagination.total / pagination.page_size)}
                 className="pagination-button"
               >
-                Next
+                {t("next")}
               </button>
             </div>
           )}
@@ -551,10 +560,10 @@ const CommunityPage = () => {
       ) : (
         <Card>
           <Card.Body className="forum-empty">
-            <h2>No posts found</h2>
+            <h2>{t("communityPageForumEmpty")}</h2>
             <p>{searchTerm || selectedTag ? 'Try adjusting your search criteria' : 'Be the first to start a discussion!'}</p>
-            {(searchTerm || selectedTag) && <Button onClick={resetFilters}>Clear Filters</Button>}
-            <Button onClick={loadPosts} className="edit-button">Refresh</Button>
+            {(searchTerm || selectedTag) && <Button onClick={resetFilters}>{t("ClearFilters")}</Button>}
+            <Button onClick={loadPosts} className="edit-button">{t("Refresh")}</Button>
           </Card.Body>
         </Card>
       )}

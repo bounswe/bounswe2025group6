@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import '../../styles/ShoppingListPage.css';
 import '../../styles/style.css';
+import { useTranslation } from "react-i18next";
 
 const ShoppingListPage = () => {
   const { activePlan } = useMealPlan();
@@ -15,6 +16,7 @@ const ShoppingListPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
   const [selectedMarket, setSelectedMarket] = useState('BIM');
+  const { t } = useTranslation();
 
   // Market price modifiers (simplified)
   const marketPriceModifiers = {

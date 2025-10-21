@@ -97,29 +97,42 @@ export const addRecipe = async (recipeData) => {
       throw new Error('Authentication token not found');
     }
 
-    // Format the recipe data to match backend expectations
-    const formattedData = {
-      name: recipeData.name.trim(),
-      steps: recipeData.steps, // Steps are already an array of strings
-      prep_time: parseInt(recipeData.prep_time),
-      cook_time: parseInt(recipeData.cooking_time),
-      meal_type: recipeData.meal_type,
-      ingredients: recipeData.ingredients.map(ing => ({
-        ingredient_name: ing.ingredient_name,
-        quantity: parseFloat(ing.quantity) || 1,
-        unit: ing.unit || 'pcs'
-      }))
-    };
+    // Create FormData for multipart/form-data request
+    const formData = new FormData();
+    
+    // Add basic recipe data
+    formData.append('name', recipeData.name.trim());
+    formData.append('steps', JSON.stringify(recipeData.steps));
+    formData.append('prep_time', recipeData.prep_time);
+    formData.append('cook_time', recipeData.cooking_time);
+    formData.append('meal_type', recipeData.meal_type);
+    
+    // Add ingredients as JSON string
+    const ingredientsData = recipeData.ingredients.map(ing => ({
+      ingredient_name: ing.ingredient_name,
+      quantity: parseFloat(ing.quantity) || 1,
+      unit: ing.unit || 'pcs'
+    }));
+    formData.append('ingredients', JSON.stringify(ingredientsData));
+    
+    // Add image if provided
+    if (recipeData.image && recipeData.image instanceof File) {
+      formData.append('image', recipeData.image);
+    }
 
-    console.log('Sending formatted recipe data:', formattedData); // For debugging
+    console.log('Sending recipe data with FormData:', {
+      name: recipeData.name,
+      hasImage: !!recipeData.image,
+      ingredientsCount: ingredientsData.length
+    });
 
     const response = await fetch(`${API_BASE_URL}/recipes/`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
+        // Don't set Content-Type, let browser set it for FormData
       },
-      body: JSON.stringify(formattedData)
+      body: formData
     });
 
     if (!response.ok) {
@@ -166,30 +179,65 @@ export const createRecipe = async (recipeData) => {
  * Update an existing recipe
  * @param {number} id Recipe ID
  * @param {Object} updatedRecipe Updated recipe data
- * @returns {Object} Updated recipe
+ * @returns {Promise<Object>} Updated recipe
  */
-export const updateRecipe = (id, updatedRecipe) => {
+export const updateRecipe = async (id, updatedRecipe) => {
   try {
-    const recipes = getAllRecipes();
-    const index = recipes.findIndex(recipe => recipe.id === parseInt(id));
+    const token = localStorage.getItem('fithub_access_token');
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
+
+    // Create FormData for multipart/form-data request
+    const formData = new FormData();
     
-    if (index === -1) {
-      throw new Error('Recipe not found');
+    // Add basic recipe data
+    if (updatedRecipe.name) formData.append('name', updatedRecipe.name.trim());
+    if (updatedRecipe.steps) formData.append('steps', JSON.stringify(updatedRecipe.steps));
+    if (updatedRecipe.prep_time) formData.append('prep_time', updatedRecipe.prep_time);
+    if (updatedRecipe.cooking_time) formData.append('cook_time', updatedRecipe.cooking_time);
+    if (updatedRecipe.meal_type) formData.append('meal_type', updatedRecipe.meal_type);
+    
+    // Add ingredients as JSON string if provided
+    if (updatedRecipe.ingredients) {
+      const ingredientsData = updatedRecipe.ingredients.map(ing => ({
+        ingredient_name: ing.ingredient_name,
+        quantity: parseFloat(ing.quantity) || 1,
+        unit: ing.unit || 'pcs'
+      }));
+      formData.append('ingredients', JSON.stringify(ingredientsData));
     }
     
-    const updated = {
-      ...recipes[index],
-      ...updatedRecipe,
-      updatedAt: new Date().toISOString()
-    };
-    
-    recipes[index] = updated;
-    localStorage.setItem(STORAGE_KEY_RECIPES, JSON.stringify(recipes));
-    
-    return updated;
+    // Add image if provided
+    if (updatedRecipe.image && updatedRecipe.image instanceof File) {
+      formData.append('image', updatedRecipe.image);
+    }
+
+    console.log('Updating recipe with FormData:', {
+      id,
+      hasImage: !!updatedRecipe.image,
+      ingredientsCount: updatedRecipe.ingredients?.length || 0
+    });
+
+    const response = await fetch(`${API_BASE_URL}/recipes/${id}/`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+        // Don't set Content-Type, let browser set it for FormData
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Server error response:', errorData);
+      throw new Error(errorData.detail || 'Failed to update recipe');
+    }
+
+    return await response.json();
   } catch (error) {
     console.error('Error updating recipe:', error);
-    throw new Error('Failed to update recipe');
+    throw error;
   }
 };
 
