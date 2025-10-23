@@ -8,28 +8,56 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 
 ```json
 {
-  "id": 3,
-  "created_at": "2025-05-03T22:02:12Z",
-  "updated_at": "2025-05-03T22:02:12Z",
+  "id": 222,
+  "created_at": "2025-10-16T21:02:31Z",
+  "updated_at": "2025-10-16T21:02:31Z",
   "deleted_on": null,
-  "name": "Ground Beef",
-  "category": "proteins",
+  "name": "Coconut Oil",
+  "category": "oils_and_fats",
   "allergens": [],
   "dietary_info": [
-    "high-protein"
-  ]
+    "healthy-fat",
+    "vegan"
+  ],
+  "base_unit": "ml",
+  "base_quantity": "100.00",
+  "allowed_units": [
+    "ml",
+    "l",
+    "tbsp"
+  ],
+  "prices": {
+    "currency": "USD",
+    "A101": 0.45,
+    "SOK": 0.42,
+    "BIM": 0.41,
+    "MIGROS": 0.47
+  }
 }
 ```
 
 ### Fields
 - `id`: Unique identifier for the ingredient (integer).
+- `created_at`: Timestamp when the ingredient was created (ISO 8601 string).
+- `updated_at`: Timestamp when the ingredient was last updated (ISO 8601 string).
+- `deleted_on`: Timestamp when the ingredient was deleted, if applicable (ISO 8601 string or null).
 - `name`: Name of the ingredient (string).
 - `category`: Category of the ingredient (string).
 - `allergens`: List of allergens associated with the ingredient (array of strings).
 - `dietary_info`: List of dietary information (e.g., vegan, gluten-free) (array of strings).
-- `created_at`: Timestamp of when the ingredient was created (datetime).
-- `updated_at`: Timestamp of when the ingredient was last updated (datetime).
-- `deleted_on`: Timestamp of when the ingredient was deleted (datetime, nullable).
+- `base_unit`: The base measurement unit for the ingredient (string).
+- `base_quantity`: The base quantity for the ingredient (decimal).
+- `allowed_units`: List of allowed measurement units for the ingredient (array of strings).
+- `prices`: An object containing price information across different stores (object). Can also be in TRY currency and will have automatically converted prices for other currencies. For example if the base currency is TRY, the prices object will look like this:
+```json
+{
+  "currency": "TRY",
+  "A101": 18.00,
+  "SOK": 16.80,
+  "BIM": 16.40,
+  "MIGROS": 18.80
+}
+```
 
 ## 📍 Endpoints
 
@@ -42,7 +70,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 #### 🔍 Request Format
 ```json
 {
-  "id": 3
+  "id": 222
 }
 ```
 
@@ -52,17 +80,31 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 #### 📦 Response Format
 ```json
 {
-  "id": 3,
-  "created_at": "2025-05-03T22:02:12Z",
-  "updated_at": "2025-05-03T22:02:12Z",
+  "id": 222,
+  "created_at": "2025-10-16T21:02:31Z",
+  "updated_at": "2025-10-16T21:02:31Z",
   "deleted_on": null,
-  "name": "Ground Beef",
-  "category": "proteins",
+  "name": "Coconut Oil",
+  "category": "oils_and_fats",
   "allergens": [],
   "dietary_info": [
-    "high-protein",
-    "gluten-free"
-  ]
+    "healthy-fat",
+    "vegan"
+  ],
+  "base_unit": "ml",
+  "base_quantity": "100.00",
+  "allowed_units": [
+    "ml",
+    "l",
+    "tbsp"
+  ],
+  "prices": {
+    "currency": "USD",
+    "A101": 0.45,
+    "SOK": 0.42,
+    "BIM": 0.41,
+    "MIGROS": 0.47
+  }
 }
 ```
 
@@ -78,7 +120,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 ```json
 {
   "page": 1,
-  "page_size": 10
+  "page_size": 5
 }
 ```
 
@@ -92,62 +134,59 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 ```json
 {
   "page": 1,
-  "page_size": 10,
-  "count": 47,
-  "total_pages": 5,
+  "page_size": 5,
+  "count": 86,
+  "total_pages": 18,
   "results": [
     {
-      "id": 1,
-      "created_at": "2025-05-03T22:02:12Z",
-      "updated_at": "2025-05-03T22:02:12Z",
-      "deleted_on": null,
-      "name": "Chicken Breast",
-      "category": "proteins",
-      "allergens": [],
-      "dietary_info": [
-        "high-protein"
-      ]
-    },
-    {
-      "id": 2,
-      "created_at": "2025-05-03T22:02:12Z",
-      "updated_at": "2025-05-03T22:02:12Z",
-      "deleted_on": null,
-      "name": "Salmon Fillet",
-      "category": "proteins",
+      "id": 207,
+      "name": "Almond Milk",
+      "category": "dairy",
       "allergens": [
-        "fish"
+        "nuts"
       ],
       "dietary_info": [
-        "omega-3",
-        "keto-friendly"
-      ]
-    },
+        "vegan",
+        "gluten-free"
+      ],
+      "base_unit": "ml",
+      "base_quantity": "1000.00",
+      "allowed_units": [
+        "ml",
+        "l",
+        "cup",
+        "tbsp",
+        "tsp"
+      ],
+      "prices": {
+        "currency": "USD",
+        "A101": 2.5,
+        "SOK": 2.4,
+        "BIM": 2.3,
+        "MIGROS": 2.6
+      }
+    }, // here there will be 3 more ingredients
     {
-      "id": 3,
-      "created_at": "2025-05-03T22:02:12Z",
-      "updated_at": "2025-05-03T22:02:12Z",
-      "deleted_on": null,
-      "name": "Ground Beef",
-      "category": "proteins",
+      "id": 211,
+      "name": "Basil",
+      "category": "herbs_and_spices",
       "allergens": [],
       "dietary_info": [
-        "high-protein"
-      ]
-    },
-    ...,
-    {
-      "id": 10,
-      "created_at": "2025-05-03T22:02:12Z",
-      "updated_at": "2025-05-03T22:02:12Z",
-      "deleted_on": null,
-      "name": "Sweet Potato",
-      "category": "vegetables",
-      "allergens": [],
-      "dietary_info": [
-        "gluten-free",
         "vegan"
-      ]
+      ],
+      "base_unit": "g",
+      "base_quantity": "10.00",
+      "allowed_units": [
+        "g",
+        "kg"
+      ],
+      "prices": {
+        "currency": "USD",
+        "A101": 0.5,
+        "SOK": 0.45,
+        "BIM": 0.4,
+        "MIGROS": 0.55
+      }
     }
   ]
 }
@@ -190,7 +229,7 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 {
   "page": 1,
   "page_size": 10,
-  "name": "Ground Beef"
+  "name": "Eggs"
 }
 ```
 
@@ -205,16 +244,31 @@ This document describes how to use the Ingredient API endpoint, which is a read-
 #### 📦 Response Format
 ```json
 {
-  "id": 3,
-  "created_at": "2025-05-03T22:02:12Z",
-  "updated_at": "2025-05-03T22:02:12Z",
+  "id": 225,
+  "created_at": "2025-10-16T21:02:31Z",
+  "updated_at": "2025-10-16T21:02:31Z",
   "deleted_on": null,
-  "name": "Ground Beef",
+  "name": "Eggs",
   "category": "proteins",
-  "allergens": [],
+  "allergens": [
+    "egg"
+  ],
   "dietary_info": [
-    "high-protein"
-  ]
+    "high-protein",
+    "gluten-free"
+  ],
+  "base_unit": "pcs",
+  "base_quantity": "1.00",
+  "allowed_units": [
+    "pcs"
+  ],
+  "prices": {
+    "currency": "USD",
+    "A101": 0.2,
+    "SOK": 0.23,
+    "BIM": 0.23,
+    "MIGROS": 0.26
+  }
 }
 ```
 

@@ -1,12 +1,11 @@
 from django.db import models
-# from api.models import TimestampedModel
-from core.models import TimestampedModel  # New import path
+from core.models import TimestampedModel 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from ingredients.models import Ingredient 
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
-
+from decimal import Decimal
 
 # Recipe model that will be used for the recipe
 class Recipe(TimestampedModel):
@@ -65,12 +64,73 @@ class Recipe(TimestampedModel):
     def total_ratings(self):
         return (self.difficulty_rating or 0) + (self.taste_rating or 0) + (self.health_rating or 0)
 
+    def clean(self):
+        """Custom clean method to validate ratings between 0 and 5."""
+        # Validate ratings if they are not None
+        for rating_field in ['difficulty_rating', 'taste_rating', 'health_rating']:
+            rating_value = getattr(self, rating_field)
+            if rating_value is not None:
+                if rating_value < 0 or rating_value > 5:
+                    raise ValidationError(f"{rating_field} must be between 0 and 5.")
+
+
     # Crutial for soft delete (also affects the recipeIngredient cascade delete)
     def delete(self, *args, **kwargs):
         if self.deleted_on: # Fixes the issue of deleting already deleted recipes
             return  # Already deleted
         self.deleted_on = timezone.now()
         self.save()
+
+    def calculate_recipe_cost(self, user):
+        """
+        Calculates the recipe cost of the recipe for each market.
+        """
+        print(f"DEBUG: Calculating recipe cost for recipe '{self.name}'")
+        
+        total_market_prices = {
+            "A101": Decimal("0.0"),
+            "SOK": Decimal("0.0"),
+            "BIM": Decimal("0.0"),
+            "MIGROS": Decimal("0.0"),
+        }
+        
+        for ri in self.recipe_ingredients.all():
+            ingredient = ri.ingredient
+
+            # Cheapest price among markets
+            market_prices = ingredient.get_price_for_user(
+                user=user,
+                quantity=ri.quantity,
+                unit=ri.unit,
+            )
+            
+            # Scale by quantity relative to base
+            for market in total_market_prices.keys():
+                price = market_prices.get(market)
+                if price is not None:
+                    total_market_prices[market] += Decimal(price)
+                else:
+                    print(f"DEBUG: No price for ingredient '{ingredient.name}' in market '{market}'")
+                    print(f"DEBUG: Market prices: {market_prices}")
+                    
+        # Round all values to 2 decimals for output
+        return {m: c.quantize(Decimal("0.01")) for m, c in total_market_prices.items()}
+
+    def calculate_cost_per_serving(self, user=None):
+        """
+        Saves the minimum cost per serving among markets to the recipe's cost_per_serving field.
+        """
+        total_cost = Decimal("0.0")
+
+        if user is None:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+
+        market_costs = self.calculate_recipe_cost(user=user)
+        if market_costs:
+            total_cost = min(market_costs.values())
+        return total_cost.quantize(Decimal("0.01"))
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
@@ -88,14 +148,6 @@ class Recipe(TimestampedModel):
             for info in ri.ingredient.dietary_info
         ))
 
-    def clean(self):
-        """Custom clean method to validate ratings between 0 and 5."""
-        # Validate ratings if they are not None
-        for rating_field in ['difficulty_rating', 'taste_rating', 'health_rating']:
-            rating_value = getattr(self, rating_field)
-            if rating_value is not None:
-                if rating_value < 0 or rating_value > 5:
-                    raise ValidationError(f"{rating_field} must be between 0 and 5.")
 
     #added to update relevant rating types after users provide ratings
     def update_ratings(self, rating_type, rating_value):
@@ -150,13 +202,26 @@ class Recipe(TimestampedModel):
 # Many-to-many relationship
 class RecipeIngredient(TimestampedModel):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, related_name="recipe_ingredients", on_delete=models.CASCADE)
-    quantity = models.FloatField(validators=[MinValueValidator(0.001)])  # Ensures value is > 0.001
+    recipe = models.ForeignKey("Recipe", related_name="recipe_ingredients", on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(Decimal("0.001"))])
     unit = models.CharField(max_length=20)
 
     def __str__(self):
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
 
+    def clean(self):
+        if self.unit not in (self.ingredient.allowed_units or []):
+            raise ValidationError(f"Invalid unit '{self.unit}' for ingredient '{self.ingredient.name}'")
+
+    def get_costs(self, user, usd_to_try_rate=40.0):
+        """Return cost dict (A101, SOK, BIM, MIGROS) for this ingredient usage."""
+        return self.ingredient.get_price_for_user(
+            user=user,
+            quantity=self.quantity,
+            unit=self.unit,
+            usd_to_try_rate=usd_to_try_rate,
+        )
+    
 # RecipeLike model that will be used for the recipe
 class RecipeLike(TimestampedModel):
     recipe = models.ForeignKey(Recipe, related_name="likes", on_delete=models.CASCADE)
