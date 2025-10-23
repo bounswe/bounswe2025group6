@@ -15,7 +15,7 @@ from django.utils import timezone
 from .models import RecipeIngredient
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.views import APIView
+from django.db.models import Q
 
 # Created for swagger documentation, paginate get request
 pagination_params = [
@@ -157,68 +157,86 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+    # ───────────────────────────────
+    # 🧭 MEAL PLANNER ENDPOINT
+    # ───────────────────────────────
+    @swagger_auto_schema(
+        operation_description="Filter recipes based on optional meal planner criteria",
+        manual_parameters=[
+            openapi.Parameter('meal_type', openapi.IN_QUERY, description="Meal type (breakfast/lunch/dinner)", type=openapi.TYPE_STRING),
+            openapi.Parameter('min_calories', openapi.IN_QUERY, description="Minimum calories", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('max_calories', openapi.IN_QUERY, description="Maximum calories", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('min_protein', openapi.IN_QUERY, description="Minimum protein", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('max_protein', openapi.IN_QUERY, description="Maximum protein", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('min_fat', openapi.IN_QUERY, description="Minimum fat", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('max_fat', openapi.IN_QUERY, description="Maximum fat", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('max_total_time', openapi.IN_QUERY, description="Maximum total prep + cook time (minutes)", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('is_approved', openapi.IN_QUERY, description="Filter only approved recipes", type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter('is_featured', openapi.IN_QUERY, description="Filter only featured recipes", type=openapi.TYPE_BOOLEAN),
+            *pagination_params,  # include page & page_size
+        ],
+        responses={200: RecipeListSerializer(many=True)},
+    )
+    @action(detail=False, methods=["get"], url_path="meal_planner", permission_classes=[IsAuthenticated])
+    def meal_planner(self, request):
+        """
+        Returns a list of recipes filtered by meal planner criteria (GET /recipes/meal_planner/)
+        All query parameters are optional.
+        """
+        queryset = self.get_queryset()
+
+        # Extract filters from query params
+        meal_type = request.query_params.get("meal_type")
+        min_calories = request.query_params.get("min_calories")
+        max_calories = request.query_params.get("max_calories")
+        min_protein = request.query_params.get("min_protein")
+        max_protein = request.query_params.get("max_protein")
+        min_fat = request.query_params.get("min_fat")
+        max_fat = request.query_params.get("max_fat")
+        max_total_time = request.query_params.get("max_total_time")
+        is_approved = request.query_params.get("is_approved")
+        is_featured = request.query_params.get("is_featured")
+
+        # Apply filters dynamically
+        filters = Q()
+
+        if meal_type:
+            filters &= Q(meal_type__iexact=meal_type)
+        if min_calories:
+            filters &= Q(calories__gte=min_calories)
+        if max_calories:
+            filters &= Q(calories__lte=max_calories)
+        if min_protein:
+            filters &= Q(protein__gte=min_protein)
+        if max_protein:
+            filters &= Q(protein__lte=max_protein)
+        if min_fat:
+            filters &= Q(fat__gte=min_fat)
+        if max_fat:
+            filters &= Q(fat__lte=max_fat)
+        if max_total_time:
+            # Since total_time is a property, we can use annotation
+            from django.db.models import F, ExpressionWrapper, IntegerField
+            queryset = queryset.annotate(
+                total_time_expr=ExpressionWrapper(F('prep_time') + F('cook_time'), output_field=IntegerField())
+            ).filter(total_time_expr__lte=max_total_time)
+        if is_approved is not None:
+            filters &= Q(is_approved=(is_approved.lower() == "true"))
+        if is_featured is not None:
+            filters &= Q(is_featured=(is_featured.lower() == "true"))
+
+        queryset = queryset.filter(filters)
+
+        # Paginate results
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = RecipeListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = RecipeListSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
 class MealPlannerPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
-
-class MealPlannerView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="Filter recipes for meal planning",
-        manual_parameters=[
-            openapi.Parameter('cost_lower_bound', openapi.IN_QUERY, description="Minimum cost per serving", type=openapi.TYPE_NUMBER),
-            openapi.Parameter('cost_upper_bound', openapi.IN_QUERY, description="Maximum cost per serving", type=openapi.TYPE_NUMBER),
-            openapi.Parameter('meal_type', openapi.IN_QUERY, description="Meal type (breakfast, lunch, dinner...)", type=openapi.TYPE_STRING),
-            openapi.Parameter('difficulty_rating__lte', openapi.IN_QUERY, description="Maximum difficulty rating", type=openapi.TYPE_INTEGER),
-            openapi.Parameter('taste_rating__gte', openapi.IN_QUERY, description="Minimum taste rating", type=openapi.TYPE_INTEGER),
-            openapi.Parameter('name__icontains', openapi.IN_QUERY, description="Search recipes by name (case-insensitive)", type=openapi.TYPE_STRING),
-            openapi.Parameter('page', openapi.IN_QUERY, description="Page number", type=openapi.TYPE_INTEGER),
-            openapi.Parameter('page_size', openapi.IN_QUERY, description="Page size", type=openapi.TYPE_INTEGER),
-        ],
-        responses={200: "List of filtered recipes"},
-    )
-    def get(self, request):
-        """
-        GET /meal_planner/
-        Filter recipes dynamically based on query params
-        Example:
-          ?cost_lower_bound=5&cost_upper_bound=20&meal_type=lunch&difficulty_rating__lte=3
-        """
-        queryset = Recipe.objects.filter(deleted_on=None)
-
-        filters = {}
-
-        cost_lower_bound = request.query_params.get("cost_lower_bound")
-        cost_upper_bound = request.query_params.get("cost_upper_bound")
-        meal_type = request.query_params.get("meal_type")
-        difficulty_max = request.query_params.get("difficulty_rating__lte")
-        taste_min = request.query_params.get("taste_rating__gte")
-        name = request.query_params.get("name__icontains")
-
-        if cost_lower_bound:
-            filters["cost_per_serving__gte"] = cost_lower_bound
-        if cost_upper_bound:
-            filters["cost_per_serving__lte"] = cost_upper_bound
-        if meal_type:
-            filters["meal_type__iexact"] = meal_type
-        if difficulty_max:
-            filters["difficulty_rating__lte"] = difficulty_max
-        if taste_min:
-            filters["taste_rating__gte"] = taste_min
-        if name:
-            filters["name__icontains"] = name
-
-        queryset = queryset.filter(**filters)
-
-        paginator = MealPlannerPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = RecipeListSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-
-        # No pagination case
-        serializer = RecipeListSerializer(queryset, many=True)
-        return Response(serializer.data)
-
