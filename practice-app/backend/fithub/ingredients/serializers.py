@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 class IngredientSerializer(serializers.ModelSerializer):
     prices = serializers.SerializerMethodField()
+    nutrition_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Ingredient
@@ -24,8 +25,17 @@ class IngredientSerializer(serializers.ModelSerializer):
             "base_quantity",
             "allowed_units",
             "prices",
+            "nutrition_info"
         ]
 
+    def get_nutrition_info(self, obj: Ingredient):
+        request = self.context.get("request")
+        
+        quantity = self.context.get("quantity", obj.base_quantity)
+        unit = self.context.get("unit", obj.base_unit)
+
+        return obj.get_nutrion_info(quantity=quantity, unit=unit)
+    
     def get_prices(self, obj: Ingredient):
         """
         Return prices converted based on the user's preferred currency.
