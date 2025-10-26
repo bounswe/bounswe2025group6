@@ -51,3 +51,24 @@ export async function getIngredientByName(name) {
   if (!res.ok) throw new Error(`Server error: ${res.status}`)
   return res.json()
 }
+
+/**
+ * Fetches ingredients with Wikidata information including nutrition data.
+ * @returns {Promise<Array>} Array of ingredient objects with wikidata info
+ */
+export async function getIngredientsWithWikidata() {
+  const res = await fetch(`${API_BASE}/ingredients/wikidata/list-with-wikidata/`)
+  if (!res.ok) throw new Error(`Server error: ${res.status}`)
+  return res.json()
+}
+
+/**
+ * Fetches a single ingredient with Wikidata information by ID.
+ * @param {string|number} id
+ * @returns {Promise<Object>} Ingredient object with wikidata info
+ */
+export async function getIngredientWithWikidataById(id) {
+  const res = await fetch(`${API_BASE}/ingredients/wikidata/${id}/retrieve-with-wikidata/`)
+  if (!res.ok) throw new Error(`Server error: ${res.status}`)
+  return res.json()
+}

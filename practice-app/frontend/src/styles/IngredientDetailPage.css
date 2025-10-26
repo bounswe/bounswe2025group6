@@ -1,5 +1,5 @@
 .ingredient-detail-page {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 20px auto;
   padding: 20px;
   font-family: Arial, sans-serif;
@@ -9,11 +9,65 @@
   text-align: left;
 }
 
+.back-button-container {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.back-button {
+  background: linear-gradient(135deg, #38a169, #2b6cb0);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(56, 161, 105, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.back-button:hover {
+  background: linear-gradient(135deg, #48bb78, #3182ce);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 161, 105, 0.4);
+}
+
+/* Main content layout - horizontal */
+.ingredient-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+/* Left column - Basic info */
+.ingredient-basic-info {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ingredient-basic-info h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+/* Right column - Prices and Nutrition */
+.ingredient-details-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .ingredient-detail-page h1 {
   font-size: 2rem;
   font-weight: bold;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .ingredient-detail-page p {
@@ -44,4 +98,174 @@
   font-size: 1.2rem;
   color: #555;
   margin-top: 20px;
+}
+
+/* Market Prices Section */
+.market-prices-section {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.market-prices-section h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.market-prices-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.market-price-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  gap: 10px;
+}
+
+.market-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.market-price-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.market-price-item.cheapest {
+  background: linear-gradient(135deg, #e8f5e8, #f0fff4);
+  border: 2px solid #38a169;
+  box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
+}
+
+.market-price-item.cheapest .market-name {
+  color: #2d5016;
+  font-weight: bold;
+}
+
+.market-price-item.cheapest .market-price {
+  color: #2d5016;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.market-name {
+  font-weight: bold;
+  color: #38a169;
+  font-size: 1rem;
+  flex: 1;
+  text-align: left;
+}
+
+.market-price {
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Nutritional Information Section */
+.nutrition-section {
+  padding: 20px;
+  background: #f0fff4;
+  border-radius: 12px;
+  border: 1px solid #c6f6d5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nutrition-section h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  gap: 8px;
+}
+
+.nutrition-label {
+  font-weight: 500;
+  color: #38a169;
+  font-size: 0.85rem;
+  flex: 1;
+  text-align: left;
+}
+
+.nutrition-value {
+  color: #2d3748;
+  font-size: 1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Wikidata Information Section */
+.wikidata-section {
+  padding: 20px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wikidata-section h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.wikidata-section p {
+  margin: 8px 0;
+  color: #4a5568;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .ingredient-detail-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .market-prices-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nutrition-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
