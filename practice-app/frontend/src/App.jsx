@@ -4,6 +4,7 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { MealPlanProvider } from "./contexts/MealPlanContext";
+import { CurrencyProvider } from "./contexts/CurrencyContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AppRoutes from "./routes";
 import "./styles/index.css";
@@ -17,9 +18,11 @@ const App = () => {
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
-          <MealPlanProvider>
-            <AppRoutes />
-          </MealPlanProvider>
+          <CurrencyProvider>
+            <MealPlanProvider>
+              <AppRoutes />
+            </MealPlanProvider>
+          </CurrencyProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

@@ -220,19 +220,26 @@ export async function createRecipeRating(recipeId, ratingData) {
 /**
  * Update an existing recipe rating
  * @param {number} ratingId - Rating ID
+ * @param {number} recipeId - Recipe ID (required for API)
  * @param {Object} ratingData - Updated rating data
  * @returns {Promise<Object>} Updated rating data
  */
-export async function updateRecipeRating(ratingId, ratingData) {
+export async function updateRecipeRating(ratingId, recipeId, ratingData) {
   if (checkTokenExpiry()) {
     throw new Error('Token has expired. Please log in again.');
   }
   
   try {
+    // Include recipe_id in the payload as it's required by the API
+    const payload = {
+      recipe_id: recipeId,
+      ...ratingData
+    };
+    
     const response = await fetch(`${API_BASE}/api/recipe-ratings/${ratingId}/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(ratingData),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -313,18 +320,27 @@ export async function submitRecipeRating(recipeId, ratingData) {
       console.log('submitRecipeRating - found existing rating:', existingRating);
       
       // Check if user is trying to set the same rating (toggle off)
-      const isSameTasteRating = existingRating.taste_rating === ratingData.taste_rating;
-      const isSameDifficultyRating = existingRating.difficulty_rating === ratingData.difficulty_rating;
+      // Check which fields changed
+      const changedFields = Object.keys(ratingData);
+      const allSame = changedFields.every(field => {
+        return existingRating[field] === ratingData[field];
+      });
       
-      // If both ratings are the same, delete the rating (toggle off)
-      if (isSameTasteRating && isSameDifficultyRating) {
+      // If all ratings are the same, delete the rating (toggle off)
+      if (allSame) {
         console.log('submitRecipeRating - same rating detected, deleting');
         await deleteRecipeRating(existingRating.id);
         return { deleted: true, message: 'Rating removed' };
       } else {
-        // User wants to update the rating
+        // User wants to update the rating - merge with existing ratings
         console.log('submitRecipeRating - updating existing rating');
-        const updatedRating = await updateRecipeRating(existingRating.id, ratingData);
+        const mergedRatingData = {
+          taste_rating: existingRating.taste_rating,
+          difficulty_rating: existingRating.difficulty_rating,
+          health_rating: existingRating.health_rating,
+          ...ratingData // Override with new values
+        };
+        const updatedRating = await updateRecipeRating(existingRating.id, recipeId, mergedRatingData);
         return updatedRating;
       }
     } else {
