@@ -330,16 +330,110 @@
 
 /* Nutritional Information Section */
 .recipe-detail-page-nutrition {
-  margin: 20px 0;
-  padding: 20px;
+  padding: 15px;
   background: #f0fff4;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #c6f6d5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: fit-content;
 }
 
 .recipe-detail-page-nutrition h2 {
   color: #2d3748;
   font-size: 1.5rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Main Nutrition Cards */
+.nutrition-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.nutrition-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 10px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.nutrition-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.nutrition-card.calories {
+  border-color: #ff6b35;
+  background: linear-gradient(135deg, #fff5f0, #ffffff);
+}
+
+.nutrition-card.protein {
+  border-color: #4299e1;
+  background: linear-gradient(135deg, #f0f8ff, #ffffff);
+}
+
+.nutrition-card.fat {
+  border-color: #48bb78;
+  background: linear-gradient(135deg, #f0fff4, #ffffff);
+}
+
+.nutrition-card.carbs {
+  border-color: #ed8936;
+  background: linear-gradient(135deg, #fffaf0, #ffffff);
+}
+
+.nutrition-icon {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.nutrition-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.nutrition-card .nutrition-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 3px;
+}
+
+.nutrition-card .nutrition-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 1px;
+}
+
+.nutrition-card .nutrition-unit {
+  font-size: 0.7rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Other Nutrition Info */
+.other-nutrition {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.other-nutrition h4 {
+  color: #2d3748;
+  font-size: 1.1rem;
   margin-bottom: 15px;
   text-align: center;
 }
@@ -353,26 +447,29 @@
 
 .nutrition-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  padding: 10px;
+  justify-content: space-between;
+  padding: 10px 12px;
   background: #ffffff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  gap: 8px;
 }
 
-.nutrition-label {
+.nutrition-item .nutrition-label {
   font-weight: 500;
   color: #38a169;
-  font-size: 0.9rem;
-  margin-bottom: 4px;
-  text-align: center;
+  font-size: 0.85rem;
+  flex: 1;
+  text-align: left;
 }
 
-.nutrition-value {
+.nutrition-item .nutrition-value {
   color: #2d3748;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 /* Market Costs Comparison Section */
@@ -452,6 +549,11 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.recipe-detail-page-ingredients ul {
+  padding-left: 0;
+  margin-left: 0;
+}
+
 .recipe-detail-page-ingredients span {
   font-weight: 700;
   color: #38a169;
@@ -475,8 +577,9 @@
   margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 4px 8px;
+  padding: 4px 0px;
   border-radius: 6px;
+  list-style: none;
 }
 
 .ingredient-item .ingredient-name {
@@ -503,5 +606,28 @@
   margin-bottom: 0;
 }
 
+/* Responsive design for nutrition cards */
+@media (max-width: 768px) {
+  .nutrition-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .nutrition-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .recipe-detail-page-content {
+    flex-direction: column;
+  }
+}
 
+@media (max-width: 480px) {
+  .nutrition-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .nutrition-grid {
+    grid-template-columns: 1fr;
+  }
+}
 

@@ -220,19 +220,26 @@ export async function createRecipeRating(recipeId, ratingData) {
 /**
  * Update an existing recipe rating
  * @param {number} ratingId - Rating ID
+ * @param {number} recipeId - Recipe ID (required for API)
  * @param {Object} ratingData - Updated rating data
  * @returns {Promise<Object>} Updated rating data
  */
-export async function updateRecipeRating(ratingId, ratingData) {
+export async function updateRecipeRating(ratingId, recipeId, ratingData) {
   if (checkTokenExpiry()) {
     throw new Error('Token has expired. Please log in again.');
   }
   
   try {
+    // Include recipe_id in the payload as it's required by the API
+    const payload = {
+      recipe_id: recipeId,
+      ...ratingData
+    };
+    
     const response = await fetch(`${API_BASE}/api/recipe-ratings/${ratingId}/`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(ratingData),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -313,19 +320,50 @@ export async function submitRecipeRating(recipeId, ratingData) {
       console.log('submitRecipeRating - found existing rating:', existingRating);
       
       // Check if user is trying to set the same rating (toggle off)
-      const isSameTasteRating = existingRating.taste_rating === ratingData.taste_rating;
-      const isSameDifficultyRating = existingRating.difficulty_rating === ratingData.difficulty_rating;
+      const changedFields = Object.keys(ratingData);
+      const mergedRatingData = {
+        taste_rating: existingRating.taste_rating,
+        difficulty_rating: existingRating.difficulty_rating,
+        health_rating: existingRating.health_rating,
+      };
       
-      // If both ratings are the same, delete the rating (toggle off)
-      if (isSameTasteRating && isSameDifficultyRating) {
-        console.log('submitRecipeRating - same rating detected, deleting');
+      // Check each field to see if it's being toggled off
+      let hasChanges = false;
+      let allFieldsWillBeNull = true;
+      
+      changedFields.forEach(field => {
+        if (existingRating[field] === ratingData[field]) {
+          // Same rating - toggle off (set to null)
+          console.log(`submitRecipeRating - toggling off ${field}`);
+          mergedRatingData[field] = null;
+          hasChanges = true;
+        } else {
+          // Different rating - update
+          console.log(`submitRecipeRating - updating ${field} from ${existingRating[field]} to ${ratingData[field]}`);
+          mergedRatingData[field] = ratingData[field];
+          hasChanges = true;
+        }
+      });
+      
+      // Check if all fields will be null after update
+      allFieldsWillBeNull = !mergedRatingData.taste_rating && 
+                           !mergedRatingData.difficulty_rating && 
+                           !mergedRatingData.health_rating;
+      
+      if (allFieldsWillBeNull) {
+        // If all fields are null, delete the entire rating
+        console.log('submitRecipeRating - all fields null, deleting entire rating');
         await deleteRecipeRating(existingRating.id);
         return { deleted: true, message: 'Rating removed' };
-      } else {
-        // User wants to update the rating
-        console.log('submitRecipeRating - updating existing rating');
-        const updatedRating = await updateRecipeRating(existingRating.id, ratingData);
+      } else if (hasChanges) {
+        // Update with merged data
+        console.log('submitRecipeRating - updating existing rating with merged data:', mergedRatingData);
+        const updatedRating = await updateRecipeRating(existingRating.id, recipeId, mergedRatingData);
         return updatedRating;
+      } else {
+        // No changes needed
+        console.log('submitRecipeRating - no changes needed');
+        return existingRating;
       }
     } else {
       // User doesn't have a rating, create new one
@@ -335,6 +373,197 @@ export async function submitRecipeRating(recipeId, ratingData) {
     }
   } catch (error) {
     console.error('Error submitting recipe rating:', error);
+    throw error;
+  }
+}
+
+// ============ Health Ratings API (Dietitians only) ============
+
+/**
+ * Get health rating for a specific recipe by dietitian
+ * @param {number} recipeId - Recipe ID
+ * @returns {Promise<Object|null>} Health rating data or null if not found
+ */
+export async function getHealthRating(recipeId) {
+  try {
+    console.log('getHealthRating - called with recipeId:', recipeId);
+    
+    if (checkTokenExpiry()) {
+      await refreshAccessToken();
+    }
+    
+    const response = await fetch(`${API_BASE}/api/health-ratings/?recipe=${recipeId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        try {
+          await refreshAccessToken();
+          const retryResponse = await fetch(`${API_BASE}/api/health-ratings/?recipe=${recipeId}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+          });
+
+          if (!retryResponse.ok) {
+            return null;
+          }
+
+          const retryData = await retryResponse.json();
+          const healthRatings = retryData.results || retryData;
+
+          if (!Array.isArray(healthRatings) || healthRatings.length === 0) {
+            return null;
+          }
+
+          return healthRatings[0];
+        } catch (retryError) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    const data = await response.json();
+    const healthRatings = data.results || data;
+
+    if (!Array.isArray(healthRatings) || healthRatings.length === 0) {
+      return null;
+    }
+
+    return healthRatings[0];
+  } catch (error) {
+    console.error('Error getting health rating:', error);
+    return null;
+  }
+}
+
+/**
+ * Create a new health rating
+ * @param {number} recipeId - Recipe ID
+ * @param {number} healthScore - Health score (0-5)
+ * @returns {Promise<Object>} Created health rating data
+ */
+export async function createHealthRating(recipeId, healthScore) {
+  if (checkTokenExpiry()) {
+    throw new Error('Token has expired. Please log in again.');
+  }
+
+  const payload = {
+    recipe: recipeId,
+    health_score: healthScore
+  };
+
+  try {
+    const response = await fetch(`${API_BASE}/api/health-ratings/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      await handleApiError(response);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating health rating:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update an existing health rating
+ * @param {number} ratingId - Health rating ID
+ * @param {number} recipeId - Recipe ID (required for API)
+ * @param {number} healthScore - Health score (0-5)
+ * @returns {Promise<Object>} Updated health rating data
+ */
+export async function updateHealthRating(ratingId, recipeId, healthScore) {
+  if (checkTokenExpiry()) {
+    throw new Error('Token has expired. Please log in again.');
+  }
+  
+  try {
+    const payload = {
+      recipe: recipeId,
+      health_score: healthScore
+    };
+    
+    const response = await fetch(`${API_BASE}/api/health-ratings/${ratingId}/`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      await handleApiError(response);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating health rating:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a health rating
+ * @param {number} ratingId - Health rating ID
+ * @returns {Promise<void>}
+ */
+export async function deleteHealthRating(ratingId) {
+  if (checkTokenExpiry()) {
+    throw new Error('Token has expired. Please log in again.');
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/health-ratings/${ratingId}/`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      await handleApiError(response);
+    }
+  } catch (error) {
+    console.error('Error deleting health rating:', error);
+    throw error;
+  }
+}
+
+/**
+ * Submit a health rating (handles create or update based on existing rating)
+ * @param {number} recipeId - Recipe ID
+ * @param {number} healthScore - Health score (0-5)
+ * @returns {Promise<Object>} Result data
+ */
+export async function submitHealthRating(recipeId, healthScore) {
+  try {
+    console.log('submitHealthRating - called with recipeId:', recipeId, 'healthScore:', healthScore);
+    
+    const existingRating = await getHealthRating(recipeId);
+    
+    if (existingRating) {
+      console.log('submitHealthRating - found existing rating:', existingRating);
+      
+      if (existingRating.health_score === healthScore) {
+        console.log('submitHealthRating - same score detected, deleting');
+        await deleteHealthRating(existingRating.id);
+        return { deleted: true, message: 'Health rating removed' };
+      } else {
+        console.log('submitHealthRating - updating existing rating');
+        const updatedRating = await updateHealthRating(existingRating.id, recipeId, healthScore);
+        return updatedRating;
+      }
+    } else {
+      console.log('submitHealthRating - creating new rating');
+      const newRating = await createHealthRating(recipeId, healthScore);
+      return newRating;
+    }
+  } catch (error) {
+    console.error('Error submitting health rating:', error);
     throw error;
   }
 }
