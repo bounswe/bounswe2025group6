@@ -152,6 +152,11 @@ const UploadRecipePage = () => {
       return;
     }
 
+    // Use the first allowed unit as default, or 'pcs' as fallback
+    const defaultUnit = ingredient.allowed_units && ingredient.allowed_units.length > 0 
+      ? ingredient.allowed_units[0] 
+      : 'pcs';
+
     setRecipeData((prev) => ({
       ...prev,
       ingredients: [
@@ -160,7 +165,7 @@ const UploadRecipePage = () => {
           ingredient_name: ingredient.name,
           id: ingredient.id,
           quantity: "1",
-          unit: "pcs",
+          unit: defaultUnit,
         },
       ],
     }));
@@ -384,14 +389,20 @@ const UploadRecipePage = () => {
                     }}
                     className="unit-select"
                   >
-                    <option value="pcs">{t("Pcs")}</option>
-                    <option value="g">g</option>
-                    <option value="kg">kg</option>
-                    <option value="ml">ml</option>
-                    <option value="l">l</option>
-                    <option value="cup">{t("Cup")}</option>
-                    <option value="tbsp">{t("Tbsp")}</option>
-                    <option value="tsp">{t("Tsp")}</option>
+                    {/* Get allowed units from the ingredient data */}
+                    {(() => {
+                      const currentIngredient = allIngredients.find(ingredient => ingredient.id === ing.id);
+                      const allowedUnits = currentIngredient?.allowed_units || ['pcs', 'g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp'];
+                      
+                      return allowedUnits.map(unit => (
+                        <option key={unit} value={unit}>
+                          {unit === 'pcs' ? t("Pcs") : 
+                           unit === 'cup' ? t("Cup") :
+                           unit === 'tbsp' ? t("Tbsp") :
+                           unit === 'tsp' ? t("Tsp") : unit}
+                        </option>
+                      ));
+                    })()}
                   </select>
                   <button
                     type="button"

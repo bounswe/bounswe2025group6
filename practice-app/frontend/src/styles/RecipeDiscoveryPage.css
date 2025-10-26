@@ -1,14 +1,20 @@
 #recipeDiscoveryPage {
-  background-color: #fff;
+  background: linear-gradient(to bottom, #a8d5e2, #b8e2c8);
   border-radius: 10px;
   padding: 20px;
-  max-width: 800px;
+  max-width: 1200px;
+  margin: 20px auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
 }
 
 #recipeDiscoveryPage h1 {
   text-align: center;
-  color: red;
-  font-size: 30px;
+  color: #1c340d;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .recipe-discovery-page-header {
@@ -18,37 +24,129 @@
   align-content: center;
   justify-content: center;
   align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
 .recipe-discovery-page-header-item {
   flex: 1;
-  max-width: 200px;
+  max-width: 250px;
+  padding: 8px 12px;
+  border: 2px solid #c6f6d5;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #ffffff;
+  transition: border-color 0.2s ease;
+}
+
+.recipe-discovery-page-header-item:focus {
+  outline: none;
+  border-color: #38a169;
+  box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.1);
 }
 
 .recipe-list {
   margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 20px 0;
 }
 
 .green-button {
-  background-color: #4CAF50;
+  background: linear-gradient(135deg, #38a169, #48bb78);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  padding: 8px 16px;
+  border-radius: 6px;
   transition: all 0.2s ease;
-  margin-left: auto
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.green-button:hover {
+  background: linear-gradient(135deg, #2d5016, #38a169);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .pagination-green-button {
-  background-color: #4CAF50;
+  background: linear-gradient(135deg, #68d391, #48bb78);
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  transition: all 0.2s ease;
+  border: 1px solid #38a169;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  margin: 0 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pagination-green-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.pagination-green-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #38a169, #2d5016);
+  border-color: #1c340d;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.pagination-green-button:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.pagination-green-button:disabled {
+  background: linear-gradient(135deg, #c6f6d5, #e2e8f0);
+  color: #68d391;
+  border-color: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  opacity: 0.7;
+}
+
+.pagination-green-button:disabled::before {
+  display: none;
 }
 
 .pagination-controls {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 20px;
+  background: linear-gradient(135deg, #e8f5e8, #d4edda);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-controls span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  padding: 8px 16px;
+  background: rgb(115, 164, 120);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
