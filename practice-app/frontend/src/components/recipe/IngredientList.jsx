@@ -11,11 +11,16 @@ const IngredientList = ({
   onDelete,
   selectedIngredients = [], // Provide default empty array
   onAddIngredient,
-  onRemoveIngredient
+  onRemoveIngredient,
+  allIngredients = [] // Add allIngredients prop to access allowed_units
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const unitOptions = ['pcs', 'cup', 'tbsp', 'tsp', 'g', 'kg', 'ml', 'l'];
+  // Get allowed units for a specific ingredient
+  const getAllowedUnits = (ingredientId) => {
+    const ingredient = allIngredients.find(ing => ing.id === ingredientId);
+    return ingredient?.allowed_units || ['pcs', 'cup', 'tbsp', 'tsp', 'g', 'kg', 'ml', 'l'];
+  };
 
   // Handle ingredient selection
   const handleIngredientSelect = (ingredient) => {
@@ -93,7 +98,7 @@ const IngredientList = ({
             })}
             className="ingredient-input unit"
           >
-            {unitOptions.map(unit => (
+            {getAllowedUnits(ingredient.id).map(unit => (
               <option key={unit} value={unit}>{unit}</option>
             ))}
           </select>
