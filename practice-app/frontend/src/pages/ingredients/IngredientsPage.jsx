@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+// Removed wikidata import as it's not needed
+import { useCurrency } from '../../contexts/CurrencyContext';
 import '../../styles/IngredientList.css';
 import '../../styles/IngredientsPage.css';
 import { useTranslation } from "react-i18next";
@@ -8,6 +10,7 @@ import { useTranslation } from "react-i18next";
 const IngredientsPage = () => {
   // State declarations for managing ingredients, pagination, and UI state
   const { t } = useTranslation();
+  const { currency } = useCurrency();
   const [allIngredients, setAllIngredients] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [filteredIngredients, setFilteredIngredients] = useState([]);
@@ -26,27 +29,19 @@ const IngredientsPage = () => {
     document.title = "Ingredients";
   }, []);
 
-  // Fetch all ingredients from API and handle pagination
+  // Fetch ingredients from API with pagination
   useEffect(() => {
-    const fetchAllIngredients = async () => {
+    const fetchIngredients = async () => {
       try {
-        let allData = [];
-        let nextUrl = import.meta.env.VITE_API_URL + '/ingredients/';
-
-        while (nextUrl) {
-          const res = await fetch(nextUrl);
-          if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
-          const data = await res.json();
-          allData = [...allData, ...data.results];
-          nextUrl = data.next;
-        }
-
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
+        setLoading(true);
+        const url = `${import.meta.env.VITE_API_URL}/ingredients/?page=${page}&page_size=${pageSize}`;
         
-        setAllIngredients(allData);
-        setIngredients(allData.slice(startIndex, endIndex));
-        setHasNextPage(allData.length > endIndex);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
+        const data = await res.json();
+        
+        setIngredients(data.results);
+        setHasNextPage(page < data.total_pages);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -54,33 +49,44 @@ const IngredientsPage = () => {
       }
     };
 
-    if (ingredients.length === 0) {
-      setLoading(true);
-    }
-    fetchAllIngredients();
-  }, [pageSize, selectedColumn, page]);
+    fetchIngredients();
+  }, [page, pageSize]);
 
   // Handle search functionality
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredIngredients([]);
     } else {
-      const filtered = allIngredients.filter((ingredient) =>
-        ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredIngredients(filtered);
-    }
-  }, [searchQuery, allIngredients]);
+      // For search, we need to fetch all ingredients
+      const searchIngredients = async () => {
+        try {
+          let allData = [];
+          let currentPage = 1;
+          let hasMore = true;
 
-  // Update displayed ingredients when page or size changes
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      setIngredients(allIngredients.slice(startIndex, endIndex));
-      setHasNextPage(allIngredients.length > endIndex);
+          while (hasMore) {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/ingredients/?page=${currentPage}&page_size=100`);
+            if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
+            const data = await res.json();
+            allData = [...allData, ...data.results];
+            hasMore = currentPage < data.total_pages;
+            currentPage++;
+          }
+
+          const filtered = allData.filter((ingredient) =>
+            ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+          setFilteredIngredients(filtered);
+        } catch (err) {
+          console.error('Search error:', err);
+        }
+      };
+      
+      searchIngredients();
     }
-  }, [page, searchQuery, allIngredients, pageSize]);
+  }, [searchQuery]);
+
+  // This useEffect is no longer needed as pagination is handled by the API
 
   // Pagination and page size handlers
   const handleNextPage = () => {
@@ -95,14 +101,13 @@ const IngredientsPage = () => {
     const size = Number(e.target.value);
     setIsChanging(true);
     setPageSize(size);
-    setSelectedColumn(0);
-    setPage(1);
+    setPage(1); // Reset to first page when changing page size
     
     setTimeout(() => setIsChanging(false), 100);
   };
 
   // Loading and error states
-  if (loading && ingredients.length === 0) {
+  if (loading) {
     return <div>Loading ingredients…</div>;
   }
   if (error) return <div className="text-red-500">Error: {error}</div>;
@@ -140,7 +145,56 @@ const IngredientsPage = () => {
                       className="ingredient-item"
                       onClick={() => navigate(`/ingredients/${ingredient.id}`)}
                     >
-                      {ingredient.name}
+                      <div className="ingredient-item-content">
+                        <span className="ingredient-name">{ingredient.name}</span>
+                        
+                        {/* Nutritional Information */}
+                        {ingredient.wikidata_info && ingredient.wikidata_info.nutrition && (
+                          <div className="ingredient-nutrition">
+                            <span className="nutrition-label">Nutrition:</span>
+                            <div className="nutrition-list">
+                              {Object.entries(ingredient.wikidata_info.nutrition).slice(0, 2).map(([key, value]) => (
+                                <span key={key} className="nutrition-item">
+                                  {key}: {value}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Market Prices */}
+                        {ingredient.prices && (
+                          <div className="ingredient-prices">
+                            <span className="price-label">Prices ({currency}):</span>
+                            <div className="price-list">
+                              {ingredient.prices.A101 && (
+                                <span className="price-item">
+                                  <img src="/src/assets/market_logos/a101.png" alt="A101" className="price-logo" />
+                                  A101: {ingredient.prices.A101}
+                                </span>
+                              )}
+                              {ingredient.prices.SOK && (
+                                <span className="price-item">
+                                  <img src="/src/assets/market_logos/sok.png" alt="ŞOK" className="price-logo" />
+                                  ŞOK: {ingredient.prices.SOK}
+                                </span>
+                              )}
+                              {ingredient.prices.BIM && (
+                                <span className="price-item">
+                                  <img src="/src/assets/market_logos/bim.png" alt="BIM" className="price-logo" />
+                                  BIM: {ingredient.prices.BIM}
+                                </span>
+                              )}
+                              {ingredient.prices.MIGROS && (
+                                <span className="price-item">
+                                  <img src="/src/assets/market_logos/migros.png" alt="MIGROS" className="price-logo" />
+                                  MIGROS: {ingredient.prices.MIGROS}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </li>
                   ))}
               </ul>
