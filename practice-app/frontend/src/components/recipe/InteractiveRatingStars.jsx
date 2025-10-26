@@ -9,10 +9,10 @@ import '../../styles/InteractiveRatingStars.css';
 const InteractiveRatingStars = ({ 
   recipeId, 
   ratingType, 
-  currentRating = 0, 
+  averageRating = 0, // Recipe'nin genel rating ortalaması
   onRatingChange 
 }) => {
-  const [rating, setRating] = useState(currentRating);
+  const [userRatingValue, setUserRatingValue] = useState(0); // Kullanıcının verdiği rating
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRating, setUserRating] = useState(null);
@@ -30,7 +30,7 @@ const InteractiveRatingStars = ({
           setUserRating(userRatingData);
           
           if (userRatingData) {
-            setRating(userRatingData[ratingType] || 0);
+            setUserRatingValue(userRatingData[ratingType] || 0);
           }
         }
       } catch (error) {
@@ -40,7 +40,7 @@ const InteractiveRatingStars = ({
         if (error.message.includes('expired') || error.message.includes('Invalid token') || error.message.includes('Authentication')) {
           setUser(null);
           setUserRating(null);
-          setRating(0);
+          setUserRatingValue(0);
           // Don't clear localStorage, let the user manually log out
           toast.error('Your session has expired. Please log in again.');
         }
@@ -69,17 +69,24 @@ const InteractiveRatingStars = ({
       
       // Handle the response appropriately
       if (result.deleted) {
-        setRating(0);
+        setUserRatingValue(0);
         setUserRating(null);
-        toast.success('Rating removed');
+        toast.success('All ratings removed');
+        onRatingChange?.(0);
       } else {
-        setRating(newRating);
-        // Update userRating state with the returned data
+        // Update user rating value based on the returned data
+        const newUserRatingValue = result[ratingType] || 0;
+        setUserRatingValue(newUserRatingValue);
         setUserRating(result);
-        toast.success('Rating submitted successfully');
+        
+        if (newUserRatingValue === 0) {
+          toast.success(`${ratingType.replace('_', ' ')} rating removed`);
+        } else {
+          toast.success('Rating submitted successfully');
+        }
+        
+        onRatingChange?.(newUserRatingValue);
       }
-      
-      onRatingChange?.(newRating);
     } catch (error) {
       console.error('Error submitting rating:', error);
       
@@ -89,7 +96,7 @@ const InteractiveRatingStars = ({
         // Clear user state to force re-login
         setUser(null);
         setUserRating(null);
-        setRating(0);
+        setUserRatingValue(0);
         // Don't clear localStorage, let the user manually log out
       } else {
         toast.error(error.message || 'Failed to submit rating. Please try again.');
@@ -113,27 +120,54 @@ const InteractiveRatingStars = ({
     return ratingType === 'taste_rating' || ratingType === 'difficulty_rating';
   };
 
-  const displayRating = hoveredRating || rating;
+  const displayUserRating = hoveredRating || userRatingValue;
 
   return (
     <div className="interactive-rating-stars">
-      <div 
-        className={`stars-container ${!canRate() ? 'disabled' : ''}`}
-        onMouseLeave={handleMouseLeave}
-      >
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span
-            key={star}
-            className={`star ${star <= displayRating ? 'filled' : ''} ${isSubmitting ? 'submitting' : ''}`}
-            onClick={() => canRate() && handleStarClick(star)}
-            onMouseEnter={() => canRate() && handleStarHover(star)}
-            style={{ cursor: canRate() && !isSubmitting ? 'pointer' : 'default' }}
-          >
-            ★
-          </span>
-        ))}
+      {/* Average Rating Display (Big Stars) */}
+      <div className="average-rating-display">
+        <div className="average-stars-container">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              className={`star big-star ${star <= averageRating ? 'filled' : ''}`}
+            >
+              ★
+            </span>
+          ))}
+        </div>
+        <div className="average-rating-text">
+          {averageRating.toFixed(1)}/5
+        </div>
       </div>
 
+      {/* User Rating Section (Small Stars) */}
+      {user && (
+        <div className="user-rating-section">
+          <div className="rate-it-label">Rate it:</div>
+          <div 
+            className={`stars-container small-stars ${!canRate() ? 'disabled' : ''}`}
+            onMouseLeave={handleMouseLeave}
+          >
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`star small-star ${star <= displayUserRating ? 'filled' : ''} ${isSubmitting ? 'submitting' : ''}`}
+                onClick={() => canRate() && handleStarClick(star)}
+                onMouseEnter={() => canRate() && handleStarHover(star)}
+                style={{ cursor: canRate() && !isSubmitting ? 'pointer' : 'default' }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <div className="user-rating-info">
+            Your rating: {userRatingValue || 'None'}
+          </div>
+        </div>
+      )}
+
+      {/* Restriction Messages */}
       {!user && (
         <div className="rating-restriction">
           Please log in to rate

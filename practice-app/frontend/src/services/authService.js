@@ -100,11 +100,16 @@ export const loginUser = async (credentials) => {
     // Get user details from token
     const user = parseJwt(access);
 
-    // Create user object
+    // Get full user details from API
+    const userResponse = await apiClient.get(`/users/${user.user_id}/`);
+    const fullUserData = userResponse.data;
+
+    // Create user object with complete data
     const userData = {
       id: user.user_id,
       email: credentials.email,
-      userType: user.usertype || "user",
+      userType: fullUserData.usertype || "user",
+      username: fullUserData.username,
     };
 
     // Store user in localStorage
@@ -203,7 +208,11 @@ export const getCurrentUser = async () => {
       throw new Error("User not found");
     }
 
-    return JSON.parse(userJson);
+    const user = JSON.parse(userJson);
+    
+    // userType is already stored in localStorage from login
+    // No need to parse JWT token for usertype
+    return user;
   } catch (error) {
     console.error("Get current user error:", error);
     throw error;

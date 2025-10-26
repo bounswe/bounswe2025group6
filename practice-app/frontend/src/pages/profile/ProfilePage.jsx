@@ -3,6 +3,7 @@ import { getCurrentUser } from "../../services/authService";
 import userService from "../../services/userService";
 import "../../styles/ProfilePage.css";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "../../contexts/CurrencyContext";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -15,6 +16,7 @@ const ProfilePage = () => {
   const [profileImage, setProfileImage] = useState(null);
   const fileInputRef = useRef(null);
   const { t } = useTranslation();
+  const { setCurrency } = useCurrency();
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -69,6 +71,9 @@ const ProfilePage = () => {
     };
     await userService.updateUserById(userProfile.id, updatedProfile);
     setUserProfile(updatedProfile);
+    
+    // Update CurrencyContext as well
+    setCurrency(newCurrency);
   };
   const handleDateChange = async (e) => {
     const newDatePref = e.target.value;

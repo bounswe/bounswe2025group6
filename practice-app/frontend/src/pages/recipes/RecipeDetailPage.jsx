@@ -11,6 +11,7 @@ import '../../styles/style.css';
 import { getCurrentUser } from '../../services/authService';
 import ReportButton from '../../components/report/ReportButton';
 import InteractiveRatingStars from '../../components/recipe/InteractiveRatingStars';
+import InteractiveHealthRating from '../../components/recipe/InteractiveHealthRating';
 import { useTranslation } from "react-i18next";
 
 const RecipeDetailPage = () => {
@@ -100,6 +101,19 @@ const RecipeDetailPage = () => {
     } catch (error) {
       console.error('Error deleting recipe:', error);
       alert('Failed to delete the recipe. Please try again.');
+    }
+  };
+
+  const handleRatingChange = async (ratingType) => {
+    try {
+      // Rating değişikliği sonrası recipe'yi yeniden yükle
+      const updatedRecipe = await getRecipeById(Number(id));
+      if (updatedRecipe) {
+        setRecipe(updatedRecipe);
+        console.log(`${ratingType} updated, new recipe data:`, updatedRecipe);
+      }
+    } catch (error) {
+      console.error('Error refreshing recipe after rating change:', error);
     }
   };  useEffect(() => {
     const loadRecipeAndImage = async () => {
@@ -270,10 +284,8 @@ const RecipeDetailPage = () => {
                 <InteractiveRatingStars 
                   recipeId={recipe.id}
                   ratingType="difficulty_rating"
-                  currentRating={recipe.difficulty_rating || 0}
-                  onRatingChange={(newRating) => {
-                    setRecipe(prev => ({ ...prev, difficulty_rating: newRating }));
-                  }}
+                  averageRating={recipe.difficulty_rating || 0}
+                  onRatingChange={() => handleRatingChange('difficulty_rating')}
                 />
               </div>
           </div>
@@ -283,23 +295,18 @@ const RecipeDetailPage = () => {
                 <InteractiveRatingStars 
                   recipeId={recipe.id}
                   ratingType="taste_rating"
-                  currentRating={recipe.taste_rating || 0}
-                  onRatingChange={(newRating) => {
-                    setRecipe(prev => ({ ...prev, taste_rating: newRating }));
-                  }}
+                  averageRating={recipe.taste_rating || 0}
+                  onRatingChange={() => handleRatingChange('taste_rating')}
                 />
               </div>
           </div>
           <div className='recipe-detail-page-star'>
-              <span className='recipe-detail-page-star-header'>{t("recipeDetailPageHealthRating")}</span>
+              <span className='recipe-detail-page-star-header'>{t("recipeDetailPageHealthRating")} (Dietitian)</span>
               <div className='recipe-detail-page-star-title'>
-                <InteractiveRatingStars 
-                  recipeId={recipe.id}
-                  ratingType="health_rating"
-                  currentRating={recipe.health_rating || 0}
-                  onRatingChange={(newRating) => {
-                    setRecipe(prev => ({ ...prev, health_rating: newRating }));
-                  }}
+                <InteractiveHealthRating 
+                  recipeId={recipe.id} 
+                  averageHealthRating={recipe.health_rating || 0}
+                  onRatingChange={() => handleRatingChange('health_rating')}
                 />
               </div>
           </div>
