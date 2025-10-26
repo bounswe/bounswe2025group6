@@ -217,3 +217,71 @@ class LoginAttempt(models.Model):
             timestamp__gt=time_threshold,
             successful=False
         ).count()
+
+#new model for health ratings by dietitians
+class HealthRating(models.Model):
+    dietitian = models.ForeignKey(
+        'RegisteredUser',
+        on_delete=models.CASCADE,
+        related_name='health_ratings'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='health_ratings'
+    )
+    health_score = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
+    )
+    comment = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('dietitian', 'recipe')
+
+    def clean(self):
+        # Ensure only dietitians can create/update
+        if self.dietitian and self.dietitian.usertype != RegisteredUser.DIETITIAN:
+            raise DjangoValidationError("Only dietitians can give health ratings.")
+
+    def save(self, *args, **kwargs):
+        # Validate dietitian status
+        self.full_clean()
+
+        if self.pk is None:
+            # create case
+            super().save(*args, **kwargs)
+            # update recipe aggregates incrementally
+            try:
+                self.recipe.update_ratings('health', self.health_score)
+            except Exception:
+                pass
+        else:
+            # update case: fetch old value, drop it, then save and add new
+            try:
+                old = HealthRating.objects.get(pk=self.pk)
+                old_value = old.health_score
+            except HealthRating.DoesNotExist:
+                old_value = None
+
+            if old_value is not None:
+                # remove old contribution first
+                try:
+                    self.recipe.drop_rating('health', old_value)
+                except Exception:
+                    pass
+
+            super().save(*args, **kwargs)
+
+            try:
+                self.recipe.update_ratings('health', self.health_score)
+            except Exception:
+                pass
+
+    def delete(self, *args, **kwargs):
+        # remove contribution from recipe before deleting
+        try:
+            self.recipe.drop_rating('health', self.health_score)
+        except Exception:
+            pass
+        super().delete(*args, **kwargs)

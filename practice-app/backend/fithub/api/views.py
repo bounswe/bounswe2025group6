@@ -18,17 +18,19 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
-from .models import RegisteredUser, RecipeRating
+from .models import RegisteredUser, RecipeRating, HealthRating
 from recipes.models import Recipe  # Import from recipes app
 from rest_framework import serializers
 import copy
 from django.db import transaction
+from rest_framework.permissions import BasePermission
+from .serializers import HealthRatingSerializer
+
 
 from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPasswordResetCodeSerializer,
                            VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
 
 User = get_user_model()
-
 
 def index(request):
     return HttpResponse("Home page! Work in progress...")
@@ -852,3 +854,74 @@ class RecipeRatingViewSet(viewsets.ModelViewSet):
         # Apply new difficulty
         if new_diff is not None:
             recipe.update_ratings('difficulty', new_diff)
+
+
+class IsDietitian(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.usertype == RegisteredUser.DIETITIAN
+
+class HealthRatingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Health Ratings (dietitians only)
+    """
+    swagger_tags = ['Health Ratings']
+    queryset = HealthRating.objects.all()
+    serializer_class = HealthRatingSerializer
+    permission_classes = [IsDietitian]
+
+    def get_queryset(self):
+        # short-circuit schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return HealthRating.objects.none()
+        return self.queryset.filter(dietitian=self.request.user)
+
+    @swagger_auto_schema(
+        operation_summary="List your health ratings",
+        tags=["Health Ratings"],
+        responses={200: HealthRatingSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve a single health rating",
+        tags=["Health Ratings"],
+        responses={200: HealthRatingSerializer()}
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Create a health rating (one per dietitian per recipe)",
+        tags=["Health Ratings"],
+        request_body=HealthRatingSerializer,
+        responses={201: HealthRatingSerializer()}
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Replace an existing health rating",
+        tags=["Health Ratings"],
+        request_body=HealthRatingSerializer,
+        responses={200: HealthRatingSerializer()}
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Partially update a health rating",
+        tags=["Health Ratings"],
+        request_body=HealthRatingSerializer,
+        responses={200: HealthRatingSerializer()}
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Delete a health rating",
+        tags=["Health Ratings"],
+        responses={204: None}
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
