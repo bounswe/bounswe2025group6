@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 from recipes.models import Recipe  # Import from recipes app
-from .models import RegisteredUser, RecipeRating
+from .models import RegisteredUser, RecipeRating, HealthRating, Dietitian
 
 User = get_user_model()
 
@@ -185,7 +185,7 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
     recipe_id = serializers.PrimaryKeyRelatedField(
         queryset=Recipe.objects.all(),
         source='recipe',
-        write_only=True
+        #write_only=True
     )
     recipe_title = serializers.CharField(
         source='recipe.title',
@@ -222,3 +222,38 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+
+
+class HealthRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HealthRating
+        fields = ['id', 'dietitian', 'recipe', 'health_score', 'comment', 'timestamp']
+        read_only_fields = ['dietitian', 'timestamp']
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user or not user.is_authenticated or user.usertype != RegisteredUser.DIETITIAN:
+            raise serializers.ValidationError("Only dietitians can give health ratings.")
+        return data
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        recipe = validated_data['recipe']
+        health_score = validated_data['health_score']
+        comment = validated_data.get('comment', '')
+
+        # If a rating by this dietitian already exists -> update it (single rating per dietitian)
+        try:
+            existing = HealthRating.objects.get(dietitian=user, recipe=recipe)
+            existing.health_score = health_score
+            existing.comment = comment
+            existing.save()
+            return existing
+        except HealthRating.DoesNotExist:
+            return HealthRating.objects.create(dietitian=user, recipe=recipe, health_score=health_score, comment=comment)
+
+    def update(self, instance, validated_data):
+        instance.health_score = validated_data.get('health_score', instance.health_score)
+        instance.comment = validated_data.get('comment', instance.comment)
+        instance.save()
+        return instance
