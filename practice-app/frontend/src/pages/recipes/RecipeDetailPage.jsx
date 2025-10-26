@@ -410,17 +410,113 @@ const RecipeDetailPage = () => {
         </div>
 
         {/* Total Nutritional Information */}
-        {totalNutrition && Object.keys(totalNutrition).length > 0 && (
+        {((recipe.recipe_nutritions && Object.keys(recipe.recipe_nutritions).length > 0) || 
+          (totalNutrition && Object.keys(totalNutrition).length > 0)) && (
           <div className='recipe-detail-page-nutrition'>
             <h2>Total Nutritional Information</h2>
-            <div className="nutrition-grid">
-              {Object.entries(totalNutrition).map(([key, value]) => (
-                <div key={key} className="nutrition-item">
-                  <span className="nutrition-label">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
-                  <span className="nutrition-value">{value.toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
+            
+            {/* Use recipe_nutritions from API if available, otherwise use calculated totalNutrition */}
+            {(() => {
+              const nutritionData = recipe.recipe_nutritions || totalNutrition;
+              const hasMainNutrients = nutritionData.calories || nutritionData.protein || 
+                                     nutritionData.fat || nutritionData.carbohydrates || nutritionData.carbs;
+              
+              return (
+                <>
+                  {hasMainNutrients && (
+                    <div className="nutrition-cards">
+                      {/* Calories */}
+                      {nutritionData.calories && (
+                        <div className="nutrition-card calories">
+                          <div className="nutrition-icon">🔥</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {typeof nutritionData.calories === 'number' 
+                                ? nutritionData.calories.toFixed(0) 
+                                : nutritionData.calories}
+                            </span>
+                            <span className="nutrition-label">Calories</span>
+                            <span className="nutrition-unit">kcal</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Protein */}
+                      {nutritionData.protein && (
+                        <div className="nutrition-card protein">
+                          <div className="nutrition-icon">💪</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {typeof nutritionData.protein === 'number' 
+                                ? nutritionData.protein.toFixed(1) 
+                                : nutritionData.protein}
+                            </span>
+                            <span className="nutrition-label">Protein</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Fat */}
+                      {nutritionData.fat && (
+                        <div className="nutrition-card fat">
+                          <div className="nutrition-icon">🧈</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {typeof nutritionData.fat === 'number' 
+                                ? nutritionData.fat.toFixed(1) 
+                                : nutritionData.fat}
+                            </span>
+                            <span className="nutrition-label">Fat</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Carbohydrates - check both 'carbs' and 'carbohydrates' */}
+                      {(nutritionData.carbohydrates || nutritionData.carbs) && (
+                        <div className="nutrition-card carbs">
+                          <div className="nutrition-icon">🌾</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {(() => {
+                                const carbValue = nutritionData.carbohydrates || nutritionData.carbs;
+                                return typeof carbValue === 'number' 
+                                  ? carbValue.toFixed(1) 
+                                  : carbValue;
+                              })()}
+                            </span>
+                            <span className="nutrition-label">Carbs</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Show other nutrition info if available */}
+                  {Object.keys(nutritionData).filter(key => 
+                    !['calories', 'protein', 'fat', 'carbohydrates'].includes(key)
+                  ).length > 0 && (
+                    <div className="other-nutrition">
+                      <h4>Other Nutritional Information</h4>
+                      <div className="nutrition-grid">
+                        {Object.entries(nutritionData)
+                          .filter(([key]) => !['calories', 'protein', 'fat', 'carbohydrates'].includes(key))
+                          .map(([key, value]) => (
+                            <div key={key} className="nutrition-item">
+                              <span className="nutrition-label">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                              <span className="nutrition-value">
+                                {typeof value === 'number' ? value.toFixed(2) : value}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
         

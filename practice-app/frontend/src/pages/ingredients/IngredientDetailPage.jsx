@@ -56,19 +56,18 @@ const IngredientDetailPage = () => {
       <h1>{ing.name}</h1>
       
       <div className="ingredient-detail-content">
-        {/* Left Column - Basic Information */}
-        <div className="ingredient-basic-info">
-          <h2>Basic Information</h2>
-          <p><strong>{t("Category")}:</strong> {ing.category}</p>
-          <p><strong>{t("Allergens")}:</strong> {ing.allergens.join(', ') || 'None'}</p>
-          <p><strong>{t("DietaryInfo")}:</strong> {ing.dietary_info.join(', ')}</p>
-          <p><strong>Base Unit:</strong> {ing.base_unit}</p>
-          <p><strong>Allowed Units:</strong> {ing.allowed_units.join(', ')}</p>
-          <p><small>{t("Created")}: {new Date(ing.created_at).toLocaleString()}</small></p>
-        </div>
+        {/* Left Column - Basic Information and Market Prices */}
+        <div className="ingredient-left-column">
+          <div className="ingredient-basic-info">
+            <h2>Basic Information</h2>
+            <p><strong>{t("Category")}:</strong> {ing.category}</p>
+            <p><strong>{t("Allergens")}:</strong> {ing.allergens.join(', ') || 'None'}</p>
+            <p><strong>{t("DietaryInfo")}:</strong> {ing.dietary_info.join(', ')}</p>
+            <p><strong>Base Unit:</strong> {ing.base_unit}</p>
+            <p><strong>Allowed Units:</strong> {ing.allowed_units.join(', ')}</p>
+            <p><small>{t("Created")}: {new Date(ing.created_at).toLocaleString()}</small></p>
+          </div>
 
-        {/* Right Column - Prices and Nutrition */}
-        <div className="ingredient-details-info">
           {/* Market Prices Section */}
           {ing.prices && (
             <div className="market-prices-section">
@@ -109,19 +108,90 @@ const IngredientDetailPage = () => {
               </div>
             </div>
           )}
+        </div>
 
+        {/* Right Column - Nutritional Information */}
+        <div className="ingredient-right-column">
           {/* Nutritional Information Section */}
           {ing.wikidata_info && ing.wikidata_info.nutrition && (
             <div className="nutrition-section">
               <h3>Nutritional Information (per 100g)</h3>
-              <div className="nutrition-grid">
-                {Object.entries(ing.wikidata_info.nutrition).map(([key, value]) => (
-                  <div key={key} className="nutrition-item">
-                    <span className="nutrition-label">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
-                    <span className="nutrition-value">{value}</span>
-                  </div>
-                ))}
+              <div className="nutrition-cards">
+                {(() => {
+                  const nutritionData = ing.wikidata_info.nutrition;
+                  
+                  return (
+                    <>
+                      {/* Calories */}
+                      {nutritionData.calories && (
+                        <div className="nutrition-card calories">
+                          <div className="nutrition-icon">🔥</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">{nutritionData.calories}</span>
+                            <span className="nutrition-label">Calories</span>
+                            <span className="nutrition-unit">kcal</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Protein */}
+                      {nutritionData.protein && (
+                        <div className="nutrition-card protein">
+                          <div className="nutrition-icon">💪</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">{nutritionData.protein}</span>
+                            <span className="nutrition-label">Protein</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Fat */}
+                      {nutritionData.fat && (
+                        <div className="nutrition-card fat">
+                          <div className="nutrition-icon">🧈</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">{nutritionData.fat}</span>
+                            <span className="nutrition-label">Fat</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Carbohydrates */}
+                      {nutritionData.carbohydrates && (
+                        <div className="nutrition-card carbs">
+                          <div className="nutrition-icon">🌾</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">{nutritionData.carbohydrates}</span>
+                            <span className="nutrition-label">Carbs</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
+              
+              {/* Show other nutrition info if available */}
+              {ing.wikidata_info && ing.wikidata_info.nutrition && Object.keys(ing.wikidata_info.nutrition).filter(key => 
+                !['calories', 'protein', 'fat', 'carbohydrates'].includes(key)
+              ).length > 0 && (
+                <div className="other-nutrition">
+                  <h4>Other Nutritional Information</h4>
+                  <div className="nutrition-grid">
+                    {Object.entries(ing.wikidata_info.nutrition)
+                      .filter(([key]) => !['calories', 'protein', 'fat', 'carbohydrates'].includes(key))
+                      .map(([key, value]) => (
+                        <div key={key} className="nutrition-item">
+                          <span className="nutrition-label">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                          <span className="nutrition-value">{value}</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
