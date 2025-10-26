@@ -65,15 +65,29 @@ const ProfilePage = () => {
 
   const handleCurrencyChange = async (e) => {
     const newCurrency = e.target.value;
-    const updatedProfile = {
-      ...userProfile,
-      currencyPreference: newCurrency,
-    };
-    await userService.updateUserById(userProfile.id, updatedProfile);
-    setUserProfile(updatedProfile);
     
-    // Update CurrencyContext as well
-    setCurrency(newCurrency);
+    try {
+      // Send the correct field name to backend
+      const updateData = {
+        preferredCurrency: newCurrency,
+      };
+      
+      await userService.updateUserById(userProfile.id, updateData);
+      
+      // Update local state
+      const updatedProfile = {
+        ...userProfile,
+        currencyPreference: newCurrency,
+      };
+      setUserProfile(updatedProfile);
+      
+      // Update CurrencyContext as well
+      setCurrency(newCurrency);
+      
+      console.log('Currency updated successfully:', newCurrency);
+    } catch (error) {
+      console.error('Error updating currency:', error);
+    }
   };
   const handleDateChange = async (e) => {
     const newDatePref = e.target.value;
