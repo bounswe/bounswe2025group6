@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { fetchRecipes } from '../../services/recipeService';
 import RecipeCard from '../../components/recipe/RecipeCard';
 import Button from '../../components/ui/Button';
@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 const RecipeDiscoveryPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
   const [recipes, setRecipes] = useState([]);
@@ -22,6 +23,31 @@ const RecipeDiscoveryPage = () => {
   useEffect(() => {
     document.title = "Recipe Discovery";
   }, []);
+
+  // Handle URL parameters and save filters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchParam = urlParams.get('search');
+    
+    if (searchParam) {
+      setSearchQuery(searchParam);
+      // Save the current filters to localStorage for back navigation
+      localStorage.setItem('recipeSearchFilters', location.search);
+    } else {
+      // Clear localStorage if no search params
+      localStorage.removeItem('recipeSearchFilters');
+    }
+  }, [location.search]);
+
+  // Save current search query as filter when it changes
+  useEffect(() => {
+    if (searchQuery) {
+      const currentFilters = `search=${encodeURIComponent(searchQuery)}`;
+      localStorage.setItem('recipeSearchFilters', currentFilters);
+    } else {
+      localStorage.removeItem('recipeSearchFilters');
+    }
+  }, [searchQuery]);
   useEffect(() => {
     const loadRecipes = async () => {
       try {
@@ -76,6 +102,23 @@ const RecipeDiscoveryPage = () => {
     navigate('/uploadRecipe');
   };
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Update URL with search parameter
+    const urlParams = new URLSearchParams(location.search);
+    if (value.trim()) {
+      urlParams.set('search', value);
+    } else {
+      urlParams.delete('search');
+    }
+    
+    const newSearch = urlParams.toString();
+    const newUrl = newSearch ? `/recipes?${newSearch}` : '/recipes';
+    navigate(newUrl, { replace: true });
+  };
+
   if (loading) return <div>{t("recipeDiscoveryPageLoading")}</div>;
   if (error) return <div className="text-red-500">{t("recipeDiscoveryPageError")}: {error}</div>;
 
@@ -89,7 +132,7 @@ const RecipeDiscoveryPage = () => {
             type="text"
             placeholder="Search recipes..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             className="recipe-discovery-page-header-item"
         />
         <button onClick={handleNavigateToUpload} className="green-button">

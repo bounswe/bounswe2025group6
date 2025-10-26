@@ -47,7 +47,12 @@ export const getWikidataImage = async (name) => {
 
 export const getRecipeById = async (id) => {
   try {
-    const token = localStorage.getItem('fithub_access_token'); // Take token
+    const token = localStorage.getItem('fithub_access_token');
+    
+    
+    if (!token) {
+      throw new Error('Authentication required. Please log in to view recipes.');
+    }
 
     const response = await axios.get(`${API_BASE_URL}/recipes/${id}/`, {
       headers: {
