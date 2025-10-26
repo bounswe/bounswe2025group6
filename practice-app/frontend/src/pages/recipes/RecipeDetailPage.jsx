@@ -230,7 +230,7 @@ const RecipeDetailPage = () => {
               <span className='recipe-detail-page-header-box-dietary'>{t("recipeDetailPageNone")}</span>
             )}
           </div>
-          <div className='recipe-detail-page-header-box' style={{ position: 'relative' }}>
+          <div className='recipe-detail-page-header-box'>
             <span className='recipe-detail-page-header-box-info'>{t("recipeDetailPageAllergens")}: </span>
             {recipe.alergens && recipe.alergens.length > 0 ? (
             recipe.alergens.map((allergen, index) => (
@@ -242,17 +242,6 @@ const RecipeDetailPage = () => {
           ) : (
             <span className='recipe-detail-page-header-box-allergen'>{t("recipeDetailPageNone")}</span>
           )}
-            {/* Report button positioned at top right of allergens section */}
-            {currentUser && currentUser.id !== recipe.creator_id && (
-              <div style={{ 
-                position: 'absolute', 
-                top: '0', 
-                right: '0',
-                zIndex: 10
-              }}>
-                <ReportButton targetType="recipe" targetId={id} />
-              </div>
-            )}
           </div>
         </div>
 
@@ -266,6 +255,18 @@ const RecipeDetailPage = () => {
             >
               {t("recipeDetailPageEditRecipe")}
             </button>
+          </div>
+        )}
+
+        {/* Report button positioned above creator info */}
+        {currentUser && currentUser.id !== recipe.creator_id && (
+          <div style={{ 
+            position: 'absolute', 
+            bottom: '60px', 
+            right: '20px',
+            zIndex: 10
+          }}>
+            <ReportButton targetType="recipe" targetId={id} />
           </div>
         )}
 
@@ -412,11 +413,11 @@ const RecipeDetailPage = () => {
         {/* Total Nutritional Information */}
         {((recipe.recipe_nutritions && Object.keys(recipe.recipe_nutritions).length > 0) || 
           (totalNutrition && Object.keys(totalNutrition).length > 0)) && (
-          <div className='recipe-detail-page-nutrition'>
-            <h2>Total Nutritional Information</h2>
-            
-            {/* Use recipe_nutritions from API if available, otherwise use calculated totalNutrition */}
-            {(() => {
+        <div className='recipe-detail-page-nutrition'>
+          <h2>Total Nutritional Information</h2>
+          
+          {/* Use recipe_nutritions from API if available, otherwise use calculated totalNutrition */}
+          {(() => {
               const nutritionData = recipe.recipe_nutritions || totalNutrition;
               const hasMainNutrients = nutritionData.calories || nutritionData.protein || 
                                      nutritionData.fat || nutritionData.carbohydrates || nutritionData.carbs;
@@ -424,7 +425,7 @@ const RecipeDetailPage = () => {
               return (
                 <>
                   {hasMainNutrients && (
-                    <div className="nutrition-cards">
+                  <div className="nutrition-cards">
                       {/* Calories */}
                       {nutritionData.calories && (
                         <div className="nutrition-card calories">
@@ -491,7 +492,7 @@ const RecipeDetailPage = () => {
                           </div>
                         </div>
                       )}
-                    </div>
+                  </div>
                   )}
                   
                   {/* Show other nutrition info if available */}
@@ -517,7 +518,7 @@ const RecipeDetailPage = () => {
                 </>
               );
             })()}
-          </div>
+        </div>
         )}
         
       </div>
