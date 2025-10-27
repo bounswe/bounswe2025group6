@@ -12,7 +12,7 @@ WORKDIR /frontend
 
 # Allow the container to accept requests coming to the port 5173.
 
-EXPOSE 443
+#EXPOSE 443
 
 # Run the preperations.
 

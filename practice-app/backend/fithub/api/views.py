@@ -68,7 +68,7 @@ def send_verification_email(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     domain = get_current_site(request).domain
     link = reverse('email-verify', kwargs={'uidb64': uid, 'token': token})
-    verify_url = f'https://{domain}{link}'
+    verify_url = f'{settings.SERVER_PROTOCOL}://{domain}{link}'
 
     subject = 'Verify your email'
     message = f'Click the link to verify your account: {verify_url}'

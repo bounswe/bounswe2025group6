@@ -6,14 +6,14 @@ services:
     container_name: myproject-mysql
 #    restart: always
     environment:
-      MYSQL_DATABASE: fithub2
+      MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     expose:
       - "3306"
     healthcheck:
-      test: ["CMD-SHELL", "mysql -u root -p${DB_PASSWORD} -h 127.0.0.1 fithub -e \"SELECT 1\""]
+      test: ["CMD-SHELL", "mysql -u ${DB_USER} -p${DB_PASSWORD} -h 127.0.0.1 ${DB_NAME} -e \"SELECT 1\""]
       interval: 10s
       retries: 5
       start_period: 30s
@@ -26,7 +26,7 @@ services:
   backend:
     build: ./backend/fithub
     container_name: myproject-django
-    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata reports && python manage.py migrate && exec python manage.py runserver_plus --cert-file fullchain.pem --key-file privkey.pem 0.0.0.0:8000"
+    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata reports && python manage.py migrate && exec python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     depends_on:
@@ -38,10 +38,44 @@ services:
       - .env
     networks:
       - web
+    profiles:
+      - http
+
+  backend_https:
+    build: ./backend/fithub
+    container_name: myproject-django-https
+    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata reports && python manage.py migrate && exec python manage.py runserver_plus --cert-file ${HTTPS_CERT} --key-file ${HTTPS_KEY} 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - web
+    profiles:
+      - https
 
   frontend:
     build: ./frontend
     container_name: myproject-frontend
+    volumes:
+      - .:/frontend_code
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    networks:
+      - web
+    profiles:
+      - http
+
+  frontend_https:
+    build: ./frontend
+    container_name: myproject-frontend-https
     volumes:
       - .:/frontend_code
     ports:
@@ -50,6 +84,8 @@ services:
       - .env
     networks:
       - web
+    profiles:
+      - https
 
 volumes:
   db_data:

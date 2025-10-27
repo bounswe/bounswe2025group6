@@ -261,6 +261,9 @@ AUTH_USER_MODEL = 'api.RegisteredUser'
 
 SITE_DOMAIN = "http://95.179.161.59:8000"
 
+SERVER_PROTOCOL = 'https' if os.environ.get('COMPOSE_PROFILES') == 'https' else 'http'
+
+
 # Login attempt settings
 LOGIN_ATTEMPT_LIMIT = 5
 LOGIN_ATTEMPT_TIMEOUT = 15  # minutes
