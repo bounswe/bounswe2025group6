@@ -225,6 +225,13 @@ class Recipe(TimestampedModel):
                 self.taste_rating = ((self.taste_rating * self.taste_rating_count) - rating_value) / (self.taste_rating_count - 1)
             self.taste_rating_count -= 1
 
+        elif rating_type == 'health' and self.health_rating is not None:
+            if self.health_rating_count == 1:
+                self.health_rating = None
+            else:
+                self.health_rating = ((self.health_rating * self.health_rating_count) - rating_value) / (self.health_rating_count - 1)
+            self.health_rating_count -= 1
+
         self.save()
 
 # RecipeIngredient model that will be used for the recipe (holds the relationship between Recipe and Ingredient)
