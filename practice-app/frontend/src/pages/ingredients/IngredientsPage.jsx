@@ -19,7 +19,7 @@ const IngredientsPage = () => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(30);
   const [selectedColumn, setSelectedColumn] = useState(0);
   const [isChanging, setIsChanging] = useState(false);
   const navigate = useNavigate();
@@ -145,7 +145,7 @@ const IngredientsPage = () => {
                       className="ingredient-item"
                       onClick={() => navigate(`/ingredients/${ingredient.id}`)}
                     >
-                      <div className="ingredient-item-content">
+                      <div className="ingredient-item-content" style={{'--name-length': ingredient.name.length}}>
                         <span className="ingredient-name">{ingredient.name}</span>
                         
                         {/* Nutritional Information */}
@@ -206,7 +206,7 @@ const IngredientsPage = () => {
       {/* Pagination controls and page size selector */}
       {!searchQuery.trim() && (
         <div className="controls-container">
-          <div className="pagination-controls">
+          <div className="pagination-group">
             <button 
               className="pagination-button"
               onClick={handlePreviousPage} 
@@ -214,7 +214,7 @@ const IngredientsPage = () => {
             >
               Previous
             </button>
-            <span>{page}</span>
+            <span className="page-number">{page}</span>
             <button 
               className="pagination-button"
               onClick={handleNextPage} 
@@ -223,21 +223,18 @@ const IngredientsPage = () => {
               Next
             </button>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <select 
-              value={pageSize} 
-              onChange={handlePageSizeChange} 
-              className="ingredient-dropdown"
-              disabled={isChanging}
-            >
-              <option value={10}>10 per page</option>
-              <option value={20}>20 per page</option>
-              <option value={30}>30 per page</option>
-              <option value={40}>40 per page</option>
-              <option value={50}>50 per page</option>
-            </select>
-          </div>
+          <select 
+            value={pageSize} 
+            onChange={handlePageSizeChange} 
+            className="ingredient-dropdown"
+            disabled={isChanging}
+          >
+            <option value={10}>10 per page</option>
+            <option value={20}>20 per page</option>
+            <option value={30}>30 per page</option>
+            <option value={40}>40 per page</option>
+            <option value={50}>50 per page</option>
+          </select>
         </div>
       )}
     </div>

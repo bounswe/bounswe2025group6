@@ -113,87 +113,105 @@ const IngredientDetailPage = () => {
         {/* Right Column - Nutritional Information */}
         <div className="ingredient-right-column">
           {/* Nutritional Information Section */}
-          {ing.wikidata_info && ing.wikidata_info.nutrition && (
-            <div className="nutrition-section">
-              <h3>Nutritional Information (per 100g)</h3>
-              <div className="nutrition-cards">
-                {(() => {
-                  const nutritionData = ing.wikidata_info.nutrition;
-                  
-                  return (
-                    <>
-                      {/* Calories */}
-                      {nutritionData.calories && (
-                        <div className="nutrition-card calories">
-                          <div className="nutrition-icon">🔥</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">{nutritionData.calories}</span>
-                            <span className="nutrition-label">Calories</span>
-                            <span className="nutrition-unit">kcal</span>
-                          </div>
+          {(() => {
+            // Get nutrition data from nutrition_info (primary) or wikidata_info.nutrition (fallback)
+            const nutritionData = ing.nutrition_info || (ing.wikidata_info && ing.wikidata_info.nutrition);
+            
+            return nutritionData && (
+              <div className="nutrition-section">
+                <h3>Nutritional Information (per 100g)</h3>
+                <div className="nutrition-cards">
+                  <>
+                    {/* Calories */}
+                    {nutritionData.calories && (
+                      <div className="nutrition-card calories">
+                        <div className="nutrition-icon">🔥</div>
+                        <div className="nutrition-info">
+                          <span className="nutrition-value">
+                            {typeof nutritionData.calories === 'number' 
+                              ? nutritionData.calories.toFixed(0) 
+                              : nutritionData.calories}
+                          </span>
+                          <span className="nutrition-label">Calories</span>
+                          <span className="nutrition-unit">kcal</span>
                         </div>
-                      )}
-                      
-                      {/* Protein */}
-                      {nutritionData.protein && (
-                        <div className="nutrition-card protein">
-                          <div className="nutrition-icon">💪</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">{nutritionData.protein}</span>
-                            <span className="nutrition-label">Protein</span>
-                            <span className="nutrition-unit">g</span>
-                          </div>
+                      </div>
+                    )}
+                    
+                    {/* Protein */}
+                    {nutritionData.protein && (
+                      <div className="nutrition-card protein">
+                        <div className="nutrition-icon">💪</div>
+                        <div className="nutrition-info">
+                          <span className="nutrition-value">
+                            {typeof nutritionData.protein === 'number' 
+                              ? nutritionData.protein.toFixed(1) 
+                              : nutritionData.protein}
+                          </span>
+                          <span className="nutrition-label">Protein</span>
+                          <span className="nutrition-unit">g</span>
                         </div>
-                      )}
-                      
-                      {/* Fat */}
-                      {nutritionData.fat && (
-                        <div className="nutrition-card fat">
-                          <div className="nutrition-icon">🧈</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">{nutritionData.fat}</span>
-                            <span className="nutrition-label">Fat</span>
-                            <span className="nutrition-unit">g</span>
-                          </div>
+                      </div>
+                    )}
+                    
+                    {/* Fat */}
+                    {nutritionData.fat && (
+                      <div className="nutrition-card fat">
+                        <div className="nutrition-icon">🧈</div>
+                        <div className="nutrition-info">
+                          <span className="nutrition-value">
+                            {typeof nutritionData.fat === 'number' 
+                              ? nutritionData.fat.toFixed(1) 
+                              : nutritionData.fat}
+                          </span>
+                          <span className="nutrition-label">Fat</span>
+                          <span className="nutrition-unit">g</span>
                         </div>
-                      )}
-                      
-                      {/* Carbohydrates */}
-                      {nutritionData.carbohydrates && (
-                        <div className="nutrition-card carbs">
-                          <div className="nutrition-icon">🌾</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">{nutritionData.carbohydrates}</span>
-                            <span className="nutrition-label">Carbs</span>
-                            <span className="nutrition-unit">g</span>
-                          </div>
+                      </div>
+                    )}
+                    
+                    {/* Carbohydrates - support both 'carbohydrates' and 'carbs' */}
+                    {(nutritionData.carbohydrates || nutritionData.carbs) && (
+                      <div className="nutrition-card carbs">
+                        <div className="nutrition-icon">🌾</div>
+                        <div className="nutrition-info">
+                          <span className="nutrition-value">
+                            {(() => {
+                              const carbsValue = nutritionData.carbohydrates || nutritionData.carbs;
+                              return typeof carbsValue === 'number' 
+                                ? carbsValue.toFixed(1) 
+                                : carbsValue;
+                            })()}
+                          </span>
+                          <span className="nutrition-label">Carbs</span>
+                          <span className="nutrition-unit">g</span>
                         </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-              
-              {/* Show other nutrition info if available */}
-              {ing.wikidata_info && ing.wikidata_info.nutrition && Object.keys(ing.wikidata_info.nutrition).filter(key => 
-                !['calories', 'protein', 'fat', 'carbohydrates'].includes(key)
-              ).length > 0 && (
-                <div className="other-nutrition">
-                  <h4>Other Nutritional Information</h4>
-                  <div className="nutrition-grid">
-                    {Object.entries(ing.wikidata_info.nutrition)
-                      .filter(([key]) => !['calories', 'protein', 'fat', 'carbohydrates'].includes(key))
-                      .map(([key, value]) => (
-                        <div key={key} className="nutrition-item">
-                          <span className="nutrition-label">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
-                          <span className="nutrition-value">{value}</span>
-                        </div>
-                      ))}
-                  </div>
+                      </div>
+                    )}
+                  </>
                 </div>
-              )}
-            </div>
-          )}
+                
+                {/* Show other nutrition info if available */}
+                {Object.keys(nutritionData).filter(key => 
+                  !['calories', 'protein', 'fat', 'carbohydrates', 'carbs'].includes(key)
+                ).length > 0 && (
+                  <div className="other-nutrition">
+                    <h4>Other Nutritional Information</h4>
+                    <div className="nutrition-grid">
+                      {Object.entries(nutritionData)
+                        .filter(([key]) => !['calories', 'protein', 'fat', 'carbohydrates', 'carbs'].includes(key))
+                        .map(([key, value]) => (
+                          <div key={key} className="nutrition-item">
+                            <span className="nutrition-label">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                            <span className="nutrition-value">{value}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Additional Wikidata Information */}
           {ing.wikidata_info && (
