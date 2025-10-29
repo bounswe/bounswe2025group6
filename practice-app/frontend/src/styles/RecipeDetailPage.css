@@ -377,6 +377,7 @@
   margin: 20px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .recipe-detail-page-content h2 {
@@ -389,6 +390,8 @@
 
 .recipe-detail-page-content-steps {
   flex: 1;
+  min-width: 300px;
+  max-width: 45%;
   background: #ffffff;
   padding: 20px;
   border-radius: 0.5rem;
@@ -617,6 +620,8 @@
 
 .recipe-detail-page-ingredients {
   flex: 1;
+  min-width: 250px;
+  max-width: 45%;
   background: #ffffff;
   padding: 20px;
   border-radius: 0.5rem;
