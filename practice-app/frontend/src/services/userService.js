@@ -50,7 +50,7 @@ const userService = {
   // Update user profile
   updateUserById: async (userId, userData) => {
     try {
-      const response = await api.put(`/api/users/${userId}/`, userData);
+      const response = await api.patch(`/api/users/${userId}/`, userData);
       return response.data;
     } catch (error) {
       console.error("Error updating user details:", error);

@@ -5,10 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import { getRecipeById, getWikidataImage } from '../../services/recipeService';
 import { getUsername } from '../../services/userService';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import '../../styles/RecipeCard.css';
 
 const RecipeCard = ({ recipe }) => {
   const navigate = useNavigate();
+  const { currency } = useCurrency();
   const [recipeImage, setRecipeImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -97,11 +99,41 @@ const RecipeCard = ({ recipe }) => {
         )}
       </div>        <div className='recipe-card-content'>
           <h2>{recipe.name}</h2>          <div className='recipe-card-content-info'>
-            <span><strong>Meal Type:</strong> {recipe.meal_type || 'No type provided.'}</span>
-            <span><strong>Cost:</strong> {recipe.cost_per_serving}$</span>
-            <span><strong>Prep Time:</strong> {recipe.prep_time}mins</span>
-            <span><strong>Cook Time:</strong> {recipe.cook_time}mins</span>
-            <span><strong>Created by:</strong> {creatorName || 'Loading...'}</span>
+            <div className="recipe-card-top-row">
+              <span className="meal-type">{recipe.meal_type || 'No type'}</span>
+              <span className="cost-with-logo">
+                {recipe.cost_per_serving} {currency}
+                {(() => {
+                  if (recipe.recipe_costs && Object.keys(recipe.recipe_costs).length > 0) {
+                    const minCost = Math.min(...Object.values(recipe.recipe_costs));
+                    const cheapestMarket = Object.entries(recipe.recipe_costs).find(([_, cost]) => cost === minCost)?.[0];
+                    
+                    const getMarketLogo = (marketName) => {
+                      switch(marketName) {
+                        case 'A101': return '/src/assets/market_logos/a101.png';
+                        case 'SOK': return '/src/assets/market_logos/sok.png';
+                        case 'BIM': return '/src/assets/market_logos/bim.png';
+                        case 'MIGROS': return '/src/assets/market_logos/migros.png';
+                        default: return null;
+                      }
+                    };
+                    
+                    return cheapestMarket ? (
+                      <img 
+                        src={getMarketLogo(cheapestMarket)} 
+                        alt={cheapestMarket} 
+                        className="cheapest-market-logo" 
+                      />
+                    ) : null;
+                  }
+                  return null;
+                })()}
+              </span>
+            </div>
+            <div className="recipe-card-bottom-row">
+              <span className="time-info">{recipe.prep_time}m prep • {recipe.cook_time}m cook</span>
+              <span className="creator-info">by {creatorName || 'Loading...'}</span>
+            </div>
           </div>
           <div className='recipe-card-content-dietary'>
 

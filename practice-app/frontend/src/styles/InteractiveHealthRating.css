@@ -1,0 +1,122 @@
+.interactive-health-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+/* Average Rating Display (Big Stars) */
+.average-rating-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.average-stars-container {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.big-star {
+  font-size: 28px;
+  color: #ddd;
+  user-select: none;
+}
+
+.big-star.filled {
+  color: #28a745; /* Green for health rating */
+}
+
+.average-rating-text {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* User Rating Section (Small Stars) */
+.user-rating-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #dee2e6;
+}
+
+.rate-it-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.stars-container.small-stars {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.small-star {
+  font-size: 18px;
+  color: #ddd;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.small-star.filled {
+  color: #28a745; /* Green for health rating */
+}
+
+.small-star:hover {
+  transform: scale(1.1);
+}
+
+.stars-container.disabled .small-star {
+  cursor: default !important;
+}
+
+.stars-container.disabled .small-star:hover {
+  transform: none;
+}
+
+.small-star.submitting {
+  opacity: 0.6;
+  cursor: wait !important;
+}
+
+.user-rating-info {
+  font-size: 11px;
+  color: #495057;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Restriction Messages */
+.rating-restriction {
+  font-size: 12px;
+  color: #6c757d;
+  text-align: center;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .big-star {
+    font-size: 24px;
+  }
+  
+  .small-star {
+    font-size: 16px;
+  }
+  
+  .interactive-health-rating {
+    padding: 8px;
+  }
+}
