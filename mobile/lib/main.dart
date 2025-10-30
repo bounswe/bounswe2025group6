@@ -4,6 +4,7 @@ import 'providers/locale_provider.dart';
 import 'providers/currency_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/meal_planner_screen.dart';
 import 'screens/community/community_screen.dart';
 import 'screens/community/create_post_screen.dart';
 import 'screens/community/post_detail_screen.dart';
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
             home: const LoginScreen(),
             routes: {
               ProfileScreen.routeName: (context) => ProfileScreen(),
+              '/meal-planner': (context) => const MealPlannerScreen(),
               '/community': (context) => const CommunityScreen(),
               '/community/create': (context) => const CreatePostScreen(),
               '/community/detail': (context) => const PostDetailScreen(),
