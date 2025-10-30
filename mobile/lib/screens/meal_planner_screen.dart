@@ -8,6 +8,7 @@ import '../services/meal_planner_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/meal_planner_filter_panel.dart';
+import '../widgets/recipe_selector_dialog.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
@@ -785,9 +786,15 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
   }
 
   void _showRecipeSelector(String mealType) {
-    // TODO: Implement recipe selector dialog (Step 6)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Recipe selector for $mealType - Coming in next step')),
+    showDialog(
+      context: context,
+      builder: (context) => RecipeSelectorDialog(
+        mealType: mealType,
+        filters: _filters,
+        onRecipeSelected: (recipe) {
+          _addRecipeToMealPlan(recipe, mealType);
+        },
+      ),
     );
   }
 
