@@ -5,7 +5,7 @@
     "discoverRecipes": "Tarifleri Keşfet",
     "uploadRecipe": "Tarif Yükle",
     "joinCommunity": "Topluluğa Katıl",
-    "planMeal": "Bir Yemek Planla",
+    "planMeal": "Öğün Planlayıcı",
     "logout": "Çıkış Yap",
     "logoutConfirmation": "Çıkış yapmak istediğinizden emin misiniz?",
     "logoutFailed": "Çıkış başarısız: {error}",
@@ -548,7 +548,7 @@
     "failedToObtainJwtTokens": "JWT tokenleri alınamadı: {error}",
     "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } },
 
-    "mealPlanner": "Yemek Planlayıcı",
+    "mealPlanner": "Öğün Planlayıcı",
     "@mealPlanner": { "description": "Meal planner screen title in Turkish" },
     "planToday": "Bugünü Planla",
     "@planToday": { "description": "Tab label for today's meal plan in Turkish" },
@@ -721,5 +721,22 @@
     "shoppingListShared": "Alışveriş listesi başarıyla paylaşıldı!",
     "@shoppingListShared": { "description": "Snackbar when shopping list shared in Turkish" },
     "failedToShareShoppingList": "Alışveriş listesi paylaşılamadı",
-    "@failedToShareShoppingList": { "description": "Error sharing shopping list in Turkish" }
+    "@failedToShareShoppingList": { "description": "Error sharing shopping list in Turkish" },
+
+    "validationError": "Doğrulama Hatası",
+    "@validationError": { "description": "Validation error dialog title in Turkish" },
+    "fixValidationErrors": "Filtreleri uygulamadan önce lütfen formdaki doğrulama hatalarını düzeltin.",
+    "@fixValidationErrors": { "description": "Validation error dialog message in Turkish" },
+    "validationCheckList": "Kontrol edin:\n• Tüm değerler geçerli sayılar olmalı\n• Tüm değerler pozitif olmalı\n• Min değerler Maks değerlerden büyük olmamalı",
+    "@validationCheckList": { "description": "Validation checklist in Turkish" },
+    "invalidNumber": "Geçersiz sayı",
+    "@invalidNumber": { "description": "Error for invalid number input in Turkish" },
+    "mustBePositive": "Pozitif olmalı",
+    "@mustBePositive": { "description": "Error for negative number in Turkish" },
+    "minGreaterThanMax": "Min > Maks",
+    "@minGreaterThanMax": { "description": "Error when min is greater than max in Turkish" },
+    "maxLessThanMin": "Maks < Min",
+    "@maxLessThanMin": { "description": "Error when max is less than min in Turkish" },
+    "ok": "Tamam",
+    "@ok": { "description": "OK button text in Turkish" }
 }

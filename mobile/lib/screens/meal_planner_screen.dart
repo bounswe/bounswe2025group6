@@ -7,6 +7,7 @@ import '../models/user_profile.dart';
 import '../services/meal_planner_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/recipe_card.dart';
+import '../widgets/meal_planner_filter_panel.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
@@ -758,9 +759,28 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
   }
 
   void _showFiltersDialog() {
-    // TODO: Implement comprehensive filters dialog (Step 5)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Filters dialog - Coming in next step')),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => MealPlannerFilterPanel(
+        initialFilters: _filters,
+        selectedMealType: _selectedMealTypeFilter,
+        onApplyFilters: (filters, mealType) {
+          setState(() {
+            _filters = filters;
+            _selectedMealTypeFilter = mealType;
+          });
+          _loadRecipesWithFilters();
+        },
+        onResetFilters: () {
+          setState(() {
+            _filters.clear();
+            _selectedMealTypeFilter = null;
+          });
+          _loadInitialRecipes();
+        },
+      ),
     );
   }
 

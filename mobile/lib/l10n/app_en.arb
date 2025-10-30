@@ -855,5 +855,22 @@
   "shoppingListShared": "Shopping list shared successfully!",
   "@shoppingListShared": { "description": "Snackbar when shopping list shared" },
   "failedToShareShoppingList": "Failed to share shopping list",
-  "@failedToShareShoppingList": { "description": "Error sharing shopping list" }
+  "@failedToShareShoppingList": { "description": "Error sharing shopping list" },
+
+  "validationError": "Validation Error",
+  "@validationError": { "description": "Validation error dialog title" },
+  "fixValidationErrors": "Please fix the validation errors in the form before applying filters.",
+  "@fixValidationErrors": { "description": "Validation error dialog message" },
+  "validationCheckList": "Check that:\n• All values are valid numbers\n• All values are positive\n• Min values are not greater than Max values",
+  "@validationCheckList": { "description": "Validation checklist" },
+  "invalidNumber": "Invalid number",
+  "@invalidNumber": { "description": "Error for invalid number input" },
+  "mustBePositive": "Must be positive",
+  "@mustBePositive": { "description": "Error for negative number" },
+  "minGreaterThanMax": "Min > Max",
+  "@minGreaterThanMax": { "description": "Error when min is greater than max" },
+  "maxLessThanMin": "Max < Min",
+  "@maxLessThanMin": { "description": "Error when max is less than min" },
+  "ok": "OK",
+  "@ok": { "description": "OK button text" }
 }
