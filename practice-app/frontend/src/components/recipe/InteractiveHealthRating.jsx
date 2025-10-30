@@ -136,7 +136,7 @@ const InteractiveHealthRating = ({
           ))}
         </div>
         <div className="average-rating-text">
-          Health Rating: {averageHealthRating.toFixed(1)}/5
+           {averageHealthRating.toFixed(1)}/5
         </div>
       </div>
 
