@@ -81,3 +81,7 @@ mobile/pubspec.lock
 mobile/lib/l10n/app_localizations.dart
 mobile/lib/l10n/app_localizations_tr.dart
 mobile/lib/l10n/app_localizations_en.dart
+
+# Certificates and keys
+
+*.pem
