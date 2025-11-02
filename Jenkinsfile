@@ -10,7 +10,7 @@ pipeline {
     
     stages {
         
-        stage('Pull main') {
+        stage('Stop running server') {
             
             steps {
                 
@@ -23,18 +23,6 @@ pipeline {
                         } catch (err) {
                             echo err.getMessage()
                         }
-                    }
-
-                    try {
-                        sh("rm -r ./*")
-                    } catch (err) {
-                        echo err.getMessage()
-                    }
-    
-                    try {
-                        sh("rm -r ./.git*")
-                    } catch (err) {
-                        echo err.getMessage()
                     }
                 }
             }
