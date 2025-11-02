@@ -1,4 +1,3 @@
-
 # Base this image on the premade package which only includes Node.js version 18.
 
 FROM node:18
@@ -13,7 +12,7 @@ WORKDIR /frontend
 
 # Allow the container to accept requests coming to the port 5173.
 
-EXPOSE 5173
+#EXPOSE 443
 
 # Run the preperations.
 
@@ -21,4 +20,6 @@ RUN npm i
 
 # Run the server. "0.0.0.0" is to make the server be able to listen from anywhere, not just from within the container.
 
-CMD [ "npm", "run", "dev", "--", "--host=0.0.0.0" ]
+CMD [ "npm", "run", "dev" ]
+
+#, "--host=0.0.0.0" ]
