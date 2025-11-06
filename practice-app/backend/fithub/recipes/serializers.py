@@ -1,5 +1,6 @@
 # recipes/serializers.py
 
+from attr import attrs
 from rest_framework import serializers
 from .models import Recipe, RecipeIngredient
 from ingredients.models import Ingredient
@@ -139,7 +140,7 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
         user = self.context['request'].user
 
         try:
-            with transaction.atomic():  # <- start atomic transaction
+            with transaction.atomic():  # start atomic transaction
                 # Create the recipe
                 recipe = Recipe.objects.create(creator=user, **validated_data)
 
@@ -175,6 +176,23 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
         except Exception as e:
             # Any exception will rollback all DB changes
             raise serializers.ValidationError(f"Failed to create recipe: {str(e)}")
+
+    def validate(self, attrs):
+        ingredients_json = attrs.get("ingredients")
+        try:
+            ingredients_list = json.loads(ingredients_json)
+        except json.JSONDecodeError:
+            raise serializers.ValidationError({"ingredients": "Ingredients must be a valid JSON array."})
+
+        for ing in ingredients_list:
+            name = ing.get("ingredient_name")
+            if not Ingredient.objects.filter(name=name).exists():
+                raise serializers.ValidationError(
+                    {"ingredients": f"Ingredient '{name}' does not exist."}
+                )
+
+        return attrs
+
 
 class RecipeUpdateSerializer(RecipeBaseSerializer):
     name = serializers.CharField(required=False)
