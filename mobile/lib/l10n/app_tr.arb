@@ -546,5 +546,18 @@
     "@accessibilityHearing": { "description": "Accessibility: hearing impairment in Turkish" }
 
     ,"failedToObtainJwtTokens": "JWT tokenleri alınamadı: {error}",
-    "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } }
+    "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } },
+
+    "followButton": "Takip Et",
+    "@followButton": { "description": "Button text to follow a user" },
+    "unfollowButton": "Takibi Bırak",
+    "@unfollowButton": { "description": "Button text to unfollow a user" },
+    "followedSuccess": "Kullanıcı başarıyla takip edildi",
+    "@followedSuccess": { "description": "Snackbar text when follow succeeds" },
+    "unfollowedSuccess": "Kullanıcı takibi başarıyla bırakıldı",
+    "@unfollowedSuccess": { "description": "Snackbar text when unfollow succeeds" },
+    "followActionFailed": "Takip etme/bırakma başarısız: {error}",
+    "@followActionFailed": { "description": "Snackbar text when follow/unfollow fails", "placeholders": { "error": {} } },
+    "privateProfileMessage": "Bu profil gizli",
+    "@privateProfileMessage": { "description": "Message shown when viewing a private profile" }
 }

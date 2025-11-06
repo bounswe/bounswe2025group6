@@ -680,5 +680,18 @@
   "accessibilityVisual": "Visual Impairment",
   "@accessibilityVisual": { "description": "Accessibility: visual impairment" },
   "accessibilityHearing": "Hearing Impairment",
-  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" }
+  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" },
+
+  "followButton": "Follow",
+  "@followButton": { "description": "Button text to follow a user" },
+  "unfollowButton": "Unfollow",
+  "@unfollowButton": { "description": "Button text to unfollow a user" },
+  "followedSuccess": "Successfully followed user",
+  "@followedSuccess": { "description": "Snackbar text when follow succeeds" },
+  "unfollowedSuccess": "Successfully unfollowed user",
+  "@unfollowedSuccess": { "description": "Snackbar text when unfollow succeeds" },
+  "followActionFailed": "Failed to follow/unfollow: {error}",
+  "@followActionFailed": { "description": "Snackbar text when follow/unfollow fails", "placeholders": { "error": {} } },
+  "privateProfileMessage": "This profile is private",
+  "@privateProfileMessage": { "description": "Message shown when viewing a private profile" }
 }
