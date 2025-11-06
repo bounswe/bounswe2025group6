@@ -102,6 +102,57 @@ class ProfileService {
     }
   }
 
+  Future<UserProfile> getUserProfileById(int targetUserId) async {
+    token = await StorageService.getJwtAccessToken();
+
+    if (token == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token missing.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      var response = await http.get(
+        Uri.parse('$baseUrl/api/users/$targetUserId/'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
+        }
+
+        response = await http.get(
+          Uri.parse('$baseUrl/api/users/$targetUserId/'),
+          headers: headers,
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        return UserProfile.fromJson(responseBody, targetUserId);
+      } else if (response.statusCode == 404) {
+        throw ProfileServiceException(
+          'User profile not found.',
+          statusCode: response.statusCode,
+        );
+      } else {
+        throw ProfileServiceException(
+          'Failed to load profile. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw ProfileServiceException(e.toString());
+    }
+  }
+
   Future<UserProfile> updateUserProfile(UserProfile profileUpdates) async {
     token = await StorageService.getJwtAccessToken();
     final userId = await StorageService.getUserId();
@@ -162,6 +213,65 @@ class ProfileService {
         );
       }
     } catch (e) {
+      throw ProfileServiceException(e.toString());
+    }
+  }
+
+  Future<Map<String, dynamic>> followUnfollowUser(int targetUserId) async {
+    token = await StorageService.getJwtAccessToken();
+
+    if (token == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token missing.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      var response = await http.post(
+        Uri.parse('$baseUrl/api/users/follow/'),
+        headers: headers,
+        body: jsonEncode({'user_id': targetUserId}),
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
+        }
+
+        response = await http.post(
+          Uri.parse('$baseUrl/api/users/follow/'),
+          headers: headers,
+          body: jsonEncode({'user_id': targetUserId}),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 400) {
+        final errorBody = jsonDecode(response.body);
+        throw ProfileServiceException(
+          errorBody['error'] ?? 'Bad request',
+          statusCode: response.statusCode,
+        );
+      } else if (response.statusCode == 404) {
+        throw ProfileServiceException(
+          'Target user not found',
+          statusCode: response.statusCode,
+        );
+      } else {
+        throw ProfileServiceException(
+          'Failed to follow/unfollow user. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ProfileServiceException) rethrow;
       throw ProfileServiceException(e.toString());
     }
   }
