@@ -407,7 +407,10 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
         final recipe = _userRecipes[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
-          child: RecipeCard(recipe: recipe),
+          child: RecipeCard(
+            recipe: recipe,
+            creatorUsername: recipe.creatorUsername,
+          ),
         );
       },
     );

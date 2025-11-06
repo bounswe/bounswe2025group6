@@ -456,7 +456,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: RecipeCard(
             recipe: recipe,
-            // onTap callback removed as RecipeCard handles its own tap
+            creatorUsername: recipe.creatorUsername,
           ),
         );
       },
