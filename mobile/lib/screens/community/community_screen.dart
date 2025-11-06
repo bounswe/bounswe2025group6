@@ -6,6 +6,7 @@ import '../../services/storage_service.dart';
 import '../../widgets/report_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../other_user_profile_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -321,9 +322,31 @@ class _PostCardState extends State<PostCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(AppLocalizations.of(context)!.byAuthor(
-                    widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown,
-                  )),
+                  GestureDetector(
+                    onTap: () {
+                      if (!isOwnPost && widget.post['author_id'] != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OtherUserProfileScreen(
+                              userId: widget.post['author_id'],
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text(
+                      AppLocalizations.of(context)!.byAuthor(
+                        widget.post['author']?.toString() ??
+                            AppLocalizations.of(context)!.unknown,
+                      ),
+                      style: TextStyle(
+                        color: !isOwnPost ? Colors.blue[700] : null,
+                        decoration:
+                            !isOwnPost ? TextDecoration.underline : null,
+                      ),
+                    ),
+                  ),
                   Row(
                     children: [
                       IconButton(
