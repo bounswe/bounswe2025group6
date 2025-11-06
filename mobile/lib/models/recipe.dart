@@ -8,6 +8,7 @@ class Recipe {
   final int cookTime;
   final String mealType;
   final int creatorId;
+  final String? creatorUsername;
   final List<IngredientQuantity>
   ingredients; // Using a wrapper for ingredient + quantity
   final double? costPerServing;
@@ -40,6 +41,7 @@ class Recipe {
     required this.cookTime,
     required this.mealType,
     required this.creatorId,
+    this.creatorUsername,
     required this.ingredients,
     this.costPerServing,
     this.difficultyRating,
@@ -94,6 +96,7 @@ class Recipe {
       cookTime: int.tryParse(json['cook_time']?.toString() ?? '') ?? 0,
       mealType: json['meal_type']?.toString() ?? '',
       creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
+      creatorUsername: json['creator_username']?.toString(),
       ingredients: ingredientsList,
       costPerServing:
           double.tryParse(json['cost_per_serving']?.toString() ?? '') ?? null,
@@ -142,6 +145,7 @@ class Recipe {
       cookTime: int.tryParse(json['cook_time']?.toString() ?? '') ?? 0,
       mealType: json['meal_type']?.toString() ?? '',
       creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
+      creatorUsername: json['creator_username']?.toString(),
       ingredients: [], // Not in list view in detail
       costPerServing:
           double.tryParse(json['cost_per_serving']?.toString() ?? '') ?? null,

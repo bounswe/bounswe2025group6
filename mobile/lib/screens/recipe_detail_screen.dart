@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
+import '../services/profile_service.dart';
+import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
+import './other_user_profile_screen.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
@@ -20,13 +23,40 @@ class RecipeDetailScreen extends StatefulWidget {
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
+  final ProfileService _profileService = ProfileService();
   late Future<Recipe> _recipeFuture;
   Recipe? _currentRecipe; // Store the loaded recipe for report button
+  String? _creatorUsername;
+  bool _isLoadingUsername = false;
 
   @override
   void initState() {
     super.initState();
     _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+  }
+
+  Future<void> _fetchCreatorUsername(int creatorId) async {
+    if (_isLoadingUsername || _creatorUsername != null) return;
+    
+    setState(() {
+      _isLoadingUsername = true;
+    });
+
+    try {
+      final profile = await _profileService.getUserProfileById(creatorId);
+      if (mounted) {
+        setState(() {
+          _creatorUsername = profile.username;
+          _isLoadingUsername = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUsername = false;
+        });
+      }
+    }
   }
 
   @override
@@ -66,6 +96,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   setState(() {
                     _currentRecipe = recipe;
                   });
+                  _fetchCreatorUsername(recipe.creatorId);
                 }
               });
             }
@@ -156,6 +187,61 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          
+                          // Creator Username
+                          if (_creatorUsername != null)
+                            Center(
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final currentUserId =
+                                      await StorageService.getUserId();
+                                  if (currentUserId != null &&
+                                      int.parse(currentUserId) ==
+                                          recipe.creatorId) {
+                                    return;
+                                  }
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          OtherUserProfileScreen(
+                                        userId: recipe.creatorId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.blue[700],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _creatorUsername!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blue[700],
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else if (_isLoadingUsername)
+                            Center(
+                              child: SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 16),
 
                           // Quick Info Section

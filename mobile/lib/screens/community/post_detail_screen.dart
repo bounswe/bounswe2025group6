@@ -12,6 +12,7 @@ import '../../widgets/comment_card.dart'; // Import CommentCard (will be created
 import '../../widgets/report_button.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../other_user_profile_screen.dart';
 
 class PostDetailScreen extends StatefulWidget {
   const PostDetailScreen({Key? key}) : super(key: key);
@@ -471,9 +472,37 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(AppLocalizations.of(context)!.byAuthor(
-                      post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown,
-                    )),
+                    GestureDetector(
+                      onTap: () {
+                        if (_currentUserId != null &&
+                            post!['author_id'] != _currentUserId) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OtherUserProfileScreen(
+                                userId: post!['author_id'],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        AppLocalizations.of(context)!.byAuthor(
+                          post!['author']?.toString() ??
+                              AppLocalizations.of(context)!.unknown,
+                        ),
+                        style: TextStyle(
+                          color: _currentUserId != null &&
+                                  post!['author_id'] != _currentUserId
+                              ? Colors.blue[700]
+                              : null,
+                          decoration: _currentUserId != null &&
+                                  post!['author_id'] != _currentUserId
+                              ? TextDecoration.underline
+                              : null,
+                        ),
+                      ),
+                    ),
                     Row(
                       children: [
                         const Icon(Icons.remove_red_eye),

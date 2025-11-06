@@ -3,13 +3,75 @@ import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../providers/currency_provider.dart';
 import '../screens/recipe_detail_screen.dart';
+import '../screens/other_user_profile_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/meal_type_localization.dart';
+import '../services/storage_service.dart';
+import '../services/profile_service.dart';
 
-class RecipeCard extends StatelessWidget {
+class RecipeCard extends StatefulWidget {
   final Recipe recipe;
+  final String? creatorUsername;
 
-  const RecipeCard({Key? key, required this.recipe}) : super(key: key);
+  const RecipeCard({
+    Key? key,
+    required this.recipe,
+    this.creatorUsername,
+  }) : super(key: key);
+
+  @override
+  State<RecipeCard> createState() => _RecipeCardState();
+}
+
+class _RecipeCardState extends State<RecipeCard> {
+  String? _fetchedUsername;
+  bool _isLoadingUsername = false;
+  bool _hasFetched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsernameIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(RecipeCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.recipe.creatorId != widget.recipe.creatorId) {
+      _hasFetched = false;
+      _fetchUsernameIfNeeded();
+    }
+  }
+
+  Future<void> _fetchUsernameIfNeeded() async {
+    if (_hasFetched || widget.creatorUsername != null || _isLoadingUsername) {
+      return;
+    }
+    
+    _hasFetched = true;
+    setState(() {
+      _isLoadingUsername = true;
+    });
+
+    try {
+      final profileService = ProfileService();
+      final profile = await profileService.getUserProfileById(widget.recipe.creatorId);
+      if (mounted) {
+        setState(() {
+          _fetchedUsername = profile.username;
+          _isLoadingUsername = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUsername = false;
+        });
+      }
+    }
+  }
+
+  String? get displayUsername => widget.creatorUsername ?? _fetchedUsername;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +85,8 @@ class RecipeCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RecipeDetailScreen(recipeId: recipe.id),
+              builder: (context) =>
+                  RecipeDetailScreen(recipeId: widget.recipe.id),
             ),
           );
         },
@@ -31,7 +94,8 @@ class RecipeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Recipe Image
-            if (recipe.imageFullUrl != null && recipe.imageFullUrl!.isNotEmpty)
+            if (widget.recipe.imageFullUrl != null &&
+                widget.recipe.imageFullUrl!.isNotEmpty)
               ConstrainedBox(
                 constraints: const BoxConstraints(
                   maxHeight: 200,
@@ -41,7 +105,7 @@ class RecipeCard extends StatelessWidget {
                   width: double.infinity,
                   color: Colors.grey[100],
                   child: Image.network(
-                    recipe.imageFullUrl!,
+                    widget.recipe.imageFullUrl!,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -93,7 +157,7 @@ class RecipeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    recipe.name,
+                    widget.recipe.name,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -101,6 +165,60 @@ class RecipeCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (displayUsername != null) ...[
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () async {
+                        final currentUserId =
+                            await StorageService.getUserId();
+                        if (currentUserId != null &&
+                            int.parse(currentUserId) ==
+                                widget.recipe.creatorId) {
+                          // Don't navigate if viewing own recipe
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OtherUserProfileScreen(
+                              userId: widget.recipe.creatorId,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            size: 14,
+                            color: Colors.blue[700],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            displayUsername!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue[700],
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else if (_isLoadingUsername) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -113,7 +231,7 @@ class RecipeCard extends StatelessWidget {
                       Text(
                         // recipe.mealType,
                         // Localize meal type using helper to keep backend identifiers mapping
-                        localizeMealType(recipe.mealType, context),
+                        localizeMealType(widget.recipe.mealType, context),
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(width: 16),
@@ -125,12 +243,12 @@ class RecipeCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         // '${recipe.totalTime} mins',
-                        '${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                        '${widget.recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
-                  if (recipe.costPerServing != null) ...[
+                  if (widget.recipe.costPerServing != null) ...[
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -141,7 +259,7 @@ class RecipeCard extends StatelessWidget {
                         ),
                         Text(
                           // '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)} per serving',
-                          '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)} ${AppLocalizations.of(context)!.costPerServingSuffix}',
+                          '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${widget.recipe.costPerServing!.toStringAsFixed(2)} ${AppLocalizations.of(context)!.costPerServingSuffix}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],

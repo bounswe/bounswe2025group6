@@ -326,7 +326,10 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                     itemCount: _filteredRecipes.length,
                     itemBuilder: (context, index) {
                       final recipe = _filteredRecipes[index];
-                      return RecipeCard(recipe: recipe);
+                      return RecipeCard(
+                        recipe: recipe,
+                        creatorUsername: recipe.creatorUsername,
+                      );
                     },
                   );
                 } else {
