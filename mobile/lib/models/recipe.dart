@@ -211,8 +211,8 @@ class IngredientQuantity {
       ingredient: IngredientDetail.fromJson(
         json['ingredient'] as Map<String, dynamic>,
       ),
-      quantity: (json['quantity'] as num).toDouble(),
-      unit: json['unit'] as String,
+      quantity: double.tryParse(json['quantity']?.toString() ?? '') ?? 0.0,
+      unit: json['unit']?.toString() ?? '',
     );
   }
 }
