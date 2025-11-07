@@ -359,6 +359,11 @@ def get_user_recipe_count(request, user_id):
     """
     try:
         recipe_count = Recipe.objects.filter(creator_id=user_id).count()
-        return Response({'user_id': user_id, 'recipe_count': recipe_count}, status=status.HTTP_200_OK)
+        badge = None
+        if recipe_count >=20:
+            badge = "Experienced Home Cook"
+        elif recipe_count >=5:
+            badge = "Home Cook"
+        return Response({'user_id': user_id, 'recipe_count': recipe_count, 'badge': badge}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
