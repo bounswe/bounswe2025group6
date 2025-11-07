@@ -9,13 +9,25 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
-from . import views as api_views
-from .views import (
-    RequestResetCodeView, VerifyResetCodeView, ResetPasswordView,
-    RegisteredUserViewSet
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
+
+# Use absolute imports from api package
+from api import views as api_views
+from api.views import (
+    RequestResetCodeView,
+    VerifyResetCodeView,
+    ResetPasswordView,
+    RegisteredUserViewSet,
 )
-from .models import (
-    RegisteredUser, PasswordResetCode, PasswordResetToken, LoginAttempt
+from api.models import (
+    RegisteredUser,
+    PasswordResetCode,
+    PasswordResetToken,
+    LoginAttempt,
 )
 from recipes.models import Recipe  # may raise if recipes app not present
 
@@ -171,3 +183,15 @@ class EndpointAPITests(TestCase):
         resp = view(req)
         assert resp.status_code == 200
         assert resp.data.get("status") == "recipe bookmarked"
+
+
+class ApiTests(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+
+    def test_example(self):
+        self.assertTrue(True)
