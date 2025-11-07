@@ -263,3 +263,22 @@ SITE_DOMAIN = "http://95.179.161.59:8000"
 # Login attempt settings
 LOGIN_ATTEMPT_LIMIT = 5
 LOGIN_ATTEMPT_TIMEOUT = 15  # minutes
+
+# ...existing code...
+
+if 'test' in sys.argv:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'null': {
+                'class': 'logging.NullHandler',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['null'],
+                'level': 'CRITICAL',
+            },
+        },
+    }
