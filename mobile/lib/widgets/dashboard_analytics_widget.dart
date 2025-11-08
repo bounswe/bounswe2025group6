@@ -7,8 +7,9 @@ import '../services/analytics_service.dart';
 
 class DashboardAnalyticsWidget extends StatefulWidget {
   final AnalyticsService? service;
+  final int? refreshTick; // triggers reload when changed
 
-  const DashboardAnalyticsWidget({super.key, this.service});
+  const DashboardAnalyticsWidget({super.key, this.service, this.refreshTick});
 
   @override
   State<DashboardAnalyticsWidget> createState() =>
@@ -17,6 +18,7 @@ class DashboardAnalyticsWidget extends StatefulWidget {
 
 class _DashboardAnalyticsWidgetState extends State<DashboardAnalyticsWidget> {
   late Future<Analytics> _future;
+  int? _lastRefreshTick;
 
   @override
   void initState() {
@@ -28,6 +30,18 @@ class _DashboardAnalyticsWidgetState extends State<DashboardAnalyticsWidget> {
     setState(() {
       _future = (widget.service ?? AnalyticsService()).getAnalytics();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardAnalyticsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If refreshTick changed, refetch analytics
+    if (widget.refreshTick != null && widget.refreshTick != _lastRefreshTick) {
+      _lastRefreshTick = widget.refreshTick;
+      setState(() {
+        _future = (widget.service ?? AnalyticsService()).getAnalytics();
+      });
+    }
   }
 
   @override
