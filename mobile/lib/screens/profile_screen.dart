@@ -379,16 +379,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ? '${profile.followedUsers!.length} ${AppLocalizations.of(context)!.users}'
                 : '0 ${AppLocalizations.of(context)!.users}',
             onTap: () {
-              if (profile.followedUsers != null && profile.followedUsers!.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FollowingUsersScreen(
-                      followedUserIds: profile.followedUsers!,
-                    ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowingUsersScreen(
+                    followedUserIds: profile.followedUsers ?? [],
                   ),
-                );
-              }
+                ),
+              );
             },
           ),
           _buildInfoTile(

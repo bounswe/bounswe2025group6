@@ -131,7 +131,7 @@ class _FollowingUsersScreenState extends State<FollowingUsersScreen> {
               ),
               SizedBox(height: 16),
               Text(
-                'No users followed yet',
+                AppLocalizations.of(context)!.noUsersFollowedYet,
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey.shade600,
