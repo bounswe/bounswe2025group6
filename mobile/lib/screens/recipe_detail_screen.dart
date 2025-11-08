@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe.dart';
+import '../models/recipe_rating.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
+import '../services/rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
+import '../widgets/rating_display.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
 
@@ -20,13 +23,36 @@ class RecipeDetailScreen extends StatefulWidget {
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
+  final RatingService _ratingService = RatingService();
   late Future<Recipe> _recipeFuture;
   Recipe? _currentRecipe; // Store the loaded recipe for report button
+  RecipeRating? _userRating; // Store user's rating for this recipe
 
   @override
   void initState() {
     super.initState();
     _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+    _loadUserRating();
+  }
+
+  Future<void> _loadUserRating() async {
+    try {
+      final rating = await _ratingService.getUserRating(widget.recipeId);
+      if (mounted) {
+        setState(() {
+          _userRating = rating;
+        });
+      }
+    } catch (e) {
+      // Silently handle error - user might not have rated yet
+    }
+  }
+
+  Future<void> _refreshRecipe() async {
+    setState(() {
+      _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+    });
+    await _loadUserRating();
   }
 
   @override
@@ -419,6 +445,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   .cast<Widget>()
                                   .toList(),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Rating Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: RatingDisplay(
+                        recipe: recipe,
+                        userRating: _userRating,
+                        onRatingChanged: _refreshRecipe,
                       ),
                     ),
                     const SizedBox(height: 24),
