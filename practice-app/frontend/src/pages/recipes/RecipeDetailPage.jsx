@@ -120,6 +120,11 @@ const RecipeDetailPage = () => {
       console.error('Error refreshing recipe after rating change:', error);
     }
   };
+
+  const handleBookmarkClick = () => {
+    console.log('Bookmark clicked for recipe:', recipe.id);
+  };
+
   useEffect(() => {
     const loadRecipeAndImage = async () => {
       try {
@@ -291,6 +296,14 @@ const RecipeDetailPage = () => {
             <ReportButton targetType="recipe" targetId={id} />
           </div>
         )}
+        {/* Bookmark button and Creator information positioned at bottom right */}
+        <button
+          className="bookmark-button"
+          onClick={handleBookmarkClick}
+          title="Bookmark this recipe"
+        >
+          📌
+        </button>
         {/* Creator information positioned at bottom right */}
         <div className="creator-info-bottom-right">
           <p className="creator-name">
