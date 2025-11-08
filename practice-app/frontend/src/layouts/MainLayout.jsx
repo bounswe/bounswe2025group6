@@ -132,7 +132,7 @@ const MainLayout = () => {
           <p>© {new Date().getFullYear()} FitHub </p>
 
           <div className="layout-footer-links">
-            <p>Cmpe352 Group 6</p>
+            <p>Cmpe451 Group 6</p>
           </div>
         </div>
       </footer>
