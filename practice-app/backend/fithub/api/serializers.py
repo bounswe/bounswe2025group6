@@ -77,6 +77,10 @@ class LoginSerializer(serializers.Serializer):
         if not user.is_active:
             raise serializers.ValidationError('User account is inactive.')
 
+        # Check if user is soft deleted
+        if user.deleted_on is not None:
+            raise serializers.ValidationError('User account has been deleted.')
+
         attrs['user'] = user
         return attrs
 
