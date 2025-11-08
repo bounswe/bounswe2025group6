@@ -260,27 +260,25 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                 ),
           ),
         ),
-        if (profile.publicProfile) ...[
-          Center(
-            child: Text(
-              profile.email,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: Colors.grey.shade700),
-            ),
+        Center(
+          child: Text(
+            profile.publicProfile ? profile.email : 'Private',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(color: Colors.grey.shade700),
           ),
-          SizedBox(height: 10),
-          Center(
-            child: Text(
-              '${AppLocalizations.of(context)!.joinedLabel}: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey.shade600),
-            ),
+        ),
+        SizedBox(height: 10),
+        Center(
+          child: Text(
+            '${AppLocalizations.of(context)!.joinedLabel}: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.grey.shade600),
           ),
-        ],
+        ),
         SizedBox(height: 20),
         Center(
           child: ElevatedButton.icon(
@@ -308,48 +306,33 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
             ),
           ),
         ),
-        if (profile.publicProfile) ...[
-          SizedBox(height: 30),
-          _buildSectionTitle(
-              context, AppLocalizations.of(context)!.activityStats),
-          _buildInfoCard([
-            _buildInfoTile(
-              Icons.receipt_long_outlined,
-              AppLocalizations.of(context)!.recipesCreated,
-              profile.recipeCount?.toString() ??
-                  AppLocalizations.of(context)!.notSet,
-            ),
-            _buildInfoTile(
-              Icons.star_border_outlined,
-              AppLocalizations.of(context)!.avgRecipeRating,
-              profile.avgRecipeRating != null
-                  ? '${profile.avgRecipeRating!.toStringAsFixed(1)} ★'
-                  : AppLocalizations.of(context)!.notSet,
-            ),
-            _buildInfoTile(
-              Icons.soup_kitchen_outlined,
-              AppLocalizations.of(context)!.cookingSkill,
-              profile.typeOfCook ?? AppLocalizations.of(context)!.notSet,
-            ),
-          ]),
-          SizedBox(height: 20),
-          _buildSectionTitle(
-              context, AppLocalizations.of(context)!.myRecipes),
-          _buildUserRecipesSection(),
-        ] else ...[
-          SizedBox(height: 30),
-          Center(
-            child: Text(
-              AppLocalizations.of(context)!.privateProfileMessage,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 16,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.center,
-            ),
+        SizedBox(height: 30),
+        _buildSectionTitle(
+            context, AppLocalizations.of(context)!.activityStats),
+        _buildInfoCard([
+          _buildInfoTile(
+            Icons.receipt_long_outlined,
+            AppLocalizations.of(context)!.recipesCreated,
+            profile.recipeCount?.toString() ??
+                AppLocalizations.of(context)!.notSet,
           ),
-        ],
+          _buildInfoTile(
+            Icons.star_border_outlined,
+            AppLocalizations.of(context)!.avgRecipeRating,
+            profile.avgRecipeRating != null
+                ? '${profile.avgRecipeRating!.toStringAsFixed(1)} ★'
+                : AppLocalizations.of(context)!.notSet,
+          ),
+          _buildInfoTile(
+            Icons.soup_kitchen_outlined,
+            AppLocalizations.of(context)!.cookingSkill,
+            profile.typeOfCook ?? AppLocalizations.of(context)!.notSet,
+          ),
+        ]),
+        SizedBox(height: 20),
+        _buildSectionTitle(
+            context, AppLocalizations.of(context)!.myRecipes),
+        _buildUserRecipesSection(),
         SizedBox(height: 40),
       ],
     );
