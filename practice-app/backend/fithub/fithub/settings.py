@@ -267,3 +267,22 @@ SERVER_PROTOCOL = 'https' if os.environ.get('COMPOSE_PROFILES') == 'https' else 
 # Login attempt settings
 LOGIN_ATTEMPT_LIMIT = 5
 LOGIN_ATTEMPT_TIMEOUT = 15  # minutes
+
+# ...existing code...
+
+if 'test' in sys.argv:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'null': {
+                'class': 'logging.NullHandler',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['null'],
+                'level': 'CRITICAL',
+            },
+        },
+    }
