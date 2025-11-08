@@ -21,5 +21,8 @@ def update_like_count_on_delete(sender, instance, **kwargs):
 @receiver(post_delete, sender=RecipeIngredient)
 def update_recipe_cost(sender, instance, **kwargs):
     recipe = instance.recipe
-    recipe.cost_per_serving = recipe.calculate_cost_per_serving()
+    # Use the recipe creator's currency preference for the stored value
+    # Note: The API response will calculate this dynamically based on the requesting user's currency
+    user = recipe.creator
+    recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
     recipe.save(update_fields=['cost_per_serving'])

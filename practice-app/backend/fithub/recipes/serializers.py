@@ -276,7 +276,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def get_cost_per_serving(self, obj):
         """
         Dynamically calculate cost_per_serving based on the current user's preferred currency.
-        This ensures the cost updates when the user switches currencies.
+        This ensures the cost updates when the user switches currencies, matching recipe_costs behavior.
         """
         request = self.context.get("request")
         user = getattr(request, "user", None)
@@ -375,7 +375,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     def get_cost_per_serving(self, obj):
         """
         Dynamically calculate cost_per_serving based on the current user's preferred currency.
-        This ensures the cost updates when the user switches currencies.
+        This ensures the cost updates when the user switches currencies, matching recipe_costs behavior.
         """
         request = self.context.get("request")
         user = getattr(request, "user", None)

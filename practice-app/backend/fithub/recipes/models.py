@@ -91,7 +91,6 @@ class Recipe(TimestampedModel):
         """
         Calculates the recipe cost of the recipe for each market.
         """
-        
         total_market_prices = {
             "A101": Decimal("0.0"),
             "SOK": Decimal("0.0"),
@@ -114,7 +113,6 @@ class Recipe(TimestampedModel):
                 price = market_prices.get(market)
                 if price is not None:
                     total_market_prices[market] += Decimal(price)
-
                     
         # Round all values to 2 decimals for output
         return {m: c.quantize(Decimal("0.01")) for m, c in total_market_prices.items()}
