@@ -12,11 +12,13 @@ import '../services/profile_service.dart';
 class RecipeCard extends StatefulWidget {
   final Recipe recipe;
   final String? creatorUsername;
+  final VoidCallback? onRefresh;
 
   const RecipeCard({
     Key? key,
     required this.recipe,
     this.creatorUsername,
+    this.onRefresh,
   }) : super(key: key);
 
   @override
@@ -80,15 +82,17 @@ class _RecipeCardState extends State<RecipeCard> {
       clipBehavior: Clip.antiAlias,
       elevation: 2,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           // Navigate to RecipeDetailScreen
-          Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) =>
                   RecipeDetailScreen(recipeId: widget.recipe.id),
             ),
           );
+          // Refresh the list when returning from detail screen
+          widget.onRefresh?.call();
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,6 +269,102 @@ class _RecipeCardState extends State<RecipeCard> {
                             color: Colors.grey[600],
                           ),
                         ),
+                      ],
+                    ),
+                  ],
+                  // Rating display
+                  if (widget.recipe.tasteRating != null ||
+                      widget.recipe.difficultyRating != null ||
+                      widget.recipe.healthRating != null) ...[
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 4,
+                      children: [
+                        if (widget.recipe.tasteRating != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Colors.amber[700],
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                widget.recipe.tasteRating!.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${widget.recipe.tasteRatingCount})',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (widget.recipe.difficultyRating != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.trending_up,
+                                size: 14,
+                                color: Colors.orange[700],
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                widget.recipe.difficultyRating!.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${widget.recipe.difficultyRatingCount})',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (widget.recipe.healthRating != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.favorite,
+                                size: 14,
+                                color: Colors.green[700],
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                widget.recipe.healthRating!.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${widget.recipe.healthRatingCount})',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ],
