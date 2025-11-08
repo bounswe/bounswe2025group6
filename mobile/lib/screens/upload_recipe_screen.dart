@@ -475,13 +475,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     if (pattern.isEmpty) {
                                       return [];
                                     }
-                                    return _allIngredients
-                                        .where(
-                                          (ingredient) => ingredient.name
-                                              .toLowerCase()
-                                              .contains(pattern.toLowerCase()),
-                                        )
-                                        .toList(); // Added .toList()
+                                    final q = pattern.toLowerCase();
+                                    return _allIngredients.where((ingredient) {
+                                      // Match against localized display AND raw backend name
+                                      final localized =
+                                          translateIngredient(
+                                            context,
+                                            ingredient.name,
+                                          ).toLowerCase();
+                                      final raw = ingredient.name.toLowerCase();
+                                      return localized.contains(q) ||
+                                          raw.contains(q);
+                                    }).toList();
                                   },
                                   builder: (context, controller, focusNode) {
                                     // Assign the provided controller to our TextEditingController instance
