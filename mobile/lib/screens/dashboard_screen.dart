@@ -8,6 +8,7 @@ import 'upload_recipe_screen.dart'; // Added import for UploadRecipeScreen
 import '../services/auth_service.dart';
 import 'community/community_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/dashboard_analytics_widget.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AuthService? authService;
@@ -46,7 +47,9 @@ class DashboardScreen extends StatelessWidget {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: Text(AppLocalizations.of(context)!.logout),
-                    content: Text(AppLocalizations.of(context)!.logoutConfirmation),
+                    content: Text(
+                      AppLocalizations.of(context)!.logoutConfirmation,
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -81,7 +84,11 @@ class DashboardScreen extends StatelessWidget {
                   // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.logoutFailed(e.toString())),
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.logoutFailed(e.toString()),
+                      ),
                       backgroundColor: AppTheme.errorColor,
                     ),
                   );
@@ -114,6 +121,11 @@ class DashboardScreen extends StatelessWidget {
                 AppLocalizations.of(context)!.dashboardSubtitle,
                 style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
               ),
+              const SizedBox(height: 24),
+
+              // Dashboard Analytics section
+              const DashboardAnalyticsWidget(),
+
               const SizedBox(height: 24),
 
               // Quick action buttons
