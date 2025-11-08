@@ -333,11 +333,52 @@ class RecipeService {
     }
   }
 
-  // Unbookmarks a recipe for the current user (toggles bookmark).
-  // Since the backend uses the same endpoint for both bookmark and unbookmark,
-  // calling it again removes the bookmark.
+  // Unbookmarks a recipe for the current user.
   Future<bool> unbookmarkRecipe(int recipeId) async {
-    // The backend bookmark_recipe endpoint acts as a toggle
-    return await bookmarkRecipe(recipeId);
+    final String url = '$baseUrl/api/users/unbookmark_recipe/';
+
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
+      throw Exception(
+        'JWT Access token is not available. Please log in again.',
+      );
+    }
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'recipe_id': recipeId}),
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.post(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode({'recipe_id': recipeId}),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        return true;
+      } else if (response.statusCode == 400) {
+        // Recipe not bookmarked or missing recipe_id
+        final responseBody = jsonDecode(response.body);
+        throw Exception(responseBody['error'] ?? 'Bad request');
+      } else if (response.statusCode == 404) {
+        // Recipe not found
+        final responseBody = jsonDecode(response.body);
+        throw Exception(responseBody['error'] ?? 'Recipe not found');
+      } else {
+        throw Exception(
+          'Failed to unbookmark recipe (status code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to unbookmark recipe: $e');
+    }
   }
 }
