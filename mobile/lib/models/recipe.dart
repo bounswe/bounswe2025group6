@@ -31,6 +31,8 @@ class Recipe {
   final List<String> dietaryInfo;
   final String? imageFullUrl; // Image URL from Cloudinary
   final String? imageRelativeUrl; // Relative path
+  final Map<String, dynamic>? recipeCosts; // Market prices from backend
+  final Map<String, dynamic>? recipeNutritions; // Nutrition info from backend
 
   Recipe({
     required this.id,
@@ -62,6 +64,8 @@ class Recipe {
     required this.dietaryInfo,
     this.imageFullUrl,
     this.imageRelativeUrl,
+    this.recipeCosts,
+    this.recipeNutritions,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -95,14 +99,14 @@ class Recipe {
       mealType: json['meal_type']?.toString() ?? '',
       creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
       ingredients: ingredientsList,
-      costPerServing:
-          double.tryParse(json['cost_per_serving']?.toString() ?? '') ?? null,
-      difficultyRating:
-          double.tryParse(json['difficulty_rating']?.toString() ?? '') ?? null,
-      tasteRating:
-          double.tryParse(json['taste_rating']?.toString() ?? '') ?? null,
-      healthRating:
-          double.tryParse(json['health_rating']?.toString() ?? '') ?? null,
+      costPerServing: double.tryParse(
+        json['cost_per_serving']?.toString() ?? '',
+      ),
+      difficultyRating: double.tryParse(
+        json['difficulty_rating']?.toString() ?? '',
+      ),
+      tasteRating: double.tryParse(json['taste_rating']?.toString() ?? ''),
+      healthRating: double.tryParse(json['health_rating']?.toString() ?? ''),
       likeCount: int.tryParse(json['like_count']?.toString() ?? '') ?? 0,
       commentCount: int.tryParse(json['comment_count']?.toString() ?? '') ?? 0,
       difficultyRatingCount:
@@ -130,6 +134,14 @@ class Recipe {
       dietaryInfo: dietaryInfoList,
       imageFullUrl: json['image_full_url']?.toString(),
       imageRelativeUrl: json['image_relative_url']?.toString(),
+      recipeCosts:
+          json['recipe_costs'] is Map
+              ? json['recipe_costs'] as Map<String, dynamic>?
+              : null,
+      recipeNutritions:
+          json['recipe_nutritions'] is Map
+              ? json['recipe_nutritions'] as Map<String, dynamic>?
+              : null,
     );
   }
 
@@ -143,14 +155,14 @@ class Recipe {
       mealType: json['meal_type']?.toString() ?? '',
       creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
       ingredients: [], // Not in list view in detail
-      costPerServing:
-          double.tryParse(json['cost_per_serving']?.toString() ?? '') ?? null,
-      difficultyRating:
-          double.tryParse(json['difficulty_rating']?.toString() ?? '') ?? null,
-      tasteRating:
-          double.tryParse(json['taste_rating']?.toString() ?? '') ?? null,
-      healthRating:
-          double.tryParse(json['health_rating']?.toString() ?? '') ?? null,
+      costPerServing: double.tryParse(
+        json['cost_per_serving']?.toString() ?? '',
+      ),
+      difficultyRating: double.tryParse(
+        json['difficulty_rating']?.toString() ?? '',
+      ),
+      tasteRating: double.tryParse(json['taste_rating']?.toString() ?? ''),
+      healthRating: double.tryParse(json['health_rating']?.toString() ?? ''),
       likeCount: int.tryParse(json['like_count']?.toString() ?? '') ?? 0,
       commentCount: int.tryParse(json['comment_count']?.toString() ?? '') ?? 0,
       difficultyRatingCount:
@@ -175,6 +187,14 @@ class Recipe {
       dietaryInfo: [], // Not in list view example
       imageFullUrl: json['image_full_url']?.toString(),
       imageRelativeUrl: json['image_relative_url']?.toString(),
+      recipeCosts:
+          json['recipe_costs'] is Map
+              ? json['recipe_costs'] as Map<String, dynamic>?
+              : null,
+      recipeNutritions:
+          json['recipe_nutritions'] is Map
+              ? json['recipe_nutritions'] as Map<String, dynamic>?
+              : null,
     );
   }
 }
@@ -211,8 +231,8 @@ class IngredientQuantity {
       ingredient: IngredientDetail.fromJson(
         json['ingredient'] as Map<String, dynamic>,
       ),
-      quantity: (json['quantity'] as num).toDouble(),
-      unit: json['unit'] as String,
+      quantity: double.tryParse(json['quantity']?.toString() ?? '') ?? 0.0,
+      unit: json['unit']?.toString() ?? '',
     );
   }
 }
