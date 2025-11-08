@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/recipe.dart';
 import '../models/daily_meal_plan.dart';
 import '../models/shopping_list.dart';
 import '../models/user_profile.dart';
 import '../services/meal_planner_service.dart';
 import '../services/profile_service.dart';
+import '../services/recipe_service.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/meal_planner_filter_panel.dart';
 import '../widgets/recipe_selector_dialog.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
+import '../utils/date_formatter.dart';
 
 class MealPlannerScreen extends StatefulWidget {
   const MealPlannerScreen({Key? key}) : super(key: key);
@@ -81,7 +85,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     try {
       final result = await _mealPlannerService.getMealPlannerRecipes(
         pageSize: 20,
-        isApproved: true,
+        
       );
       if (mounted) {
         setState(() {
@@ -128,7 +132,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         minHealthRating: _filters['minHealthRating'],
         maxHealthRating: _filters['maxHealthRating'],
         hasImage: _filters['hasImage'],
-        isApproved: true,
+        isApproved: _filters['approvedOnly'], 
+        isFeatured: _filters['featuredOnly'],
         pageSize: 50,
       );
 
@@ -239,7 +244,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     }
   }
 
-  void _generateShoppingList() {
+  Future<void> _generateShoppingList() async {
     if (!_mealPlan.hasRecipes()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -249,17 +254,48 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       return;
     }
 
+    // Show loading
     setState(() {
-      _shoppingList = ShoppingList.fromRecipes(_mealPlan.getAllRecipes());
-      _tabController.animateTo(2); // Switch to shopping list tab
+      _isLoading = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.shoppingListGenerated),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
+    try {
+      // Fetch full recipe details for all selected recipes
+      final recipeService = RecipeService();
+      final List<Recipe> detailedRecipes = [];
+
+      for (var recipe in _mealPlan.getAllRecipes()) {
+        final detailedRecipe = await recipeService.getRecipeDetails(recipe.id);
+        detailedRecipes.add(detailedRecipe);
+      }
+
+      if (mounted) {
+        setState(() {
+          _shoppingList = ShoppingList.fromRecipes(detailedRecipes);
+          _isLoading = false;
+          _tabController.animateTo(2); // Switch to shopping list tab
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.shoppingListGenerated),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate shopping list: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   // Used by recipe selector in Step 6
@@ -653,9 +689,125 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       itemCount: _browseRecipes.length,
       itemBuilder: (context, index) {
         final recipe = _browseRecipes[index];
-        return RecipeCard(recipe: recipe);
+        return _buildBrowseRecipeCard(recipe, localizations);
       },
     );
+  }
+
+  Widget _buildBrowseRecipeCard(Recipe recipe, AppLocalizations localizations) {
+    // Check if recipe is already in meal plan
+    final isInBreakfast = _mealPlan.breakfast?.id == recipe.id;
+    final isInLunch = _mealPlan.lunch?.id == recipe.id;
+    final isInDinner = _mealPlan.dinner?.id == recipe.id;
+    final isInPlan = isInBreakfast || isInLunch || isInDinner;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RecipeCard(recipe: recipe),
+          if (!isInPlan) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: PopupMenuButton<String>(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add_circle, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        localizations.addToMealPlan,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    ],
+                  ),
+                ),
+                onSelected: (mealType) {
+                  _addRecipeToMealPlan(recipe, mealType);
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'breakfast',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.wb_sunny),
+                        const SizedBox(width: 8),
+                        Text(localizations.breakfastSection),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'lunch',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.lunch_dining),
+                        const SizedBox(width: 8),
+                        Text(localizations.lunchSection),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'dinner',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.dinner_dining),
+                        const SizedBox(width: 8),
+                        Text(localizations.dinnerSection),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppTheme.successColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.successColor),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle, color: AppTheme.successColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${localizations.addedTo} ${_getRecipeMealType(recipe, localizations)}',
+                      style: const TextStyle(
+                        color: AppTheme.successColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _getRecipeMealType(Recipe recipe, AppLocalizations localizations) {
+    if (_mealPlan.breakfast?.id == recipe.id) return localizations.breakfastSection;
+    if (_mealPlan.lunch?.id == recipe.id) return localizations.lunchSection;
+    if (_mealPlan.dinner?.id == recipe.id) return localizations.dinnerSection;
+    return '';
   }
 
   Widget _buildShoppingListTab(
@@ -684,8 +836,48 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       );
     }
 
+    final allChecked = _shoppingList!.items.every((item) => item.isChecked);
+
     return Column(
       children: [
+        // Select/Deselect All Button
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      final shouldCheck = !allChecked;
+                      for (var item in _shoppingList!.items) {
+                        item.isChecked = shouldCheck;
+                      }
+                    });
+                  },
+                  icon: Icon(allChecked ? Icons.check_box_outline_blank : Icons.check_box),
+                  label: Text(allChecked ? localizations.deselectAll : localizations.selectAll),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryGreen,
+                    side: const BorderSide(color: AppTheme.primaryGreen),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                localizations.checkedItems(
+                  _shoppingList!.getCheckedItemsCount().toString(),
+                  _shoppingList!.items.length.toString(),
+                ),
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+        
         Expanded(
           child: ListView.builder(
             itemCount: _shoppingList!.items.length,
@@ -798,11 +990,97 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     );
   }
 
-  void _shareShoppingList(CurrencyProvider currencyProvider) {
-    // TODO: Implement share functionality (Step 10)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Share functionality - Coming in step 10')),
+  Future<void> _shareShoppingList(CurrencyProvider currencyProvider) async {
+    if (_shoppingList == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.noIngredientsInList),
+        ),
+      );
+      return;
+    }
+
+    final localizations = AppLocalizations.of(context)!;
+
+    // Format the date according to user's preference
+    final formattedDate = _userProfile != null
+        ? DateFormatter.formatDate(
+            _shoppingList!.createdAt,
+            preferredFormat: _userProfile!.preferredDateFormat,
+            includeTime: true,
+          )
+        : DateFormatter.formatDate(
+            _shoppingList!.createdAt,
+            includeTime: true,
+          );
+
+    // Generate plain text format with localized labels
+    final text = _shoppingList!.toPlainText(
+      currencySymbol: currencyProvider.symbol,
+      formattedDate: formattedDate,
+      titleLabel: localizations.shoppingListExportTitle,
+      generatedLabel: localizations.generatedLabel,
+      recipesLabel: localizations.recipesLabel,
+      ingredientsLabel: localizations.ingredientsExportLabel,
+      itemsLabel: localizations.itemsCount('').replaceAll(RegExp(r'\d+'), '').trim(),
+      totalCostLabel: localizations.totalCost,
+      costByRetailerLabel: localizations.costByRetailerLabel,
+      bestLabel: localizations.bestRetailerLabel,
+      footerLabel: localizations.generatedByFitHub,
     );
+
+    try {
+      // Try to share using the system share dialog
+      await Share.share(
+        text,
+        subject: AppLocalizations.of(context)!.shoppingList,
+      );
+
+      // Show success message after sharing
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.shoppingListShared),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      // Fallback: Copy to clipboard if share fails (e.g., on emulator)
+      if (e.toString().contains('MissingPluginException')) {
+        try {
+          await Clipboard.setData(ClipboardData(text: text));
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Shopping list copied to clipboard!'),
+                backgroundColor: AppTheme.successColor,
+              ),
+            );
+          }
+        } catch (clipboardError) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${AppLocalizations.of(context)!.failedToShareShoppingList}: $clipboardError'),
+                backgroundColor: AppTheme.errorColor,
+              ),
+            );
+          }
+        }
+      } else {
+        // Other errors
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${AppLocalizations.of(context)!.failedToShareShoppingList}: $e'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    }
   }
 }
 

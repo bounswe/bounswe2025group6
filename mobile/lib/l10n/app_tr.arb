@@ -738,5 +738,30 @@
     "maxLessThanMin": "Maks < Min",
     "@maxLessThanMin": { "description": "Error when max is less than min in Turkish" },
     "ok": "Tamam",
-    "@ok": { "description": "OK button text in Turkish" }
+    "@ok": { "description": "OK button text in Turkish" },
+
+    "addedTo": "Eklendi:",
+    "@addedTo": { "description": "Prefix for 'Added to Breakfast/Lunch/Dinner' in Turkish" },
+
+    "shoppingListExportTitle": "Alışveriş Listesi",
+    "@shoppingListExportTitle": { "description": "Title for exported shopping list in Turkish" },
+    "generatedLabel": "Oluşturulma Zamanı",
+    "@generatedLabel": { "description": "Label for generated date in export in Turkish" },
+    "recipesLabel": "Tarifler",
+    "@recipesLabel": { "description": "Recipes section label in export in Turkish" },
+    "ingredientsExportLabel": "Malzemeler",
+    "@ingredientsExportLabel": { "description": "Ingredients section label with count in Turkish" },
+    "itemsCount": "{count} öğe",
+    "@itemsCount": { "description": "Items count label in Turkish", "placeholders": { "count": {} } },
+    "costByRetailerLabel": "Marketlere Göre Fiyat",
+    "@costByRetailerLabel": { "description": "Cost by retailer section label in Turkish" },
+    "bestRetailerLabel": "En İyi",
+    "@bestRetailerLabel": { "description": "Best retailer label in Turkish" },
+    "generatedByFitHub": "FitHub Öğün Planlayıcı tarafından oluşturuldu",
+    "@generatedByFitHub": { "description": "Footer text in exported shopping list in Turkish" },
+
+    "selectAll": "Tümünü Seç",
+    "@selectAll": { "description": "Button to select all items in Turkish" },
+    "deselectAll": "Tümünü Kaldır",
+    "@deselectAll": { "description": "Button to deselect all items in Turkish" }
 }

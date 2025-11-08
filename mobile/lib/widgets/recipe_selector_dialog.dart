@@ -61,7 +61,8 @@ class _RecipeSelectorDialogState extends State<RecipeSelectorDialog> {
         minHealthRating: widget.filters['minHealthRating'],
         maxHealthRating: widget.filters['maxHealthRating'],
         hasImage: widget.filters['hasImage'],
-        isApproved: true,
+        isApproved: widget.filters['approvedOnly'],
+        isFeatured: widget.filters['featuredOnly'],
         pageSize: 50,
       );
 
