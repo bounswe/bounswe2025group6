@@ -142,5 +142,10 @@ class WikidataInfo(models.Model):
     nutrition = models.JSONField(null=True, blank=True)  # Example: {"calories": 50, "protein": 1.2}
 
     def __str__(self):
-        return f"Wikidata Info for {self.ingredient.name}"
+        try:
+            # Ingredient is defined in the same file, so we can reference it directly
+            ingredient = Ingredient.objects.get(id=self.ingredient_id)
+            return f"Wikidata Info for {ingredient.name}"
+        except Ingredient.DoesNotExist:
+            return f"Wikidata Info for ingredient_id={self.ingredient_id}"
 

@@ -91,7 +91,6 @@ class Recipe(TimestampedModel):
         """
         Calculates the recipe cost of the recipe for each market.
         """
-        print(f"DEBUG: Calculating recipe cost for recipe '{self.name}'")
         
         total_market_prices = {
             "A101": Decimal("0.0"),
@@ -115,9 +114,7 @@ class Recipe(TimestampedModel):
                 price = market_prices.get(market)
                 if price is not None:
                     total_market_prices[market] += Decimal(price)
-                else:
-                    print(f"DEBUG: No price for ingredient '{ingredient.name}' in market '{market}'")
-                    print(f"DEBUG: Market prices: {market_prices}")
+
                     
         # Round all values to 2 decimals for output
         return {m: c.quantize(Decimal("0.01")) for m, c in total_market_prices.items()}
