@@ -73,17 +73,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       final post = _posts[index];
                       return PostCard(
                         post: post,
-                        onVoteChanged: _loadPosts, // Pass the refresh callback
+                        onVoteChanged: null, // Don't refresh on vote
                         onTap: () async {
-                          final result = await Navigator.pushNamed(
+                          await Navigator.pushNamed(
                             context,
                             '/community/detail',
                             arguments: post['id'],
                           );
-                          // Refresh posts if changes were made in detail screen
-                          if (result == true) {
-                            _loadPosts();
-                          }
+                          // Don't refresh - maintain scroll position
                         },
                       );
                     },

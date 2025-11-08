@@ -393,7 +393,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 MaterialPageRoute(
                   builder: (context) => BookmarkedRecipesScreen(),
                 ),
-              ).then((_) => _loadUserProfile());
+              );
             },
           ),
           _buildInfoTile(
