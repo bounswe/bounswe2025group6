@@ -1,3 +1,4 @@
+import 'package:fithub/screens/bookmarked_recipes_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../models/recipe.dart'; 
@@ -6,6 +7,7 @@ import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/recipe_card.dart'; 
 import './profile_settings_screen.dart';
+import './bookmarked_recipes_screen.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import 'package:provider/provider.dart';
 import '../providers/currency_provider.dart';
@@ -38,10 +40,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoadingRecipes = true;
   String? _recipesErrorMessage;
 
-  List<Recipe> _bookmarkedRecipes = [];
-  bool _isLoadingBookmarkedRecipes = true;
-  String? _bookmarkedRecipesErrorMessage;
-
   @override
   void initState() {
     super.initState();
@@ -65,7 +63,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
       if (_userProfile != null) {
         _loadAndFilterUserRecipes(); // Load recipes after profile is loaded
-        _loadBookmarkedRecipes(); // Load bookmarked recipes
       }
     } catch (e) {
       if (!mounted) return;
@@ -117,51 +114,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoadingRecipes = false;
         // _recipesErrorMessage = 'Failed to load recipes: $e';
         _recipesErrorMessage = AppLocalizations.of(context)!.failedToLoadRecipes(e.toString());
-      });
-    }
-  }
-
-  Future<void> _loadBookmarkedRecipes() async {
-    if (_userProfile?.bookmarkRecipes == null || _userProfile!.bookmarkRecipes!.isEmpty) {
-      if (mounted) {
-        setState(() {
-          _bookmarkedRecipes = [];
-          _isLoadingBookmarkedRecipes = false;
-        });
-      }
-      return;
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _isLoadingBookmarkedRecipes = true;
-      _bookmarkedRecipesErrorMessage = null;
-    });
-
-    try {
-      final List<Recipe> loadedRecipes = [];
-      
-      // Load each bookmarked recipe by ID
-      for (int recipeId in _userProfile!.bookmarkRecipes!) {
-        try {
-          final recipe = await _recipeService.getRecipeDetails(recipeId);
-          loadedRecipes.add(recipe);
-        } catch (e) {
-          // Skip recipes that fail to load
-          print('Failed to load recipe $recipeId: $e');
-        }
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _bookmarkedRecipes = loadedRecipes;
-        _isLoadingBookmarkedRecipes = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoadingBookmarkedRecipes = false;
-        _bookmarkedRecipesErrorMessage = AppLocalizations.of(context)!.failedToLoadRecipes(e.toString());
       });
     }
   }
@@ -427,6 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.followedUsers != null
                 ? '${profile.followedUsers!.length} ${AppLocalizations.of(context)!.users}'
                 : '0 ${AppLocalizations.of(context)!.users}',
+            
           ),
           _buildInfoTile(
             Icons.bookmark_border_outlined,
@@ -434,6 +387,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.bookmarkRecipes != null
                 ? '${profile.bookmarkRecipes!.length} ${AppLocalizations.of(context)!.recipes}'
                 : '0 ${AppLocalizations.of(context)!.recipes}',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookmarkedRecipesScreen(),
+                ),
+              ).then((_) => _loadUserProfile());
+            },
           ),
           _buildInfoTile(
             Icons.favorite_border_outlined,
@@ -446,9 +407,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(height: 20),
         _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
         _buildUserRecipesSection(),
-        SizedBox(height: 20),
-        _buildSectionTitle(context, 'Bookmarked Recipes'),
-        _buildBookmarkedRecipesSection(),
         SizedBox(height: 40),
       ],
     );
@@ -516,68 +474,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildBookmarkedRecipesSection() {
-    if (_isLoadingBookmarkedRecipes) {
-      return Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
-        ),
-      );
-    }
-
-    if (_bookmarkedRecipesErrorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(_bookmarkedRecipesErrorMessage!, textAlign: TextAlign.center),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _loadBookmarkedRecipes,
-                child: Text(AppLocalizations.of(context)!.retry),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_bookmarkedRecipes.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0),
-          child: Text(
-            'No bookmarked recipes yet',
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true, // Important for ListView inside ListView
-      physics:
-          NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
-      itemCount: _bookmarkedRecipes.length,
-      itemBuilder: (context, index) {
-        final recipe = _bookmarkedRecipes[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: RecipeCard(
-            recipe: recipe,
-            // onTap callback removed as RecipeCard handles its own tap
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
@@ -602,14 +498,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String title, String subtitle) {
-    return ListTile(
+  Widget _buildInfoTile(IconData icon, String title, String subtitle, {VoidCallback? onTap}) {
+    final tile = ListTile(
       leading: Icon(icon, color: AppTheme.primaryGreen),
       title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: Text(
         subtitle.isNotEmpty ? subtitle : AppLocalizations.of(context)!.notSet,
         style: TextStyle(color: Colors.grey.shade700),
       ),
+      trailing: onTap != null
+          ? Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.primaryGreen)
+          : null,
     );
+    
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        child: tile,
+      );
+    }
+    return tile;
   }
 }
