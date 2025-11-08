@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 import 'rating_dialog.dart';
 
 class RatingDisplay extends StatelessWidget {
@@ -66,23 +67,47 @@ class RatingDisplay extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Ratings',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.ratings,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () => _showRatingDialog(context),
-                  icon: Icon(
-                    userRating != null ? Icons.edit : Icons.star_outline,
-                    size: 18,
-                  ),
-                  label: Text(
-                    userRating != null ? 'Edit Rating' : 'Rate Recipe',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primaryGreen,
-                    side: BorderSide(color: AppTheme.primaryGreen),
-                  ),
+                const SizedBox(width: 8),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // If screen is narrow, show icon-only button
+                    final buttonText = userRating != null 
+                      ? AppLocalizations.of(context)!.editRating 
+                      : AppLocalizations.of(context)!.rateRecipe;
+                    
+                    return OutlinedButton(
+                      onPressed: () => _showRatingDialog(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryGreen,
+                        side: BorderSide(color: AppTheme.primaryGreen),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            userRating != null ? Icons.edit : Icons.star_outline,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              buttonText,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -90,7 +115,7 @@ class RatingDisplay extends StatelessWidget {
 
             // Taste Rating
             _buildRatingRow(
-              label: 'Taste',
+              label: AppLocalizations.of(context)!.taste,
               rating: recipe.tasteRating,
               count: recipe.tasteRatingCount,
               color: AppTheme.primaryGreen,
@@ -100,7 +125,7 @@ class RatingDisplay extends StatelessWidget {
 
             // Difficulty Rating
             _buildRatingRow(
-              label: 'Difficulty',
+              label: AppLocalizations.of(context)!.difficulty,
               rating: recipe.difficultyRating,
               count: recipe.difficultyRatingCount,
               color: Colors.orange.shade700,
@@ -112,7 +137,7 @@ class RatingDisplay extends StatelessWidget {
                 recipe.healthRatingCount > 0) ...[
               const SizedBox(height: 12),
               _buildRatingRow(
-                label: 'Health',
+                label: AppLocalizations.of(context)!.health,
                 rating: recipe.healthRating,
                 count: recipe.healthRatingCount,
                 color: Colors.green.shade700,
@@ -143,8 +168,8 @@ class RatingDisplay extends StatelessWidget {
                           color: AppTheme.primaryGreen,
                         ),
                         const SizedBox(width: 4),
-                        const Text(
-                          'Your Rating',
+                        Text(
+                          AppLocalizations.of(context)!.yourRating,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -157,7 +182,7 @@ class RatingDisplay extends StatelessWidget {
                       Row(
                         children: [
                           const SizedBox(width: 20),
-                          const Text('Taste: ', style: TextStyle(fontSize: 13)),
+                          Text('${AppLocalizations.of(context)!.taste}: ', style: TextStyle(fontSize: 13)),
                           _buildStarRating(
                             userRating!.tasteRating,
                             AppTheme.primaryGreen,
@@ -179,8 +204,8 @@ class RatingDisplay extends StatelessWidget {
                         child: Row(
                           children: [
                             const SizedBox(width: 20),
-                            const Text(
-                              'Difficulty: ',
+                            Text(
+                              '${AppLocalizations.of(context)!.difficulty}: ',
                               style: TextStyle(fontSize: 13),
                             ),
                             _buildStarRating(

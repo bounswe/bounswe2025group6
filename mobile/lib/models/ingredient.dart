@@ -8,6 +8,8 @@ class IngredientDetail {
   final List<String> allergens;
   final List<String> dietaryInfo;
   final List<String> allowedUnits;
+  final Map<String, dynamic>? prices; // Market prices with currency
+  final Map<String, dynamic>? nutritionInfo; // Calories, protein, fat, carbs
 
   IngredientDetail({
     required this.id,
@@ -19,6 +21,8 @@ class IngredientDetail {
     required this.allergens,
     required this.dietaryInfo,
     required this.allowedUnits,
+    this.prices,
+    this.nutritionInfo,
   });
 
   factory IngredientDetail.fromJson(Map<String, dynamic> json) {
@@ -50,6 +54,14 @@ class IngredientDetail {
       allergens: allergensList,
       dietaryInfo: dietaryInfoList,
       allowedUnits: allowedUnitsList,
+      prices:
+          json['prices'] is Map
+              ? json['prices'] as Map<String, dynamic>?
+              : null,
+      nutritionInfo:
+          json['nutrition_info'] is Map
+              ? json['nutrition_info'] as Map<String, dynamic>?
+              : null,
     );
   }
 }

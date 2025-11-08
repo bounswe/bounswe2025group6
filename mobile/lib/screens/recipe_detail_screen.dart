@@ -8,6 +8,9 @@ import '../services/rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
 import '../widgets/rating_display.dart';
+import '../widgets/ingredient_nutrition_card.dart';
+import '../widgets/total_nutrition_widget.dart';
+import '../widgets/market_prices_widget.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
 
@@ -253,25 +256,45 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       recipe.ingredients.map((item) {
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
-                                            vertical: 4.0,
+                                            vertical: 8.0,
                                           ),
-                                          child: Row(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              const Icon(
-                                                Icons.check_circle_outline,
-                                                color: AppTheme.primaryGreen,
-                                                size: 20,
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.check_circle_outline,
+                                                    color:
+                                                        AppTheme.primaryGreen,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      '${item.ingredient.name} (${item.quantity} ${item.unit})',
+                                                      style:
+                                                          Theme.of(
+                                                            context,
+                                                          ).textTheme.bodyLarge,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  '${item.ingredient.name} (${item.quantity} ${item.unit})',
-                                                  style:
-                                                      Theme.of(
-                                                        context,
-                                                      ).textTheme.bodyLarge,
+                                              if (item.nutritionInfoForRecipe !=
+                                                  null)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 28.0,
+                                                      ),
+                                                  child: IngredientNutritionCard(
+                                                    nutritionInfo:
+                                                        item.nutritionInfoForRecipe,
+                                                    isCompact: true,
+                                                  ),
                                                 ),
-                                              ),
                                             ],
                                           ),
                                         );
@@ -280,6 +303,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // Nutrition Facts Section
+                    if (recipe.recipeNutritions != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: TotalNutritionWidget(
+                          recipeNutritions: recipe.recipeNutritions,
+                        ),
+                      ),
+                    if (recipe.recipeNutritions != null)
+                      const SizedBox(height: 24),
 
                     // Steps Section
                     _buildSectionTitle(
@@ -345,6 +379,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // Market Prices Section
+                    if (recipe.recipeCosts != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: MarketPricesWidget(
+                          recipeCosts: recipe.recipeCosts,
+                          costPerServing: recipe.costPerServing,
+                        ),
+                      ),
+                    if (recipe.recipeCosts != null) const SizedBox(height: 24),
 
                     // Additional Details Section
                     _buildSectionTitle(
