@@ -8,6 +8,7 @@ import 'package:fithub/models/user_profile.dart';
 import 'package:fithub/models/ingredient.dart'; // Import IngredientDetail
 import 'package:flutter_typeahead/flutter_typeahead.dart'; // Import flutter_typeahead
 import '../l10n/app_localizations.dart';
+import 'package:fithub/utils/ingredient_translator.dart';
 
 class UploadRecipeScreen extends StatefulWidget {
   const UploadRecipeScreen({super.key});
@@ -26,6 +27,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   final _stepsController = TextEditingController();
   String? _selectedMealType;
   List<Map<String, TextEditingController>> _ingredients = [];
+  // Keep raw backend ingredient names while showing localized names in the UI
+  final List<String?> _ingredientRawNames = [];
   bool _isSubmitting = false; // To track submission state
   List<IngredientDetail> _allIngredients = [];
   bool _isLoadingIngredients = true;
@@ -93,6 +96,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
         'quantity': TextEditingController(),
         'unit': TextEditingController(),
       });
+      _ingredientRawNames.add(null);
     });
   }
 
@@ -102,6 +106,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
       _ingredients[index]['quantity']!.dispose();
       _ingredients[index]['unit']!.dispose();
       _ingredients.removeAt(index);
+      _ingredientRawNames.removeAt(index);
     });
   }
 
@@ -161,15 +166,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                     .where((step) => step.trim().isNotEmpty)
                     .toList(),
         'ingredients':
-            _ingredients
-                .map(
-                  (ing) => {
-                    'ingredient_name': ing['name']!.text,
-                    'quantity': double.tryParse(ing['quantity']!.text) ?? 0,
-                    'unit': ing['unit']!.text,
-                  },
-                )
-                .toList(),
+            _ingredients.map((ing) {
+              final idx = _ingredients.indexOf(ing);
+              final raw =
+                  (idx >= 0 && idx < _ingredientRawNames.length)
+                      ? _ingredientRawNames[idx]
+                      : null;
+              return {
+                'ingredient_name': raw ?? ing['name']!.text,
+                'quantity': double.tryParse(ing['quantity']!.text) ?? 0,
+                'unit': ing['unit']!.text,
+              };
+            }).toList(),
       };
 
       try {
@@ -509,16 +517,22 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     );
                                   },
                                   itemBuilder: (context, suggestion) {
-                                    return ListTile(
-                                      title: Text(suggestion.name),
+                                    final display = translateIngredient(
+                                      context,
+                                      suggestion.name,
                                     );
+                                    return ListTile(title: Text(display));
                                   },
                                   onSelected: (suggestion) {
-                                    // Changed from onSuggestionSelected
-                                    // The controller for the field is _ingredients[index]['name']
-                                    // TypeAheadField updates its 'controller' parameter automatically.
-                                    _ingredients[index]['name']!.text =
+                                    // Preserve raw backend value and show localized text in the field
+                                    _ingredientRawNames[index] =
                                         suggestion.name;
+                                    final localized = translateIngredient(
+                                      context,
+                                      suggestion.name,
+                                    );
+                                    _ingredients[index]['name']!.text =
+                                        localized;
                                   },
                                   emptyBuilder: // Changed from noItemsFoundBuilder
                                       (context) => Padding(
