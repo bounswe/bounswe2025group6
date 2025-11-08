@@ -87,7 +87,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe = serializer.save()
 
             # Use RecipeDetailSerializer for the created recipe response
-            detailed_serializer = RecipeDetailSerializer(recipe)
+            # Pass request context so currency conversion works correctly
+            detailed_serializer = RecipeDetailSerializer(recipe, context={'request': request})
             return Response(detailed_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -134,7 +135,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             # Save the updated instance and return the response
             updated_recipe = serializer.save()
-            detailed_serializer = RecipeDetailSerializer(updated_recipe)
+            # Pass request context so currency conversion works correctly
+            detailed_serializer = RecipeDetailSerializer(updated_recipe, context={'request': request})
             return Response(detailed_serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

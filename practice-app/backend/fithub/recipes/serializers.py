@@ -228,6 +228,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
     recipe_costs = serializers.SerializerMethodField()
     recipe_nutritions = serializers.SerializerMethodField()
+    cost_per_serving = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -272,6 +273,19 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def get_recipe_nutritions(self, obj):
         return obj.calculate_nutrition_info()
     
+    def get_cost_per_serving(self, obj):
+        """
+        Dynamically calculate cost_per_serving based on the current user's preferred currency.
+        This ensures the cost updates when the user switches currencies, matching recipe_costs behavior.
+        """
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+        return obj.calculate_cost_per_serving(user)
+    
     def get_image_relative_url(self, obj):
         return str(obj.image) if obj.image else None
     
@@ -288,6 +302,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     recipe_costs = serializers.SerializerMethodField()
     recipe_nutritions = serializers.SerializerMethodField()
+    cost_per_serving = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -356,4 +371,17 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     
     def get_recipe_nutritions(self, obj):
         return obj.calculate_nutrition_info()
+    
+    def get_cost_per_serving(self, obj):
+        """
+        Dynamically calculate cost_per_serving based on the current user's preferred currency.
+        This ensures the cost updates when the user switches currencies, matching recipe_costs behavior.
+        """
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+        return obj.calculate_cost_per_serving(user)
     
