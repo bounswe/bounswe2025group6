@@ -699,6 +699,46 @@ This document describes how to use the Recipe API endpoint, which allows for cre
   - **Success**: Status code 204 No Content (Deleted the recipe and also recipe ingredients)
   - **Failure**: Status code 404 Not Found (Object was not created or already deleted)
 
+
+// ...existing code...
+
+## Get User Recipe Count
+
+Get the total number of recipes created by a specific user.
+
+**URL**: `/api/recipes/user/{user_id}/recipe-count/`
+
+**Method**: `GET`
+
+**URL Parameters**:
+- `user_id`: ID of the user whose recipe count is requested
+
+**Authentication**: Not required
+
+**Success Response**:
+- **Code**: 200 OK
+- **Content Example**:
+```json
+{
+    "user_id": 123,
+    "recipe_count": 5
+}
+```
+
+**Error Response**:
+- **Code**: 400 BAD REQUEST
+- **Content Example**:
+```json
+{
+    "error": "Error message"
+}
+```
+
+**Sample Call**:
+```bash
+curl -X GET http://localhost:8000/api/recipes/user/123/recipe-count/
+```
+
 ## 📍 Common Problems:
 - **Missing Required Fields**: Ensure all required fields are included in the request body.
 - **Invalid Token**: Ensure the Bearer token is valid and not expired. Otherwise you will get a 401 error (Error: Unauthorized).
