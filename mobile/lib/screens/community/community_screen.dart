@@ -8,6 +8,7 @@ import '../../widgets/report_dialog.dart';
 import '../../widgets/badge_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../other_user_profile_screen.dart';
 // badge normalization handled by ProfileService
 
 class CommunityScreen extends StatefulWidget {
@@ -369,25 +370,44 @@ class _PostCardState extends State<PostCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
-                        ),
-                        if (_authorBadge != null) ...[
-                          const SizedBox(height: 4),
-                          BadgeWidget(
-                            badge: _authorBadge!,
-                            fontSize: 10,
-                            iconSize: 12,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!isOwnPost && widget.post['author_id'] != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OtherUserProfileScreen(
+                                userId: widget.post['author_id'],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
+                            style: TextStyle(
+                              color: !isOwnPost ? Colors.blue[700] : null,
+                              decoration:
+                                  !isOwnPost ? TextDecoration.underline : null,
                             ),
                           ),
+                          if (_authorBadge != null) ...[
+                            const SizedBox(height: 4),
+                            BadgeWidget(
+                              badge: _authorBadge!,
+                              fontSize: 10,
+                              iconSize: 12,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   Row(

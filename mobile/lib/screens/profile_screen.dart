@@ -13,6 +13,7 @@ import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import 'package:provider/provider.dart';
 import '../providers/currency_provider.dart';
 import '../utils/label_localization.dart';
+import './following_users_screen.dart';
 import '../utils/user_badge_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -435,13 +436,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           AppLocalizations.of(context)!.communitySection,
         ),
         _buildInfoCard([
-          _buildInfoTile(
+          _buildClickableInfoTile(
             Icons.people_outline,
             AppLocalizations.of(context)!.followingLabel,
             profile.followedUsers != null
                 ? '${profile.followedUsers!.length} ${AppLocalizations.of(context)!.users}'
                 : '0 ${AppLocalizations.of(context)!.users}',
-            
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowingUsersScreen(
+                    followedUserIds: profile.followedUsers ?? [],
+                  ),
+                ),
+              );
+            },
           ),
           _buildInfoTile(
             Icons.bookmark_border_outlined,
@@ -529,7 +539,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: RecipeCard(
             recipe: recipe,
-            // onTap callback removed as RecipeCard handles its own tap
+            creatorUsername: recipe.creatorUsername,
           ),
         );
       },
@@ -580,5 +590,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
     return tile;
+  }
+
+  Widget _buildClickableInfoTile(
+    IconData icon,
+    String title,
+    String subtitle, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: ListTile(
+        leading: Icon(icon, color: AppTheme.primaryGreen),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+        subtitle: Text(
+          subtitle.isNotEmpty ? subtitle : AppLocalizations.of(context)!.notSet,
+          style: TextStyle(color: Colors.grey.shade700),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Colors.grey.shade600,
+        ),
+      ),
+    );
   }
 }

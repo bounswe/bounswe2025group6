@@ -220,6 +220,64 @@ class ProfileService {
     }
   }
 
+  Future<Map<String, dynamic>> followUnfollowUser(int targetUserId) async {
+    token = await StorageService.getJwtAccessToken();
+
+    if (token == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token missing.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      var response = await http.post(
+        Uri.parse('$baseUrl/api/users/follow/'),
+        headers: headers,
+        body: jsonEncode({'user_id': targetUserId}),
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
+        }
+
+        response = await http.post(
+          Uri.parse('$baseUrl/api/users/follow/'),
+          headers: headers,
+          body: jsonEncode({'user_id': targetUserId}),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 400) {
+        final errorBody = jsonDecode(response.body);
+        throw ProfileServiceException(
+          errorBody['error'] ?? 'Bad request',
+          statusCode: response.statusCode,
+        );
+      } else if (response.statusCode == 404) {
+        throw ProfileServiceException(
+          'Target user not found',
+          statusCode: response.statusCode,
+        );
+      } else {
+        throw ProfileServiceException(
+          'Failed to follow/unfollow user. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ProfileServiceException) rethrow;
+      throw ProfileServiceException(e.toString());
+    }
+  }
+
   /// Fetches user's recipe count and badge from API
   /// Returns: {'recipe_count': int?, 'badge': String?}
   Future<Map<String, dynamic>?> getRecipeCountBadge(int userId) async {

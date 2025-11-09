@@ -14,6 +14,7 @@ import '../../widgets/report_button.dart';
 import '../../widgets/badge_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../other_user_profile_screen.dart';
 
 class PostDetailScreen extends StatefulWidget {
   const PostDetailScreen({Key? key}) : super(key: key);
@@ -547,21 +548,46 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
-                          ),
-                          if (_authorBadge != null) ...[
-                            const SizedBox(height: 4),
-                            BadgeWidget(
-                              badge: _authorBadge!,
-                              fontSize: 11,
-                              iconSize: 13,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (_currentUserId != null &&
+                              post!['author_id'] != _currentUserId) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OtherUserProfileScreen(
+                                  userId: post!['author_id'],
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
+                              style: TextStyle(
+                                color: _currentUserId != null &&
+                                        post!['author_id'] != _currentUserId
+                                    ? Colors.blue[700]
+                                    : null,
+                                decoration: _currentUserId != null &&
+                                        post!['author_id'] != _currentUserId
+                                    ? TextDecoration.underline
+                                    : null,
+                              ),
                             ),
+                            if (_authorBadge != null) ...[
+                              const SizedBox(height: 4),
+                              BadgeWidget(
+                                badge: _authorBadge!,
+                                fontSize: 11,
+                                iconSize: 13,
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                     Row(

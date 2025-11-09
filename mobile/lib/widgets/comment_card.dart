@@ -7,6 +7,7 @@ import '../models/user_profile.dart';
 import '../services/community_service.dart';
 import '../utils/date_formatter.dart';
 import '../l10n/app_localizations.dart';
+import '../screens/other_user_profile_screen.dart';
 
 class CommentCard extends StatefulWidget {
   final ForumComment comment;
@@ -201,30 +202,51 @@ class _CommentCardState extends State<CommentCard> {
             children: [
               // Previously: 'By ${widget.authorUsername}'
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.byAuthor(
-                        widget.authorUsername,
-                      ), // Use fetched username via localization
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (widget.authorBadge != null) ...[
-                      const SizedBox(height: 4),
-                      BadgeWidget(
-                        badge: widget.authorBadge!,
-                        fontSize: 9,
-                        iconSize: 11,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                child: GestureDetector(
+                  onTap: () {
+                    if (widget.currentUserId != widget.comment.author) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OtherUserProfileScreen(
+                            userId: widget.comment.author,
+                          ),
                         ),
+                      );
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.byAuthor(
+                          widget.authorUsername,
+                        ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: widget.currentUserId != widget.comment.author
+                                  ? Colors.blue[700]
+                                  : null,
+                              decoration:
+                                  widget.currentUserId != widget.comment.author
+                                      ? TextDecoration.underline
+                                      : null,
+                            ),
                       ),
+                      if (widget.authorBadge != null) ...[
+                        const SizedBox(height: 4),
+                        BadgeWidget(
+                          badge: widget.authorBadge!,
+                          fontSize: 9,
+                          iconSize: 11,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
               // Show delete button for own comments
