@@ -2,11 +2,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 3px;
+  padding: 3px 5px;
   border-radius: 8px;
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 1;
+  overflow: visible;
 }
 
 /* Average Rating Display (Big Stars) */
@@ -14,17 +19,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 
 .average-stars-container {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
 }
 
 .big-star {
-  font-size: 28px;
+  font-size: 18px;
   color: #ddd;
   user-select: none;
 }
@@ -34,10 +39,11 @@
 }
 
 .average-rating-text {
-  font-size: 14px;
+  font-size: 11px;
   color: #495057;
   font-weight: 600;
   text-align: center;
+  line-height: 1.2;
 }
 
 /* User Rating Section (Small Stars) */
@@ -45,13 +51,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding-top: 8px;
+  gap: 2px;
+  padding-top: 2px;
   border-top: 1px solid #dee2e6;
 }
 
 .rate-it-label {
-  font-size: 12px;
+  font-size: 10px;
   color: #6c757d;
   font-weight: 500;
 }
@@ -63,7 +69,7 @@
 }
 
 .small-star {
-  font-size: 18px;
+  font-size: 14px;
   color: #ddd;
   transition: all 0.2s ease;
   user-select: none;
@@ -91,10 +97,13 @@
 }
 
 .user-rating-info {
-  font-size: 11px;
+  font-size: 10px;
   color: #495057;
   text-align: center;
   font-weight: 500;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  line-height: 1.2;
 }
 
 /* Restriction Messages */
