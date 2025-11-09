@@ -3,15 +3,93 @@ import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../providers/currency_provider.dart';
 import '../screens/recipe_detail_screen.dart';
+import '../screens/other_user_profile_screen.dart';
+import '../services/profile_service.dart';
+import '../services/storage_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/meal_type_localization.dart';
+import 'badge_widget.dart';
 
-class RecipeCard extends StatelessWidget {
+class RecipeCard extends StatefulWidget {
   final Recipe recipe;
+  final String? creatorUsername;
   final VoidCallback? onRefresh;
 
   const RecipeCard({Key? key, required this.recipe, this.onRefresh})
     : super(key: key);
+
+  @override
+  State<RecipeCard> createState() => _RecipeCardState();
+}
+
+class _RecipeCardState extends State<RecipeCard> {
+  final ProfileService _profileService = ProfileService();
+  String? _creatorBadge;
+  String? _fetchedUsername;
+  bool _isLoadingUsername = false;
+  bool _hasFetched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCreatorBadge();
+    _fetchUsernameIfNeeded();
+  }
+
+  Future<void> _loadCreatorBadge() async {
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(
+        widget.recipe.creatorId,
+      );
+      if (mounted) {
+        setState(() {
+          // badgeData['badge'] is already normalized by ProfileService
+          _creatorBadge = badgeData?['badge'];
+        });
+      }
+    } catch (e) {
+      // Silent fail - badge is optional
+    }
+  }
+
+  @override
+  void didUpdateWidget(RecipeCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.recipe.creatorId != widget.recipe.creatorId) {
+      _hasFetched = false;
+      _fetchUsernameIfNeeded();
+    }
+  }
+
+  Future<void> _fetchUsernameIfNeeded() async {
+    if (_hasFetched || widget.creatorUsername != null || _isLoadingUsername) {
+      return;
+    }
+    
+    _hasFetched = true;
+    setState(() {
+      _isLoadingUsername = true;
+    });
+
+    try {
+      final profileService = ProfileService();
+      final profile = await profileService.getUserProfileById(widget.recipe.creatorId);
+      if (mounted) {
+        setState(() {
+          _fetchedUsername = profile.username;
+          _isLoadingUsername = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUsername = false;
+        });
+      }
+    }
+  }
+
+  String? get displayUsername => widget.creatorUsername ?? _fetchedUsername;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +106,8 @@ class RecipeCard extends StatelessWidget {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RecipeDetailScreen(recipeId: recipe.id),
+              builder: (context) =>
+                  RecipeDetailScreen(recipeId: widget.recipe.id),
             ),
           );
           onRefresh?.call();
@@ -173,7 +252,7 @@ class RecipeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    recipe.name,
+                    widget.recipe.name,
                     style: const TextStyle(
                       fontSize: 19,
                       fontWeight: FontWeight.bold,

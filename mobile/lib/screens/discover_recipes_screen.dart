@@ -328,6 +328,7 @@ class _DiscoverRecipesScreenState extends State<DiscoverRecipesScreen> {
                       final recipe = _filteredRecipes[index];
                       return RecipeCard(
                         recipe: recipe,
+                        creatorUsername: recipe.creatorUsername,
                         onRefresh: _loadRecipes,
                       );
                     },
