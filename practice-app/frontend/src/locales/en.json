@@ -46,6 +46,7 @@
   "recipeName": "Recipe Name",
   "currencyPreference": "Currency Preference",
   "datePreference": "Date Preference",
+  "failedToUpdateLanguagePreference": "Failed To Update Language Preference",
   "savedRecipes": "Saved Recipes",
   "Ingredients": "Ingredients",
   "ingredients": "Ingredients",

@@ -17,6 +17,9 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 
+from rest_framework.decorators import api_view
+
+
 # Created for swagger documentation, paginate get request
 pagination_params = [
     openapi.Parameter('page', openapi.IN_QUERY, description="Page number", type=openapi.TYPE_INTEGER),
@@ -84,7 +87,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe = serializer.save()
 
             # Use RecipeDetailSerializer for the created recipe response
-            detailed_serializer = RecipeDetailSerializer(recipe)
+            # Pass request context so currency conversion works correctly
+            detailed_serializer = RecipeDetailSerializer(recipe, context={'request': request})
             return Response(detailed_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -131,7 +135,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             # Save the updated instance and return the response
             updated_recipe = serializer.save()
-            detailed_serializer = RecipeDetailSerializer(updated_recipe)
+            # Pass request context so currency conversion works correctly
+            detailed_serializer = RecipeDetailSerializer(updated_recipe, context={'request': request})
             return Response(detailed_serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -347,3 +352,20 @@ class MealPlannerPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
+
+
+@api_view(['GET'])
+def get_user_recipe_count(request, user_id):
+    """
+    Get the number of recipes created by a specific user
+    """
+    try:
+        recipe_count = Recipe.objects.filter(creator_id=user_id).count()
+        badge = None
+        if recipe_count >=20:
+            badge = "Experienced Home Cook"
+        elif recipe_count >=5:
+            badge = "Home Cook"
+        return Response({'user_id': user_id, 'recipe_count': recipe_count, 'badge': badge}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

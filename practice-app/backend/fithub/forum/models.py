@@ -27,8 +27,28 @@ class ForumPost(PostModel):
         SNACKS = 'Snacks'
 
     # Store tags as a list of strings
-    tags = models.JSONField(default=list, blank=True)  # Django 3.1+ supports JSONField
+    tags = models.JSONField(default=list, blank=True)  
 
+    def delete(self, using=None, keep_parents=False):
+        """
+        Soft delete this post and cascade to its related comments (and optionally votes).
+        """
+        # Soft delete the post itself
+        self.deleted_on = now()
+        self.save(update_fields=["deleted_on"])
+
+        # Soft delete related comments
+        comments = self.comments.filter(deleted_on__isnull=True)
+        for comment in comments:
+            comment.deleted_on = now()
+            comment.save(update_fields=["deleted_on"])
+
+            # Optional: also soft delete votes for each comment
+            comment.votes.filter(deleted_on__isnull=True).update(deleted_on=now())
+
+        # Soft delete all post votes
+        self.votes.filter(deleted_on__isnull=True).update(deleted_on=now())
+        
     def __str__(self):
         return f"ForumPost #{self.pk}, {self.title}"
 
@@ -49,6 +69,20 @@ class ForumPostComment(CommentModel):
     def get_replies(self):
         """Get all replies (children) to this comment."""
         return self.replies.all()
+
+    def delete(self, using=None, keep_parents=False):
+        """
+        Soft delete this comment and cascade to its related votes.
+        """
+        # Soft delete the comment itself
+        self.deleted_on = now()
+        self.save(update_fields=["deleted_on"])
+
+        # Soft delete related votes
+        self.votes.filter(deleted_on__isnull=True).update(deleted_on=now())
+
+        # (Optional) Soft delete child replies if you allow threaded comments
+        self.replies.filter(deleted_on__isnull=True).update(deleted_on=now())
 
 class ForumPostCommentVote(CommentVoteModel):
     comment = models.ForeignKey(ForumPostComment, related_name='votes', on_delete=models.CASCADE)

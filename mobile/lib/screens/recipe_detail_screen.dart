@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe.dart';
+import '../models/recipe_rating.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
 import '../services/profile_service.dart';
+import '../services/rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
+import '../widgets/rating_display.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
 
@@ -26,12 +29,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Recipe? _currentRecipe; // Store the loaded recipe for report button
   bool _isBookmarked = false;
   bool _isTogglingBookmark = false;
+  final RatingService _ratingService = RatingService();
+  RecipeRating? _userRating; // Store user's rating for this recipe
 
   @override
   void initState() {
     super.initState();
     _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
     _loadBookmarkStatus();
+    _loadUserRating();
   }
 
   Future<void> _loadBookmarkStatus() async {
@@ -44,6 +50,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       }
     } catch (e) {
       // Silently fail - user can still toggle bookmark
+    }
+  }
+
+  Future<void> _loadUserRating() async {
+    try {
+      final rating = await _ratingService.getUserRating(widget.recipeId);
+      if (mounted) {
+        setState(() {
+          _userRating = rating;
+        });
+      }
+    } catch (e) {
+      // Silently handle error - user might not have rated yet
     }
   }
 
@@ -93,6 +112,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         );
       }
     }
+  }
+
+  Future<void> _refreshRecipe() async {
+    setState(() {
+      _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+    });
+    await _loadUserRating();
   }
 
   @override
@@ -505,6 +531,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   .cast<Widget>()
                                   .toList(),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Rating Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: RatingDisplay(
+                        recipe: recipe,
+                        userRating: _userRating,
+                        onRatingChanged: _refreshRecipe,
                       ),
                     ),
                     const SizedBox(height: 24),
