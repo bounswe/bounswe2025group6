@@ -3,12 +3,13 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { getRecipeById, getWikidataImage, deleteRecipe } from '../../services/recipeService';
 import userService, { getUsername } from '../../services/userService';
+import { TurnedIn, TurnedInNot } from '@mui/icons-material';
 // Removed wikidata import as it's not needed
 import { useCurrency } from '../../contexts/CurrencyContext';
 import RatingStars from '../../components/recipe/RatingStars';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
-import { getCurrentUser } from '../../services/authService';
+import { getCurrentUser, setRecipeBookmark } from '../../services/authService';
 import ReportButton from '../../components/report/ReportButton';
 import InteractiveRatingStars from '../../components/recipe/InteractiveRatingStars';
 import InteractiveHealthRating from '../../components/recipe/InteractiveHealthRating';
@@ -20,13 +21,20 @@ const RecipeDetailPage = () => {
   const [creatorName, setCreatorName] = useState('');
   const [error, setError] = useState(null);
   const [isPageReady, setIsPageReady] = useState(false);
-  const [recipeId, setRecipeId] = useState('');
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [recipeImage, setRecipeImage] = useState(null);
   const [totalNutrition, setTotalNutrition] = useState(null);
   const navigate = useNavigate();
   const { currency } = useCurrency();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (currentUser && recipe) {
+      console.log('Current user:', currentUser);
+      setIsBookmarked(currentUser?.bookmarkRecipes?.includes(recipe.id));
+    }
+  }, [currentUser, recipe]);
 
   // Calculate total nutrition for the recipe
   const calculateTotalNutrition = (recipeData) => {
@@ -121,7 +129,18 @@ const RecipeDetailPage = () => {
     }
   };
 
-  const handleBookmarkClick = () => {
+  const handleBookmarkClick = async () => {
+    if (!currentUser) {
+      alert('Please log in to bookmark recipes.');
+      return;
+    }
+    try {
+      await setRecipeBookmark(recipe.id, !isBookmarked);
+      setIsBookmarked(!isBookmarked);
+    } catch (error) {
+      console.error('Error updating bookmark status:', error);
+      alert('Failed to update bookmark. Please try again.');
+    }
     console.log('Bookmark clicked for recipe:', recipe.id);
   };
 
@@ -170,7 +189,6 @@ const RecipeDetailPage = () => {
           setError('Recipe not found');
         } else {
           setError('Failed to load recipe. Please try again.');
-          w;
         }
       } finally {
         setIsPageReady(true);
@@ -189,7 +207,9 @@ const RecipeDetailPage = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const user = await getCurrentUser();
+        const { id: userId } = await getCurrentUser();
+        const user = await userService.getUserById(userId);
+        console.log('Fetched current user:', user);
         setCurrentUser(user);
       } catch (error) {
         console.error('Error fetching current user:', error);
@@ -302,7 +322,7 @@ const RecipeDetailPage = () => {
           onClick={handleBookmarkClick}
           title="Bookmark this recipe"
         >
-          📌
+          {isBookmarked ? <TurnedIn /> : <TurnedInNot />}
         </button>
         {/* Creator information positioned at bottom right */}
         <div className="creator-info-bottom-right">

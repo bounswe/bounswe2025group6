@@ -13,6 +13,10 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
     "axios": "^1.9.0",
     "i18next": "^25.6.0",
     "i18next-browser-languagedetector": "^8.2.0",

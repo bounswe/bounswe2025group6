@@ -1,21 +1,21 @@
 // src/services/authService.js
 
-import axios from "axios";
+import axios from 'axios';
 
 // API base URL
 
-const API_URL = import.meta.env.VITE_API_URL + "/api";
+const API_URL = import.meta.env.VITE_API_URL + '/api';
 
 // Token storage keys
-const ACCESS_TOKEN_KEY = "fithub_access_token";
-const REFRESH_TOKEN_KEY = "fithub_refresh_token";
-const USER_KEY = "fithub_user";
+const ACCESS_TOKEN_KEY = 'fithub_access_token';
+const REFRESH_TOKEN_KEY = 'fithub_refresh_token';
+const USER_KEY = 'fithub_user';
 
 // Create axios instance with base URL
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -24,7 +24,7 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -45,17 +45,17 @@ export const registerUser = async (userData) => {
       username: userData.username,
       email: userData.email,
       password: userData.password,
-      usertype: userData.userType === "dietitian" ? "dietitian" : "user",
+      usertype: userData.userType === 'dietitian' ? 'dietitian' : 'user',
     };
 
     // Add dietitian data if applicable
-    if (userData.userType === "dietitian" && userData.certificationUrl) {
+    if (userData.userType === 'dietitian' && userData.certificationUrl) {
       apiData.dietitian = {
         certification_url: userData.certificationUrl,
       };
     }
 
-    const response = await apiClient.post("/register/", apiData);
+    const response = await apiClient.post('/register/', apiData);
 
     // The API doesn't return the user immediately since email verification is required
     // We'll just return the submitted data minus the password
@@ -65,14 +65,14 @@ export const registerUser = async (userData) => {
       ...registeredUser,
       message:
         response.data?.detail ||
-        "Registration successful! Please check your email to verify your account.",
+        'Registration successful! Please check your email to verify your account.',
     };
   } catch (error) {
-    console.error("Registration error:", error.response?.data || error.message);
+    console.error('Registration error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail ||
         Object.values(error.response?.data || {})[0]?.[0] ||
-        "Registration failed. Please try again."
+        'Registration failed. Please try again.'
     );
   }
 };
@@ -90,7 +90,7 @@ export const loginUser = async (credentials) => {
       password: credentials.password,
     };
 
-    const response = await apiClient.post("/token/", loginData);
+    const response = await apiClient.post('/token/', loginData);
     const { access, refresh } = response.data;
 
     // Store tokens in localStorage
@@ -108,7 +108,7 @@ export const loginUser = async (credentials) => {
     const userData = {
       id: user.user_id,
       email: credentials.email,
-      userType: fullUserData.usertype || "user",
+      userType: fullUserData.usertype || 'user',
       username: fullUserData.username,
     };
 
@@ -117,10 +117,8 @@ export const loginUser = async (credentials) => {
 
     return userData;
   } catch (error) {
-    console.error("Login error:", error.response?.data || error.message);
-    throw new Error(
-      error.response?.data?.detail || "Invalid credentials. Please try again."
-    );
+    console.error('Login error:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.detail || 'Invalid credentials. Please try again.');
   }
 };
 
@@ -131,9 +129,9 @@ export const loginUser = async (credentials) => {
 export const logoutUser = async () => {
   try {
     // Call logout API
-    await apiClient.post("/logout/");
+    await apiClient.post('/logout/');
   } catch (error) {
-    console.error("Logout error:", error.response?.data || error.message);
+    console.error('Logout error:', error.response?.data || error.message);
   } finally {
     // Clear local storage regardless of API response
     localStorage.removeItem(ACCESS_TOKEN_KEY);
@@ -150,10 +148,10 @@ export const refreshToken = async () => {
   try {
     const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refresh) {
-      throw new Error("No refresh token available");
+      throw new Error('No refresh token available');
     }
 
-    const response = await apiClient.post("/token/refresh/", { refresh });
+    const response = await apiClient.post('/token/refresh/', { refresh });
     const { access } = response.data;
 
     // Store new access token
@@ -161,10 +159,7 @@ export const refreshToken = async () => {
 
     return access;
   } catch (error) {
-    console.error(
-      "Token refresh error:",
-      error.response?.data || error.message
-    );
+    console.error('Token refresh error:', error.response?.data || error.message);
     // If refresh token is invalid, log out the user
     logoutUser();
     throw error;
@@ -178,20 +173,20 @@ export const refreshToken = async () => {
  */
 const parseJwt = (token) => {
   try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
       atob(base64)
-        .split("")
+        .split('')
         .map((c) => {
-          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         })
-        .join("")
+        .join('')
     );
 
     return JSON.parse(jsonPayload);
   } catch (error) {
-    console.error("Error parsing JWT:", error);
+    console.error('Error parsing JWT:', error);
     return {};
   }
 };
@@ -205,17 +200,30 @@ export const getCurrentUser = async () => {
     // Get user from localStorage
     const userJson = localStorage.getItem(USER_KEY);
     if (!userJson) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     const user = JSON.parse(userJson);
-    
+
     // userType is already stored in localStorage from login
     // No need to parse JWT token for usertype
     return user;
   } catch (error) {
-    console.error("Get current user error:", error);
+    console.error('Get current user error:', error);
     throw error;
+  }
+};
+
+export const setRecipeBookmark = async (recipeId, bookmark) => {
+  try {
+    if (bookmark) {
+      await apiClient.post(`/users/bookmark_recipe/`, { recipe_id: recipeId });
+    } else {
+      await apiClient.post(`/users/unbookmark_recipe/`, { recipe_id: recipeId });
+    }
+  } catch (error) {
+    console.error('Set recipe bookmark error:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.detail || 'Failed to update bookmark. Please try again.');
   }
 };
 
@@ -234,17 +242,14 @@ export const isAuthenticated = () => {
  */
 export const requestPasswordReset = async (email) => {
   try {
-    const response = await apiClient.post("/forgot-password/", { email });
+    const response = await apiClient.post('/forgot-password/', { email });
     return response.data;
   } catch (error) {
-    console.error(
-      "Password reset request error:",
-      error.response?.data || error.message
-    );
+    console.error('Password reset request error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail ||
         error.response?.data?.email?.[0] ||
-        "Failed to request password reset. Please try again."
+        'Failed to request password reset. Please try again.'
     );
   }
 };
@@ -257,21 +262,18 @@ export const requestPasswordReset = async (email) => {
  */
 export const resetPassword = async (token, newPassword) => {
   try {
-    const response = await apiClient.post("/reset-password/", {
+    const response = await apiClient.post('/reset-password/', {
       token,
       new_password: newPassword,
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "Password reset error:",
-      error.response?.data || error.message
-    );
+    console.error('Password reset error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail ||
         error.response?.data?.token?.[0] ||
         error.response?.data?.new_password?.[0] ||
-        "Failed to reset password. Please try again."
+        'Failed to reset password. Please try again.'
     );
   }
 };
@@ -283,19 +285,16 @@ export const resetPassword = async (token, newPassword) => {
  */
 export const requestPasswordResetCode = async (email) => {
   try {
-    const response = await apiClient.post("/request-password-reset-code/", {
+    const response = await apiClient.post('/request-password-reset-code/', {
       email,
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "Password reset code request error:",
-      error.response?.data || error.message
-    );
+    console.error('Password reset code request error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail ||
         error.response?.data?.email?.[0] ||
-        "Failed to request reset code. Please try again."
+        'Failed to request reset code. Please try again.'
     );
   }
 };
@@ -308,20 +307,17 @@ export const requestPasswordResetCode = async (email) => {
  */
 export const verifyResetCode = async (email, resetCode) => {
   try {
-    const response = await apiClient.post("/verify-reset-code/", {
+    const response = await apiClient.post('/verify-reset-code/', {
       email,
       code: resetCode,
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "Reset code verification error:",
-      error.response?.data || error.message
-    );
+    console.error('Reset code verification error:', error.response?.data || error.message);
     throw new Error(
       error.response?.data?.detail ||
         error.response?.data?.reset_code?.[0] ||
-        "Invalid reset code. Please try again."
+        'Invalid reset code. Please try again.'
     );
   }
 };
@@ -336,13 +332,9 @@ export const verifyEmail = async (token) => {
     const response = await apiClient.get(`/verify-email/${token}/`);
     return response.data;
   } catch (error) {
-    console.error(
-      "Email verification error:",
-      error.response?.data || error.message
-    );
+    console.error('Email verification error:', error.response?.data || error.message);
     throw new Error(
-      error.response?.data?.detail ||
-        "Failed to verify email. The link may be expired or invalid."
+      error.response?.data?.detail || 'Failed to verify email. The link may be expired or invalid.'
     );
   }
 };
