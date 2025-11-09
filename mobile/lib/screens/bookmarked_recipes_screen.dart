@@ -71,7 +71,7 @@ class _BookmarkedRecipesScreenState extends State<BookmarkedRecipesScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Failed to load bookmarked recipes: $e';
+          _errorMessage = AppLocalizations.of(context)!.failedToLoadBookmarkedRecipes(e.toString());
         });
       }
     }
@@ -149,7 +149,7 @@ class _BookmarkedRecipesScreenState extends State<BookmarkedRecipesScreen> {
               ),
               SizedBox(height: 16),
               Text(
-                'No bookmarked recipes yet',
+                AppLocalizations.of(context)!.noBookmarkedRecipesYet,
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey.shade700,
