@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
+import '../utils/user_badge_helper.dart';
 import './storage_service.dart';
 
 class ProfileServiceException implements Exception {
@@ -17,6 +18,7 @@ class ProfileServiceException implements Exception {
 class ProfileService {
   static const String baseUrl = 'http://10.0.2.2:8000';
   String? token;
+  final Map<int, Map<String, dynamic>> _badgeCache = {};
 
   ProfileService({this.token});
 
@@ -102,7 +104,8 @@ class ProfileService {
     }
   }
 
-  Future<UserProfile> getUserProfileById(int targetUserId) async {
+  /// Fetch public profile for arbitrary user id (used to check user type)
+  Future<UserProfile> getUserProfileById(int userId) async {
     token = await StorageService.getJwtAccessToken();
 
     if (token == null) {
@@ -114,14 +117,13 @@ class ProfileService {
 
     try {
       var response = await http.get(
-        Uri.parse('$baseUrl/api/users/$targetUserId/'),
+        Uri.parse('$baseUrl/api/users/$userId/'),
         headers: headers,
       );
 
       if (response.statusCode == 401) {
         final refreshSuccess = await _refreshToken();
         if (!refreshSuccess) {
-          await StorageService.deleteAllUserData();
           throw ProfileServiceException(
             'Authentication failed',
             statusCode: 401,
@@ -129,26 +131,27 @@ class ProfileService {
         }
 
         response = await http.get(
-          Uri.parse('$baseUrl/api/users/$targetUserId/'),
+          Uri.parse('$baseUrl/api/users/$userId/'),
           headers: headers,
         );
       }
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        return UserProfile.fromJson(responseBody, targetUserId);
+        return UserProfile.fromJson(responseBody, userId);
       } else if (response.statusCode == 404) {
         throw ProfileServiceException(
           'User profile not found.',
-          statusCode: response.statusCode,
-        );
-      } else {
-        throw ProfileServiceException(
-          'Failed to load profile. Status: ${response.statusCode}',
-          statusCode: response.statusCode,
+          statusCode: 404,
         );
       }
+
+      throw ProfileServiceException(
+        'Failed to load profile. Status: ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
     } catch (e) {
+      if (e is ProfileServiceException) rethrow;
       throw ProfileServiceException(e.toString());
     }
   }
@@ -237,7 +240,6 @@ class ProfileService {
       if (response.statusCode == 401) {
         final refreshSuccess = await _refreshToken();
         if (!refreshSuccess) {
-          await StorageService.deleteAllUserData();
           throw ProfileServiceException(
             'Authentication failed',
             statusCode: 401,
@@ -274,5 +276,73 @@ class ProfileService {
       if (e is ProfileServiceException) rethrow;
       throw ProfileServiceException(e.toString());
     }
+  }
+
+  /// Fetches user's recipe count and badge from API
+  /// Returns: {'recipe_count': int?, 'badge': String?}
+  Future<Map<String, dynamic>?> getRecipeCountBadge(int userId) async {
+    // Check cache first
+    if (_badgeCache.containsKey(userId)) {
+      return _badgeCache[userId];
+    }
+
+    token = await StorageService.getJwtAccessToken();
+    if (token == null) {
+      return null;
+    }
+
+    final url = '$baseUrl/recipes/user/$userId/recipe-count/';
+
+    try {
+      var response = await http.get(Uri.parse(url), headers: headers);
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          return null;
+        }
+
+        response = await http.get(Uri.parse(url), headers: headers);
+      }
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final recipeCount = data['recipe_count'] as int?;
+        final apiBadge = data['badge'] as String?;
+
+        // Check user type via profile endpoint to give priority to Dietitian
+        String? finalBadge = apiBadge;
+        try {
+          final profile = await getUserProfileById(userId);
+          finalBadge = normalizeBadgeFromApi(
+            apiBadge,
+            userType: profile.userType,
+          );
+        } catch (_) {
+          // If profile fetch fails, fall back to API badge (no-op)
+          finalBadge = normalizeBadgeFromApi(apiBadge);
+        }
+
+        final result = {'recipe_count': recipeCount, 'badge': finalBadge};
+
+        // Cache the result
+        _badgeCache[userId] = result;
+        return result;
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Clear badge cache for specific user
+  void clearBadgeCache(int userId) {
+    _badgeCache.remove(userId);
+  }
+
+  /// Clear all cached badges
+  void clearAllBadgeCache() {
+    _badgeCache.clear();
   }
 }

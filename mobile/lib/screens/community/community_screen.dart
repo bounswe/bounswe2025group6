@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import '../../models/report.dart';
 import '../../services/community_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/profile_service.dart';
 import '../../widgets/report_dialog.dart';
+import '../../widgets/badge_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
 import '../other_user_profile_screen.dart';
+// badge normalization handled by ProfileService
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -57,38 +60,42 @@ class _CommunityScreenState extends State<CommunityScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => Navigator.pushNamed(context, '/community/create')
-                .then((_) => _loadPosts()),
+            onPressed:
+                () => Navigator.pushNamed(
+                  context,
+                  '/community/create',
+                ).then((_) => _loadPosts()),
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadPosts,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
                 ? Center(child: Text(_error!))
                 : ListView.builder(
-                    itemCount: _posts.length,
-                    itemBuilder: (context, index) {
-                      final post = _posts[index];
-                      return PostCard(
-                        post: post,
-                        onVoteChanged: _loadPosts, // Pass the refresh callback
-                        onTap: () async {
-                          final result = await Navigator.pushNamed(
-                            context,
-                            '/community/detail',
-                            arguments: post['id'],
-                          );
-                          // Refresh posts if changes were made in detail screen
-                          if (result == true) {
-                            _loadPosts();
-                          }
-                        },
-                      );
-                    },
-                  ),
+                  itemCount: _posts.length,
+                  itemBuilder: (context, index) {
+                    final post = _posts[index];
+                    return PostCard(
+                      post: post,
+                      onVoteChanged: _loadPosts, // Pass the refresh callback
+                      onTap: () async {
+                        final result = await Navigator.pushNamed(
+                          context,
+                          '/community/detail',
+                          arguments: post['id'],
+                        );
+                        // Refresh posts if changes were made in detail screen
+                        if (result == true) {
+                          _loadPosts();
+                        }
+                      },
+                    );
+                  },
+                ),
       ),
     );
   }
@@ -101,12 +108,8 @@ class PostCard extends StatefulWidget {
   final Function? onVoteChanged;
   final Function? onTap;
 
-  const PostCard({
-    Key? key, 
-    required this.post,
-    this.onVoteChanged,
-    this.onTap,
-  }) : super(key: key);
+  const PostCard({Key? key, required this.post, this.onVoteChanged, this.onTap})
+    : super(key: key);
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -114,15 +117,18 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   final CommunityService _communityService = CommunityService();
+  final ProfileService _profileService = ProfileService();
   String? currentVote;
   bool isLoading = false;
   int? _currentUserId;
+  String? _authorBadge;
 
   @override
   void initState() {
     super.initState();
     _loadVoteStatus();
     _loadCurrentUserId();
+    _loadAuthorBadge();
   }
 
   Future<void> _loadCurrentUserId() async {
@@ -158,6 +164,23 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
+  Future<void> _loadAuthorBadge() async {
+    final authorId = widget.post['author_id'] as int?;
+    if (authorId == null) return;
+
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      if (mounted) {
+        setState(() {
+          // ProfileService returns a normalized badge (dietitian prioritized)
+          _authorBadge = badgeData?['badge'];
+        });
+      }
+    } catch (_) {
+      // Silent fail - just don't show badge
+    }
+  }
+
   Future<void> _handleVote(String voteType) async {
     if (isLoading) return;
 
@@ -169,7 +192,7 @@ class _PostCardState extends State<PostCard> {
       if (currentVote == voteType) {
         // Remove vote if clicking the same button
         await _communityService.removeVote(widget.post['id']);
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -182,21 +205,25 @@ class _PostCardState extends State<PostCard> {
         setState(() {
           currentVote = null;
           if (voteType == 'up') {
-            widget.post['upvote_count'] = (widget.post['upvote_count'] ?? 1) - 1;
+            widget.post['upvote_count'] =
+                (widget.post['upvote_count'] ?? 1) - 1;
           } else {
-            widget.post['downvote_count'] = (widget.post['downvote_count'] ?? 1) - 1;
+            widget.post['downvote_count'] =
+                (widget.post['downvote_count'] ?? 1) - 1;
           }
         });
       } else {
         // Add or change vote
         await _communityService.votePost(widget.post['id'], voteType);
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(voteType == 'up'
-                  ? AppLocalizations.of(context)!.postUpvoted
-                  : AppLocalizations.of(context)!.postDownvoted),
+              content: Text(
+                voteType == 'up'
+                    ? AppLocalizations.of(context)!.postUpvoted
+                    : AppLocalizations.of(context)!.postDownvoted,
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -206,22 +233,26 @@ class _PostCardState extends State<PostCard> {
           // If there was a previous vote, decrement its count
           if (currentVote != null) {
             if (currentVote == 'up') {
-              widget.post['upvote_count'] = (widget.post['upvote_count'] ?? 1) - 1;
+              widget.post['upvote_count'] =
+                  (widget.post['upvote_count'] ?? 1) - 1;
             } else {
-              widget.post['downvote_count'] = (widget.post['downvote_count'] ?? 1) - 1;
+              widget.post['downvote_count'] =
+                  (widget.post['downvote_count'] ?? 1) - 1;
             }
           }
-          
+
           // Increment the new vote count
           if (voteType == 'up') {
-            widget.post['upvote_count'] = (widget.post['upvote_count'] ?? 0) + 1;
+            widget.post['upvote_count'] =
+                (widget.post['upvote_count'] ?? 0) + 1;
           } else {
-            widget.post['downvote_count'] = (widget.post['downvote_count'] ?? 0) + 1;
+            widget.post['downvote_count'] =
+                (widget.post['downvote_count'] ?? 0) + 1;
           }
           currentVote = voteType;
         });
       }
-      
+
       // Notify parent to refresh posts
       if (widget.onVoteChanged != null) {
         widget.onVoteChanged!();
@@ -248,8 +279,8 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     // Check if this is the current user's post
-    final isOwnPost = _currentUserId != null && 
-                      widget.post['author_id'] == _currentUserId;
+    final isOwnPost =
+        _currentUserId != null && widget.post['author_id'] == _currentUserId;
 
     return Card(
       margin: const EdgeInsets.all(8.0),
@@ -273,30 +304,39 @@ class _PostCardState extends State<PostCard> {
                   if (!isOwnPost && _currentUserId != null)
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
-                      itemBuilder: (context) => [
-                        PopupMenuItem<String>(
-                          value: 'report',
-                          child: Row(
-                            children: [
-                              Icon(Icons.flag_outlined, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Text(AppLocalizations.of(context)!.reportPost),
-                            ],
-                          ),
-                          onTap: () async {
-                            // Wait for menu to close
-                            await Future.delayed(const Duration(milliseconds: 100));
-                            if (!context.mounted) return;
-                            
-                            await ReportDialog.show(
-                              context: context,
-                              contentType: ReportContentType.post,
-                              objectId: widget.post['id'],
-                              contentPreview: widget.post['title'] ?? AppLocalizations.of(context)!.postFallback,
-                            );
-                          },
-                        ),
-                      ],
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem<String>(
+                              value: 'report',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.flag_outlined, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    AppLocalizations.of(context)!.reportPost,
+                                  ),
+                                ],
+                              ),
+                              onTap: () async {
+                                // Wait for menu to close
+                                await Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                );
+                                if (!context.mounted) return;
+
+                                await ReportDialog.show(
+                                  context: context,
+                                  contentType: ReportContentType.post,
+                                  objectId: widget.post['id'],
+                                  contentPreview:
+                                      widget.post['title'] ??
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.postFallback,
+                                );
+                              },
+                            ),
+                          ],
                     ),
                 ],
               ),
@@ -308,42 +348,65 @@ class _PostCardState extends State<PostCard> {
               ),
               const SizedBox(height: 8),
               // Tags section
-              if (widget.post['tags'] != null && (widget.post['tags'] as List).isNotEmpty)
+              if (widget.post['tags'] != null &&
+                  (widget.post['tags'] as List).isNotEmpty)
                 Wrap(
                   spacing: 8,
-                  children: (widget.post['tags'] as List)
-          .map((tag) => Chip(
-            label: Text(localizedTagLabel(context, tag.toString())),
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ))
-                      .toList(),
+                  children:
+                      (widget.post['tags'] as List)
+                          .map(
+                            (tag) => Chip(
+                              label: Text(
+                                localizedTagLabel(context, tag.toString()),
+                              ),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          )
+                          .toList(),
                 ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (!isOwnPost && widget.post['author_id'] != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OtherUserProfileScreen(
-                              userId: widget.post['author_id'],
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!isOwnPost && widget.post['author_id'] != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OtherUserProfileScreen(
+                                userId: widget.post['author_id'],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
+                            style: TextStyle(
+                              color: !isOwnPost ? Colors.blue[700] : null,
+                              decoration:
+                                  !isOwnPost ? TextDecoration.underline : null,
                             ),
                           ),
-                        );
-                      }
-                    },
-                    child: Text(
-                      AppLocalizations.of(context)!.byAuthor(
-                        widget.post['author']?.toString() ??
-                            AppLocalizations.of(context)!.unknown,
-                      ),
-                      style: TextStyle(
-                        color: !isOwnPost ? Colors.blue[700] : null,
-                        decoration:
-                            !isOwnPost ? TextDecoration.underline : null,
+                          if (_authorBadge != null) ...[
+                            const SizedBox(height: 4),
+                            BadgeWidget(
+                              badge: _authorBadge!,
+                              fontSize: 10,
+                              iconSize: 12,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),

@@ -231,12 +231,21 @@ class IngredientQuantity {
   });
 
   factory IngredientQuantity.fromJson(Map<String, dynamic> json) {
+    // Parse quantity safely - could be num or string
+    double quantity = 0.0;
+    final quantityValue = json['quantity'];
+    if (quantityValue is num) {
+      quantity = quantityValue.toDouble();
+    } else if (quantityValue is String) {
+      quantity = double.tryParse(quantityValue) ?? 0.0;
+    }
+
     return IngredientQuantity(
       ingredient: IngredientDetail.fromJson(
         json['ingredient'] as Map<String, dynamic>,
       ),
-      quantity: double.tryParse(json['quantity']?.toString() ?? '') ?? 0.0,
-      unit: json['unit']?.toString() ?? '',
+      quantity: quantity,
+      unit: json['unit'] as String? ?? '',
     );
   }
 }

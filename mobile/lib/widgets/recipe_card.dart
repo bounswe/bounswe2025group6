@@ -4,10 +4,11 @@ import '../models/recipe.dart';
 import '../providers/currency_provider.dart';
 import '../screens/recipe_detail_screen.dart';
 import '../screens/other_user_profile_screen.dart';
+import '../services/profile_service.dart';
+import '../services/storage_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/meal_type_localization.dart';
-import '../services/storage_service.dart';
-import '../services/profile_service.dart';
+import 'badge_widget.dart';
 
 class RecipeCard extends StatefulWidget {
   final Recipe recipe;
@@ -26,6 +27,8 @@ class RecipeCard extends StatefulWidget {
 }
 
 class _RecipeCardState extends State<RecipeCard> {
+  final ProfileService _profileService = ProfileService();
+  String? _creatorBadge;
   String? _fetchedUsername;
   bool _isLoadingUsername = false;
   bool _hasFetched = false;
@@ -33,7 +36,24 @@ class _RecipeCardState extends State<RecipeCard> {
   @override
   void initState() {
     super.initState();
+    _loadCreatorBadge();
     _fetchUsernameIfNeeded();
+  }
+
+  Future<void> _loadCreatorBadge() async {
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(
+        widget.recipe.creatorId,
+      );
+      if (mounted) {
+        setState(() {
+          // badgeData['badge'] is already normalized by ProfileService
+          _creatorBadge = badgeData?['badge'];
+        });
+      }
+    } catch (e) {
+      // Silent fail - badge is optional
+    }
   }
 
   @override
@@ -77,6 +97,9 @@ class _RecipeCardState extends State<RecipeCard> {
 
   @override
   Widget build(BuildContext context) {
+    final recipe = widget.recipe;
+    final onRefresh = widget.onRefresh;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
@@ -221,6 +244,18 @@ class _RecipeCardState extends State<RecipeCard> {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                  if (_creatorBadge != null) ...[
+                    const SizedBox(height: 6),
+                    BadgeWidget(
+                      badge: _creatorBadge!,
+                      fontSize: 10,
+                      iconSize: 12,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 8),
