@@ -31,12 +31,21 @@ class AnalyticsView(APIView):
     )
     def get(self, request):
         data = {
-            "users_count": User.objects.count(),
-            "recipes_count": Recipe.objects.count(),
-            "ingredients_count": Ingredient.objects.count(),
-            "posts_count": ForumPost.objects.count(),
-            "comments_count": ForumPostComment.objects.count(),
+            "users_count": self.count_non_deleted(User),
+            "recipes_count": self.count_non_deleted(Recipe),
+            "ingredients_count": self.count_non_deleted(Ingredient),
+            "posts_count": self.count_non_deleted(ForumPost),
+            "comments_count": self.count_non_deleted(ForumPostComment),
         }
 
         serializer = AnalyticsSerializer(data)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def count_non_deleted(self, model):
+        """
+        Returns count of non-deleted objects for models with soft delete.
+        Falls back to total count if 'deleted_on' is not a field.
+        """
+        if hasattr(model, 'deleted_on'):
+            return model.objects.filter(deleted_on__isnull=True).count()
+        return model.objects.count()

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe.dart';
+import '../models/recipe_rating.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
+import '../services/profile_service.dart';
+import '../services/rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
+import '../widgets/rating_display.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/ingredient_translator.dart';
 import '../providers/currency_provider.dart';
@@ -21,13 +25,103 @@ class RecipeDetailScreen extends StatefulWidget {
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
+  final ProfileService _profileService = ProfileService();
   late Future<Recipe> _recipeFuture;
   Recipe? _currentRecipe; // Store the loaded recipe for report button
+  bool _isBookmarked = false;
+  bool _isTogglingBookmark = false;
+  final RatingService _ratingService = RatingService();
+  RecipeRating? _userRating; // Store user's rating for this recipe
 
   @override
   void initState() {
     super.initState();
     _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+    _loadBookmarkStatus();
+    _loadUserRating();
+  }
+
+  Future<void> _loadBookmarkStatus() async {
+    try {
+      final profile = await _profileService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _isBookmarked = profile.bookmarkRecipes?.contains(widget.recipeId) ?? false;
+        });
+      }
+    } catch (e) {
+      // Silently fail - user can still toggle bookmark
+    }
+  }
+
+  Future<void> _loadUserRating() async {
+    try {
+      final rating = await _ratingService.getUserRating(widget.recipeId);
+      if (mounted) {
+        setState(() {
+          _userRating = rating;
+        });
+      }
+    } catch (e) {
+      // Silently handle error - user might not have rated yet
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    if (_isTogglingBookmark) return;
+
+    setState(() {
+      _isTogglingBookmark = true;
+    });
+
+    try {
+      if (_isBookmarked) {
+        await _recipeService.unbookmarkRecipe(widget.recipeId);
+      } else {
+        await _recipeService.bookmarkRecipe(widget.recipeId);
+      }
+
+      if (mounted) {
+        setState(() {
+          _isBookmarked = !_isBookmarked;
+          _isTogglingBookmark = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isBookmarked
+                  ? AppLocalizations.of(context)!.recipeBookmarked
+                  : AppLocalizations.of(context)!.recipeRemovedFromBookmarks,
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isTogglingBookmark = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToUpdateBookmark(e.toString()),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _refreshRecipe() async {
+    setState(() {
+      _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+    });
+    await _loadUserRating();
   }
 
   @override
@@ -44,6 +138,28 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               contentPreview: _currentRecipe!.name,
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _isTogglingBookmark ? null : _toggleBookmark,
+        backgroundColor: _isTogglingBookmark 
+            ? Colors.grey 
+            : (_isBookmarked ? AppTheme.primaryGreen : Colors.white),
+        child: _isTogglingBookmark
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Icon(
+                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                color: _isBookmarked ? Colors.white : AppTheme.primaryGreen,
+              ),
+        tooltip: _isBookmarked 
+            ? AppLocalizations.of(context)!.removeBookmark 
+            : AppLocalizations.of(context)!.bookmarkRecipe,
       ),
       body: FutureBuilder<Recipe>(
         future: _recipeFuture,
@@ -420,6 +536,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   .cast<Widget>()
                                   .toList(),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Rating Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: RatingDisplay(
+                        recipe: recipe,
+                        userRating: _userRating,
+                        onRatingChanged: _refreshRecipe,
                       ),
                     ),
                     const SizedBox(height: 24),
