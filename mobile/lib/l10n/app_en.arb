@@ -748,9 +748,8 @@
   "clearHealthRating": "Clear health rating",
   "@clearHealthRating": { "description": "Button to clear health rating" },
   "update": "Update",
-  "@update": { "description": "Update button label" }
-  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" }
-  ,
+  "@update": { "description": "Update button label" },
+  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" },
   "followButton": "Follow",
   "@followButton": { "description": "Button text to follow a user" },
   "unfollowButton": "Unfollow",

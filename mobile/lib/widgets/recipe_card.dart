@@ -15,7 +15,7 @@ class RecipeCard extends StatefulWidget {
   final String? creatorUsername;
   final VoidCallback? onRefresh;
 
-  const RecipeCard({Key? key, required this.recipe, this.onRefresh})
+  const RecipeCard({Key? key, required this.recipe, this.creatorUsername, this.onRefresh})
     : super(key: key);
 
   @override
@@ -110,7 +110,7 @@ class _RecipeCardState extends State<RecipeCard> {
                   RecipeDetailScreen(recipeId: widget.recipe.id),
             ),
           );
-          onRefresh?.call();
+          widget.onRefresh?.call();
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +118,8 @@ class _RecipeCardState extends State<RecipeCard> {
             // Recipe Image with gradient overlay
             Stack(
               children: [
-                if (recipe.imageFullUrl != null &&
-                    recipe.imageFullUrl!.isNotEmpty)
+                if (widget.recipe.imageFullUrl != null &&
+                    widget.recipe.imageFullUrl!.isNotEmpty)
                   ConstrainedBox(
                     constraints: const BoxConstraints(
                       maxHeight: 200,
@@ -129,7 +129,7 @@ class _RecipeCardState extends State<RecipeCard> {
                       width: double.infinity,
                       color: Colors.grey[100],
                       child: Image.network(
-                        recipe.imageFullUrl!,
+                        widget.recipe.imageFullUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return _buildPlaceholder();
@@ -187,7 +187,7 @@ class _RecipeCardState extends State<RecipeCard> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: _getMealTypeColor(recipe.mealType),
+                      color: _getMealTypeColor(widget.recipe.mealType),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -198,7 +198,7 @@ class _RecipeCardState extends State<RecipeCard> {
                       ],
                     ),
                     child: Text(
-                      localizeMealType(recipe.mealType, context),
+                      localizeMealType(widget.recipe.mealType, context),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -231,7 +231,7 @@ class _RecipeCardState extends State<RecipeCard> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
+                          '${widget.recipe.totalTime} ${AppLocalizations.of(context)!.minutesAbbr}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -269,56 +269,56 @@ class _RecipeCardState extends State<RecipeCard> {
                     runSpacing: 8,
                     children: [
                       // Nutrition chip
-                      if (recipe.recipeNutritions != null &&
-                          recipe.recipeNutritions!['calories'] != null)
+                      if (widget.recipe.recipeNutritions != null &&
+                          widget.recipe.recipeNutritions!['calories'] != null)
                         _buildInfoChip(
                           icon: Icons.local_fire_department,
                           label:
-                              '${_parseCalories(recipe.recipeNutritions!['calories'])} kcal',
+                              '${_parseCalories(widget.recipe.recipeNutritions!['calories'])} kcal',
                           color: Colors.orange,
                         ),
 
                       // Cost chip
-                      if (recipe.costPerServing != null)
+                      if (widget.recipe.costPerServing != null)
                         _buildInfoChip(
                           icon: Icons.payments_outlined,
                           label:
-                              '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing!.toStringAsFixed(2)}',
+                              '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${widget.recipe.costPerServing!.toStringAsFixed(2)}',
                           color: Colors.green,
                         ),
                     ],
                   ),
 
                   // Ratings row
-                  if (recipe.tasteRating != null ||
-                      recipe.difficultyRating != null ||
-                      recipe.healthRating != null) ...[
+                  if (widget.recipe.tasteRating != null ||
+                      widget.recipe.difficultyRating != null ||
+                      widget.recipe.healthRating != null) ...[
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        if (recipe.tasteRating != null) ...[
+                        if (widget.recipe.tasteRating != null) ...[
                           _buildRatingBadge(
                             icon: Icons.star_rounded,
-                            rating: recipe.tasteRating!,
-                            count: recipe.tasteRatingCount,
+                            rating: widget.recipe.tasteRating!,
+                            count: widget.recipe.tasteRatingCount,
                             color: Colors.amber,
                           ),
                           const SizedBox(width: 12),
                         ],
-                        if (recipe.difficultyRating != null) ...[
+                        if (widget.recipe.difficultyRating != null) ...[
                           _buildRatingBadge(
                             icon: Icons.speed_rounded,
-                            rating: recipe.difficultyRating!,
-                            count: recipe.difficultyRatingCount,
+                            rating: widget.recipe.difficultyRating!,
+                            count: widget.recipe.difficultyRatingCount,
                             color: Colors.deepOrange,
                           ),
                           const SizedBox(width: 12),
                         ],
-                        if (recipe.healthRating != null)
+                        if (widget.recipe.healthRating != null)
                           _buildRatingBadge(
                             icon: Icons.favorite_rounded,
-                            rating: recipe.healthRating!,
-                            count: recipe.healthRatingCount,
+                            rating: widget.recipe.healthRating!,
+                            count: widget.recipe.healthRatingCount,
                             color: Colors.green,
                           ),
                       ],
