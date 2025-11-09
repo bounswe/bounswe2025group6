@@ -4,7 +4,6 @@ import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
-import '../services/profile_service.dart';
 import '../services/rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
@@ -24,33 +23,16 @@ class RecipeDetailScreen extends StatefulWidget {
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
-  final ProfileService _profileService = ProfileService();
+  final RatingService _ratingService = RatingService();
   late Future<Recipe> _recipeFuture;
   Recipe? _currentRecipe; // Store the loaded recipe for report button
-  bool _isBookmarked = false;
-  bool _isTogglingBookmark = false;
-  final RatingService _ratingService = RatingService();
   RecipeRating? _userRating; // Store user's rating for this recipe
 
   @override
   void initState() {
     super.initState();
     _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
-    _loadBookmarkStatus();
     _loadUserRating();
-  }
-
-  Future<void> _loadBookmarkStatus() async {
-    try {
-      final profile = await _profileService.getUserProfile();
-      if (mounted) {
-        setState(() {
-          _isBookmarked = profile.bookmarkRecipes?.contains(widget.recipeId) ?? false;
-        });
-      }
-    } catch (e) {
-      // Silently fail - user can still toggle bookmark
-    }
   }
 
   Future<void> _loadUserRating() async {
@@ -63,54 +45,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       }
     } catch (e) {
       // Silently handle error - user might not have rated yet
-    }
-  }
-
-  Future<void> _toggleBookmark() async {
-    if (_isTogglingBookmark) return;
-
-    setState(() {
-      _isTogglingBookmark = true;
-    });
-
-    try {
-      if (_isBookmarked) {
-        await _recipeService.unbookmarkRecipe(widget.recipeId);
-      } else {
-        await _recipeService.bookmarkRecipe(widget.recipeId);
-      }
-
-      if (mounted) {
-        setState(() {
-          _isBookmarked = !_isBookmarked;
-          _isTogglingBookmark = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isBookmarked
-                  ? 'Recipe bookmarked'
-                  : 'Recipe removed from bookmarks',
-            ),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isTogglingBookmark = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update bookmark: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
     }
   }
 
@@ -135,26 +69,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               contentPreview: _currentRecipe!.name,
             ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _isTogglingBookmark ? null : _toggleBookmark,
-        backgroundColor: _isTogglingBookmark 
-            ? Colors.grey 
-            : (_isBookmarked ? AppTheme.primaryGreen : Colors.white),
-        child: _isTogglingBookmark
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Icon(
-                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                color: _isBookmarked ? Colors.white : AppTheme.primaryGreen,
-              ),
-        tooltip: _isBookmarked ? 'Remove bookmark' : 'Bookmark recipe',
       ),
       body: FutureBuilder<Recipe>(
         future: _recipeFuture,

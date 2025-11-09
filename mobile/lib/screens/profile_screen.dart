@@ -1,4 +1,3 @@
-import 'package:fithub/screens/bookmarked_recipes_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../models/recipe.dart'; 
@@ -7,7 +6,6 @@ import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/recipe_card.dart'; 
 import './profile_settings_screen.dart';
-import './bookmarked_recipes_screen.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import 'package:provider/provider.dart';
 import '../providers/currency_provider.dart';
@@ -379,7 +377,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.followedUsers != null
                 ? '${profile.followedUsers!.length} ${AppLocalizations.of(context)!.users}'
                 : '0 ${AppLocalizations.of(context)!.users}',
-            
           ),
           _buildInfoTile(
             Icons.bookmark_border_outlined,
@@ -387,14 +384,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.bookmarkRecipes != null
                 ? '${profile.bookmarkRecipes!.length} ${AppLocalizations.of(context)!.recipes}'
                 : '0 ${AppLocalizations.of(context)!.recipes}',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BookmarkedRecipesScreen(),
-                ),
-              );
-            },
           ),
           _buildInfoTile(
             Icons.favorite_border_outlined,
@@ -405,7 +394,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
+  _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
         _buildUserRecipesSection(),
         SizedBox(height: 40),
       ],
@@ -498,25 +487,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String title, String subtitle, {VoidCallback? onTap}) {
-    final tile = ListTile(
+  Widget _buildInfoTile(IconData icon, String title, String subtitle) {
+    return ListTile(
       leading: Icon(icon, color: AppTheme.primaryGreen),
       title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: Text(
         subtitle.isNotEmpty ? subtitle : AppLocalizations.of(context)!.notSet,
         style: TextStyle(color: Colors.grey.shade700),
       ),
-      trailing: onTap != null
-          ? Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.primaryGreen)
-          : null,
     );
-    
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        child: tile,
-      );
-    }
-    return tile;
   }
 }
