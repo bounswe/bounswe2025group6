@@ -12,3 +12,7 @@ jsonschema==4.17.0
 cloudinary>=1.41
 django-cloudinary-storage>=0.3.0
 Pillow>=10.0  # needed for ImageField
+django-extensions
+Werkzeug
+pyOpenSSL
+django-extensions

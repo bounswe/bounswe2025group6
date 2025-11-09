@@ -9,11 +9,24 @@ import 'meal_planner_screen.dart'; // Added import for MealPlannerScreen
 import '../services/auth_service.dart';
 import 'community/community_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/dashboard_analytics_widget.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final AuthService? authService;
 
   const DashboardScreen({this.authService, super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _refreshTick = 0;
+
+  void _bumpRefresh() {
+    if (!mounted) return;
+    setState(() => _refreshTick++);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +60,9 @@ class DashboardScreen extends StatelessWidget {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: Text(AppLocalizations.of(context)!.logout),
-                    content: Text(AppLocalizations.of(context)!.logoutConfirmation),
+                    content: Text(
+                      AppLocalizations.of(context)!.logoutConfirmation,
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -82,7 +97,11 @@ class DashboardScreen extends StatelessWidget {
                   // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.logoutFailed(e.toString())),
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.logoutFailed(e.toString()),
+                      ),
                       backgroundColor: AppTheme.errorColor,
                     ),
                   );
@@ -117,6 +136,11 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
+              // Dashboard Analytics section
+              DashboardAnalyticsWidget(refreshTick: _refreshTick),
+
+              const SizedBox(height: 24),
+
               // Quick action buttons
               GridView.count(
                 shrinkWrap: true,
@@ -129,34 +153,37 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.restaurant_menu,
                     title: AppLocalizations.of(context)!.discoverRecipes,
                     color: Colors.blue,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const DiscoverRecipesScreen(),
                         ),
                       );
+                      _bumpRefresh();
                     },
                   ),
                   _buildDashboardCard(
                     icon: Icons.upload_file,
                     title: AppLocalizations.of(context)!.uploadRecipe,
                     color: AppTheme.primaryGreen,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const UploadRecipeScreen(),
                         ),
                       );
+                      _bumpRefresh();
                     },
                   ),
                   _buildDashboardCard(
                     icon: Icons.group,
                     title: AppLocalizations.of(context)!.joinCommunity,
                     color: Colors.purple,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/community');
+                    onTap: () async {
+                      await Navigator.pushNamed(context, '/community');
+                      _bumpRefresh();
                     },
                   ),
                   _buildDashboardCard(
@@ -196,13 +223,15 @@ class DashboardScreen extends StatelessWidget {
             label: AppLocalizations.of(context)!.profile,
           ),
         ],
-        onTap: (index) {
+        onTap: (index) async {
           switch (index) {
             case 1:
-              Navigator.pushNamed(context, '/community');
+              await Navigator.pushNamed(context, '/community');
+              _bumpRefresh();
               break;
             case 2:
-              Navigator.pushNamed(context, ProfileScreen.routeName);
+              await Navigator.pushNamed(context, ProfileScreen.routeName);
+              _bumpRefresh();
               break;
           }
         },

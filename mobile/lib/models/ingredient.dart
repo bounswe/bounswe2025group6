@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class IngredientDetail {
   final int id;
   final DateTime createdAt;
@@ -9,6 +7,7 @@ class IngredientDetail {
   final String category;
   final List<String> allergens;
   final List<String> dietaryInfo;
+  final List<String> allowedUnits;
 
   IngredientDetail({
     required this.id,
@@ -19,6 +18,7 @@ class IngredientDetail {
     required this.category,
     required this.allergens,
     required this.dietaryInfo,
+    required this.allowedUnits,
   });
 
   factory IngredientDetail.fromJson(Map<String, dynamic> json) {
@@ -30,6 +30,11 @@ class IngredientDetail {
     var dietaryInfoList =
         (json['dietary_info'] as List<dynamic>? ?? [])
             .map((d) => d.toString())
+            .toList();
+
+    var allowedUnitsList =
+        (json['allowed_units'] as List<dynamic>? ?? [])
+            .map((u) => u.toString())
             .toList();
 
     return IngredientDetail(
@@ -44,6 +49,7 @@ class IngredientDetail {
       category: json['category'] as String,
       allergens: allergensList,
       dietaryInfo: dietaryInfoList,
+      allowedUnits: allowedUnitsList,
     );
   }
 }

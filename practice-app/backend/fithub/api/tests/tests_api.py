@@ -506,3 +506,207 @@ class RecipeRatingTests(APITestCase):
         # Try to delete
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class UnbookmarkRecipeTests(APITestCase):
+    def setUp(self):
+        # Create test users
+        self.user = RegisteredUser.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.other_user = RegisteredUser.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123'
+        )
+        
+        # Create test recipes
+        self.recipe = Recipe.objects.create(
+            name="Tomato Sandwich",
+            steps=json.dumps(["Spread butter", "Add tomato slices", "Serve"]),
+            prep_time=10,
+            cook_time=0,
+            meal_type="lunch",
+            creator=self.user
+        )
+        
+        self.recipe2 = Recipe.objects.create(
+            name="Chocolate Cake",
+            steps=json.dumps(["Mix ingredients", "Bake", "Serve"]),
+            prep_time=30,
+            cook_time=45,
+            meal_type="dessert",
+            creator=self.user
+        )
+        
+        # Generate JWT tokens
+        self.user_token = str(RefreshToken.for_user(self.user).access_token)
+        self.other_user_token = str(RefreshToken.for_user(self.other_user).access_token)
+        
+        # Bookmark recipes for the user
+        self.user.bookmarkRecipes.add(self.recipe)
+        self.user.bookmarkRecipes.add(self.recipe2)
+        
+        # Bookmark recipe for other user (to test isolation)
+        self.other_user.bookmarkRecipes.add(self.recipe)
+
+    def test_unbookmark_recipe_success(self):
+        """Test successful unbookmarking of a recipe"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        data = {'recipe_id': self.recipe.id}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'recipe unbookmarked')
+        
+        # Verify recipe was removed from bookmarks
+        self.user.refresh_from_db()
+        self.assertNotIn(self.recipe, self.user.bookmarkRecipes.all())
+        self.assertIn(self.recipe2, self.user.bookmarkRecipes.all())  # Other bookmark should remain
+
+    def test_unbookmark_recipe_missing_recipe_id(self):
+        """Test unbookmarking with missing recipe_id"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        data = {}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'recipe_id is required.')
+
+    def test_unbookmark_recipe_not_found(self):
+        """Test unbookmarking a recipe that doesn't exist"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        data = {'recipe_id': 99999}  # Non-existent recipe ID
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Recipe not found')
+
+    def test_unbookmark_recipe_not_bookmarked(self):
+        """Test unbookmarking a recipe that is not bookmarked"""
+        # Create a new recipe that is not bookmarked
+        unbookmarked_recipe = Recipe.objects.create(
+            name="Unbookmarked Recipe",
+            steps=json.dumps(["Step 1", "Step 2"]),
+            prep_time=5,
+            cook_time=5,
+            meal_type="breakfast",
+            creator=self.user
+        )
+        
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        data = {'recipe_id': unbookmarked_recipe.id}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Recipe is not bookmarked.')
+
+    def test_unbookmark_recipe_unauthorized(self):
+        """Test unbookmarking without authentication"""
+        url = reverse('registereduser-unbookmark-recipe')
+        # Don't set credentials
+        
+        data = {'recipe_id': self.recipe.id}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_unbookmark_recipe_invalid_token(self):
+        """Test unbookmarking with invalid token"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer invalidtoken123')
+        
+        data = {'recipe_id': self.recipe.id}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_unbookmark_recipe_user_isolation(self):
+        """Test that users can only unbookmark their own bookmarks"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        # User tries to unbookmark recipe2, which is not in their bookmarks
+        # (recipe2 is only bookmarked by self.user, but let's verify isolation)
+        # Actually, recipe2 IS bookmarked by self.user, so let's use a different scenario
+        
+        # First, verify other_user has recipe bookmarked
+        self.assertIn(self.recipe, self.other_user.bookmarkRecipes.all())
+        
+        # User unbookmarks recipe (which they have bookmarked)
+        data = {'recipe_id': self.recipe.id}
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify user's bookmark was removed
+        self.user.refresh_from_db()
+        self.assertNotIn(self.recipe, self.user.bookmarkRecipes.all())
+        
+        # Verify other_user's bookmark still exists (isolation)
+        self.other_user.refresh_from_db()
+        self.assertIn(self.recipe, self.other_user.bookmarkRecipes.all())
+
+    def test_unbookmark_multiple_recipes(self):
+        """Test unbookmarking multiple recipes sequentially"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        # Verify both recipes are bookmarked initially
+        self.assertEqual(self.user.bookmarkRecipes.count(), 2)
+        
+        # Unbookmark first recipe
+        data = {'recipe_id': self.recipe.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Unbookmark second recipe
+        data = {'recipe_id': self.recipe2.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify all bookmarks are removed
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.bookmarkRecipes.count(), 0)
+
+    def test_unbookmark_recipe_after_already_unbookmarked(self):
+        """Test unbookmarking a recipe that was already unbookmarked"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        # First unbookmark
+        data = {'recipe_id': self.recipe.id}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Try to unbookmark again
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Recipe is not bookmarked.')
+
+    def test_unbookmark_recipe_with_string_recipe_id(self):
+        """Test unbookmarking with string recipe_id (should still work)"""
+        url = reverse('registereduser-unbookmark-recipe')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_token}')
+        
+        # Try with string ID
+        data = {'recipe_id': str(self.recipe.id)}
+        response = self.client.post(url, data, format='json')
+        
+        # Should work as Django can convert string to int for lookup
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'recipe unbookmarked')

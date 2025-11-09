@@ -40,7 +40,7 @@ SECRET_KEY = 'django-insecure-f7#u$4w*^*l6s*yh^$6=a9t*h$loal!1^=p@_u%icge!g_ul%h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '10.0.2.2', '95.179.161.59', '104.248.36.144']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '10.0.2.2', '95.179.161.59', '104.248.36.144', 'fithubmp.xyz']
 
 # Application definition
 
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions', # For HTTPS
     'rest_framework', # Django REST framework
     'rest_framework.authtoken', # Token authentication
     'corsheaders', # CORS headers (for cross-origin requests from frontend)
@@ -260,6 +261,28 @@ AUTH_USER_MODEL = 'api.RegisteredUser'
 
 SITE_DOMAIN = "http://95.179.161.59:8000"
 
+SERVER_PROTOCOL = 'https' if os.environ.get('COMPOSE_PROFILES') == 'https' else 'http'
+
+
 # Login attempt settings
 LOGIN_ATTEMPT_LIMIT = 5
 LOGIN_ATTEMPT_TIMEOUT = 15  # minutes
+
+# ...existing code...
+
+if 'test' in sys.argv:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'null': {
+                'class': 'logging.NullHandler',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['null'],
+                'level': 'CRITICAL',
+            },
+        },
+    }

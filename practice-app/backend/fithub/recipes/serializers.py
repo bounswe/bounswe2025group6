@@ -1,5 +1,6 @@
 # recipes/serializers.py
 
+from attr import attrs
 from rest_framework import serializers
 from .models import Recipe, RecipeIngredient
 from ingredients.models import Ingredient
@@ -139,7 +140,7 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
         user = self.context['request'].user
 
         try:
-            with transaction.atomic():  # <- start atomic transaction
+            with transaction.atomic():  # start atomic transaction
                 # Create the recipe
                 recipe = Recipe.objects.create(creator=user, **validated_data)
 
@@ -176,6 +177,23 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
             # Any exception will rollback all DB changes
             raise serializers.ValidationError(f"Failed to create recipe: {str(e)}")
 
+    def validate(self, attrs):
+        ingredients_json = attrs.get("ingredients")
+        try:
+            ingredients_list = json.loads(ingredients_json)
+        except json.JSONDecodeError:
+            raise serializers.ValidationError({"ingredients": "Ingredients must be a valid JSON array."})
+
+        for ing in ingredients_list:
+            name = ing.get("ingredient_name")
+            if not Ingredient.objects.filter(name=name).exists():
+                raise serializers.ValidationError(
+                    {"ingredients": f"Ingredient '{name}' does not exist."}
+                )
+
+        return attrs
+
+
 class RecipeUpdateSerializer(RecipeBaseSerializer):
     name = serializers.CharField(required=False)
     steps = serializers.ListField(child=serializers.CharField(), required=False)
@@ -210,6 +228,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     creator_id = serializers.IntegerField(source='creator.id')
     recipe_costs = serializers.SerializerMethodField()
     recipe_nutritions = serializers.SerializerMethodField()
+    cost_per_serving = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -254,6 +273,19 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def get_recipe_nutritions(self, obj):
         return obj.calculate_nutrition_info()
     
+    def get_cost_per_serving(self, obj):
+        """
+        Dynamically calculate cost_per_serving based on the current user's preferred currency.
+        This ensures the cost updates when the user switches currencies, matching recipe_costs behavior.
+        """
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+        return obj.calculate_cost_per_serving(user)
+    
     def get_image_relative_url(self, obj):
         return str(obj.image) if obj.image else None
     
@@ -270,6 +302,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     recipe_costs = serializers.SerializerMethodField()
     recipe_nutritions = serializers.SerializerMethodField()
+    cost_per_serving = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -338,4 +371,17 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     
     def get_recipe_nutritions(self, obj):
         return obj.calculate_nutrition_info()
+    
+    def get_cost_per_serving(self, obj):
+        """
+        Dynamically calculate cost_per_serving based on the current user's preferred currency.
+        This ensures the cost updates when the user switches currencies, matching recipe_costs behavior.
+        """
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            class DummyUser:
+                preferredCurrency = "USD"
+            user = DummyUser()
+        return obj.calculate_cost_per_serving(user)
     

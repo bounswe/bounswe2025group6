@@ -62,36 +62,60 @@ class RecipeService {
     }
 
     try {
+      print('RecipeService: Fetching recipes from $url');
       var response = await http.get(Uri.parse(url), headers: headers);
+      print('RecipeService: Response status code: ${response.statusCode}');
 
       if (response.statusCode == 401) {
         final refreshSuccess = await _refreshToken();
         if (!refreshSuccess) throw Exception('Authentication failed');
 
         response = await http.get(Uri.parse(url), headers: headers);
+        print(
+          'RecipeService: After refresh - status code: ${response.statusCode}',
+        );
       }
 
       if (response.statusCode == 200) {
+        print('RecipeService: Parsing response body');
         final Map<String, dynamic> responseData = json.decode(response.body);
         final List<dynamic> results =
             responseData['results'] as List<dynamic>? ?? [];
 
-        List<Recipe> recipes =
-            results
-                .map(
-                  (data) => Recipe.fromListJson(data as Map<String, dynamic>),
-                )
-                .toList();
+        print('RecipeService: Found ${results.length} recipes');
+
+        List<Recipe> recipes = [];
+        for (var data in results) {
+          try {
+            final recipe = Recipe.fromListJson(data as Map<String, dynamic>);
+            recipes.add(recipe);
+          } catch (e) {
+            print('RecipeService: Error parsing recipe: $e');
+            print('RecipeService: Recipe data: $data');
+            // Skip this recipe and continue with others
+          }
+        }
+
+        print('RecipeService: Successfully parsed ${recipes.length} recipes');
         return recipes;
+      } else if (response.statusCode == 500) {
+        // Backend may fail computing recipe costs for some ingredients.
+        print('RecipeService: Backend returned 500 error');
+        print('RecipeService: Response body: ${response.body}');
+        // Don't crash the app; return an empty list and let UI continue.
+        return <Recipe>[];
       } else {
         // Consider more specific error handling based on status code
+        print('RecipeService: Unexpected status code: ${response.statusCode}');
+        print('RecipeService: Response body: ${response.body}');
         throw Exception(
           'Failed to load recipes (status code: ${response.statusCode})',
         );
       }
     } catch (e) {
-      // Handle network errors or other exceptions
-      throw Exception('Failed to load recipes: $e');
+      // Handle network errors or other exceptions without breaking the app
+      print('RecipeService: Exception occurred: $e');
+      return <Recipe>[];
     }
   }
 
@@ -154,6 +178,8 @@ class RecipeService {
         request.headers['Authorization'] = 'Bearer $token';
       }
 
+      print('RecipeService: Creating recipe with data: $recipeData');
+
       // Add form fields
       recipeData.forEach((key, value) {
         if (value != null && key != 'image') {
@@ -161,15 +187,21 @@ class RecipeService {
             // For steps ListField, send as indexed array format
             for (int i = 0; i < value.length; i++) {
               request.fields['steps[$i]'] = value[i].toString();
+              print('RecipeService: Added steps[$i] = ${value[i]}');
             }
           } else if (value is List || value is Map) {
             // For other complex data (like ingredients), send as JSON strings
-            request.fields[key] = json.encode(value);
+            final jsonValue = json.encode(value);
+            request.fields[key] = jsonValue;
+            print('RecipeService: Added $key = $jsonValue');
           } else {
             request.fields[key] = value.toString();
+            print('RecipeService: Added $key = ${value.toString()}');
           }
         }
       });
+
+      print('RecipeService: Request fields: ${request.fields}');
 
       // Add image file if provided
       if (imagePath != null && imagePath.isNotEmpty) {
@@ -180,11 +212,15 @@ class RecipeService {
             imagePath,
           );
           request.files.add(multipartFile);
+          print('RecipeService: Added image file: $imagePath');
         }
       }
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
+
+      print('RecipeService: Response status: ${response.statusCode}');
+      print('RecipeService: Response body: ${response.body}');
 
       if (response.statusCode == 401) {
         final refreshSuccess = await _refreshToken();
@@ -289,6 +325,96 @@ class RecipeService {
       }
     } catch (e) {
       throw Exception('Failed to load ingredients: $e');
+    }
+  }
+
+  // Bookmarks a recipe for the current user.
+  Future<bool> bookmarkRecipe(int recipeId) async {
+    final String url = '$baseUrl/api/users/bookmark_recipe/';
+
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
+      throw Exception(
+        'JWT Access token is not available. Please log in again.',
+      );
+    }
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'recipe_id': recipeId}),
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.post(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode({'recipe_id': recipeId}),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(
+          'Failed to bookmark recipe (status code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to bookmark recipe: $e');
+    }
+  }
+
+  // Unbookmarks a recipe for the current user.
+  Future<bool> unbookmarkRecipe(int recipeId) async {
+    final String url = '$baseUrl/api/users/unbookmark_recipe/';
+
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
+      throw Exception(
+        'JWT Access token is not available. Please log in again.',
+      );
+    }
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'recipe_id': recipeId}),
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.post(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode({'recipe_id': recipeId}),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        return true;
+      } else if (response.statusCode == 400) {
+        // Recipe not bookmarked or missing recipe_id
+        final responseBody = jsonDecode(response.body);
+        throw Exception(responseBody['error'] ?? 'Bad request');
+      } else if (response.statusCode == 404) {
+        // Recipe not found
+        final responseBody = jsonDecode(response.body);
+        throw Exception(responseBody['error'] ?? 'Recipe not found');
+      } else {
+        throw Exception(
+          'Failed to unbookmark recipe (status code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to unbookmark recipe: $e');
     }
   }
 }

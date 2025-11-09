@@ -25,7 +25,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   final _cookTimeController = TextEditingController();
   final _stepsController = TextEditingController();
   String? _selectedMealType;
-  List<Map<String, TextEditingController>> _ingredients = [];
+  List<Map<String, dynamic>> _ingredients =
+      []; // Changed to dynamic to store controllers and selected ingredient
   bool _isSubmitting = false; // To track submission state
   List<IngredientDetail> _allIngredients = [];
   bool _isLoadingIngredients = true;
@@ -92,6 +93,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
         'name': TextEditingController(),
         'quantity': TextEditingController(),
         'unit': TextEditingController(),
+        'selectedIngredient': null, // Store selected IngredientDetail
+        'selectedUnit': null, // Store selected unit string
       });
     });
   }
@@ -517,8 +520,16 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     // Changed from onSuggestionSelected
                                     // The controller for the field is _ingredients[index]['name']
                                     // TypeAheadField updates its 'controller' parameter automatically.
-                                    _ingredients[index]['name']!.text =
-                                        suggestion.name;
+                                    setState(() {
+                                      _ingredients[index]['name']!.text =
+                                          suggestion.name;
+                                      _ingredients[index]['selectedIngredient'] =
+                                          suggestion;
+                                      // Reset unit selection when ingredient changes
+                                      _ingredients[index]['selectedUnit'] =
+                                          null;
+                                      _ingredients[index]['unit']!.clear();
+                                    });
                                   },
                                   emptyBuilder: // Changed from noItemsFoundBuilder
                                       (context) => Padding(
@@ -570,24 +581,74 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: TextFormField(
-                                    controller: _ingredients[index]['unit'],
-                                    decoration: InputDecoration(
-                                      labelText:
-                                          AppLocalizations.of(
-                                            context,
-                                          )!.unitLabel,
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        // return 'Enter unit';
-                                        return AppLocalizations.of(
-                                          context,
-                                        )!.enterIngredientNameValidation;
-                                      }
-                                      return null;
-                                    },
-                                  ),
+                                  child:
+                                      _ingredients[index]['selectedIngredient'] !=
+                                                  null &&
+                                              (_ingredients[index]['selectedIngredient']
+                                                      as IngredientDetail)
+                                                  .allowedUnits
+                                                  .isNotEmpty
+                                          ? DropdownButtonFormField<String>(
+                                            value:
+                                                _ingredients[index]['selectedUnit'],
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.unitLabel,
+                                            ),
+                                            items:
+                                                (_ingredients[index]['selectedIngredient']
+                                                        as IngredientDetail)
+                                                    .allowedUnits
+                                                    .map(
+                                                      (unit) =>
+                                                          DropdownMenuItem(
+                                                            value: unit,
+                                                            child: Text(unit),
+                                                          ),
+                                                    )
+                                                    .toList(),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _ingredients[index]['selectedUnit'] =
+                                                    value;
+                                                _ingredients[index]['unit']!
+                                                    .text = value ?? '';
+                                              });
+                                            },
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return AppLocalizations.of(
+                                                  context,
+                                                )!.enterIngredientNameValidation;
+                                              }
+                                              return null;
+                                            },
+                                          )
+                                          : TextFormField(
+                                            controller:
+                                                _ingredients[index]['unit'],
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.unitLabel,
+                                              hintText:
+                                                  'Select ingredient first',
+                                            ),
+                                            enabled: false,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return AppLocalizations.of(
+                                                  context,
+                                                )!.enterIngredientNameValidation;
+                                              }
+                                              return null;
+                                            },
+                                          ),
                                 ),
                               ],
                             ),

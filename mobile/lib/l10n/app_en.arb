@@ -898,4 +898,20 @@
   "@selectAll": { "description": "Button to select all items" },
   "deselectAll": "Deselect All",
   "@deselectAll": { "description": "Button to deselect all items" }
+  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" }
+  ,
+  "dashboardAnalyticsTitle": "Dashboard Analytics",
+  "@dashboardAnalyticsTitle": { "description": "Section title for dashboard analytics" },
+  "analyticsUsers": "Users",
+  "@analyticsUsers": { "description": "Title for users count card" },
+  "analyticsRecipes": "Recipes",
+  "@analyticsRecipes": { "description": "Title for recipes count card" },
+  "analyticsIngredients": "Ingredients",
+  "@analyticsIngredients": { "description": "Title for ingredients count card" },
+  "analyticsPosts": "Posts",
+  "@analyticsPosts": { "description": "Title for posts count card" },
+  "analyticsComments": "Comments",
+  "@analyticsComments": { "description": "Title for comments count card" },
+  "failedToLoadAnalytics": "Failed to load analytics: {error}",
+  "@failedToLoadAnalytics": { "description": "Error message when analytics fetch fails", "placeholders": { "error": {} } }
 }

@@ -44,4 +44,8 @@
         </intent>
     </queries>
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Permissions for file_picker -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 </manifest>

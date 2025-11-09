@@ -46,6 +46,7 @@
   "recipeName": "Tarif İsmi",
   "currencyPreference": "Birim Tercihi",
   "datePreference": "Tarih Biçimi",
+  "failedToUpdateLanguagePreference": "Dil seçeneği yüklenirken hata oluştu",
   "savedRecipes": "Kaydedilen Tarifler",
   "Ingredients": "İçindekiler",
   "ingredients": "Malzemeler",
