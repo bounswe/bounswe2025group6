@@ -201,7 +201,8 @@ class _CommentCardState extends State<CommentCard> {
             children: [
               // Previously: 'By ${widget.authorUsername}'
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppLocalizations.of(context)!.byAuthor(
@@ -212,7 +213,7 @@ class _CommentCardState extends State<CommentCard> {
                       ),
                     ),
                     if (widget.authorBadge != null) ...[
-                      const SizedBox(width: 6),
+                      const SizedBox(height: 4),
                       BadgeWidget(
                         badge: widget.authorBadge!,
                         fontSize: 9,

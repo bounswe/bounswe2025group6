@@ -547,13 +547,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             '${post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
                           ),
                           if (_authorBadge != null) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(height: 4),
                             BadgeWidget(
                               badge: _authorBadge!,
                               fontSize: 11,

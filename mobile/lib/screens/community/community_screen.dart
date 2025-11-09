@@ -369,13 +369,14 @@ class _PostCardState extends State<PostCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           '${widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
                         ),
                         if (_authorBadge != null) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(height: 4),
                           BadgeWidget(
                             badge: _authorBadge!,
                             fontSize: 10,
