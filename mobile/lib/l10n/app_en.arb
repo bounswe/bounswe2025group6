@@ -686,6 +686,22 @@
   "accessibilityHearing": "Hearing Impairment",
   "@accessibilityHearing": { "description": "Accessibility: hearing impairment" },
 
+  "bookmarkRecipe": "Bookmark Recipe",
+  "@bookmarkRecipe": { "description": "Tooltip for bookmarking a recipe" },
+  "removeBookmark": "Remove Bookmark",
+  "@removeBookmark": { "description": "Tooltip for removing a bookmark" },
+  "recipeBookmarked": "Recipe bookmarked",
+  "@recipeBookmarked": { "description": "Snackbar text when recipe is bookmarked" },
+  "recipeRemovedFromBookmarks": "Recipe removed from bookmarks",
+  "@recipeRemovedFromBookmarks": { "description": "Snackbar text when recipe is removed from bookmarks" },
+  "failedToUpdateBookmark": "Failed to update bookmark: {error}",
+  "@failedToUpdateBookmark": { "description": "Snackbar text when bookmark update fails", "placeholders": { "error": {} } },
+
+  "noBookmarkedRecipesYet": "No bookmarked recipes yet",
+  "@noBookmarkedRecipesYet": { "description": "Message when user has no bookmarked recipes" },
+  "failedToLoadBookmarkedRecipes": "Failed to load bookmarked recipes: {error}",
+  "@failedToLoadBookmarkedRecipes": { "description": "Error message when loading bookmarked recipes fails", "placeholders": { "error": {} } },
+
   "mealPlanner": "Meal Planner",
   "@mealPlanner": { "description": "Meal planner screen title" },
   "planToday": "Plan Today",
@@ -901,9 +917,8 @@
   "selectAll": "Select All",
   "@selectAll": { "description": "Button to select all items" },
   "deselectAll": "Deselect All",
-  "@deselectAll": { "description": "Button to deselect all items" }
-  "@accessibilityHearing": { "description": "Accessibility: hearing impairment" }
-  ,
+  "@deselectAll": { "description": "Button to deselect all items" },
+
   "dashboardAnalyticsTitle": "Dashboard Analytics",
   "@dashboardAnalyticsTitle": { "description": "Section title for dashboard analytics" },
   "analyticsUsers": "Users",

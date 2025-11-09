@@ -767,12 +767,25 @@
     "selectAll": "Tümünü Seç",
     "@selectAll": { "description": "Button to select all items in Turkish" },
     "deselectAll": "Tümünü Kaldır",
-    "@deselectAll": { "description": "Button to deselect all items in Turkish" }
-    "@accessibilityHearing": { "description": "Accessibility: hearing impairment in Turkish" }
+    "@deselectAll": { "description": "Button to deselect all items in Turkish" },
 
-    ,"failedToObtainJwtTokens": "JWT tokenleri alınamadı: {error}",
-    "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } }
-    ,"dashboardAnalyticsTitle": "Gösterge Paneli Analitiği",
+    "bookmarkRecipe": "Tarifi Yer İşaretle",
+    "@bookmarkRecipe": { "description": "Tooltip for bookmarking a recipe" },
+    "removeBookmark": "Yer İşaretini Kaldır",
+    "@removeBookmark": { "description": "Tooltip for removing a bookmark" },
+    "recipeBookmarked": "Tarif yer işaretlendi",
+    "@recipeBookmarked": { "description": "Snackbar text when recipe is bookmarked" },
+    "recipeRemovedFromBookmarks": "Tarif yer işaretlerinden kaldırıldı",
+    "@recipeRemovedFromBookmarks": { "description": "Snackbar text when recipe is removed from bookmarks" },
+    "failedToUpdateBookmark": "Yer işareti güncellenemedi: {error}",
+    "@failedToUpdateBookmark": { "description": "Snackbar text when bookmark update fails", "placeholders": { "error": {} } },
+
+    "noBookmarkedRecipesYet": "Henüz yer işaretli tarif yok",
+    "@noBookmarkedRecipesYet": { "description": "Message when user has no bookmarked recipes" },
+    "failedToLoadBookmarkedRecipes": "Yer işaretli tarifler yüklenemedi: {error}",
+    "@failedToLoadBookmarkedRecipes": { "description": "Error message when loading bookmarked recipes fails", "placeholders": { "error": {} } },
+
+    "dashboardAnalyticsTitle": "Gösterge Paneli Analitiği",
     "@dashboardAnalyticsTitle": { "description": "Gösterge paneli analitik bölüm başlığı" },
     "analyticsUsers": "Kullanıcılar",
     "@analyticsUsers": { "description": "Kullanıcı sayısı kart başlığı" },

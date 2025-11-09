@@ -7,7 +7,6 @@ import 'discover_recipes_screen.dart';
 import 'upload_recipe_screen.dart'; // Added import for UploadRecipeScreen
 import 'meal_planner_screen.dart'; // Added import for MealPlannerScreen
 import '../services/auth_service.dart';
-import 'community/community_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/dashboard_analytics_widget.dart';
 

@@ -90,8 +90,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           SnackBar(
             content: Text(
               _isBookmarked
-                  ? 'Recipe bookmarked'
-                  : 'Recipe removed from bookmarks',
+                  ? AppLocalizations.of(context)!.recipeBookmarked
+                  : AppLocalizations.of(context)!.recipeRemovedFromBookmarks,
             ),
             duration: const Duration(seconds: 2),
           ),
@@ -105,7 +105,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update bookmark: ${e.toString()}'),
+            content: Text(
+              AppLocalizations.of(context)!.failedToUpdateBookmark(e.toString()),
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -154,7 +156,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                 color: _isBookmarked ? Colors.white : AppTheme.primaryGreen,
               ),
-        tooltip: _isBookmarked ? 'Remove bookmark' : 'Bookmark recipe',
+        tooltip: _isBookmarked 
+            ? AppLocalizations.of(context)!.removeBookmark 
+            : AppLocalizations.of(context)!.bookmarkRecipe,
       ),
       body: FutureBuilder<Recipe>(
         future: _recipeFuture,
