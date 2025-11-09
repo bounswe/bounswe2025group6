@@ -3,21 +3,53 @@ import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../providers/currency_provider.dart';
 import '../screens/recipe_detail_screen.dart';
+import '../services/profile_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/meal_type_localization.dart';
+import 'badge_widget.dart';
 
-class RecipeCard extends StatelessWidget {
+class RecipeCard extends StatefulWidget {
   final Recipe recipe;
   final VoidCallback? onRefresh;
 
-  const RecipeCard({
-    Key? key, 
-    required this.recipe,
-    this.onRefresh,
-  }) : super(key: key);
+  const RecipeCard({Key? key, required this.recipe, this.onRefresh})
+    : super(key: key);
+
+  @override
+  State<RecipeCard> createState() => _RecipeCardState();
+}
+
+class _RecipeCardState extends State<RecipeCard> {
+  final ProfileService _profileService = ProfileService();
+  String? _creatorBadge;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCreatorBadge();
+  }
+
+  Future<void> _loadCreatorBadge() async {
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(
+        widget.recipe.creatorId,
+      );
+      if (mounted) {
+        setState(() {
+          // badgeData['badge'] is already normalized by ProfileService
+          _creatorBadge = badgeData?['badge'];
+        });
+      }
+    } catch (e) {
+      // Silent fail - badge is optional
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final recipe = widget.recipe;
+    final onRefresh = widget.onRefresh;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
@@ -108,6 +140,18 @@ class RecipeCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (_creatorBadge != null) ...[
+                    const SizedBox(height: 6),
+                    BadgeWidget(
+                      badge: _creatorBadge!,
+                      fontSize: 10,
+                      iconSize: 12,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [

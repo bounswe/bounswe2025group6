@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/forum_comment.dart';
 import '../models/report.dart';
 import 'report_dialog.dart';
+import 'badge_widget.dart';
 import '../models/user_profile.dart';
 import '../services/community_service.dart';
 import '../utils/date_formatter.dart';
@@ -15,6 +16,7 @@ class CommentCard extends StatefulWidget {
   final VoidCallback onDelete;
   final VoidCallback onVoteChanged;
   final DateFormat? userDateFormat;
+  final String? authorBadge;
 
   const CommentCard({
     Key? key,
@@ -25,6 +27,7 @@ class CommentCard extends StatefulWidget {
     required this.onDelete,
     required this.onVoteChanged,
     this.userDateFormat,
+    this.authorBadge,
   }) : super(key: key);
 
   @override
@@ -77,9 +80,11 @@ class _CommentCardState extends State<CommentCard> {
     if (isVoteLoading) return;
     if (widget.currentUserId == null) {
       // Previously: 'Please log in to vote.'
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.pleaseLogInToVote)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.pleaseLogInToVote),
+        ),
+      );
       return;
     }
 
@@ -107,9 +112,9 @@ class _CommentCardState extends State<CommentCard> {
             }
           });
           // Previously: 'Vote removed'
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.voteRemoved)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.voteRemoved)),
+          );
         }
       } else {
         // Add or change vote
@@ -131,14 +136,13 @@ class _CommentCardState extends State<CommentCard> {
             currentVote = voteType;
           });
           // Previously: vote confirmation text: 'Comment upvoted!' / 'Comment downvoted!'
-          final String voteMsg = voteType == 'up'
-              ? AppLocalizations.of(context)!.commentUpvoted
-              : AppLocalizations.of(context)!.commentDownvoted;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(voteMsg),
-            ),
-          );
+          final String voteMsg =
+              voteType == 'up'
+                  ? AppLocalizations.of(context)!.commentUpvoted
+                  : AppLocalizations.of(context)!.commentDownvoted;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(voteMsg)));
         }
       }
       widget.onVoteChanged(); // Notify parent
@@ -147,7 +151,9 @@ class _CommentCardState extends State<CommentCard> {
         // Previously: 'Vote failed: ${e.toString()}'
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.voteFailed(e.toString())),
+            content: Text(
+              AppLocalizations.of(context)!.voteFailed(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -174,9 +180,10 @@ class _CommentCardState extends State<CommentCard> {
       context: context,
       contentType: ReportContentType.postcomment,
       objectId: widget.comment.id,
-      contentPreview: widget.comment.content.length > 50
-          ? '${widget.comment.content.substring(0, 50)}...'
-          : widget.comment.content,
+      contentPreview:
+          widget.comment.content.length > 50
+              ? '${widget.comment.content.substring(0, 50)}...'
+              : widget.comment.content,
     );
   }
 
@@ -194,11 +201,29 @@ class _CommentCardState extends State<CommentCard> {
             children: [
               // Previously: 'By ${widget.authorUsername}'
               Expanded(
-                child: Text(
-                  AppLocalizations.of(context)!.byAuthor(widget.authorUsername), // Use fetched username via localization
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                child: Row(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.byAuthor(
+                        widget.authorUsername,
+                      ), // Use fetched username via localization
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (widget.authorBadge != null) ...[
+                      const SizedBox(width: 6),
+                      BadgeWidget(
+                        badge: widget.authorBadge!,
+                        fontSize: 9,
+                        iconSize: 11,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               // Show delete button for own comments

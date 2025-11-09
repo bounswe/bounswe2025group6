@@ -7,9 +7,11 @@ import '../../services/community_service.dart';
 import '../../services/profile_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_formatter.dart';
+// Badge normalization handled by ProfileService; no direct import needed
 import './edit_post_screen.dart';
 import '../../widgets/comment_card.dart'; // Import CommentCard (will be created later)
 import '../../widgets/report_button.dart';
+import '../../widgets/badge_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
 
@@ -30,6 +32,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final ProfileService _profileService = ProfileService();
   String? currentVote;
   bool isVoteLoading = false;
+  String? _authorBadge;
   List<Map<String, dynamic>> _comments =
       []; // Use Map for now, includes author_username
   bool _isCommentsLoading = false;
@@ -45,7 +48,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     _loadCurrentUserId(); // Load user ID
     _loadUserPreferences(); // Load user's date format preference
   }
-  
+
   Future<void> _loadUserPreferences() async {
     try {
       final profile = await _profileService.getUserProfile();
@@ -99,6 +102,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             });
             _loadVoteStatus();
             _loadComments(); // Load comments after post is loaded
+            _loadAuthorBadge();
           }
         } catch (e) {
           if (mounted) {
@@ -187,6 +191,22 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
+  Future<void> _loadAuthorBadge() async {
+    final authorId = post?['author_id'] as int?;
+    if (authorId == null) return;
+
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      if (mounted) {
+        setState(() {
+          _authorBadge = badgeData?['badge'];
+        });
+      }
+    } catch (_) {
+      // Silent fail
+    }
+  }
+
   // --- Comment Methods ---
 
   Future<void> _loadComments() async {
@@ -199,11 +219,43 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     try {
       final response = await _communityService.getComments(post!['id']);
       if (mounted) {
-        setState(() {
-          // Store the raw map data which includes 'author_username'
-          _comments = List<Map<String, dynamic>>.from(response['results']);
-          _isCommentsLoading = false;
-        });
+        // Safely handle results: avoid errors when null/empty and skip badge
+        // fetches when there are no comments.
+        final results = response['results'] as List<dynamic>?;
+
+        if (results == null || results.isEmpty) {
+          // No comments to show
+          setState(() {
+            _comments = [];
+            _isCommentsLoading = false;
+          });
+        } else {
+          // Fetch badges for all comment authors (only when we have items)
+          final commentsWithBadges = await Future.wait(
+            results.map((rawComment) async {
+              // Normalize each entry to a Map<String, dynamic>
+              final comment = Map<String, dynamic>.from(rawComment as Map);
+              final authorId = comment['author'] as int?;
+              String? badge;
+              if (authorId != null) {
+                try {
+                  final badgeData = await _profileService.getRecipeCountBadge(
+                    authorId,
+                  );
+                  badge = badgeData?['badge'];
+                } catch (_) {
+                  // Silent fail for badge fetch
+                }
+              }
+              return {...comment, 'author_badge': badge};
+            }).toList(),
+          );
+
+          setState(() {
+            _comments = commentsWithBadges;
+            _isCommentsLoading = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -234,16 +286,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       _commentController.clear();
       FocusScope.of(context).unfocus(); // Hide keyboard
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commentAdded)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.commentAdded)),
+        );
       }
       await _loadComments(); // Refresh comments list
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToAddComment(e.toString())),
+            content: Text(
+              AppLocalizations.of(context)!.failedToAddComment(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -263,7 +317,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       builder:
           (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.deleteCommentTitle),
-            content: Text(AppLocalizations.of(context)!.deleteCommentConfirmation),
+            content: Text(
+              AppLocalizations.of(context)!.deleteCommentConfirmation,
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -284,15 +340,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       try {
         await _communityService.deleteComment(post!['id'], commentId);
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commentDeleted)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.commentDeleted)),
+        );
         await _loadComments(); // Refresh comments list
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToDeleteComment(e.toString())),
+            content: Text(
+              AppLocalizations.of(context)!.failedToDeleteComment(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -337,9 +395,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(voteType == 'up'
-                  ? AppLocalizations.of(context)!.postUpvoted
-                  : AppLocalizations.of(context)!.postDownvoted),
+              content: Text(
+                voteType == 'up'
+                    ? AppLocalizations.of(context)!.postUpvoted
+                    : AppLocalizations.of(context)!.postDownvoted,
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -402,7 +462,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(AppLocalizations.of(context)!.postNotFound, style: TextStyle(fontSize: 18)),
+              Text(
+                AppLocalizations.of(context)!.postNotFound,
+                style: TextStyle(fontSize: 18),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -427,7 +490,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         ),
         actions: [
           // Show edit/delete for own posts
-          if (post != null && _currentUserId != null && post!['author_id'] == _currentUserId) ...[
+          if (post != null &&
+              _currentUserId != null &&
+              post!['author_id'] == _currentUserId) ...[
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: _navigateToEditScreen,
@@ -438,11 +503,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ),
           ],
           // Show report button for other users' posts
-          if (post != null && _currentUserId != null && post!['author_id'] != _currentUserId)
+          if (post != null &&
+              _currentUserId != null &&
+              post!['author_id'] != _currentUserId)
             ReportButton(
               contentType: ReportContentType.post,
               objectId: post!['id'],
-              contentPreview: post!['title'] ?? AppLocalizations.of(context)!.postFallback,
+              contentPreview:
+                  post!['title'] ?? AppLocalizations.of(context)!.postFallback,
             ),
         ],
       ),
@@ -461,9 +529,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
-                    children: (post!['tags'] as List)
-                        .map((tag) => Chip(label: Text(localizedTagLabel(context, tag.toString()))))
-                        .toList(),
+                    children:
+                        (post!['tags'] as List)
+                            .map(
+                              (tag) => Chip(
+                                label: Text(
+                                  localizedTagLabel(context, tag.toString()),
+                                ),
+                              ),
+                            )
+                            .toList(),
                   ),
                 const SizedBox(height: 16),
                 Text(post!['content'] ?? ''),
@@ -471,9 +546,23 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(AppLocalizations.of(context)!.byAuthor(
-                      post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown,
-                    )),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            '${post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
+                          ),
+                          if (_authorBadge != null) ...[
+                            const SizedBox(width: 8),
+                            BadgeWidget(
+                              badge: _authorBadge!,
+                              fontSize: 11,
+                              iconSize: 13,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                     Row(
                       children: [
                         const Icon(Icons.remove_red_eye),
@@ -576,7 +665,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('${AppLocalizations.of(context)!.errorLoadingComments} $_commentsError'),
+            Text(
+              '${AppLocalizations.of(context)!.errorLoadingComments} $_commentsError',
+            ),
             ElevatedButton(
               onPressed: _loadComments,
               child: Text(AppLocalizations.of(context)!.retry),
@@ -601,10 +692,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         final comment = ForumComment.fromJson(commentData);
         final authorUsername =
             commentData['author_username'] ?? 'Unknown'; // Get username
+        final authorBadge = commentData['author_badge'] as String?; // Get badge
 
         return CommentCard(
           comment: comment,
           authorUsername: authorUsername, // Pass username
+          authorBadge: authorBadge, // Pass badge from enriched comment data
           communityService: _communityService, // Pass service instance
           currentUserId: _currentUserId, // Pass current user ID
           onDelete: () => _deleteComment(comment.id), // Pass delete callback
