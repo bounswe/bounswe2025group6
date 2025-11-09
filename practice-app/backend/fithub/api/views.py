@@ -272,13 +272,29 @@ class login_view(APIView):
         responses={
             200: 'Successful login response with token',
             400: 'Bad request',
-            401: 'Invalid credentials',
+            401: 'Invalid credentials, inactive account, or deleted account',
             429: 'Too many failed attempts'
         }
     )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
+            # Check if the error is related to authentication (inactive, deleted, invalid credentials)
+            # These should return 401 instead of 400
+            error_messages = serializer.errors
+            if isinstance(error_messages, dict):
+                # Check for non-field errors that indicate auth issues
+                non_field_errors = error_messages.get('non_field_errors', [])
+                if non_field_errors:
+                    # Get the first error message
+                    error_message = non_field_errors[0] if isinstance(non_field_errors, list) else non_field_errors
+                    error_text = str(error_message).lower()
+                    # Check for authentication-related errors
+                    if any(keyword in error_text for keyword in ['deleted', 'inactive', 'invalid email or password']):
+                        return Response(
+                            {"error": str(error_message)},
+                            status=status.HTTP_401_UNAUTHORIZED
+                        )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         email = serializer.validated_data.get('email')
@@ -287,6 +303,14 @@ class login_view(APIView):
         except User.DoesNotExist:
             return Response(
                 {"error": "Invalid credentials"}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Check if user is soft deleted (deleted_on is not None)
+        # This is a defensive check, though the serializer should have caught this already
+        if user.deleted_on is not None:
+            return Response(
+                {"error": "User account has been deleted."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
@@ -668,6 +692,108 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
         current_user = request.user
         current_user.bookmarkRecipes.add(recipe_id)
         return Response({"status": "recipe bookmarked"})
+    
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Unbookmark a recipe for the current user",
+        tags=['User Actions'],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['recipe_id'],
+            properties={
+                'recipe_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the recipe to unbookmark"
+                )
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Recipe unbookmarked successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Confirmation message"
+                        )
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "status": "recipe unbookmarked"
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Bad request - missing recipe_id or recipe not bookmarked",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "error": "recipe_id is required."
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Recipe not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                ),
+                examples={
+                    "application/json": {
+                        "error": "Recipe not found"
+                    }
+                }
+            ),
+            401: openapi.Response(
+                description="Unauthorized - user not authenticated"
+            )
+        },
+        security=[{"Bearer": []}]
+    )
+    @action(detail=False, methods=['post'])
+    def unbookmark_recipe(self, request):
+        """
+        Unbookmark a recipe for the currently authenticated user.
+        
+        This endpoint allows users to remove recipes from their bookmark list.
+        If the recipe is not bookmarked, an error will be returned.
+        """
+        recipe_id = request.data.get('recipe_id')
+        if not recipe_id:
+            return Response(
+                {"error": "recipe_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if recipe exists
+        try:
+            recipe = Recipe.objects.get(pk=recipe_id)
+        except Recipe.DoesNotExist:
+            return Response(
+                {"error": "Recipe not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        current_user = request.user
+        
+        # Check if recipe is bookmarked
+        if not current_user.bookmarkRecipes.filter(pk=recipe_id).exists():
+            return Response(
+                {"error": "Recipe is not bookmarked."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        current_user.bookmarkRecipes.remove(recipe_id)
+        return Response({"status": "recipe unbookmarked"})
     
     #RATE RECIPE SWAGGER
     @swagger_auto_schema(

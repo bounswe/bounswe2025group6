@@ -561,4 +561,19 @@
     "@followActionFailed": { "description": "Snackbar text when follow/unfollow fails", "placeholders": { "error": {} } },
     "privateProfileMessage": "Bu profil gizli",
     "@privateProfileMessage": { "description": "Message shown when viewing a private profile" }
+    "@failedToObtainJwtTokens": { "description": "Shown when retrieval of JWT access/refresh tokens fails", "placeholders": { "error": {} } }
+    ,"dashboardAnalyticsTitle": "Gösterge Paneli Analitiği",
+    "@dashboardAnalyticsTitle": { "description": "Gösterge paneli analitik bölüm başlığı" },
+    "analyticsUsers": "Kullanıcılar",
+    "@analyticsUsers": { "description": "Kullanıcı sayısı kart başlığı" },
+    "analyticsRecipes": "Tarifler",
+    "@analyticsRecipes": { "description": "Tarif sayısı kart başlığı" },
+    "analyticsIngredients": "Malzemeler",
+    "@analyticsIngredients": { "description": "Malzeme sayısı kart başlığı" },
+    "analyticsPosts": "Gönderiler",
+    "@analyticsPosts": { "description": "Gönderi sayısı kart başlığı" },
+    "analyticsComments": "Yorumlar",
+    "@analyticsComments": { "description": "Yorum sayısı kart başlığı" },
+    "failedToLoadAnalytics": "Analitik yüklenemedi: {error}",
+    "@failedToLoadAnalytics": { "description": "Analitik verisi getirilemediğinde hata mesajı", "placeholders": { "error": {} } }
 }
