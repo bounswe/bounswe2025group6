@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
 import '../widgets/rating_display.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/ingredient_translator.dart';
 import '../providers/currency_provider.dart';
 import './other_user_profile_screen.dart';
 
@@ -439,7 +440,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
-                                                  '${item.ingredient.name} (${item.quantity} ${item.unit})',
+                                                  '${translateIngredient(context, item.ingredient.name)} (${item.quantity} ${item.unit})',
                                                   style:
                                                       Theme.of(
                                                         context,
