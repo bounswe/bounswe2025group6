@@ -16,6 +16,7 @@ import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/currency_provider.dart';
 import '../utils/date_formatter.dart';
+import '../utils/ingredient_translator.dart';
 
 class MealPlannerScreen extends StatefulWidget {
   const MealPlannerScreen({Key? key}) : super(key: key);
@@ -67,7 +68,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
           _userProfile = profile;
           // Set initial budget filter from user profile
           if (profile.monthlyBudget != null) {
-            _filters['maxCostPerServing'] = profile.monthlyBudget! / 30; // Daily budget estimate
+            _filters['maxCostPerServing'] =
+                profile.monthlyBudget! / 30; // Daily budget estimate
           }
         });
       }
@@ -85,7 +87,6 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     try {
       final result = await _mealPlannerService.getMealPlannerRecipes(
         pageSize: 20,
-        
       );
       if (mounted) {
         setState(() {
@@ -132,7 +133,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         minHealthRating: _filters['minHealthRating'],
         maxHealthRating: _filters['maxHealthRating'],
         hasImage: _filters['hasImage'],
-        isApproved: _filters['approvedOnly'], 
+        isApproved: _filters['approvedOnly'],
         isFeatured: _filters['featuredOnly'],
         pageSize: 50,
       );
@@ -188,7 +189,9 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)!.failedToLoadMealPlanner(e.toString()),
+              AppLocalizations.of(
+                context,
+              )!.failedToLoadMealPlanner(e.toString()),
             ),
             backgroundColor: AppTheme.errorColor,
           ),
@@ -201,45 +204,49 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     if (_userProfile == null || _userProfile!.allergens.isEmpty) return;
 
     final allergens = _mealPlan.getAllAllergens();
-    final userAllergens = _userProfile!.allergens.map((a) => a.toLowerCase()).toSet();
-    final detectedAllergens = allergens
-        .where((a) => userAllergens.contains(a.toLowerCase()))
-        .toList();
+    final userAllergens =
+        _userProfile!.allergens.map((a) => a.toLowerCase()).toSet();
+    final detectedAllergens =
+        allergens
+            .where((a) => userAllergens.contains(a.toLowerCase()))
+            .toList();
 
     if (detectedAllergens.isNotEmpty && mounted) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.allergenWarning),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(AppLocalizations.of(context)!.allergenDetected),
-              const SizedBox(height: 8),
-              Text(
-                AppLocalizations.of(context)!
-                    .allergenDetectedList(detectedAllergens.join(', ')),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+        builder:
+            (context) => AlertDialog(
+              title: Text(AppLocalizations.of(context)!.allergenWarning),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppLocalizations.of(context)!.allergenDetected),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.allergenDetectedList(detectedAllergens.join(', ')),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {
-                  _mealPlan.clearAll();
-                });
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _mealPlan.clearAll();
+                    });
+                  },
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(AppLocalizations.of(context)!.continueAnyway),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.continueAnyway),
-            ),
-          ],
-        ),
       );
     }
   }
@@ -302,43 +309,50 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
   void _addRecipeToMealPlan(Recipe recipe, String mealType) {
     // Check for allergens
     if (_userProfile != null && _userProfile!.allergens.isNotEmpty) {
-      final userAllergens = _userProfile!.allergens.map((a) => a.toLowerCase()).toSet();
-      final recipeAllergens = recipe.allergens
-          .where((a) => userAllergens.contains(a.toLowerCase()))
-          .toList();
+      final userAllergens =
+          _userProfile!.allergens.map((a) => a.toLowerCase()).toSet();
+      final recipeAllergens =
+          recipe.allergens
+              .where((a) => userAllergens.contains(a.toLowerCase()))
+              .toList();
 
       if (recipeAllergens.isNotEmpty) {
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.allergenWarning),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppLocalizations.of(context)!.allergenDetected),
-                const SizedBox(height: 8),
-                Text(
-                  AppLocalizations.of(context)!
-                      .allergenDetectedList(recipeAllergens.join(', ')),
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.errorColor),
+          builder:
+              (context) => AlertDialog(
+                title: Text(AppLocalizations.of(context)!.allergenWarning),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(AppLocalizations.of(context)!.allergenDetected),
+                    const SizedBox(height: 8),
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.allergenDetectedList(recipeAllergens.join(', ')),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(AppLocalizations.of(context)!.cancel),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(AppLocalizations.of(context)!.cancel),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _setMeal(recipe, mealType);
+                    },
+                    child: Text(AppLocalizations.of(context)!.continueAnyway),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _setMeal(recipe, mealType);
-                },
-                child: Text(AppLocalizations.of(context)!.continueAnyway),
-              ),
-            ],
-          ),
         );
         return;
       }
@@ -410,7 +424,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     );
   }
 
-  Widget _buildPlanTodayTab(AppLocalizations localizations, CurrencyProvider currencyProvider) {
+  Widget _buildPlanTodayTab(
+    AppLocalizations localizations,
+    CurrencyProvider currencyProvider,
+  ) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -579,10 +596,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
             children: [
               Row(
                 children: [
-                  Icon(
-                    _getMealIcon(mealType),
-                    color: AppTheme.primaryGreen,
-                  ),
+                  Icon(_getMealIcon(mealType), color: AppTheme.primaryGreen),
                   const SizedBox(width: 8),
                   Text(
                     title,
@@ -737,38 +751,39 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
                 onSelected: (mealType) {
                   _addRecipeToMealPlan(recipe, mealType);
                 },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'breakfast',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.wb_sunny),
-                        const SizedBox(width: 8),
-                        Text(localizations.breakfastSection),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'lunch',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.lunch_dining),
-                        const SizedBox(width: 8),
-                        Text(localizations.lunchSection),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'dinner',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.dinner_dining),
-                        const SizedBox(width: 8),
-                        Text(localizations.dinnerSection),
-                      ],
-                    ),
-                  ),
-                ],
+                itemBuilder:
+                    (context) => [
+                      PopupMenuItem(
+                        value: 'breakfast',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.wb_sunny),
+                            const SizedBox(width: 8),
+                            Text(localizations.breakfastSection),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'lunch',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.lunch_dining),
+                            const SizedBox(width: 8),
+                            Text(localizations.lunchSection),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'dinner',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.dinner_dining),
+                            const SizedBox(width: 8),
+                            Text(localizations.dinnerSection),
+                          ],
+                        ),
+                      ),
+                    ],
               ),
             ),
           ] else ...[
@@ -784,7 +799,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.check_circle, color: AppTheme.successColor),
+                    const Icon(
+                      Icons.check_circle,
+                      color: AppTheme.successColor,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       '${localizations.addedTo} ${_getRecipeMealType(recipe, localizations)}',
@@ -804,7 +822,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
   }
 
   String _getRecipeMealType(Recipe recipe, AppLocalizations localizations) {
-    if (_mealPlan.breakfast?.id == recipe.id) return localizations.breakfastSection;
+    if (_mealPlan.breakfast?.id == recipe.id)
+      return localizations.breakfastSection;
     if (_mealPlan.lunch?.id == recipe.id) return localizations.lunchSection;
     if (_mealPlan.dinner?.id == recipe.id) return localizations.dinnerSection;
     return '';
@@ -819,7 +838,11 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[400]),
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
             const SizedBox(height: 16),
             Text(
               localizations.noIngredientsInList,
@@ -855,8 +878,16 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
                       }
                     });
                   },
-                  icon: Icon(allChecked ? Icons.check_box_outline_blank : Icons.check_box),
-                  label: Text(allChecked ? localizations.deselectAll : localizations.selectAll),
+                  icon: Icon(
+                    allChecked
+                        ? Icons.check_box_outline_blank
+                        : Icons.check_box,
+                  ),
+                  label: Text(
+                    allChecked
+                        ? localizations.deselectAll
+                        : localizations.selectAll,
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primaryGreen,
                     side: const BorderSide(color: AppTheme.primaryGreen),
@@ -869,22 +900,23 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
                   _shoppingList!.getCheckedItemsCount().toString(),
                   _shoppingList!.items.length.toString(),
                 ),
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
               ),
             ],
           ),
         ),
-        
+
         Expanded(
           child: ListView.builder(
             itemCount: _shoppingList!.items.length,
             itemBuilder: (context, index) {
               final item = _shoppingList!.items[index];
+              final translatedName = translateIngredient(
+                context,
+                item.ingredientName,
+              );
               return CheckboxListTile(
-                title: Text(item.ingredientName),
+                title: Text(translatedName),
                 subtitle: Text('${item.quantity} ${item.unit}'),
                 value: item.isChecked,
                 onChanged: (bool? value) {
@@ -956,37 +988,39 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => MealPlannerFilterPanel(
-        initialFilters: _filters,
-        selectedMealType: _selectedMealTypeFilter,
-        onApplyFilters: (filters, mealType) {
-          setState(() {
-            _filters = filters;
-            _selectedMealTypeFilter = mealType;
-          });
-          _loadRecipesWithFilters();
-        },
-        onResetFilters: () {
-          setState(() {
-            _filters.clear();
-            _selectedMealTypeFilter = null;
-          });
-          _loadInitialRecipes();
-        },
-      ),
+      builder:
+          (context) => MealPlannerFilterPanel(
+            initialFilters: _filters,
+            selectedMealType: _selectedMealTypeFilter,
+            onApplyFilters: (filters, mealType) {
+              setState(() {
+                _filters = filters;
+                _selectedMealTypeFilter = mealType;
+              });
+              _loadRecipesWithFilters();
+            },
+            onResetFilters: () {
+              setState(() {
+                _filters.clear();
+                _selectedMealTypeFilter = null;
+              });
+              _loadInitialRecipes();
+            },
+          ),
     );
   }
 
   void _showRecipeSelector(String mealType) {
     showDialog(
       context: context,
-      builder: (context) => RecipeSelectorDialog(
-        mealType: mealType,
-        filters: _filters,
-        onRecipeSelected: (recipe) {
-          _addRecipeToMealPlan(recipe, mealType);
-        },
-      ),
+      builder:
+          (context) => RecipeSelectorDialog(
+            mealType: mealType,
+            filters: _filters,
+            onRecipeSelected: (recipe) {
+              _addRecipeToMealPlan(recipe, mealType);
+            },
+          ),
     );
   }
 
@@ -1003,26 +1037,42 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     final localizations = AppLocalizations.of(context)!;
 
     // Format the date according to user's preference
-    final formattedDate = _userProfile != null
-        ? DateFormatter.formatDate(
-            _shoppingList!.createdAt,
-            preferredFormat: _userProfile!.preferredDateFormat,
-            includeTime: true,
-          )
-        : DateFormatter.formatDate(
-            _shoppingList!.createdAt,
-            includeTime: true,
+    final formattedDate =
+        _userProfile != null
+            ? DateFormatter.formatDate(
+              _shoppingList!.createdAt,
+              preferredFormat: _userProfile!.preferredDateFormat,
+              includeTime: true,
+            )
+            : DateFormatter.formatDate(
+              _shoppingList!.createdAt,
+              includeTime: true,
+            );
+
+    // Create a translated copy of the shopping list for export
+    final translatedItems =
+        _shoppingList!.items.map((item) {
+          final translatedName = translateIngredient(
+            context,
+            item.ingredientName,
           );
+          return item.copyWith(ingredientName: translatedName);
+        }).toList();
+
+    final translatedShoppingList = _shoppingList!.copyWith(
+      items: translatedItems,
+    );
 
     // Generate plain text format with localized labels
-    final text = _shoppingList!.toPlainText(
+    final text = translatedShoppingList.toPlainText(
       currencySymbol: currencyProvider.symbol,
       formattedDate: formattedDate,
       titleLabel: localizations.shoppingListExportTitle,
       generatedLabel: localizations.generatedLabel,
       recipesLabel: localizations.recipesLabel,
       ingredientsLabel: localizations.ingredientsExportLabel,
-      itemsLabel: localizations.itemsCount('').replaceAll(RegExp(r'\d+'), '').trim(),
+      itemsLabel:
+          localizations.itemsCount('').replaceAll(RegExp(r'\d+'), '').trim(),
       totalCostLabel: localizations.totalCost,
       costByRetailerLabel: localizations.costByRetailerLabel,
       bestLabel: localizations.bestRetailerLabel,
@@ -1050,7 +1100,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       if (e.toString().contains('MissingPluginException')) {
         try {
           await Clipboard.setData(ClipboardData(text: text));
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -1063,7 +1113,9 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${AppLocalizations.of(context)!.failedToShareShoppingList}: $clipboardError'),
+                content: Text(
+                  '${AppLocalizations.of(context)!.failedToShareShoppingList}: $clipboardError',
+                ),
                 backgroundColor: AppTheme.errorColor,
               ),
             );
@@ -1074,7 +1126,9 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${AppLocalizations.of(context)!.failedToShareShoppingList}: $e'),
+              content: Text(
+                '${AppLocalizations.of(context)!.failedToShareShoppingList}: $e',
+              ),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -1083,4 +1137,3 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
     }
   }
 }
-
