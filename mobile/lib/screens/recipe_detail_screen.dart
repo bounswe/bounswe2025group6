@@ -14,6 +14,7 @@ import '../widgets/ingredient_nutrition_card.dart';
 import '../widgets/total_nutrition_widget.dart';
 import '../widgets/market_prices_widget.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/ingredient_translator.dart';
 import '../providers/currency_provider.dart';
 import './other_user_profile_screen.dart';
 
