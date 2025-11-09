@@ -45,6 +45,7 @@ dependencies:
     sdk: flutter
   intl: any
   provider: ^6.0.5
+  share_plus: ^10.1.2
 
 dev_dependencies:
   flutter_test:

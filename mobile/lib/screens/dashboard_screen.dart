@@ -5,6 +5,7 @@ import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'discover_recipes_screen.dart';
 import 'upload_recipe_screen.dart'; // Added import for UploadRecipeScreen
+import 'meal_planner_screen.dart'; // Added import for MealPlannerScreen
 import '../services/auth_service.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/dashboard_analytics_widget.dart';
@@ -188,7 +189,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.calendar_today,
                     title: AppLocalizations.of(context)!.planMeal,
                     color: Colors.orange,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MealPlannerScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
