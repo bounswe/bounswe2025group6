@@ -307,6 +307,7 @@ IngredientQuantity _createIngredientQuantity(String name, double quantity, Strin
     category: 'test',
     allergens: [],
     dietaryInfo: [],
+    allowedUnits: ['cup', 'pcs', 'g', 'kg', 'ml', 'l'],
   );
 
   return IngredientQuantity(
