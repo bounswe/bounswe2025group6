@@ -1,0 +1,9 @@
+# ESLint ignore patterns
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# E2E tests - uses CommonJS and Jest globals
+e2e/
