@@ -23,18 +23,35 @@ class MockAuthService extends Fake implements AuthService {
   @override
   Future<LoginResponse> login(String email, String password) async {
     if (_loginCompleter != null) {
-      return await _loginCompleter!.future;
+      final response = await _loginCompleter!.future;
+      return response;
     }
 
     await Future.delayed(const Duration(milliseconds: 300));
 
     if (email == 'test@example.com' && password == 'password123') {
-      return LoginResponse(
+      final response = LoginResponse(
         email: email,
         token: 'mock_token',
         userId: 1, //  Added mock userId
         usertype: 'user', // Added mock usertype
       );
+      return response;
+    }
+    throw AuthenticationException('Invalid credentials');
+  }
+
+  @override
+  Future<Map<String, String>> getJwtAccessToken(
+    String email,
+    String password,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (email == 'test@example.com' && password == 'password123') {
+      return {
+        'access': 'mock_access_token',
+        'refresh': 'mock_refresh_token',
+      };
     }
     throw AuthenticationException('Invalid credentials');
   }
