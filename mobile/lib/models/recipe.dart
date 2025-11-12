@@ -8,6 +8,7 @@ class Recipe {
   final int cookTime;
   final String mealType;
   final int creatorId;
+  final String? creatorUsername;
   final List<IngredientQuantity>
   ingredients; // Using a wrapper for ingredient + quantity
   final double? costPerServing;
@@ -42,6 +43,7 @@ class Recipe {
     required this.cookTime,
     required this.mealType,
     required this.creatorId,
+    this.creatorUsername,
     required this.ingredients,
     this.costPerServing,
     this.difficultyRating,
@@ -98,6 +100,7 @@ class Recipe {
       cookTime: int.tryParse(json['cook_time']?.toString() ?? '') ?? 0,
       mealType: json['meal_type']?.toString() ?? '',
       creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
+      creatorUsername: json['creator_username']?.toString(),
       ingredients: ingredientsList,
       costPerServing: double.tryParse(
         json['cost_per_serving']?.toString() ?? '',
@@ -154,6 +157,7 @@ class Recipe {
       cookTime: int.tryParse(json['cook_time']?.toString() ?? '') ?? 0,
       mealType: json['meal_type']?.toString() ?? '',
       creatorId: int.tryParse(json['creator_id']?.toString() ?? '') ?? 0,
+      creatorUsername: json['creator_username']?.toString(),
       ingredients: [], // Not in list view in detail
       costPerServing: double.tryParse(
         json['cost_per_serving']?.toString() ?? '',
@@ -227,12 +231,21 @@ class IngredientQuantity {
   });
 
   factory IngredientQuantity.fromJson(Map<String, dynamic> json) {
+    // Parse quantity safely - could be num or string
+    double quantity = 0.0;
+    final quantityValue = json['quantity'];
+    if (quantityValue is num) {
+      quantity = quantityValue.toDouble();
+    } else if (quantityValue is String) {
+      quantity = double.tryParse(quantityValue) ?? 0.0;
+    }
+
     return IngredientQuantity(
       ingredient: IngredientDetail.fromJson(
         json['ingredient'] as Map<String, dynamic>,
       ),
-      quantity: double.tryParse(json['quantity']?.toString() ?? '') ?? 0.0,
-      unit: json['unit']?.toString() ?? '',
+      quantity: quantity,
+      unit: json['unit'] as String? ?? '',
     );
   }
 }

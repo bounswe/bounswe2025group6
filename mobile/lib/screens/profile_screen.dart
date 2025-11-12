@@ -1,15 +1,20 @@
+import 'package:fithub/screens/bookmarked_recipes_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
-import '../models/recipe.dart'; 
+import '../models/recipe.dart';
 import '../services/profile_service.dart';
-import '../services/recipe_service.dart'; 
+import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/recipe_card.dart'; 
+import '../widgets/recipe_card.dart';
+import '../widgets/badge_widget.dart';
 import './profile_settings_screen.dart';
+import './bookmarked_recipes_screen.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import 'package:provider/provider.dart';
 import '../providers/currency_provider.dart';
 import '../utils/label_localization.dart';
+import './following_users_screen.dart';
+import '../utils/user_badge_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';
@@ -33,6 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   UserProfile? _userProfile;
   bool _isLoading = true;
   String? _errorMessage;
+  String? _userBadge; // Store user's badge
 
   List<Recipe> _userRecipes = [];
   bool _isLoadingRecipes = true;
@@ -61,14 +67,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
       if (_userProfile != null) {
         _loadAndFilterUserRecipes(); // Load recipes after profile is loaded
+        _loadUserBadge(); // Load user badge from API
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
         // _errorMessage = 'Failed to load profile: $e';
-        _errorMessage = AppLocalizations.of(context)!.failedToLoadProfile(e.toString());
+        _errorMessage = AppLocalizations.of(
+          context,
+        )!.failedToLoadProfile(e.toString());
       });
+    }
+  }
+
+  Future<void> _loadUserBadge() async {
+    final userId = _userProfile?.id;
+    if (userId == null) return;
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(userId);
+      if (!mounted) return;
+      setState(() {
+        _userBadge = normalizeBadgeFromApi(
+          badgeData?['badge'],
+          userType: _userProfile?.userType,
+        );
+      });
+    } catch (e) {
+      // Fail silently, badge is optional
+      if (mounted) {
+        setState(() {
+          _userBadge = normalizeBadgeFromApi(
+            null,
+            userType: _userProfile?.userType,
+          );
+        });
+      }
     }
   }
 
@@ -78,7 +112,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _isLoadingRecipes = false;
           // _recipesErrorMessage = 'User ID not available to load recipes.';
-          _recipesErrorMessage = AppLocalizations.of(context)!.userIdNotAvailable;
+          _recipesErrorMessage =
+              AppLocalizations.of(context)!.userIdNotAvailable;
         });
       }
       return;
@@ -111,7 +146,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isLoadingRecipes = false;
         // _recipesErrorMessage = 'Failed to load recipes: $e';
-        _recipesErrorMessage = AppLocalizations.of(context)!.failedToLoadRecipes(e.toString());
+        _recipesErrorMessage = AppLocalizations.of(
+          context,
+        )!.failedToLoadRecipes(e.toString());
       });
     }
   }
@@ -170,17 +207,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 2,
         iconTheme: IconThemeData(color: AppTheme.primaryGreen),
-        actions: _userProfile != null
-            ? [
-                IconButton(
-                  icon: Icon(Icons.settings),
-                  color: AppTheme.primaryGreen,
-                  onPressed: _navigateToSettings,
-                  // tooltip: 'Profile Settings',
-                  tooltip: AppLocalizations.of(context)!.profileSettingsTooltip,
-                ),
-              ]
-            : null,
+        actions:
+            _userProfile != null
+                ? [
+                  IconButton(
+                    icon: Icon(Icons.settings),
+                    color: AppTheme.primaryGreen,
+                    onPressed: _navigateToSettings,
+                    // tooltip: 'Profile Settings',
+                    tooltip:
+                        AppLocalizations.of(context)!.profileSettingsTooltip,
+                  ),
+                ]
+                : null,
       ),
       body: _buildBody(),
     );
@@ -195,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-      if (_errorMessage != null) {
+    if (_errorMessage != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -219,7 +258,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (_userProfile == null) {
-      return Center(child: Text(AppLocalizations.of(context)!.profileDataNotAvailable));
+      return Center(
+        child: Text(AppLocalizations.of(context)!.profileDataNotAvailable),
+      );
     }
     return _buildProfileDisplay();
   }
@@ -251,6 +292,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
+        if (_userBadge != null) ...[
+          SizedBox(height: 12),
+          Center(child: LargeBadgeWidget(badge: _userBadge!)),
+        ],
+        SizedBox(height: 10),
         Center(
           child: Text(
             profile.email,
@@ -269,13 +315,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         SizedBox(height: 30),
-        _buildSectionTitle(context, AppLocalizations.of(context)!.personalInformation),
+        _buildSectionTitle(
+          context,
+          AppLocalizations.of(context)!.personalInformation,
+        ),
         _buildInfoCard([
-          _buildInfoTile(Icons.person_outline, AppLocalizations.of(context)!.userType, profile.userType),
+          _buildInfoTile(
+            Icons.person_outline,
+            AppLocalizations.of(context)!.userType,
+            profile.userType,
+          ),
           _buildInfoTile(
             Icons.public_outlined,
             AppLocalizations.of(context)!.profileStatus,
-            profile.publicProfile ? AppLocalizations.of(context)!.public : AppLocalizations.of(context)!.private,
+            profile.publicProfile
+                ? AppLocalizations.of(context)!.public
+                : AppLocalizations.of(context)!.private,
           ),
         ]),
         SizedBox(height: 20),
@@ -311,12 +366,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, AppLocalizations.of(context)!.activityStats),
+        _buildSectionTitle(
+          context,
+          AppLocalizations.of(context)!.activityStats,
+        ),
         _buildInfoCard([
           _buildInfoTile(
             Icons.receipt_long_outlined, // Changed icon
             AppLocalizations.of(context)!.recipesCreated,
-            profile.recipeCount?.toString() ?? AppLocalizations.of(context)!.notSet,
+            profile.recipeCount?.toString() ??
+                AppLocalizations.of(context)!.notSet,
           ),
           _buildInfoTile(
             Icons.star_border_outlined, // Changed icon
@@ -332,7 +391,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, AppLocalizations.of(context)!.localizationAccessibility),
+        _buildSectionTitle(
+          context,
+          AppLocalizations.of(context)!.localizationAccessibility,
+        ),
         _buildInfoCard([
           _buildInfoTile(
             Icons.language,
@@ -369,14 +431,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(context, AppLocalizations.of(context)!.communitySection),
+        _buildSectionTitle(
+          context,
+          AppLocalizations.of(context)!.communitySection,
+        ),
         _buildInfoCard([
-          _buildInfoTile(
+          _buildClickableInfoTile(
             Icons.people_outline,
             AppLocalizations.of(context)!.followingLabel,
             profile.followedUsers != null
                 ? '${profile.followedUsers!.length} ${AppLocalizations.of(context)!.users}'
                 : '0 ${AppLocalizations.of(context)!.users}',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowingUsersScreen(
+                    followedUserIds: profile.followedUsers ?? [],
+                  ),
+                ),
+              );
+            },
           ),
           _buildInfoTile(
             Icons.bookmark_border_outlined,
@@ -384,6 +459,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile.bookmarkRecipes != null
                 ? '${profile.bookmarkRecipes!.length} ${AppLocalizations.of(context)!.recipes}'
                 : '0 ${AppLocalizations.of(context)!.recipes}',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookmarkedRecipesScreen(),
+                ),
+              );
+            },
           ),
           _buildInfoTile(
             Icons.favorite_border_outlined,
@@ -394,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ]),
         SizedBox(height: 20),
-  _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
         _buildUserRecipesSection(),
         SizedBox(height: 40),
       ],
@@ -456,7 +539,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: RecipeCard(
             recipe: recipe,
-            // onTap callback removed as RecipeCard handles its own tap
+            creatorUsername: recipe.creatorUsername,
           ),
         );
       },
@@ -487,13 +570,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String title, String subtitle) {
-    return ListTile(
+  Widget _buildInfoTile(IconData icon, String title, String subtitle, {VoidCallback? onTap}) {
+    final tile = ListTile(
       leading: Icon(icon, color: AppTheme.primaryGreen),
       title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: Text(
         subtitle.isNotEmpty ? subtitle : AppLocalizations.of(context)!.notSet,
         style: TextStyle(color: Colors.grey.shade700),
+      ),
+      trailing: onTap != null
+          ? Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.primaryGreen)
+          : null,
+    );
+    
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        child: tile,
+      );
+    }
+    return tile;
+  }
+
+  Widget _buildClickableInfoTile(
+    IconData icon,
+    String title,
+    String subtitle, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: ListTile(
+        leading: Icon(icon, color: AppTheme.primaryGreen),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+        subtitle: Text(
+          subtitle.isNotEmpty ? subtitle : AppLocalizations.of(context)!.notSet,
+          style: TextStyle(color: Colors.grey.shade700),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Colors.grey.shade600,
+        ),
       ),
     );
   }

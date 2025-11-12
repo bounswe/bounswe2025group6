@@ -19,7 +19,7 @@ const IngredientsPage = () => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(30);
   const [selectedColumn, setSelectedColumn] = useState(0);
   const [isChanging, setIsChanging] = useState(false);
   const navigate = useNavigate();
@@ -35,8 +35,15 @@ const IngredientsPage = () => {
       try {
         setLoading(true);
         const url = `${import.meta.env.VITE_API_URL}/ingredients/?page=${page}&page_size=${pageSize}`;
+        const token = localStorage.getItem("fithub_access_token");
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
         
-        const res = await fetch(url);
+        const res = await fetch(url, { headers });
         if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
         const data = await res.json();
         
@@ -64,8 +71,16 @@ const IngredientsPage = () => {
           let currentPage = 1;
           let hasMore = true;
 
+          const token = localStorage.getItem("fithub_access_token");
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
           while (hasMore) {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/ingredients/?page=${currentPage}&page_size=100`);
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/ingredients/?page=${currentPage}&page_size=100`, { headers });
             if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
             const data = await res.json();
             allData = [...allData, ...data.results];
@@ -145,7 +160,7 @@ const IngredientsPage = () => {
                       className="ingredient-item"
                       onClick={() => navigate(`/ingredients/${ingredient.id}`)}
                     >
-                      <div className="ingredient-item-content">
+                      <div className="ingredient-item-content" style={{'--name-length': ingredient.name.length}}>
                         <span className="ingredient-name">{ingredient.name}</span>
                         
                         {/* Nutritional Information */}
@@ -165,30 +180,29 @@ const IngredientsPage = () => {
                         {/* Market Prices */}
                         {ingredient.prices && (
                           <div className="ingredient-prices">
-                            <span className="price-label">Prices ({currency}):</span>
                             <div className="price-list">
                               {ingredient.prices.A101 && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/a101.png" alt="A101" className="price-logo" />
-                                  A101: {ingredient.prices.A101}
+                                  A101: {ingredient.prices.A101} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                               {ingredient.prices.SOK && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/sok.png" alt="ŞOK" className="price-logo" />
-                                  ŞOK: {ingredient.prices.SOK}
+                                  ŞOK: {ingredient.prices.SOK} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                               {ingredient.prices.BIM && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/bim.png" alt="BIM" className="price-logo" />
-                                  BIM: {ingredient.prices.BIM}
+                                  BIM: {ingredient.prices.BIM} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                               {ingredient.prices.MIGROS && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/migros.png" alt="MIGROS" className="price-logo" />
-                                  MIGROS: {ingredient.prices.MIGROS}
+                                  MIGROS: {ingredient.prices.MIGROS} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                             </div>
@@ -206,7 +220,7 @@ const IngredientsPage = () => {
       {/* Pagination controls and page size selector */}
       {!searchQuery.trim() && (
         <div className="controls-container">
-          <div className="pagination-controls">
+          <div className="pagination-group">
             <button 
               className="pagination-button"
               onClick={handlePreviousPage} 
@@ -214,7 +228,7 @@ const IngredientsPage = () => {
             >
               Previous
             </button>
-            <span>{page}</span>
+            <span className="page-number">{page}</span>
             <button 
               className="pagination-button"
               onClick={handleNextPage} 
@@ -223,21 +237,18 @@ const IngredientsPage = () => {
               Next
             </button>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <select 
-              value={pageSize} 
-              onChange={handlePageSizeChange} 
-              className="ingredient-dropdown"
-              disabled={isChanging}
-            >
-              <option value={10}>10 per page</option>
-              <option value={20}>20 per page</option>
-              <option value={30}>30 per page</option>
-              <option value={40}>40 per page</option>
-              <option value={50}>50 per page</option>
-            </select>
-          </div>
+          <select 
+            value={pageSize} 
+            onChange={handlePageSizeChange} 
+            className="ingredient-dropdown"
+            disabled={isChanging}
+          >
+            <option value={10}>10 per page</option>
+            <option value={20}>20 per page</option>
+            <option value={30}>30 per page</option>
+            <option value={40}>40 per page</option>
+            <option value={50}>50 per page</option>
+          </select>
         </div>
       )}
     </div>

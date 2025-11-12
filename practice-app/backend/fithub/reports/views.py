@@ -21,6 +21,10 @@ class ReportViewSet(viewsets.ModelViewSet):
         return ReportSerializer
     
     def get_queryset(self):
+        # Handle schema generation for Swagger/OpenAPI
+        if getattr(self, 'swagger_fake_view', False):
+            return Report.objects.none()
+        
         if getattr(self.request.user, 'is_staff', False):
             return Report.objects.select_related('reporter', 'content_type').all()
         return Report.objects.filter(reporter=self.request.user)

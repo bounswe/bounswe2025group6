@@ -8,6 +8,7 @@ import 'package:fithub/models/user_profile.dart';
 import 'package:fithub/models/ingredient.dart'; // Import IngredientDetail
 import 'package:flutter_typeahead/flutter_typeahead.dart'; // Import flutter_typeahead
 import '../l10n/app_localizations.dart';
+import 'package:fithub/utils/ingredient_translator.dart';
 
 class UploadRecipeScreen extends StatefulWidget {
   const UploadRecipeScreen({super.key});
@@ -27,6 +28,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   String? _selectedMealType;
   List<Map<String, dynamic>> _ingredients =
       []; // Changed to dynamic to store controllers and selected ingredient
+  // Keep raw backend ingredient names while showing localized names in the UI
+  final List<String?> _ingredientRawNames = [];
   bool _isSubmitting = false; // To track submission state
   List<IngredientDetail> _allIngredients = [];
   bool _isLoadingIngredients = true;
@@ -96,6 +99,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
         'selectedIngredient': null, // Store selected IngredientDetail
         'selectedUnit': null, // Store selected unit string
       });
+      _ingredientRawNames.add(null);
     });
   }
 
@@ -105,6 +109,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
       _ingredients[index]['quantity']!.dispose();
       _ingredients[index]['unit']!.dispose();
       _ingredients.removeAt(index);
+      _ingredientRawNames.removeAt(index);
     });
   }
 
@@ -164,15 +169,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                     .where((step) => step.trim().isNotEmpty)
                     .toList(),
         'ingredients':
-            _ingredients
-                .map(
-                  (ing) => {
-                    'ingredient_name': ing['name']!.text,
-                    'quantity': double.tryParse(ing['quantity']!.text) ?? 0,
-                    'unit': ing['unit']!.text,
-                  },
-                )
-                .toList(),
+            _ingredients.map((ing) {
+              final idx = _ingredients.indexOf(ing);
+              final raw =
+                  (idx >= 0 && idx < _ingredientRawNames.length)
+                      ? _ingredientRawNames[idx]
+                      : null;
+              return {
+                'ingredient_name': raw ?? ing['name']!.text,
+                'quantity': double.tryParse(ing['quantity']!.text) ?? 0,
+                'unit': ing['unit']!.text,
+              };
+            }).toList(),
       };
 
       try {
@@ -470,13 +478,18 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     if (pattern.isEmpty) {
                                       return [];
                                     }
-                                    return _allIngredients
-                                        .where(
-                                          (ingredient) => ingredient.name
-                                              .toLowerCase()
-                                              .contains(pattern.toLowerCase()),
-                                        )
-                                        .toList(); // Added .toList()
+                                    final q = pattern.toLowerCase();
+                                    return _allIngredients.where((ingredient) {
+                                      // Match against localized display AND raw backend name
+                                      final localized =
+                                          translateIngredient(
+                                            context,
+                                            ingredient.name,
+                                          ).toLowerCase();
+                                      final raw = ingredient.name.toLowerCase();
+                                      return localized.contains(q) ||
+                                          raw.contains(q);
+                                    }).toList();
                                   },
                                   builder: (context, controller, focusNode) {
                                     // Assign the provided controller to our TextEditingController instance
@@ -512,17 +525,23 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     );
                                   },
                                   itemBuilder: (context, suggestion) {
-                                    return ListTile(
-                                      title: Text(suggestion.name),
+                                    final display = translateIngredient(
+                                      context,
+                                      suggestion.name,
                                     );
+                                    return ListTile(title: Text(display));
                                   },
                                   onSelected: (suggestion) {
-                                    // Changed from onSuggestionSelected
-                                    // The controller for the field is _ingredients[index]['name']
-                                    // TypeAheadField updates its 'controller' parameter automatically.
+                                    // Preserve raw backend value and show localized text in the field
                                     setState(() {
-                                      _ingredients[index]['name']!.text =
+                                      _ingredientRawNames[index] =
                                           suggestion.name;
+                                      final localized = translateIngredient(
+                                        context,
+                                        suggestion.name,
+                                      );
+                                      _ingredients[index]['name']!.text =
+                                          localized;
                                       _ingredients[index]['selectedIngredient'] =
                                           suggestion;
                                       // Reset unit selection when ingredient changes

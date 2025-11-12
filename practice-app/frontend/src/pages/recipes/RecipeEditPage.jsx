@@ -19,6 +19,7 @@ const RecipeEditPage = () => {
 
   // Ingredients state
   const [ingredients, setIngredients] = useState([]);
+  const [allIngredients, setAllIngredients] = useState([]); // Store all ingredients for search
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredIngredients, setFilteredIngredients] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -27,6 +28,7 @@ const RecipeEditPage = () => {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(0);
   const dropdownRef = useRef(null);
+  const ingredientsFetchedRef = useRef(false);
 
   const [recipeData, setRecipeData] = useState({
     name: '',
@@ -39,52 +41,59 @@ const RecipeEditPage = () => {
     stepsText: '',
   });
 
-  // Fetch ingredients
+  // Fetch ALL ingredients once on mount for search functionality
   useEffect(() => {
-    const fetchIngredients = async () => {
+    const fetchAllIngredients = async () => {
       try {
-        let allData = [];
-        let nextUrl = import.meta.env.VITE_API_URL + "/ingredients/";
-
-        while (nextUrl) {
-          const res = await fetch(nextUrl);
-          if (!res.ok)
-            throw new Error("API Error: ${res.status} ${res.statusText}");
-          const data = await res.json();
-          allData = [...allData, ...data.results];
-          nextUrl = data.next;
+        const token = localStorage.getItem("fithub_access_token");
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
 
+        // Fetch all ingredients in one request with large page_size
+        const url = `${import.meta.env.VITE_API_URL}/ingredients/?page=1&page_size=1000`;
+        const res = await fetch(url, { headers });
+        if (!res.ok)
+          throw new Error(`API Error: ${res.status} ${res.statusText}`);
+        const data = await res.json();
+        
+        // Store all ingredients for search - this is critical!
+        setAllIngredients(data.results);
+        
+        // Also set paginated data for display (if needed)
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
-        const paginatedData = allData.slice(startIndex, endIndex);
+        const paginatedData = data.results.slice(startIndex, endIndex);
         setIngredients(paginatedData);
-        setHasNextPage(allData.length > endIndex);
-        setLoading(false);
+        setHasNextPage(data.results.length > endIndex);
       } catch (err) {
+        console.error('Error fetching ingredients:', err);
         setError(err.message);
-        setLoading(false);
       }
     };
 
-    if (ingredients.length === 0) {
-      setLoading(true);
+    // Only fetch once on mount
+    if (!ingredientsFetchedRef.current) {
+      ingredientsFetchedRef.current = true;
+      fetchAllIngredients();
     }
-    fetchIngredients();
-  }, [pageSize, selectedColumn, page]);
+  }, []); // Run only once on mount
 
-  // Filter ingredients based on search
+  // Filter ingredients based on search - search in ALL ingredients, not just paginated ones
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredIngredients(ingredients);
-    } else {
-      setFilteredIngredients(
-        ingredients.filter((ingredient) =>
-          ingredient.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+      setFilteredIngredients([]);
+    } else if (allIngredients.length > 0) {
+      // Only filter if allIngredients is loaded
+      const filtered = allIngredients.filter((ingredient) =>
+        ingredient.name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      setFilteredIngredients(filtered);
     }
-  }, [searchQuery, ingredients]);
+  }, [searchQuery, allIngredients]);
 
   useEffect(() => {
     const loadRecipe = async () => {
@@ -159,6 +168,11 @@ const RecipeEditPage = () => {
       ? ingredient.allowed_units[0] 
       : 'pcs';
 
+    // Use base_quantity if available, otherwise default to 1
+    const defaultQuantity = ingredient.base_quantity != null 
+      ? String(ingredient.base_quantity) 
+      : "1";
+
     setRecipeData((prev) => ({
       ...prev,
       ingredients: [
@@ -166,7 +180,7 @@ const RecipeEditPage = () => {
         {
           ingredient_name: ingredient.name,
           id: ingredient.id,
-          quantity: "1",
+          quantity: defaultQuantity,
           unit: defaultUnit,
         },
       ],
@@ -349,15 +363,28 @@ const RecipeEditPage = () => {
               type="text"
               placeholder="Search ingredients..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowDropdown(true); // Show dropdown when typing
+              }}
               onFocus={() => setShowDropdown(true)}
+              onBlur={() => {
+                // Delay hiding dropdown to allow click events
+                setTimeout(() => {
+                  setShowDropdown(false);
+                }, 200);
+              }}
               className="search-input"
             />
-            {showDropdown && filteredIngredients.length > 0 && (
+            {searchQuery.trim() !== "" && filteredIngredients.length > 0 && (
               <ul className="ingredients-dropdown" ref={dropdownRef}>
                 {filteredIngredients.map((ingredient) => (
                   <li
                     key={ingredient.id}
+                    onMouseDown={(e) => {
+                      // Prevent onBlur from firing before onClick
+                      e.preventDefault();
+                    }}
                     onClick={() => {
                       handleAddIngredient(ingredient);
                       setSearchQuery("");
@@ -428,7 +455,7 @@ const RecipeEditPage = () => {
                   >
                     {/* Get allowed units from the ingredient data */}
                     {(() => {
-                      const currentIngredient = ingredients.find(ingredient => ingredient.id === ing.id);
+                      const currentIngredient = allIngredients.find(ingredient => ingredient.id === ing.id);
                       const allowedUnits = currentIngredient?.allowed_units || ['pcs', 'g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp'];
                       
                       return allowedUnits.map(unit => (

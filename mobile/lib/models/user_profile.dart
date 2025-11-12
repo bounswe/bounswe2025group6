@@ -44,7 +44,9 @@ enum Currency {
     //   case Currency.try_:
     //     return 'Turkish Lira (₺)';
     // }
-    throw UnimplementedError('Use localizedCurrencyLabel(context, currency) instead');
+    throw UnimplementedError(
+      'Use localizedCurrencyLabel(context, currency) instead',
+    );
   }
 }
 
@@ -69,8 +71,10 @@ enum AccessibilityNeeds {
     //   case AccessibilityNeeds.hearing:
     //     return 'Hearing Impairment';
     // }
-    throw UnimplementedError('Use localizedAccessibilityLabel(context, accessibilityNeeds) instead');
-  } 
+    throw UnimplementedError(
+      'Use localizedAccessibilityLabel(context, accessibilityNeeds) instead',
+    );
+  }
 }
 
 class UserProfile {
@@ -87,12 +91,13 @@ class UserProfile {
   String userType;
   Map<String, dynamic>? notificationPreferences;
   int? recipeCount;
+  String? badge; // Badge from API (e.g., "Novice Cook", "Master Chef")
   double? avgRecipeRating;
   String? typeOfCook;
   List<int>? followedUsers;
   List<int>? bookmarkRecipes;
   List<int>? likedRecipes;
-  
+
   // New fields
   Language language;
   DateFormat preferredDateFormat;
@@ -115,6 +120,7 @@ class UserProfile {
     this.userType = 'user',
     this.notificationPreferences,
     this.recipeCount,
+    this.badge,
     this.avgRecipeRating,
     this.typeOfCook,
     this.followedUsers,
@@ -229,6 +235,7 @@ class UserProfile {
       notificationPreferences:
           json['notificationPreferences'] as Map<String, dynamic>?,
       recipeCount: json['recipeCount'] as int?,
+      badge: json['badge'] as String?,
       avgRecipeRating: (json['avgRecipeRating'] as num?)?.toDouble(),
       typeOfCook: json['typeOfCook'] as String?,
       followedUsers:
@@ -271,12 +278,14 @@ class UserProfile {
     data['profileVisibility'] = publicProfile ? 'public' : 'private';
 
     if (recipeCount != null) data['recipeCount'] = recipeCount;
+    if (badge != null) data['badge'] = badge;
 
     // New fields
     data['language'] = language.name;
     data['preferredDateFormat'] = preferredDateFormat.value;
     if (dateOfBirth != null) {
-      data['date_of_birth'] = dateOfBirth!.toIso8601String().split('T')[0]; // YYYY-MM-DD format
+      data['date_of_birth'] =
+          dateOfBirth!.toIso8601String().split('T')[0]; // YYYY-MM-DD format
     }
     if (nationality != null && nationality!.isNotEmpty) {
       data['nationality'] = nationality;
@@ -302,6 +311,7 @@ class UserProfile {
     String? userType,
     Map<String, dynamic>? notificationPreferences,
     int? recipeCount,
+    String? badge,
     double? avgRecipeRating,
     String? typeOfCook,
     List<int>? followedUsers,
@@ -335,6 +345,7 @@ class UserProfile {
       notificationPreferences:
           notificationPreferences ?? this.notificationPreferences,
       recipeCount: recipeCount ?? this.recipeCount,
+      badge: badge ?? this.badge,
       avgRecipeRating: avgRecipeRating ?? this.avgRecipeRating,
       typeOfCook: typeOfCook ?? this.typeOfCook,
       followedUsers: followedUsers ?? this.followedUsers,

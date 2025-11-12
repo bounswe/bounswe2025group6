@@ -144,9 +144,10 @@
   font-size: 18px;
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border-radius: 0.75rem;
-  margin: 20px 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+  flex: 1;
+  gap: 15px;
 }
 
 .recipe-detail-page-box {
@@ -176,6 +177,23 @@
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.recipe-detail-page-box-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.recipe-cost-market-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: white;
+  padding: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .recipe-detail-page-header-buttons {
@@ -252,6 +270,27 @@
   margin: 0;
 }
 
+/* Combined container for meal details and ratings */
+.recipe-detail-page-info-ratings-container {
+  display: flex;
+  gap: 20px;
+  margin: 15px 0;
+  align-items: stretch;
+}
+
+.recipe-detail-page-info-ratings-container > .recipe-detail-page-left-section,
+.recipe-detail-page-info-ratings-container > .recipe-detail-page-stars-vertical {
+  align-self: stretch;
+}
+
+/* Left section: meal details + market costs */
+.recipe-detail-page-left-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
 /* Bookmark button */
 .bookmark-button {
   background: none;
@@ -276,27 +315,51 @@
 .recipe-detail-page-stars {
   display: flex;
   justify-content: space-between;
-  padding: 15px 20px;
+  padding: 10px 15px;
   font-size: 18px;
   background: #f8f9fa;
   border-radius: 0.75rem;
-  margin: 20px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   gap: 10px;
+}
+
+/* Vertical layout for ratings */
+.recipe-detail-page-stars-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 0 280px;
+  min-width: 260px;
+  max-width: 280px;
+  align-self: stretch;
+  justify-content: flex-start;
 }
 
 .recipe-detail-page-star {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 10px;
+  justify-content: flex-start;
+  padding: 4px 6px;
   background: #ffffff;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
-  min-width: 100px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  flex-shrink: 1;
+}
+
+.recipe-detail-page-stars .recipe-detail-page-star {
   flex: 1;
+  min-width: 100px;
+}
+
+.recipe-detail-page-stars-vertical .recipe-detail-page-star {
+  flex: 1 1 0;
+  min-height: fit-content;
+  max-height: none;
 }
 
 .recipe-detail-page-star:hover {
@@ -305,13 +368,23 @@
 }
 
 .recipe-detail-page-star-header {
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  margin-top: 0;
+  padding-top: 0;
   color: #38a169;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-align: center;
+  line-height: 1.1;
+}
+
+.recipe-detail-page-star-title {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+  padding-bottom: 2px;
 }
 
 .recipe-detail-page-content {
@@ -325,6 +398,7 @@
   margin: 20px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .recipe-detail-page-content h2 {
@@ -337,6 +411,8 @@
 
 .recipe-detail-page-content-steps {
   flex: 1;
+  min-width: 300px;
+  max-width: 45%;
   background: #ffffff;
   padding: 20px;
   border-radius: 0.5rem;
@@ -495,11 +571,12 @@
 
 /* Market Costs Comparison Section */
 .recipe-detail-page-market-costs {
-  margin: 20px 0;
+  margin: 0;
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  border: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .recipe-detail-page-market-costs h3 {
@@ -564,6 +641,8 @@
 
 .recipe-detail-page-ingredients {
   flex: 1;
+  min-width: 250px;
+  max-width: 45%;
   background: #ffffff;
   padding: 20px;
   border-radius: 0.5rem;
@@ -592,24 +671,57 @@
   color: #38a169;
 }
 
-.ingredient-item {
+.recipe-detail-page-ingredients .ingredient-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 4px 0px;
+  padding: 10px 12px;
   border-radius: 6px;
   list-style: none;
+  background-color: #f0fff4;
+  height: auto;
+  min-height: auto;
+  max-height: none;
+  text-align: center;
 }
 
-.ingredient-item .ingredient-name {
+.recipe-detail-page-ingredients .ingredient-item .ingredient-full-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2d3748;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+  display: inline-block;
+}
+
+.recipe-detail-page-ingredients .ingredient-item .ingredient-quantity {
+  font-weight: 700;
+  color: #38a169;
+  display: inline;
+}
+
+.recipe-detail-page-ingredients .ingredient-item .ingredient-separator {
+  display: inline;
+  margin: 0 4px;
+}
+
+.recipe-detail-page-ingredients .ingredient-item .ingredient-name {
   margin-bottom: 0;
   margin-top: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline;
 }
 
-.ingredient-item:hover {
-  background-color: rgba(56, 161, 105, 0.1);
+.recipe-detail-page-ingredients .ingredient-item:hover {
+  background-color: rgba(56, 161, 105, 0.15);
+  transform: translateX(2px);
 }
 
 .ingredient-quantity {
@@ -627,8 +739,29 @@
   margin-bottom: 0;
 }
 
-/* Responsive design for nutrition cards */
+/* Responsive design */
 @media (max-width: 768px) {
+  /* Combined container becomes column on mobile */
+  .recipe-detail-page-info-ratings-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .recipe-detail-page-stars-vertical {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .recipe-detail-page-boxes {
+    flex-wrap: wrap;
+    padding: 15px 20px;
+    gap: 10px;
+  }
+
+  .recipe-detail-page-box {
+    min-width: calc(50% - 5px);
+    max-width: calc(50% - 5px);
+  }
   .nutrition-cards {
     grid-template-columns: repeat(2, 1fr);
   }

@@ -4,12 +4,16 @@ import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
+import '../services/profile_service.dart';
+import '../services/storage_service.dart';
 import '../services/rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
 import '../widgets/rating_display.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/ingredient_translator.dart';
 import '../providers/currency_provider.dart';
+import './other_user_profile_screen.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
@@ -23,16 +27,35 @@ class RecipeDetailScreen extends StatefulWidget {
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
+  final ProfileService _profileService = ProfileService();
   final RatingService _ratingService = RatingService();
   late Future<Recipe> _recipeFuture;
   Recipe? _currentRecipe; // Store the loaded recipe for report button
+  bool _isBookmarked = false;
+  bool _isTogglingBookmark = false;
+  String? _creatorUsername;
+  bool _isLoadingUsername = false;
   RecipeRating? _userRating; // Store user's rating for this recipe
 
   @override
   void initState() {
     super.initState();
     _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
+    _loadBookmarkStatus();
     _loadUserRating();
+  }
+
+  Future<void> _loadBookmarkStatus() async {
+    try {
+      final profile = await _profileService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _isBookmarked = profile.bookmarkRecipes?.contains(widget.recipeId) ?? false;
+        });
+      }
+    } catch (e) {
+      // Silently fail - user can still toggle bookmark
+    }
   }
 
   Future<void> _loadUserRating() async {
@@ -48,11 +71,85 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
+  Future<void> _toggleBookmark() async {
+    if (_isTogglingBookmark) return;
+
+    setState(() {
+      _isTogglingBookmark = true;
+    });
+
+    try {
+      if (_isBookmarked) {
+        await _recipeService.unbookmarkRecipe(widget.recipeId);
+      } else {
+        await _recipeService.bookmarkRecipe(widget.recipeId);
+      }
+
+      if (mounted) {
+        setState(() {
+          _isBookmarked = !_isBookmarked;
+          _isTogglingBookmark = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isBookmarked
+                  ? AppLocalizations.of(context)!.recipeBookmarked
+                  : AppLocalizations.of(context)!.recipeRemovedFromBookmarks,
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isTogglingBookmark = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToUpdateBookmark(e.toString()),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _refreshRecipe() async {
     setState(() {
       _recipeFuture = _recipeService.getRecipeDetails(widget.recipeId);
     });
     await _loadUserRating();
+  }
+
+  Future<void> _fetchCreatorUsername(int creatorId) async {
+    if (_isLoadingUsername || _creatorUsername != null) return;
+    
+    setState(() {
+      _isLoadingUsername = true;
+    });
+
+    try {
+      final profile = await _profileService.getUserProfileById(creatorId);
+      if (mounted) {
+        setState(() {
+          _creatorUsername = profile.username;
+          _isLoadingUsername = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUsername = false;
+        });
+      }
+    }
   }
 
   @override
@@ -69,6 +166,28 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               contentPreview: _currentRecipe!.name,
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _isTogglingBookmark ? null : _toggleBookmark,
+        backgroundColor: _isTogglingBookmark 
+            ? Colors.grey 
+            : (_isBookmarked ? AppTheme.primaryGreen : Colors.white),
+        child: _isTogglingBookmark
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Icon(
+                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                color: _isBookmarked ? Colors.white : AppTheme.primaryGreen,
+              ),
+        tooltip: _isBookmarked 
+            ? AppLocalizations.of(context)!.removeBookmark 
+            : AppLocalizations.of(context)!.bookmarkRecipe,
       ),
       body: FutureBuilder<Recipe>(
         future: _recipeFuture,
@@ -92,6 +211,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   setState(() {
                     _currentRecipe = recipe;
                   });
+                  _fetchCreatorUsername(recipe.creatorId);
                 }
               });
             }
@@ -182,6 +302,61 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          
+                          // Creator Username
+                          if (_creatorUsername != null)
+                            Center(
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final currentUserId =
+                                      await StorageService.getUserId();
+                                  if (currentUserId != null &&
+                                      int.parse(currentUserId) ==
+                                          recipe.creatorId) {
+                                    return;
+                                  }
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          OtherUserProfileScreen(
+                                        userId: recipe.creatorId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.blue[700],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _creatorUsername!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blue[700],
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else if (_isLoadingUsername)
+                            Center(
+                              child: SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 16),
 
                           // Quick Info Section
@@ -265,7 +440,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
-                                                  '${item.ingredient.name} (${item.quantity} ${item.unit})',
+                                                  '${translateIngredient(context, item.ingredient.name)} (${item.quantity} ${item.unit})',
                                                   style:
                                                       Theme.of(
                                                         context,

@@ -331,109 +331,164 @@ const RecipeDetailPage = () => {
           </p>
         </div>
       </div>
-      <div className="recipe-detail-page-stars">
-        <div className="recipe-detail-page-star">
-          <span className="recipe-detail-page-star-header">
-            {t('recipeDetailPageDifficultyRating')}
-          </span>
-          <div className="recipe-detail-page-star-title">
-            <InteractiveRatingStars
-              recipeId={recipe.id}
-              ratingType="difficulty_rating"
-              averageRating={recipe.difficulty_rating || 0}
-              onRatingChange={() => handleRatingChange('difficulty_rating')}
-            />
+
+      {/* Combined Section: Meal Details (Left) + Ratings (Right) */}
+      <div className="recipe-detail-page-info-ratings-container">
+        {/* Left Side: Meal Details + Market Costs */}
+        <div className="recipe-detail-page-left-section">
+          <div className="recipe-detail-page-boxes">
+            <div className="recipe-detail-page-box">
+              <span className="recipe-detail-page-box-header">{t('recipeDetailPageMealType')}</span>
+              <span className="recipe-detail-page-box-title">
+                {recipe.meal_type
+                  ? recipe.meal_type.charAt(0).toUpperCase() + recipe.meal_type.slice(1)
+                  : 'N/A'}
+              </span>
+            </div>
+
+            <div className="recipe-detail-page-box">
+              <span className="recipe-detail-page-box-header">{t('recipeDetailPagePrepTime')}</span>
+              <span className="recipe-detail-page-box-title">
+                {recipe.prep_time} {t('recipeDetailTime')}
+              </span>
+            </div>
+
+            <div className="recipe-detail-page-box">
+              <span className="recipe-detail-page-box-header">{t('recipeDetailPageCookTime')}</span>
+              <span className="recipe-detail-page-box-title">
+                {recipe.cook_time} {t('recipeDetailTime')}
+              </span>
+            </div>
+
+            <div className="recipe-detail-page-box">
+              <span className="recipe-detail-page-box-header">{t('recipeDetailPageCost')}</span>
+              <div className="recipe-detail-page-box-title-container">
+                <span className="recipe-detail-page-box-title">
+                  {recipe.cost_per_serving || 'None'} {currency}
+                </span>
+                {(() => {
+                  // Find the cheapest market
+                  if (recipe.recipe_costs && Object.keys(recipe.recipe_costs).length > 0) {
+                    const costs = Object.entries(recipe.recipe_costs)
+                      .filter(([_, cost]) => cost !== null && cost !== undefined)
+                      .map(([market, cost]) => ({ market, cost: parseFloat(cost) || 0 }));
+
+                    if (costs.length > 0) {
+                      const cheapest = costs.reduce((min, current) =>
+                        current.cost < min.cost ? current : min
+                      );
+
+                      const getMarketLogo = (marketName) => {
+                        switch (marketName) {
+                          case 'A101':
+                            return '/src/assets/market_logos/a101.png';
+                          case 'SOK':
+                            return '/src/assets/market_logos/sok.png';
+                          case 'BIM':
+                            return '/src/assets/market_logos/bim.png';
+                          case 'MIGROS':
+                            return '/src/assets/market_logos/migros.png';
+                          default:
+                            return null;
+                        }
+                      };
+
+                      const logo = getMarketLogo(cheapest.market);
+                      if (logo) {
+                        return (
+                          <img
+                            src={logo}
+                            alt={cheapest.market}
+                            className="recipe-cost-market-logo"
+                            title={`Lowest price at ${cheapest.market}`}
+                          />
+                        );
+                      }
+                    }
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
           </div>
+
+          {/* Market Costs Comparison */}
+          {recipe.recipe_costs && Object.keys(recipe.recipe_costs).length > 0 && (
+            <div className="recipe-detail-page-market-costs">
+              <h3>Market Price Comparison ({currency})</h3>
+              <div className="market-costs-grid">
+                {Object.entries(recipe.recipe_costs).map(([market, cost]) => {
+                  const getMarketLogo = (marketName) => {
+                    switch (marketName) {
+                      case 'A101':
+                        return '/src/assets/market_logos/a101.png';
+                      case 'SOK':
+                        return '/src/assets/market_logos/sok.png';
+                      case 'BIM':
+                        return '/src/assets/market_logos/bim.png';
+                      case 'MIGROS':
+                        return '/src/assets/market_logos/migros.png';
+                      default:
+                        return null;
+                    }
+                  };
+
+                  return (
+                    <div key={market} className="market-cost-item">
+                      <img src={getMarketLogo(market)} alt={market} className="market-logo" />
+                      <span className="market-cost">
+                        {cost} {currency}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="recipe-detail-page-star">
-          <span className="recipe-detail-page-star-header">{t('recipeDetailPageTasteRating')}</span>
-          <div className="recipe-detail-page-star-title">
-            <InteractiveRatingStars
-              recipeId={recipe.id}
-              ratingType="taste_rating"
-              averageRating={recipe.taste_rating || 0}
-              onRatingChange={() => handleRatingChange('taste_rating')}
-            />
+
+        {/* Right Side: Ratings (Vertical) */}
+        <div className="recipe-detail-page-stars-vertical">
+          <div className="recipe-detail-page-star">
+            <span className="recipe-detail-page-star-header">
+              {t('recipeDetailPageDifficultyRating')}
+            </span>
+            <div className="recipe-detail-page-star-title">
+              <InteractiveRatingStars
+                recipeId={recipe.id}
+                ratingType="difficulty_rating"
+                averageRating={recipe.difficulty_rating || 0}
+                onRatingChange={() => handleRatingChange('difficulty_rating')}
+              />
+            </div>
           </div>
-        </div>
-        <div className="recipe-detail-page-star">
-          <span className="recipe-detail-page-star-header">
-            {t('recipeDetailPageHealthRating')} (Dietitian)
-          </span>
-          <div className="recipe-detail-page-star-title">
-            <InteractiveHealthRating
-              recipeId={recipe.id}
-              averageHealthRating={recipe.health_rating || 0}
-              onRatingChange={() => handleRatingChange('health_rating')}
-            />
+          <div className="recipe-detail-page-star">
+            <span className="recipe-detail-page-star-header">
+              {t('recipeDetailPageTasteRating')}
+            </span>
+            <div className="recipe-detail-page-star-title">
+              <InteractiveRatingStars
+                recipeId={recipe.id}
+                ratingType="taste_rating"
+                averageRating={recipe.taste_rating || 0}
+                onRatingChange={() => handleRatingChange('taste_rating')}
+              />
+            </div>
+          </div>
+          <div className="recipe-detail-page-star">
+            <span className="recipe-detail-page-star-header">
+              {t('recipeDetailPageHealthRating')} (Dietitian)
+            </span>
+            <div className="recipe-detail-page-star-title">
+              <InteractiveHealthRating
+                recipeId={recipe.id}
+                averageHealthRating={recipe.health_rating || 0}
+                onRatingChange={() => handleRatingChange('health_rating')}
+              />
+            </div>
           </div>
         </div>
       </div>
-      <div className="recipe-detail-page-boxes">
-        <div className="recipe-detail-page-box">
-          <span className="recipe-detail-page-box-header">{t('recipeDetailPageMealType')}</span>
-          <span className="recipe-detail-page-box-title">
-            {recipe.meal_type
-              ? recipe.meal_type.charAt(0).toUpperCase() + recipe.meal_type.slice(1)
-              : 'N/A'}
-          </span>
-        </div>
-
-        <div className="recipe-detail-page-box">
-          <span className="recipe-detail-page-box-header">{t('recipeDetailPagePrepTime')}</span>
-          <span className="recipe-detail-page-box-title">
-            {recipe.prep_time} {t('recipeDetailTime')}
-          </span>
-        </div>
-
-        <div className="recipe-detail-page-box">
-          <span className="recipe-detail-page-box-header">{t('recipeDetailPageCookTime')}</span>
-          <span className="recipe-detail-page-box-title">
-            {recipe.cook_time} {t('recipeDetailTime')}
-          </span>
-        </div>
-
-        <div className="recipe-detail-page-box">
-          <span className="recipe-detail-page-box-header">{t('recipeDetailPageCost')}</span>
-          <span className="recipe-detail-page-box-title">
-            {recipe.cost_per_serving || 'None'} {currency}
-          </span>
-        </div>
-      </div>
-
-      {/* Market Costs Comparison */}
-      {recipe.recipe_costs && Object.keys(recipe.recipe_costs).length > 0 && (
-        <div className="recipe-detail-page-market-costs">
-          <h3>Market Price Comparison ({currency})</h3>
-          <div className="market-costs-grid">
-            {Object.entries(recipe.recipe_costs).map(([market, cost]) => {
-              const getMarketLogo = (marketName) => {
-                switch (marketName) {
-                  case 'A101':
-                    return '/src/assets/market_logos/a101.png';
-                  case 'SOK':
-                    return '/src/assets/market_logos/sok.png';
-                  case 'BIM':
-                    return '/src/assets/market_logos/bim.png';
-                  case 'MIGROS':
-                    return '/src/assets/market_logos/migros.png';
-                  default:
-                    return null;
-                }
-              };
-
-              return (
-                <div key={market} className="market-cost-item">
-                  <img src={getMarketLogo(market)} alt={market} className="market-logo" />
-                  <span className="market-cost">
-                    {cost} {currency}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div className="recipe-detail-page-content">
         <div className="recipe-detail-page-content-steps">
@@ -468,10 +523,13 @@ const RecipeDetailPage = () => {
                   onClick={() => navigate(`/ingredients/${item.ingredient.id}?recipeId=${id}`)}
                   title={`View details for ${item.ingredient.name}`}
                 >
-                  <span className="ingredient-quantity">
-                    {formatQuantity(item.quantity)} {item.unit}{' '}
+                  <span className="ingredient-full-text">
+                    <span className="ingredient-quantity">
+                      {formatQuantity(item.quantity)} {item.unit}
+                    </span>
+                    <span className="ingredient-separator"> - </span>
+                    <span className="ingredient-name">{item.ingredient.name}</span>
                   </span>
-                  <span className="ingredient-name">- {item.ingredient.name}</span>
                 </li>
               ))}
             </ul>
@@ -567,32 +625,6 @@ const RecipeDetailPage = () => {
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
-
-                  {/* Show other nutrition info if available */}
-                  {Object.keys(nutritionData).filter(
-                    (key) => !['calories', 'protein', 'fat', 'carbohydrates'].includes(key)
-                  ).length > 0 && (
-                    <div className="other-nutrition">
-                      <h4>Other Nutritional Information</h4>
-                      <div className="nutrition-grid">
-                        {Object.entries(nutritionData)
-                          .filter(
-                            ([key]) =>
-                              !['calories', 'protein', 'fat', 'carbohydrates'].includes(key)
-                          )
-                          .map(([key, value]) => (
-                            <div key={key} className="nutrition-item">
-                              <span className="nutrition-label">
-                                {key.charAt(0).toUpperCase() + key.slice(1)}
-                              </span>
-                              <span className="nutrition-value">
-                                {typeof value === 'number' ? value.toFixed(2) : value}
-                              </span>
-                            </div>
-                          ))}
-                      </div>
                     </div>
                   )}
                 </>

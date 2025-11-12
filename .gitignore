@@ -75,12 +75,14 @@ practice-app/SETUP_COMPLETE.md
 
 # Backend Images
 **/backend/**/*.jpg
+!**/backend/populate_db_sqls/recipe_img/*.jpg
 practice-app/docker-compose.yml
 
 mobile/pubspec.lock
 mobile/lib/l10n/app_localizations.dart
 mobile/lib/l10n/app_localizations_tr.dart
 mobile/lib/l10n/app_localizations_en.dart
+docker_restart.md
 
 # Certificates and keys
 
