@@ -71,36 +71,40 @@ const IngredientDetailPage = () => {
           {/* Market Prices Section */}
           {ing.prices && (
             <div className="market-prices-section">
-              <h3>Market Prices ({currency})</h3>
+              <p className="price-quantity-info">
+                Per {ing.base_quantity} {ing.base_unit}
+              </p>
               <div className="market-prices-grid">
                 {(() => {
-                  // Find the cheapest market
+                  // Find the cheapest market (exclude 'currency' key)
                   const prices = ing.prices;
-                  const validPrices = Object.entries(prices).filter(([_, price]) => price !== null && price !== undefined);
+                  const validPrices = Object.entries(prices)
+                    .filter(([key, price]) => key !== 'currency' && price !== null && price !== undefined);
                   const cheapestPrice = Math.min(...validPrices.map(([_, price]) => price));
                   const cheapestMarket = validPrices.find(([_, price]) => price === cheapestPrice)?.[0];
+                  const priceCurrency = ing.prices.currency || currency;
                   
                   return (
                     <>
                       <div className={`market-price-item ${cheapestMarket === 'A101' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/a101.png" alt="A101" className="market-logo" />
                         <span className="market-name">A101</span>
-                        <span className="market-price">{ing.prices.A101 ? `${ing.prices.A101} ${currency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.A101 ? `${ing.prices.A101} ${priceCurrency}` : 'N/A'}</span>
                       </div>
                       <div className={`market-price-item ${cheapestMarket === 'SOK' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/sok.png" alt="ŞOK" className="market-logo" />
                         <span className="market-name">ŞOK</span>
-                        <span className="market-price">{ing.prices.SOK ? `${ing.prices.SOK} ${currency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.SOK ? `${ing.prices.SOK} ${priceCurrency}` : 'N/A'}</span>
                       </div>
                       <div className={`market-price-item ${cheapestMarket === 'BIM' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/bim.png" alt="BIM" className="market-logo" />
                         <span className="market-name">BIM</span>
-                        <span className="market-price">{ing.prices.BIM ? `${ing.prices.BIM} ${currency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.BIM ? `${ing.prices.BIM} ${priceCurrency}` : 'N/A'}</span>
                       </div>
                       <div className={`market-price-item ${cheapestMarket === 'MIGROS' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/migros.png" alt="MIGROS" className="market-logo" />
                         <span className="market-name">MIGROS</span>
-                        <span className="market-price">{ing.prices.MIGROS ? `${ing.prices.MIGROS} ${currency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.MIGROS ? `${ing.prices.MIGROS} ${priceCurrency}` : 'N/A'}</span>
                       </div>
                     </>
                   );
@@ -123,7 +127,7 @@ const IngredientDetailPage = () => {
                 <div className="nutrition-cards">
                   <>
                     {/* Calories */}
-                    {nutritionData.calories && (
+                    {nutritionData.calories !== null && nutritionData.calories !== undefined && (
                       <div className="nutrition-card calories">
                         <div className="nutrition-icon">🔥</div>
                         <div className="nutrition-info">
@@ -139,7 +143,7 @@ const IngredientDetailPage = () => {
                     )}
                     
                     {/* Protein */}
-                    {nutritionData.protein && (
+                    {nutritionData.protein !== null && nutritionData.protein !== undefined && (
                       <div className="nutrition-card protein">
                         <div className="nutrition-icon">💪</div>
                         <div className="nutrition-info">
@@ -155,7 +159,7 @@ const IngredientDetailPage = () => {
                     )}
                     
                     {/* Fat */}
-                    {nutritionData.fat && (
+                    {nutritionData.fat !== null && nutritionData.fat !== undefined && (
                       <div className="nutrition-card fat">
                         <div className="nutrition-icon">🧈</div>
                         <div className="nutrition-info">
@@ -171,13 +175,16 @@ const IngredientDetailPage = () => {
                     )}
                     
                     {/* Carbohydrates - support both 'carbohydrates' and 'carbs' */}
-                    {(nutritionData.carbohydrates || nutritionData.carbs) && (
+                    {(nutritionData.carbohydrates !== null && nutritionData.carbohydrates !== undefined) || 
+                     (nutritionData.carbs !== null && nutritionData.carbs !== undefined) ? (
                       <div className="nutrition-card carbs">
                         <div className="nutrition-icon">🌾</div>
                         <div className="nutrition-info">
                           <span className="nutrition-value">
                             {(() => {
-                              const carbsValue = nutritionData.carbohydrates || nutritionData.carbs;
+                              const carbsValue = nutritionData.carbohydrates !== null && nutritionData.carbohydrates !== undefined 
+                                ? nutritionData.carbohydrates 
+                                : nutritionData.carbs;
                               return typeof carbsValue === 'number' 
                                 ? carbsValue.toFixed(1) 
                                 : carbsValue;
@@ -187,7 +194,7 @@ const IngredientDetailPage = () => {
                           <span className="nutrition-unit">g</span>
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </>
                 </div>
                 
