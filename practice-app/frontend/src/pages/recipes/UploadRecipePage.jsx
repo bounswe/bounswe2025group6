@@ -37,13 +37,11 @@ const UploadRecipePage = () => {
   const [allIngredients, setAllIngredients] = useState([]);
   const dropdownRef = useRef(null);
 
-  // Fetch ingredients
+  // Fetch ALL ingredients once on mount for search functionality
   useEffect(() => {
     const fetchAllIngredients = async () => {
       try {
-        let allData = [];
-        let nextUrl = import.meta.env.VITE_API_URL + "/ingredients/";
-
+        setLoading(true);
         const token = localStorage.getItem("fithub_access_token");
         const headers = {
           'Content-Type': 'application/json',
@@ -52,21 +50,19 @@ const UploadRecipePage = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        while (nextUrl) {
-          const res = await fetch(nextUrl, { headers });
-          if (!res.ok)
-            throw new Error("API Error: ${res.status} ${res.statusText}");
-          const data = await res.json();
-          allData = [...allData, ...data.results];
-          nextUrl = data.next;
-        }
+        // Fetch all ingredients in one request with large page_size
+        const url = `${import.meta.env.VITE_API_URL}/ingredients/?page=1&page_size=1000`;
+        const res = await fetch(url, { headers });
+        if (!res.ok)
+          throw new Error(`API Error: ${res.status} ${res.statusText}`);
+        const data = await res.json();
 
+        setAllIngredients(data.results);
+        
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
-
-        setAllIngredients(allData);
-        setIngredients(allData.slice(startIndex, endIndex));
-        setHasNextPage(allData.length > endIndex);
+        setIngredients(data.results.slice(startIndex, endIndex));
+        setHasNextPage(data.results.length > endIndex);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -74,11 +70,8 @@ const UploadRecipePage = () => {
       }
     };
 
-    if (ingredients.length === 0) {
-      setLoading(true);
-    }
     fetchAllIngredients();
-  }, [pageSize, selectedColumn, page]);
+  }, []); // Run only once on mount
 
   // Filter ingredients based on search
   useEffect(() => {
