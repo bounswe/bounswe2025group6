@@ -75,6 +75,7 @@ practice-app/SETUP_COMPLETE.md
 
 # Backend Images
 **/backend/**/*.jpg
+!**/backend/populate_db_sqls/recipe_img/*.jpg
 practice-app/docker-compose.yml
 
 mobile/pubspec.lock
