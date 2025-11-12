@@ -52,15 +52,15 @@ const RecipeDiscoveryPage = () => {
     const loadRecipes = async () => {
       try {
         setLoading(true);
-        const response = await fetchRecipes(currentPage, 10);
+        const response = await fetchRecipes(currentPage, 12);
         setRecipes(response.results);
         setFilteredRecipes(response.results);
-        setTotalPages(Math.ceil(response.total / 10));
+        setTotalPages(Math.ceil(response.total / 12));
         
         // Optional: Prefetch next page data after current page loads
-        if (currentPage < Math.ceil(response.total / 10)) {
+        if (currentPage < Math.ceil(response.total / 12)) {
           setTimeout(() => {
-            fetchRecipes(currentPage + 1, 10).catch(err => 
+            fetchRecipes(currentPage + 1, 12).catch(err => 
               console.log('Error prefetching next page:', err)
             );
           }, 2000);
