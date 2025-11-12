@@ -201,9 +201,11 @@ INSERT IGNORE INTO ingredients_ingredient
  'USD', 'ml', 100, '["ml","l","tbsp"]', 260, 0, 67, 0, NOW(), NOW(), NULL),
 ('Yellow Onion', 'vegetables', '[]', '["vegan","gluten-free"]', 0.05, 0.05, 0.05, 0.05, 
  'USD', 'pcs', 1, '["pcs"]', 40, 1, 9, 0.1, NOW(), NOW(), NULL),
-('Bread', 'bakery', '[]', '["vegan","gluten-free"]', 0.24, 0.24, 0.24, 0.25, 
+('Bread', 'bakery', '["gluten"]', '["vegan"]', 0.24, 0.24, 0.24, 0.25, 
  'USD', 'pcs', 1, '["pcs"]', 75, 3, 13, 1, NOW(), NOW(), NULL),
-('Pasta', 'grains', '[]', '["vegan","gluten-free"]', 1.19, 1.17, 1.14, 1.24, 
+('Pasta', 'grains', '["gluten"]', '["vegan"]', 1.19, 1.17, 1.14, 1.24, 
  'USD', 'kg', 1, '["g","kg"]', 3700, 130, 750, 12, NOW(), NOW(), NULL),
+('Flour', 'grains', '["gluten"]', '["vegan"]', 0.71, 0.70, 0.69, 0.74, 
+ 'USD', 'kg', 1, '["g","kg","cup"]', 3640, 100, 760, 10, NOW(), NOW(), NULL),
 ('Water', 'liquids', '[]', '["vegan","gluten-free"]', 0.24, 0.23, 0.23, 0.25, 
  'USD', 'ml', 1000, '["ml","l"]', 0, 0, 0, 0, NOW(), NOW(), NULL);
