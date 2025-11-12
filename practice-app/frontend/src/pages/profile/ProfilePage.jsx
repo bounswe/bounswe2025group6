@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
-import { getCurrentUser } from "../../services/authService";
-import userService from "../../services/userService";
-import "../../styles/ProfilePage.css";
-import { useTranslation } from "react-i18next";
-import { useCurrency } from "../../contexts/CurrencyContext";
+import React, { useState, useEffect, useRef } from 'react';
+import { getCurrentUser } from '../../services/authService';
+import userService from '../../services/userService';
+import '../../styles/ProfilePage.css';
+import { useTranslation } from 'react-i18next';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import RecipeCard from '../../components/recipe/RecipeCard';
 
 const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState('profile');
   const [userProfile, setUserProfile] = useState({
-    username: "",
-    email: "",
+    username: '',
+    email: '',
     id: undefined,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -38,23 +39,23 @@ const ProfilePage = () => {
       try {
         const user = await getCurrentUser();
         // Fetch username using userService
-        let username = "User";
+        let username = 'User';
         let userData = null;
         if (user && user.id) {
           userData = await userService.getUserById(user.id);
-          username = userData.username || "User";
+          username = userData.username || 'User';
         }
 
         setUserProfile({
+          ...userData,
           username: username,
-          email: user.email || "No email provided",
-          currencyPreference:
-            userData?.preferredCurrency || "No currency preference set",
-          preferredDateFormat: userData?.preferredDateFormat || "DD/MM/YYYY",
+          email: user.email || 'No email provided',
+          currencyPreference: userData?.preferredCurrency || 'No currency preference set',
+          preferredDateFormat: userData?.preferredDateFormat || 'DD/MM/YYYY',
           id: user.id,
         });
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error('Error fetching user data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -65,25 +66,25 @@ const ProfilePage = () => {
 
   const handleCurrencyChange = async (e) => {
     const newCurrency = e.target.value;
-    
+
     try {
       // Send the correct field name to backend
       const updateData = {
         preferredCurrency: newCurrency,
       };
-      
+
       await userService.updateUserById(userProfile.id, updateData);
-      
+
       // Update local state
       const updatedProfile = {
         ...userProfile,
         currencyPreference: newCurrency,
       };
       setUserProfile(updatedProfile);
-      
+
       // Update CurrencyContext as well
       setCurrency(newCurrency);
-      
+
       console.log('Currency updated successfully:', newCurrency);
     } catch (error) {
       console.error('Error updating currency:', error);
@@ -108,35 +109,35 @@ const ProfilePage = () => {
       <div className="profile-page-sidebar">
         <ul>
           <li
-            onClick={() => setActiveTab("profile")}
-            className={activeTab === "profile" ? "active" : ""}
+            onClick={() => setActiveTab('profile')}
+            className={activeTab === 'profile' ? 'active' : ''}
           >
-            {t("profile")}
+            {t('profile')}
           </li>
           <li
-            onClick={() => setActiveTab("recipes")}
-            className={activeTab === "recipes" ? "active" : ""}
+            onClick={() => setActiveTab('recipes')}
+            className={activeTab === 'recipes' ? 'active' : ''}
           >
-            {t("recipes")}
+            {t('recipes')}
           </li>
           <li
-            onClick={() => setActiveTab("saved")}
-            className={activeTab === "saved" ? "active" : ""}
+            onClick={() => setActiveTab('saved')}
+            className={activeTab === 'saved' ? 'active' : ''}
           >
-            {t("savedRecipes")}
+            {t('savedRecipes')}
           </li>
           <li
-            onClick={() => setActiveTab("social")}
-            className={activeTab === "social" ? "active" : ""}
+            onClick={() => setActiveTab('social')}
+            className={activeTab === 'social' ? 'active' : ''}
           >
-            {t("social")}
+            {t('social')}
           </li>
         </ul>
       </div>
       <div className="profile-page-content">
-        {activeTab === "profile" && (
+        {activeTab === 'profile' && (
           <div className="profile-page-content-profile">
-            <h2>{t("profileDetails")}</h2>
+            <h2>{t('profileDetails')}</h2>
             <div
               className="profile-page-content-profile-img"
               style={{
@@ -152,82 +153,73 @@ const ProfilePage = () => {
               ref={fileInputRef}
               onChange={handleImageChange}
               accept="image/*"
-              style={{ display: "none" }}
+              style={{ display: 'none' }}
             />
 
-            <button
-              className="profile-page-content-profile-button"
-              onClick={handleEditPhotoClick}
-            >
-              {t("selectPhoto")}
+            <button className="profile-page-content-profile-button" onClick={handleEditPhotoClick}>
+              {t('selectPhoto')}
             </button>
 
             <p>
-              <strong>{t("username")}: </strong>
+              <strong>{t('username')}: </strong>
               <span>{userProfile.username}</span>
             </p>
             <p>
-              <strong>{t("email")}: </strong>
+              <strong>{t('email')}: </strong>
               <span>{userProfile.email}</span>
             </p>
 
             <p>
-              <strong>{t("currencyPreference")}: </strong>
+              <strong>{t('currencyPreference')}: </strong>
               {/* <span>
                 {userProfile.currencyPreference || "No currency preference set"}
               </span> */}
-              <select
-                defaultValue={userProfile.currencyPreference}
-                onChange={handleCurrencyChange}
-              >
+              <select defaultValue={userProfile.currencyPreference} onChange={handleCurrencyChange}>
                 <option value="USD">USD</option>
                 <option value="TRY">TRY</option>
               </select>
             </p>
             <p>
-              <strong>{t("datePreference")}: </strong>
-              <select
-                defaultValue={userProfile.preferredDateFormat}
-                onChange={handleDateChange}
-              >
+              <strong>{t('datePreference')}: </strong>
+              <select defaultValue={userProfile.preferredDateFormat} onChange={handleDateChange}>
                 <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                 <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               </select>
             </p>
           </div>
         )}
-        {activeTab === "recipes" && (
+        {activeTab === 'recipes' && (
           <div className="profile-page-content-recipes">
-            <h2>{t("recipes")}</h2>
+            <h2>{t('recipes')}</h2>
             <div className="profile-page-content-recipes-list">
               <div className="profile-page-content-recipes-list-item">
-                <p>{t("recipeName")}</p>
+                <p>{t('recipeName')}</p>
                 <button
                   className="profile-page-content-recipes-list-item-button"
-                  style={{ backgroundColor: "#389f6c", color: "white" }}
+                  style={{ backgroundColor: '#389f6c', color: 'white' }}
                   onClick={() => navigate()}
                 >
-                  {t("details")}
+                  {t('details')}
                 </button>
                 <button
                   className="profile-page-content-recipes-list-item-button"
-                  style={{ backgroundColor: "#2c6eae", color: "white" }}
+                  style={{ backgroundColor: '#2c6eae', color: 'white' }}
                   onClick={() => navigate()}
                 >
-                  {t("edit")}
+                  {t('edit')}
                 </button>
                 <button
                   className="profile-page-content-recipes-list-item-button"
-                  style={{ backgroundColor: "#ec1414", color: "white" }}
+                  style={{ backgroundColor: '#ec1414', color: 'white' }}
                   onClick={() => navigate()}
                 >
-                  {t("Delete")}
+                  {t('Delete')}
                 </button>
               </div>
             </div>
           </div>
         )}
-        {activeTab === "saved" && (
+        {activeTab === 'saved' && (
           <div className="profile-page-content-saved">
             <h2>Bookmarked Recipes</h2>
             <div className="profile-page-content-saved-list">
@@ -235,11 +227,16 @@ const ProfilePage = () => {
                 <p>Recipe Name</p>
                 <button
                   className="profile-page-content-saved-list-item-button"
-                  style={{ backgroundColor: "#389f6c", color: "#fff" }}
+                  style={{ backgroundColor: '#389f6c', color: '#fff' }}
                   onClick={() => navigate()}
                 >
                   Details
                 </button>
+              </div>
+              <div className="recipe-list">
+                {(userProfile?.bookmarkRecipes || []).map((recipeId) => (
+                  <RecipeCard key={recipeId} recipe={recipeId} />
+                ))}
               </div>
             </div>
 
@@ -249,7 +246,7 @@ const ProfilePage = () => {
                 <p>Recipe Name</p>
                 <button
                   className="profile-page-content-saved-list-item-button"
-                  style={{ backgroundColor: "#2c6eae", color: "#fff" }}
+                  style={{ backgroundColor: '#2c6eae', color: '#fff' }}
                   onClick={() => navigate()}
                 >
                   Details
@@ -258,7 +255,7 @@ const ProfilePage = () => {
             </div>
           </div>
         )}
-        {activeTab === "social" && (
+        {activeTab === 'social' && (
           <div className="profile-page-content-social">
             <div className="profile-page-content-social-left">
               <h2>Followed</h2>
@@ -276,9 +273,7 @@ const ProfilePage = () => {
             </div>
           </div>
         )}
-        {!["profile", "recipes", "saved", "social"].includes(activeTab) && (
-          <div>Select a tab</div>
-        )}
+        {!['profile', 'recipes', 'saved', 'social'].includes(activeTab) && <div>Select a tab</div>}
       </div>
     </div>
   );
