@@ -44,8 +44,16 @@ const UploadRecipePage = () => {
         let allData = [];
         let nextUrl = import.meta.env.VITE_API_URL + "/ingredients/";
 
+        const token = localStorage.getItem("fithub_access_token");
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         while (nextUrl) {
-          const res = await fetch(nextUrl);
+          const res = await fetch(nextUrl, { headers });
           if (!res.ok)
             throw new Error("API Error: ${res.status} ${res.statusText}");
           const data = await res.json();
@@ -157,6 +165,11 @@ const UploadRecipePage = () => {
       ? ingredient.allowed_units[0] 
       : 'pcs';
 
+    // Use base_quantity if available, otherwise default to 1
+    const defaultQuantity = ingredient.base_quantity != null 
+      ? String(ingredient.base_quantity) 
+      : "1";
+
     setRecipeData((prev) => ({
       ...prev,
       ingredients: [
@@ -164,7 +177,7 @@ const UploadRecipePage = () => {
         {
           ingredient_name: ingredient.name,
           id: ingredient.id,
-          quantity: "1",
+          quantity: defaultQuantity,
           unit: defaultUnit,
         },
       ],
