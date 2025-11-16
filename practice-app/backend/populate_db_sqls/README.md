@@ -7,7 +7,7 @@ All commands should be run from the `backend/fithub` directory.
 To clear all recipes and ingredients from the database:
 
 ```bash
-python3 manage.py dbshell << 'EOF'
+python manage.py dbshell << 'EOF'
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE recipes_recipeingredient;
 TRUNCATE TABLE recipes_recipelike;
@@ -42,7 +42,7 @@ EOF
 Then run:
 
 ```bash
-python3 ../populate_db_sqls/create_recipes_for_user.py
+python ../populate_db_sqls/create_recipes_for_user.py
 ```
 
 This will create 10 recipes for the specified user with all ingredients, steps, and images (if available).

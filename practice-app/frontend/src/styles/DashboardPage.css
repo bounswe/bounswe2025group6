@@ -12,9 +12,8 @@
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2.5rem;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
   padding: 0 2vw;
   box-sizing: border-box;
@@ -264,6 +263,48 @@
   .dashboard-cards {
     grid-template-columns: 1fr;  /* Stack cards vertically on mobile */
   }
+}
+
+.dashboard-analytics {
+
+}
+
+.dashboard-analytics ul {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.dashboard-analytics li {
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #1e293b;
+  white-space: nowrap;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to bottom, #a8d5e2, #b8e2c8);  border-radius: 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid #58ce8f;
+  
+}
+
+.dashboard-analytics li:nth-child(2) {
+  border-left-color: #2b6cb0;
+}
+
+.dashboard-analytics li:nth-child(3) {
+  border-left-color: #dc2626;
+}
+
+.dashboard-analytics li:nth-child(4) {
+  border-left-color: #ea580c;
+}
+
+.dashboard-analytics li:nth-child(5) {
+  border-left-color: #7c3aed;
 }
 
 .green-button {
