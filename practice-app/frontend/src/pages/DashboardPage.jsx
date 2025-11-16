@@ -8,6 +8,7 @@ import "../styles/DashboardPage.css";
 import { getCurrentUser } from "../services/authService";
 import userService from "../services/userService";
 import reportService from "../services/reportService"; // Add this import
+import analyticsService from "../services/analyticsService";
 import { useTranslation } from "react-i18next";
 
 const DashboardPage = () => {
@@ -15,6 +16,8 @@ const DashboardPage = () => {
   const [username, setUsername] = useState("User");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsError, setAnalyticsError] = useState(null);
   const { t } = useTranslation();
 
   const getWelcomeMessage = () => {
@@ -47,6 +50,21 @@ const DashboardPage = () => {
         // Check admin status using the reports service
         const adminStatus = await checkAdminStatus();
         setIsAdmin(adminStatus);
+
+        // Fetch analytics data
+        try {
+          const analyticsData = await analyticsService.getAnalytics();
+          console.log("Analytics data received:", analyticsData);
+          setAnalytics(analyticsData);
+          setAnalyticsError(null);
+        } catch (analyticsError) {
+          console.error("Error fetching analytics - Full error:", analyticsError);
+          console.error("Error message:", analyticsError.message);
+          console.error("Error response:", analyticsError.response);
+          console.error("Error config:", analyticsError.config);
+          setAnalytics(null);
+          setAnalyticsError(analyticsError.response?.data?.detail || analyticsError.message);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -64,12 +82,25 @@ const DashboardPage = () => {
 
   return (
     <div className="dashboard-container dashboard-cards">
-      <div className="dashboard-header center">
+      <div className="dashboard-header">
         <div>
           <h1 className="dashboard-title">
             {getWelcomeMessage()}, {username}!
           </h1>
           <p className="dashboard-subtitle">{t("dashbboardSubtitle")}</p>
+        </div>
+        <div className="dashboard-analytics">
+          {analyticsError ? (
+            <p style={{ color: 'red' }}>Error loading analytics: {analyticsError}</p>
+          ) : (
+            <ul>
+              <li>{analytics?.users_count ?? "Loading..."} users are using FitHub</li>
+              <li>{analytics?.recipes_count ?? "Loading..."} recipes are waiting for you!</li>
+              <li>We have {analytics?.ingredients_count ?? "Loading..."} ingredients in our database.</li>
+              <li>Are you ready to discover {analytics?.posts_count ?? "Loading..."} posts?</li>
+              <li>There are {analytics?.comments_count ?? "Loading..."} comments, let's join discussions!</li>
+            </ul>
+          )}
         </div>
       </div>
 
