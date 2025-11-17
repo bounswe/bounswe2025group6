@@ -240,11 +240,11 @@ const RecipeDetailPage = () => {
           </div>
           <div className='recipe-detail-page-header-box'>
             <span className='recipe-detail-page-header-box-info'>{t("recipeDetailPageAllergens")}: </span>
-            {recipe.alergens && recipe.alergens.length > 0 ? (
-            recipe.alergens.map((allergen, index) => (
+            {(recipe.allergens || recipe.alergens) && (recipe.allergens || recipe.alergens).length > 0 ? (
+            (recipe.allergens || recipe.alergens).map((allergen, index) => (
               <span className='recipe-detail-page-header-box-allergen' key={index}>
                 {allergen.charAt(0).toUpperCase() + allergen.slice(1)}
-                {index < recipe.alergens.length - 1 ? '' : ''}
+                {index < (recipe.allergens || recipe.alergens).length - 1 ? '' : ''}
               </span>
             ))
           ) : (
