@@ -1,27 +1,35 @@
 // src/pages/shopping/ShoppingListPage.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getRecipeById } from '../../services/recipeService';
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { translateIngredient } from '../../utils/ingredientTranslations';
 import Button from '../../components/ui/Button';
 import '../../styles/ShoppingListPage.css';
 import '../../styles/style.css';
 import { useTranslation } from "react-i18next";
 
 const ShoppingListPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { currency } = useCurrency();
   const navigate = useNavigate();
+  
+  // Get current language for ingredient translation
+  const currentLanguage = i18n.language.startsWith('tr') ? 'tr' : 'en';
   
   const [recipes, setRecipes] = useState([]);
   const [consolidatedIngredients, setConsolidatedIngredients] = useState([]);
   const [marketCosts, setMarketCosts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const hasSavedToHistory = useRef(false); // Flag to prevent duplicate saves
 
   useEffect(() => {
     document.title = "Shopping List";
+    
+    // Reset save flag when component mounts
+    hasSavedToHistory.current = false;
     
     // Check if we're returning from ingredient detail
     const savedState = localStorage.getItem('shoppingListState');
@@ -125,10 +133,57 @@ const ShoppingListPage = () => {
 
       setMarketCosts(totals);
 
+      // Save to shopping list history
+      saveToHistory(recipeDetails, consolidated, totals);
+
     } catch (error) {
       console.error('Error loading shopping list:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const saveToHistory = (recipes, ingredients, marketCosts) => {
+    // Prevent duplicate saves
+    if (hasSavedToHistory.current) {
+      console.log('Shopping list already saved to history, skipping duplicate');
+      return;
+    }
+    
+    try {
+      // Get existing history
+      const existingHistory = JSON.parse(localStorage.getItem('shoppingListHistory') || '[]');
+      
+      // Create new shopping list entry
+      const newEntry = {
+        id: Date.now(), // Unique ID based on timestamp
+        date: new Date().toISOString(),
+        recipeNames: recipes.map(r => r.name),
+        recipes: recipes,
+        ingredients: ingredients.map(ing => ({
+          name: ing.name,
+          quantity: ing.quantity,
+          unit: ing.unit,
+          price: Object.values(ing.costs_for_recipe).reduce((sum, cost) => sum + cost, 0) / Object.keys(ing.costs_for_recipe).length // Average price
+        })),
+        marketCosts: Object.entries(marketCosts).map(([marketName, totalCost]) => ({
+          marketName,
+          totalCost
+        })),
+        totalCost: Math.min(...Object.values(marketCosts).filter(c => c > 0)),
+        currency: currency
+      };
+
+      // Add to history (keep only last 20 lists)
+      const updatedHistory = [newEntry, ...existingHistory].slice(0, 20);
+      localStorage.setItem('shoppingListHistory', JSON.stringify(updatedHistory));
+      
+      // Mark as saved
+      hasSavedToHistory.current = true;
+      
+      console.log('Shopping list saved to history');
+    } catch (error) {
+      console.error('Error saving to history:', error);
     }
   };
 
@@ -151,37 +206,67 @@ const ShoppingListPage = () => {
     navigate(`/ingredients/${ingredientId}`);
   };
 
-  const copyToClipboard = () => {
-    let text = '🛒 Shopping List\n\n';
-    
-    // Add recipes
-    text += '📋 Recipes:\n';
-    recipes.forEach((recipe, index) => {
-      const nutrition = recipe.recipe_nutritions || {};
-      text += `${index + 1}. ${recipe.name}\n`;
-      text += `   Calories: ${nutrition.calories || 0} cal | `;
-      text += `Protein: ${nutrition.protein || 0}g | `;
-      text += `Carbs: ${nutrition.carbs || 0}g | `;
-      text += `Fat: ${nutrition.fat || 0}g\n\n`;
-    });
+  const copyToClipboard = async () => {
+    try {
+      let text = '🛒 Shopping List\n\n';
+      
+      // Add recipes
+      text += '📋 Recipes:\n';
+      recipes.forEach((recipe, index) => {
+        const nutrition = recipe.recipe_nutritions || {};
+        text += `${index + 1}. ${recipe.name}\n`;
+        text += `   Calories: ${nutrition.calories || 0} cal | `;
+        text += `Protein: ${nutrition.protein || 0}g | `;
+        text += `Carbs: ${nutrition.carbs || 0}g | `;
+        text += `Fat: ${nutrition.fat || 0}g\n\n`;
+      });
 
-    // Add ingredients
-    text += '\n📦 Ingredients:\n';
-    consolidatedIngredients.forEach((ingredient, index) => {
-      text += `${index + 1}. ${ingredient.quantity.toFixed(2)} ${ingredient.unit} ${ingredient.name}\n`;
-    });
+      // Add ingredients
+      text += '\n📦 Ingredients:\n';
+      consolidatedIngredients.forEach((ingredient, index) => {
+        const translatedName = translateIngredient(ingredient.name, currentLanguage);
+        text += `${index + 1}. ${ingredient.quantity.toFixed(2)} ${ingredient.unit} ${translatedName}\n`;
+      });
 
-    // Add market costs
-    text += '\n💰 Total Costs:\n';
-    const cheapest = getCheapestMarket();
-    Object.entries(marketCosts).forEach(([market, cost]) => {
-      const marker = cheapest && market === cheapest[0] ? '✓ ' : '  ';
-      text += `${marker}${market}: ${cost.toFixed(2)} ${currency}\n`;
-    });
+      // Add market costs
+      text += '\n💰 Total Costs:\n';
+      const cheapest = getCheapestMarket();
+      Object.entries(marketCosts).forEach(([market, cost]) => {
+        const marker = cheapest && market === cheapest[0] ? '✓ ' : '  ';
+        text += `${marker}${market}: ${cost.toFixed(2)} ${currency}\n`;
+      });
 
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+    }
   };
 
   if (isLoading) {
@@ -314,7 +399,9 @@ const ShoppingListPage = () => {
                   <span className="ingredient-quantity">
                     {ingredient.quantity.toFixed(2)} {ingredient.unit}
                   </span>
-                  <span className="ingredient-name">{ingredient.name}</span>
+                  <span className="ingredient-name">
+                    {translateIngredient(ingredient.name, currentLanguage)}
+                  </span>
                 </span>
               </div>
             ))}

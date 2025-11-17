@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Removed wikidata import as it's not needed
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { translateIngredient } from '../../utils/ingredientTranslations';
 import '../../styles/IngredientList.css';
 import '../../styles/IngredientsPage.css';
 import { useTranslation } from "react-i18next";
@@ -9,8 +10,18 @@ import { useTranslation } from "react-i18next";
 // Main component for displaying and managing ingredients with pagination and search
 const IngredientsPage = () => {
   // State declarations for managing ingredients, pagination, and UI state
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { currency } = useCurrency();
+  
+  // Get current language for ingredient translation
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language.startsWith('tr') ? 'tr' : 'en');
+  
+  // Update language when i18n language changes
+  useEffect(() => {
+    const lang = i18n.language.startsWith('tr') ? 'tr' : 'en';
+    setCurrentLanguage(lang);
+  }, [i18n.language]);
+  
   const [allIngredients, setAllIngredients] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [filteredIngredients, setFilteredIngredients] = useState([]);
@@ -19,7 +30,7 @@ const IngredientsPage = () => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [pageSize, setPageSize] = useState(30);
+  const [pageSize, setPageSize] = useState(50);
   const [selectedColumn, setSelectedColumn] = useState(0);
   const [isChanging, setIsChanging] = useState(false);
   const navigate = useNavigate();
@@ -47,7 +58,37 @@ const IngredientsPage = () => {
         if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
         const data = await res.json();
         
-        setIngredients(data.results);
+        // Sort ingredients by translated name based on current language
+        const sortedIngredients = [...data.results].sort((a, b) => {
+          const nameA = translateIngredient(a.name, currentLanguage);
+          const nameB = translateIngredient(b.name, currentLanguage);
+          
+          if (currentLanguage === 'tr') {
+            // Turkish-specific sorting - use Turkish locale for proper character ordering
+            // Turkish alphabet: A, B, C, Ç, D, E, F, G, Ğ, H, I, İ, J, K, L, M, N, O, Ö, P, R, S, Ş, T, U, Ü, V, Y, Z
+            const result = nameA.localeCompare(nameB, 'tr-TR', { 
+              sensitivity: 'base',
+              ignorePunctuation: true,
+              numeric: true 
+            });
+            return result;
+          } else {
+            // English sorting
+            return nameA.localeCompare(nameB, 'en-US', { 
+              sensitivity: 'base',
+              ignorePunctuation: true,
+              numeric: true 
+            });
+          }
+        });
+        
+        // Debug: Log first few sorted items to verify sorting
+        if (currentLanguage === 'tr' && sortedIngredients.length > 0) {
+          console.log('Turkish sorting - First 5 items:', sortedIngredients.slice(0, 5).map(i => translateIngredient(i.name, 'tr')));
+          console.log('Current language:', currentLanguage, 'i18n.language:', i18n.language);
+        }
+        
+        setIngredients(sortedIngredients);
         setHasNextPage(page < data.total_pages);
         setLoading(false);
       } catch (err) {
@@ -57,7 +98,7 @@ const IngredientsPage = () => {
     };
 
     fetchIngredients();
-  }, [page, pageSize]);
+  }, [page, pageSize, currentLanguage]);
 
   // Handle search functionality
   useEffect(() => {
@@ -88,10 +129,37 @@ const IngredientsPage = () => {
             currentPage++;
           }
 
-          const filtered = allData.filter((ingredient) =>
-            ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          setFilteredIngredients(filtered);
+          const filtered = allData.filter((ingredient) => {
+            // Search only in the current language
+            const translatedName = translateIngredient(ingredient.name, currentLanguage).toLowerCase();
+            const query = searchQuery.toLowerCase();
+            return translatedName.includes(query);
+          });
+          
+          // Sort filtered ingredients by translated name based on current language
+          const sortedFiltered = filtered.sort((a, b) => {
+            const nameA = translateIngredient(a.name, currentLanguage);
+            const nameB = translateIngredient(b.name, currentLanguage);
+            
+            if (currentLanguage === 'tr') {
+              // Turkish-specific sorting - use Turkish locale for proper character ordering
+              // Turkish alphabet: A, B, C, Ç, D, E, F, G, Ğ, H, I, İ, J, K, L, M, N, O, Ö, P, R, S, Ş, T, U, Ü, V, Y, Z
+              return nameA.localeCompare(nameB, 'tr-TR', { 
+                sensitivity: 'base',
+                ignorePunctuation: true,
+                numeric: true 
+              });
+            } else {
+              // English sorting
+              return nameA.localeCompare(nameB, 'en-US', { 
+                sensitivity: 'base',
+                ignorePunctuation: true,
+                numeric: true 
+              });
+            }
+          });
+          
+          setFilteredIngredients(sortedFiltered);
         } catch (err) {
           console.error('Search error:', err);
         }
@@ -99,7 +167,7 @@ const IngredientsPage = () => {
       
       searchIngredients();
     }
-  }, [searchQuery]);
+  }, [searchQuery, currentLanguage]);
 
   // This useEffect is no longer needed as pagination is handled by the API
 
@@ -149,19 +217,53 @@ const IngredientsPage = () => {
         </div>
       ) : (
         <div className={`ingredients-grid fade ${isChanging ? 'fade-loading' : ''}`}>
-          {Array.from({ length: Math.ceil(pageSize / 10) }).map((_, columnIndex) => (
-            <div key={columnIndex} className="ingredient-column">
-              <ul className="ingredient-list">
-                {(searchQuery.trim() ? filteredIngredients : ingredients)
-                  .slice(columnIndex * 10, (columnIndex + 1) * 10)
-                  .map((ingredient) => (
-                    <li
-                      key={ingredient.id}
-                      className="ingredient-item"
-                      onClick={() => navigate(`/ingredients/${ingredient.id}`)}
-                    >
-                      <div className="ingredient-item-content" style={{'--name-length': ingredient.name.length}}>
-                        <span className="ingredient-name">{ingredient.name}</span>
+          {(() => {
+            const itemsToShow = searchQuery.trim() ? filteredIngredients : ingredients;
+            // Calculate number of columns based on pageSize
+            // 50 -> 5 columns, 40 -> 4 columns, 20 -> 2 columns, 10 -> 1 column
+            // Same logic for both search results and paginated results
+            const numColumns = pageSize === 50 ? 5 
+              : pageSize === 40 ? 4 
+              : pageSize === 20 ? 2 
+              : pageSize === 10 ? 1 
+              : 3; // Default to 3 columns (for 30 per page)
+            
+            return Array.from({ length: numColumns }).map((_, columnIndex) => (
+              <div key={columnIndex} className="ingredient-column">
+                <ul className="ingredient-list">
+                  {itemsToShow
+                    .filter((_, index) => index % numColumns === columnIndex)
+                    .map((ingredient) => {
+                    const translatedName = translateIngredient(ingredient.name, currentLanguage);
+                    const nameLength = translatedName.length;
+
+                    // Calculate font size to fit full name in single line within card width (~98px)
+                    // More aggressive scaling - each character needs space proportional to font size
+                    let fontSize;
+                    if (nameLength > 25) {
+                      fontSize = '0.45rem';
+                    } else if (nameLength > 20) {
+                      fontSize = '0.5rem';
+                    } else if (nameLength > 16) {
+                      fontSize = '0.55rem';
+                    } else if (nameLength > 13) {
+                      fontSize = '0.6rem'; // Dolmalık Biber (14 chars) will use this
+                    } else if (nameLength > 10) {
+                      fontSize = '0.65rem';
+                    } else if (nameLength > 7) {
+                      fontSize = '0.7rem';
+                    } else {
+                      fontSize = '0.75rem';
+                    }
+                    
+                    return (
+                      <li
+                        key={ingredient.id}
+                        className="ingredient-item"
+                        onClick={() => navigate(`/ingredients/${ingredient.id}`)}
+                      >
+                        <div className="ingredient-item-content">
+                          <span className="ingredient-name" style={{ fontSize, maxWidth: '100%' }}>{translatedName}</span>
                         
                         {/* Nutritional Information */}
                         {ingredient.wikidata_info && ingredient.wikidata_info.nutrition && (
@@ -184,25 +286,25 @@ const IngredientsPage = () => {
                               {ingredient.prices.A101 && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/a101.png" alt="A101" className="price-logo" />
-                                  A101: {ingredient.prices.A101} {ingredient.prices.currency || currency}
+                                  {ingredient.prices.A101} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                               {ingredient.prices.SOK && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/sok.png" alt="ŞOK" className="price-logo" />
-                                  ŞOK: {ingredient.prices.SOK} {ingredient.prices.currency || currency}
+                                  {ingredient.prices.SOK} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                               {ingredient.prices.BIM && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/bim.png" alt="BIM" className="price-logo" />
-                                  BIM: {ingredient.prices.BIM} {ingredient.prices.currency || currency}
+                                  {ingredient.prices.BIM} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                               {ingredient.prices.MIGROS && (
                                 <span className="price-item">
                                   <img src="/src/assets/market_logos/migros.png" alt="MIGROS" className="price-logo" />
-                                  MIGROS: {ingredient.prices.MIGROS} {ingredient.prices.currency || currency}
+                                  {ingredient.prices.MIGROS} {ingredient.prices.currency || currency}
                                 </span>
                               )}
                             </div>
@@ -210,10 +312,12 @@ const IngredientsPage = () => {
                         )}
                       </div>
                     </li>
-                  ))}
-              </ul>
-            </div>
-          ))}
+                    );
+                  })}
+                </ul>
+              </div>
+            ));
+          })()}
         </div>
       )}
 

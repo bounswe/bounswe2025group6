@@ -2,17 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getIngredientById } from '../../services/ingredientService';
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { translateIngredient } from '../../utils/ingredientTranslations';
 import '../../styles/IngredientDetailPage.css';
 import { useTranslation } from "react-i18next";
 
 const IngredientDetailPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { currency } = useCurrency();
   const [ing, setIng] = useState(null);
   const [error, setError] = useState(null);
   const [isPageReady, setIsPageReady] = useState(false);
+  
+  // Get current language for ingredient translation
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language.startsWith('tr') ? 'tr' : 'en');
+  
+  // Update language when i18n language changes
+  useEffect(() => {
+    setCurrentLanguage(i18n.language.startsWith('tr') ? 'tr' : 'en');
+  }, [i18n.language]);
   
   // Get recipe ID from URL search params for back navigation
   const urlParams = new URLSearchParams(window.location.search);
@@ -41,9 +50,10 @@ const IngredientDetailPage = () => {
 
   useEffect(() => {
     if (ing) {
-      document.title = `Ingredient | ${ing.name}`;
+      const translatedName = translateIngredient(ing.name, currentLanguage);
+      document.title = `Ingredient | ${translatedName}`;
     }
-  }, [ing]);
+  }, [ing, currentLanguage]);
 
   // Show loading only if we're actually loading and don't have data
   if (!isPageReady && !ing) return null;
@@ -51,9 +61,11 @@ const IngredientDetailPage = () => {
   if (error) return <div className="text-red-500">{t("Error")}: {error}</div>;
   if (!ing) return <div>{t("NotFound")}</div>;
 
+  const translatedIngredientName = translateIngredient(ing.name, currentLanguage);
+
   return (
     <div className="ingredient-detail-page">
-      <h1>{ing.name}</h1>
+      <h1>{translatedIngredientName}</h1>
       
       <div className="ingredient-detail-content">
         {/* Left Column - Basic Information and Market Prices */}
