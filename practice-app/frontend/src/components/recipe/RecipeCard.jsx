@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
+import Badge from '../ui/Badge';
 import { getRecipeById, getWikidataImage } from '../../services/recipeService';
-import { getUsername } from '../../services/userService';
+import userService from '../../services/userService';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import '../../styles/RecipeCard.css';
 
@@ -15,6 +16,7 @@ const RecipeCard = ({ recipe }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [creatorName, setCreatorName] = useState('');
+  const [creatorRole, setCreatorRole] = useState('');
   const cardRef = useRef(null);
 
   // Lazy loading with IntersectionObserver
@@ -70,16 +72,22 @@ const RecipeCard = ({ recipe }) => {
     loadImage();
   }, [recipe.name, recipe.image_full_url, isVisible, isLoading, recipeImage]);
   
-  // Fetch creator's username
+  // Fetch creator's username and role
   useEffect(() => {
-    const fetchCreatorName = async () => {
+    const fetchCreatorData = async () => {
       if (recipe.creator_id) {
-        const name = await getUsername(recipe.creator_id);
-        setCreatorName(name);
+        try {
+          const userData = await userService.getUserById(recipe.creator_id);
+          setCreatorName(userData.username || 'Unknown');
+          setCreatorRole(userData.typeOfCook || '');
+        } catch (error) {
+          console.error('Error fetching creator data:', error);
+          setCreatorName('Unknown');
+        }
       }
     };
     
-    fetchCreatorName();
+    fetchCreatorData();
   }, [recipe.creator_id]);
 
   const handleClick = () => {
@@ -88,6 +96,27 @@ const RecipeCard = ({ recipe }) => {
     localStorage.setItem('returnToMealPlanner', currentPath);
     navigate(`/recipes/${recipe.id}`);
   };
+
+  // Calculate dynamic font size based on recipe name length
+  const getFontSize = (name) => {
+    const nameLength = name.length;
+    if (nameLength > 40) {
+      return '0.85rem';
+    } else if (nameLength > 35) {
+      return '0.9rem';
+    } else if (nameLength > 30) {
+      return '0.95rem';
+    } else if (nameLength > 25) {
+      return '1rem';
+    } else if (nameLength > 20) {
+      return '1.1rem';
+    } else if (nameLength > 15) {
+      return '1.2rem';
+    } else {
+      return '1.3rem';
+    }
+  };
+
   return (
     <div className="recipe-card" onClick={handleClick} ref={cardRef}>
       <div className='recipe-card-image' style={{
@@ -101,7 +130,7 @@ const RecipeCard = ({ recipe }) => {
           </div>
         )}
       </div>        <div className='recipe-card-content'>
-          <h2>{recipe.name}</h2>          <div className='recipe-card-content-info'>
+          <h2 style={{ fontSize: getFontSize(recipe.name || '') }}>{recipe.name}</h2>          <div className='recipe-card-content-info'>
             <div className="recipe-card-top-row">
               <span className="meal-type">{recipe.meal_type || 'No type'}</span>
               <span className="cost-with-logo">
@@ -135,7 +164,10 @@ const RecipeCard = ({ recipe }) => {
             </div>
             <div className="recipe-card-bottom-row">
               <span className="time-info">{recipe.prep_time}m prep • {recipe.cook_time}m cook</span>
-              <span className="creator-info">by {creatorName || 'Loading...'}</span>
+              <span className="creator-info">
+                by {creatorName || 'Loading...'}
+                {creatorRole && <Badge role={creatorRole} size="small" />}
+              </span>
             </div>
           </div>
           <div className='recipe-card-content-dietary'>
