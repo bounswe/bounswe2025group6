@@ -21,7 +21,6 @@ import reportService from "../services/reportService";
 import DashboardPage from '../pages/DashboardPage';
 
 import MealPlannerPage from '../pages/meal-planner/MealPlannerPage';
-import SavedMealPlansPage from '../pages/meal-planner/SavedMealPlansPage';
 import ShoppingListPage from '../pages/shopping/ShoppingListPage';
 import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
 import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
@@ -211,15 +210,6 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MealPlannerPage />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/saved-meal-plans" 
-          element={
-            <ProtectedRoute>
-              <SavedMealPlansPage />
             </ProtectedRoute>
           } 
         />

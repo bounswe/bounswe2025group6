@@ -172,3 +172,25 @@
   height: 30px;
   object-fit: contain;
 }
+
+.recipe-card-content-dietary {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.nutrition-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  justify-content: center;
+}
+
+.nutrition-item {
+  background: #f0fdf4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #166534;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+}

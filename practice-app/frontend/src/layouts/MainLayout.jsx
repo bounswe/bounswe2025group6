@@ -67,8 +67,8 @@ const MainLayout = () => {
   };
   const navItems = [
     { path: "/dashboard", label: t("dashboard") },
-    { path: "/meal-planner", label: t("mealPlanner") },
     { path: "/recipes", label: t("recipes") },
+    { path: "/meal-planner", label: t("mealPlanner") },
     { path: "/shopping-list", label: t("shoppingList") },
     { path: "/ingredients", label: t("ingredients") },
     { path: "/community", label: t("community") },

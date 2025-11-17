@@ -243,7 +243,11 @@ const IngredientDetailPage = () => {
         <button 
           className="back-button" 
           onClick={() => {
-            if (recipeId) {
+            // Check if we came from shopping list
+            const fromShoppingList = localStorage.getItem('shoppingListState');
+            if (fromShoppingList) {
+              navigate('/shopping-list');
+            } else if (recipeId) {
               navigate(`/recipes/${recipeId}`);
             } else {
               navigate(-1); // Go back to previous page if no recipe ID

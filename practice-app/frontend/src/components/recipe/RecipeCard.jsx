@@ -83,6 +83,9 @@ const RecipeCard = ({ recipe }) => {
   }, [recipe.creator_id]);
 
   const handleClick = () => {
+    // Save current location state before navigating
+    const currentPath = window.location.pathname + window.location.search;
+    localStorage.setItem('returnToMealPlanner', currentPath);
     navigate(`/recipes/${recipe.id}`);
   };
   return (
@@ -102,7 +105,7 @@ const RecipeCard = ({ recipe }) => {
             <div className="recipe-card-top-row">
               <span className="meal-type">{recipe.meal_type || 'No type'}</span>
               <span className="cost-with-logo">
-                {recipe.cost_per_serving} {currency}
+                {recipe.cost_per_serving ? parseFloat(recipe.cost_per_serving).toFixed(2) : '0.00'} {currency}
                 {(() => {
                   if (recipe.recipe_costs && Object.keys(recipe.recipe_costs).length > 0) {
                     const minCost = Math.min(...Object.values(recipe.recipe_costs));

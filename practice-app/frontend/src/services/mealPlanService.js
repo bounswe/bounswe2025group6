@@ -1,241 +1,217 @@
-// mealPlanService.js - Enhanced service for meal planning functionality
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// src/services/mealPlanService.js
+
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Local storage key for saved meal plans
+const STORAGE_KEY = 'mealPlanner_savedMealPlans';
 
 /**
- * Get authentication headers
- * @returns {Object} - Auth headers object
+ * Fetch recipes from backend meal planner endpoint with filters
+ * @param {Object} filters - Filter parameters
+ * @returns {Promise<Object>} Paginated recipe list
  */
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('fithub_access_token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-};
-
-/**
- * Handle API responses and errors
- * @param {Response} response - Fetch response object
- * @returns {Object} - Parsed JSON response
- */
-const handleApiResponse = async (response) => {
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`API request failed: ${response.status} ${errorData}`);
-  }
-  
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    return await response.json();
-  }
-  
-  return await response.text();
-};
-
-/**
- * Get recipes from the meal planner endpoint with filtering
- * @param {Object} filters - Filter parameters for recipe search
- * @returns {Promise<Object>} - Paginated recipe results
- */
-export const getRecipesByMealPlanner = async (filters = {}) => {
+export const fetchMealPlanRecipes = async (filters = {}) => {
   try {
-    const queryParams = new URLSearchParams();
-    
-    // Add filter parameters to query string with proper formatting
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        // Convert boolean values properly
-        if (typeof value === 'boolean') {
-          queryParams.append(key, value.toString());
-        } else {
-          queryParams.append(key, value.toString());
-        }
-      }
-    });
+    const token = localStorage.getItem('fithub_access_token');
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
 
-    const url = `${API_BASE}/recipes/meal_planner/?${queryParams.toString()}`;
-    console.log('🔗 Fetching recipes from:', url);
-    console.log('📋 Filters being sent:', filters);
+    // Build query parameters
+    const params = {};
     
-    const response = await fetch(url, {
-      method: 'GET',
+    // Recipe name search
+    if (filters.name) params.name = filters.name;
+    
+    // Meal type (breakfast, lunch, dinner)
+    if (filters.meal_type) params.meal_type = filters.meal_type;
+    
+    // Cost per serving filters
+    if (filters.min_cost_per_serving) params.min_cost_per_serving = filters.min_cost_per_serving;
+    if (filters.max_cost_per_serving) params.max_cost_per_serving = filters.max_cost_per_serving;
+    
+    // Rating filters
+    if (filters.min_difficulty_rating) params.min_difficulty_rating = filters.min_difficulty_rating;
+    if (filters.max_difficulty_rating) params.max_difficulty_rating = filters.max_difficulty_rating;
+    if (filters.min_taste_rating) params.min_taste_rating = filters.min_taste_rating;
+    if (filters.max_taste_rating) params.max_taste_rating = filters.max_taste_rating;
+    if (filters.min_health_rating) params.min_health_rating = filters.min_health_rating;
+    if (filters.max_health_rating) params.max_health_rating = filters.max_health_rating;
+    if (filters.min_like_count) params.min_like_count = filters.min_like_count;
+    if (filters.max_like_count) params.max_like_count = filters.max_like_count;
+    
+    // Nutrition filters
+    if (filters.min_calories) params.min_calories = filters.min_calories;
+    if (filters.max_calories) params.max_calories = filters.max_calories;
+    if (filters.min_carbs) params.min_carbs = filters.min_carbs;
+    if (filters.max_carbs) params.max_carbs = filters.max_carbs;
+    if (filters.min_fat) params.min_fat = filters.min_fat;
+    if (filters.max_fat) params.max_fat = filters.max_fat;
+    if (filters.min_protein) params.min_protein = filters.min_protein;
+    if (filters.max_protein) params.max_protein = filters.max_protein;
+    
+    // Time filters
+    if (filters.min_prep_time) params.min_prep_time = filters.min_prep_time;
+    if (filters.max_prep_time) params.max_prep_time = filters.max_prep_time;
+    if (filters.min_cook_time) params.min_cook_time = filters.min_cook_time;
+    if (filters.max_cook_time) params.max_cook_time = filters.max_cook_time;
+    if (filters.min_total_time) params.min_total_time = filters.min_total_time;
+    if (filters.max_total_time) params.max_total_time = filters.max_total_time;
+    
+    // Boolean filters
+    if (filters.has_image !== undefined) params.has_image = filters.has_image;
+    if (filters.is_approved !== undefined) params.is_approved = filters.is_approved;
+    if (filters.is_featured !== undefined) params.is_featured = filters.is_featured;
+    
+    // Pagination
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
+
+    const response = await axios.get(`${API_BASE_URL}/recipes/meal_planner/`, {
+      params,
       headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    const result = await handleApiResponse(response);
-    console.log('✅ API response received:', {
-      page: result.page,
-      page_size: result.page_size,
-      total: result.total,
-      results_count: result.results?.length || 0
-    });
-    
-    return result;
+    return response.data;
   } catch (error) {
-    console.error('❌ Error fetching meal planner recipes:', error);
-    throw new Error(`Failed to fetch recipes: ${error.message}`);
+    console.error('Error fetching meal plan recipes:', error);
+    throw error;
   }
 };
 
 /**
- * Get a specific recipe by ID with full details
- * @param {number} recipeId - Recipe ID
- * @returns {Promise<Object>} - Recipe details
+ * Fetch recipes for a specific meal type with filters
+ * @param {string} mealType - 'breakfast', 'lunch', or 'dinner'
+ * @param {Object} additionalFilters - Additional filters
+ * @returns {Promise<Array>} Array of recipes
  */
-export const getRecipeById = async (recipeId) => {
+export const fetchRecipesByMealType = async (mealType, additionalFilters = {}) => {
   try {
-    const response = await fetch(`${API_BASE}/recipes/${recipeId}/`, {
-      method: 'GET',
-      headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'application/json',
-      },
-    });
-
-    return await handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching recipe details:', error);
-    throw new Error(`Failed to fetch recipe details: ${error.message}`);
-  }
-};
-
-/**
- * Generate a random meal plan within budget constraints
- * @param {Object} params - Budget and dietary constraints
- * @returns {Promise<Object>} - Generated meal plan
- */
-export const generateRandomMealPlan = async (params = {}) => {
-  try {
-    const { budget, dietaryRestrictions = [], allergenExclusions = [], maxPrepTime } = params;
-    
-    const mealPlan = {
-      breakfast: null,
-      lunch: null,
-      dinner: null
+    const filters = {
+      meal_type: mealType,
+      page_size: 50, // Get more results for variety
+      ...additionalFilters,
     };
     
-    let remainingBudget = parseFloat(budget) || 0;
-    
-    // For each meal type, get recipes and select randomly within budget
-    for (const mealType of ['breakfast', 'lunch', 'dinner']) {
-      const maxCostPerServing = remainingBudget / (3 - Object.keys(mealPlan).filter(key => mealPlan[key]).length);
-      
-      const filters = {
-        meal_type: mealType,
-        page_size: 50, // Get more options for better randomization
-        ...(maxCostPerServing > 0 && { max_cost_per_serving: maxCostPerServing }),
-        ...(maxPrepTime && { max_total_time: maxPrepTime })
-      };
+    const response = await fetchMealPlanRecipes(filters);
+    return response.results || [];
+  } catch (error) {
+    console.error(`Error fetching ${mealType} recipes:`, error);
+    return [];
+  }
+};
 
-      const response = await getRecipesByMealPlanner(filters);
-      
-      // Filter by dietary restrictions and allergens
-      let availableRecipes = response.results || [];
-      
-      if (dietaryRestrictions.length > 0) {
-        availableRecipes = availableRecipes.filter(recipe =>
-          dietaryRestrictions.some(diet =>
-            recipe.dietary_info?.includes(diet)
-          )
-        );
-      }
-      
-      if (allergenExclusions.length > 0) {
-        availableRecipes = availableRecipes.filter(recipe =>
-          !allergenExclusions.some(allergen =>
-            recipe.allergens?.includes(allergen)
-          )
-        );
-      }
-      
-      // Select random recipe within budget
-      const budgetFriendlyRecipes = availableRecipes.filter(recipe => {
-        const cost = parseFloat(recipe.cost_per_serving);
-        return cost && cost <= remainingBudget;
-      });
-      
-      if (budgetFriendlyRecipes.length > 0) {
-        const randomIndex = Math.floor(Math.random() * budgetFriendlyRecipes.length);
-        const selectedRecipe = budgetFriendlyRecipes[randomIndex];
-        mealPlan[mealType] = selectedRecipe;
-        remainingBudget -= parseFloat(selectedRecipe.cost_per_serving);
-      }
-    }
+/**
+ * Get random recipe from filtered results
+ * @param {string} mealType - 'breakfast', 'lunch', or 'dinner'
+ * @param {Object} filters - Filter parameters
+ * @returns {Promise<Object|null>} Random recipe or null
+ */
+export const getRandomRecipe = async (mealType, filters = {}) => {
+  try {
+    const recipes = await fetchRecipesByMealType(mealType, filters);
+    if (recipes.length === 0) return null;
     
+    const randomIndex = Math.floor(Math.random() * recipes.length);
+    return recipes[randomIndex];
+  } catch (error) {
+    console.error('Error getting random recipe:', error);
+    return null;
+  }
+};
+
+/**
+ * Generate a random meal plan based on filters
+ * @param {Object} filters - Filter parameters
+ * @returns {Promise<Object>} Meal plan with breakfast, lunch, dinner
+ */
+export const generateRandomMealPlan = async (filters = {}) => {
+  try {
+    const [breakfast, lunch, dinner] = await Promise.all([
+      getRandomRecipe('breakfast', filters),
+      getRandomRecipe('lunch', filters),
+      getRandomRecipe('dinner', filters),
+    ]);
+
     return {
-      meals: mealPlan,
-      totalCost: (parseFloat(budget) - remainingBudget).toFixed(2),
-      remainingBudget: remainingBudget.toFixed(2)
+      breakfast,
+      lunch,
+      dinner,
     };
   } catch (error) {
     console.error('Error generating random meal plan:', error);
-    throw new Error(`Failed to generate meal plan: ${error.message}`);
+    throw error;
   }
 };
 
 /**
- * Calculate total nutrition for selected meals
- * @param {Object} selectedMeals - Object containing selected meals by type
- * @returns {Object} - Total nutrition information
+ * Calculate total cost of meal plan
+ * @param {Object} mealPlan - Meal plan object with breakfast, lunch, dinner
+ * @returns {number} Total cost
  */
-export const calculateTotalNutrition = (selectedMeals) => {
-  const totals = {
+export const calculateMealPlanCost = (mealPlan) => {
+  let total = 0;
+  if (mealPlan.breakfast?.cost_per_serving) {
+    total += parseFloat(mealPlan.breakfast.cost_per_serving);
+  }
+  if (mealPlan.lunch?.cost_per_serving) {
+    total += parseFloat(mealPlan.lunch.cost_per_serving);
+  }
+  if (mealPlan.dinner?.cost_per_serving) {
+    total += parseFloat(mealPlan.dinner.cost_per_serving);
+  }
+  return parseFloat(total.toFixed(2));
+};
+
+/**
+ * Calculate total nutrition of meal plan
+ * @param {Object} mealPlan - Meal plan object with breakfast, lunch, dinner
+ * @returns {Object} Total nutrition values
+ */
+export const calculateMealPlanNutrition = (mealPlan) => {
+  const nutrition = {
     calories: 0,
     protein: 0,
-    fat: 0,
     carbs: 0,
-    fiber: 0,
-    sugar: 0
+    fat: 0,
   };
-  
-  Object.values(selectedMeals).forEach(meal => {
-    if (meal && meal.recipe_nutritions) {
-      const nutrition = meal.recipe_nutritions;
-      totals.calories += parseFloat(nutrition.calories) || 0;
-      totals.protein += parseFloat(nutrition.protein) || 0;
-      totals.fat += parseFloat(nutrition.fat) || 0;
-      totals.carbs += parseFloat(nutrition.carbs) || 0;
-      totals.fiber += parseFloat(nutrition.fiber) || 0;
-      totals.sugar += parseFloat(nutrition.sugar) || 0;
+
+  ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+    const meal = mealPlan[mealType];
+    if (meal) {
+      // Get nutrition from recipe_nutritions if available, otherwise try direct properties
+      const nutritionData = meal.recipe_nutritions || meal;
+      nutrition.calories += parseFloat(nutritionData.calories || 0);
+      nutrition.protein += parseFloat(nutritionData.protein || 0);
+      nutrition.carbs += parseFloat(nutritionData.carbs || 0);
+      nutrition.fat += parseFloat(nutritionData.fat || 0);
     }
   });
-  
-  // Round to reasonable precision
-  Object.keys(totals).forEach(key => {
-    totals[key] = Math.round(totals[key] * 10) / 10;
-  });
-  
-  return totals;
+
+  return {
+    calories: parseFloat(nutrition.calories.toFixed(2)),
+    protein: parseFloat(nutrition.protein.toFixed(2)),
+    carbs: parseFloat(nutrition.carbs.toFixed(2)),
+    fat: parseFloat(nutrition.fat.toFixed(2)),
+  };
 };
 
 /**
- * Calculate total cost for selected meals
- * @param {Object} selectedMeals - Object containing selected meals by type
- * @returns {number} - Total cost
+ * Get all allergens from meal plan
+ * @param {Object} mealPlan - Meal plan object
+ * @returns {Array} Array of unique allergens
  */
-export const calculateTotalCost = (selectedMeals) => {
-  let totalCost = 0;
-  
-  Object.values(selectedMeals).forEach(meal => {
-    if (meal && meal.cost_per_serving) {
-      totalCost += parseFloat(meal.cost_per_serving) || 0;
-    }
-  });
-  
-  return Math.round(totalCost * 100) / 100; // Round to 2 decimal places
-};
-
-/**
- * Get all allergens from selected meals
- * @param {Object} selectedMeals - Object containing selected meals by type
- * @returns {Array} - Array of unique allergens
- */
-export const getAllergens = (selectedMeals) => {
+export const getMealPlanAllergens = (mealPlan) => {
   const allergens = new Set();
   
-  Object.values(selectedMeals).forEach(meal => {
-    if (meal && meal.allergens) {
-      meal.allergens.forEach(allergen => allergens.add(allergen));
+  ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+    const meal = mealPlan[mealType];
+    if (meal?.allergens && Array.isArray(meal.allergens)) {
+      meal.allergens.forEach((allergen) => allergens.add(allergen));
     }
   });
   
@@ -243,327 +219,238 @@ export const getAllergens = (selectedMeals) => {
 };
 
 /**
- * Generate shopping list from selected meals
- * @param {Object} selectedMeals - Object containing selected meals by type
- * @returns {Object} - Shopping list with ingredients grouped by category
+ * Get cheapest market for meal plan
+ * @param {Object} mealPlan - Meal plan object
+ * @returns {Object} Market costs comparison
  */
-export const generateShoppingList = (selectedMeals) => {
-  const shoppingList = {
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-    items: [],
-    totalCost: 0,
-    costByMarket: {
-      A101: 0,
-      SOK: 0,
-      BIM: 0,
-      MIGROS: 0
-    },
-    cheapestMarket: 'BIM',
-    mealReferences: []
-  };
+export const getMealPlanMarketCosts = (mealPlan) => {
+  const markets = ['A101', 'SOK', 'BIM', 'MIGROS'];
+  const marketTotals = {};
+  
+  markets.forEach((market) => {
+    let total = 0;
+    ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+      const meal = mealPlan[mealType];
+      if (meal?.recipe_costs?.[market]) {
+        total += parseFloat(meal.recipe_costs[market]);
+      }
+    });
+    marketTotals[market] = parseFloat(total.toFixed(2));
+  });
+  
+  return marketTotals;
+};
 
-  // Process each meal in the meal plan
-  Object.entries(selectedMeals).forEach(([mealType, meal]) => {
-    if (meal) {
-      // Add meal reference
-      shoppingList.mealReferences.push({
-        mealType,
-        mealName: meal.name,
-        recipeId: meal.id
-      });
-
-      // Create shopping list item for this meal
-      const item = {
-        id: `${meal.id}-item`,
-        name: `Ingredients for ${meal.name}`,
-        category: mealType,
-        quantity: 1,
-        unit: 'recipe',
-        estimatedCosts: meal.recipe_costs || {
-          A101: parseFloat(meal.cost_per_serving || 0),
-          SOK: parseFloat(meal.cost_per_serving || 0),
-          BIM: parseFloat(meal.cost_per_serving || 0),
-          MIGROS: parseFloat(meal.cost_per_serving || 0)
-        },
-        mealInfo: {
-          mealType,
-          recipeName: meal.name,
-          recipeId: meal.id
-        }
-      };
-
-      shoppingList.items.push(item);
-
-      // Add to market costs
-      Object.entries(item.estimatedCosts).forEach(([market, cost]) => {
-        shoppingList.costByMarket[market] += cost || 0;
-      });
+/**
+ * Get cheapest market name
+ * @param {Object} marketCosts - Market costs object
+ * @returns {string} Cheapest market name
+ */
+export const getCheapestMarket = (marketCosts) => {
+  let cheapest = null;
+  let minCost = Infinity;
+  
+  Object.entries(marketCosts).forEach(([market, cost]) => {
+    if (cost > 0 && cost < minCost) {
+      minCost = cost;
+      cheapest = market;
     }
   });
-
-  // Find cheapest market
-  const cheapestMarket = Object.entries(shoppingList.costByMarket)
-    .reduce((min, [market, cost]) => 
-      cost < min.cost ? { market, cost } : min, 
-      { market: 'BIM', cost: Infinity }
-    ).market;
-
-  shoppingList.cheapestMarket = cheapestMarket;
-  shoppingList.totalCost = shoppingList.costByMarket[cheapestMarket];
-
-  // Round costs to 2 decimal places
-  Object.keys(shoppingList.costByMarket).forEach(market => {
-    shoppingList.costByMarket[market] = Math.round(shoppingList.costByMarket[market] * 100) / 100;
-  });
-  shoppingList.totalCost = Math.round(shoppingList.totalCost * 100) / 100;
-
-  return shoppingList;
+  
+  return cheapest;
 };
 
-/**
- * Get retailer information for shopping list
- * @returns {Object} - Retailer information with links and details
- */
-export const getRetailerInfo = () => {
-  return {
-    A101: {
-      name: 'A101',
-      website: 'https://www.a101.com.tr',
-      logo: '/market-logos/a101.png',
-      description: 'Discount supermarket chain',
-      onlineDelivery: true,
-      color: '#e11d48'
-    },
-    SOK: {
-      name: 'ŞOK',
-      website: 'https://www.sokmarket.com.tr',
-      logo: '/market-logos/sok.png',
-      description: 'Neighborhood discount store',
-      onlineDelivery: false,
-      color: '#dc2626'
-    },
-    BIM: {
-      name: 'BİM',
-      website: 'https://www.bim.com.tr',
-      logo: '/market-logos/bim.png',
-      description: 'Hard discount supermarket',
-      onlineDelivery: false,
-      color: '#1e40af'
-    },
-    MIGROS: {
-      name: 'Migros',
-      website: 'https://www.migros.com.tr',
-      logo: '/market-logos/migros.png',
-      description: 'Full-service supermarket',
-      onlineDelivery: true,
-      color: '#ea580c'
-    }
-  };
-};
+// ==================== LOCAL STORAGE FUNCTIONS ====================
 
 /**
- * Save meal plan to localStorage
- * @param {Object} mealPlan - Meal plan to save
- * @returns {boolean} - Success status
- */
-export const saveMealPlan = (mealPlan) => {
-  try {
-    const savedPlans = getSavedMealPlans();
-    const newPlan = {
-      ...mealPlan,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-    
-    savedPlans.push(newPlan);
-    localStorage.setItem('savedMealPlans', JSON.stringify(savedPlans));
-    console.log('Meal plan saved successfully:', newPlan);
-    return true;
-  } catch (error) {
-    console.error('Error saving meal plan:', error);
-    return false;
-  }
-};
-
-/**
- * Get saved meal plans from localStorage
- * @returns {Array} - Array of saved meal plans
+ * Get all saved meal plans from localStorage
+ * @returns {Array} Array of saved meal plans
  */
 export const getSavedMealPlans = () => {
   try {
-    const saved = localStorage.getItem('savedMealPlans');
-    return saved ? JSON.parse(saved) : [];
+    const plans = localStorage.getItem(STORAGE_KEY);
+    return plans ? JSON.parse(plans) : [];
   } catch (error) {
-    console.error('Error loading saved meal plans:', error);
+    console.error('Error fetching meal plans:', error);
     return [];
   }
 };
 
 /**
- * Delete meal plan by ID
- * @param {string} id - ID of meal plan to delete
- * @returns {boolean} - Success status
+ * Save a meal plan to localStorage
+ * @param {Object} plan - The meal plan to save
+ * @returns {Object} The saved meal plan
  */
-export const deleteMealPlanById = (id) => {
+export const saveMealPlan = (plan) => {
   try {
-    const savedPlans = getSavedMealPlans();
-    const filteredPlans = savedPlans.filter(plan => plan.id !== id);
-    localStorage.setItem('savedMealPlans', JSON.stringify(filteredPlans));
+    const plans = getSavedMealPlans();
+    
+    const newPlan = {
+      ...plan,
+      id: Date.now(),
+      date: new Date().toISOString(),
+      totalCost: calculateMealPlanCost(plan),
+      totalNutrition: calculateMealPlanNutrition(plan),
+      allergens: getMealPlanAllergens(plan),
+    };
+    
+    const updatedPlans = [...plans, newPlan];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlans));
+    
+    return newPlan;
+  } catch (error) {
+    console.error('Error saving meal plan:', error);
+    throw new Error('Failed to save meal plan');
+  }
+};
+
+/**
+ * Delete a meal plan by index
+ * @param {number} index - The index of the plan to delete
+ * @returns {boolean} Success status
+ */
+export const deleteMealPlanById = (index) => {
+  try {
+    const plans = getSavedMealPlans();
+    
+    if (index < 0 || index >= plans.length) {
+      throw new Error('Invalid meal plan index');
+    }
+    
+    const updatedPlans = plans.filter((_, i) => i !== index);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlans));
+    
     return true;
   } catch (error) {
     console.error('Error deleting meal plan:', error);
-    return false;
+    throw new Error('Failed to delete meal plan');
   }
 };
 
 /**
- * Load meal plan by ID
- * @param {string} id - ID of meal plan to load
- * @returns {Object|null} - Meal plan object or null if not found
+ * Update a meal plan by index
+ * @param {number} index - The index of the plan to update
+ * @param {Object} updatedPlan - The updated plan data
+ * @returns {Object} The updated plan
  */
-export const loadMealPlanById = (id) => {
+export const updateMealPlan = (index, updatedPlan) => {
   try {
-    const savedPlans = getSavedMealPlans();
-    return savedPlans.find(plan => plan.id === id) || null;
+    const plans = getSavedMealPlans();
+    
+    if (index < 0 || index >= plans.length) {
+      throw new Error('Invalid meal plan index');
+    }
+    
+    const updatedPlans = plans.map((plan, i) =>
+      i === index ? { ...plan, ...updatedPlan } : plan
+    );
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlans));
+    
+    return updatedPlan;
   } catch (error) {
-    console.error('Error loading meal plan:', error);
-    return null;
+    console.error('Error updating meal plan:', error);
+    throw new Error('Failed to update meal plan');
   }
 };
 
 /**
- * Get shopping list for a specific meal plan
- * @param {string} mealPlanId - ID of the meal plan
- * @returns {Object|null} - Shopping list object or null if not found
+ * Get a meal plan by index
+ * @param {number} index - The index of the plan to retrieve
+ * @returns {Object} The meal plan
  */
-export const getShoppingListByMealPlanId = (mealPlanId) => {
+export const getMealPlanByIndex = (index) => {
   try {
-    const savedLists = JSON.parse(localStorage.getItem('savedShoppingLists') || '[]');
-    return savedLists.find(list => 
-      list.mealPlanReference && list.mealPlanReference.id === mealPlanId
-    ) || null;
+    const plans = getSavedMealPlans();
+    
+    if (index < 0 || index >= plans.length) {
+      throw new Error('Invalid meal plan index');
+    }
+    
+    return plans[index];
   } catch (error) {
-    console.error('Error loading shopping list:', error);
-    return null;
+    console.error('Error retrieving meal plan:', error);
+    throw new Error('Failed to retrieve meal plan');
   }
 };
 
 /**
- * Export meal plan to various formats
- * @param {Object} mealPlan - Meal plan to export
- * @param {string} format - Export format ('json', 'csv', 'txt')
- * @returns {string} - Exported data as string
+ * Generate shopping list from meal plan using actual recipe ingredients
+ * @param {Object} mealPlan - The meal plan
+ * @returns {Object} Shopping list with categories
  */
-export const exportMealPlan = (mealPlan, format = 'json') => {
-  try {
-    switch (format.toLowerCase()) {
-      case 'json':
-        return JSON.stringify(mealPlan, null, 2);
-        
-      case 'csv':
-        let csv = 'Meal Type,Recipe Name,Cost,Calories,Protein,Fat,Carbs\n';
-        Object.entries(mealPlan.meals || {}).forEach(([mealType, meal]) => {
-          if (meal) {
-            const nutrition = meal.recipe_nutritions || {};
-            csv += `${mealType},${meal.name},${meal.cost_per_serving},${nutrition.calories || 0},${nutrition.protein || 0},${nutrition.fat || 0},${nutrition.carbs || 0}\n`;
-          }
-        });
-        return csv;
-        
-      case 'txt':
-        let txt = `🍽️ Meal Plan: ${mealPlan.name}\n`;
-        txt += `📅 Date: ${new Date(mealPlan.date || mealPlan.createdAt).toLocaleDateString()}\n\n`;
-        
-        Object.entries(mealPlan.meals || {}).forEach(([mealType, meal]) => {
-          if (meal) {
-            txt += `${mealType.toUpperCase()}:\n`;
-            txt += `  ${meal.name}\n`;
-            txt += `  Cost: $${meal.cost_per_serving}\n`;
-            if (meal.recipe_nutritions) {
-              txt += `  Calories: ${meal.recipe_nutritions.calories || 0}\n`;
-              txt += `  Protein: ${meal.recipe_nutritions.protein || 0}g\n\n`;
-            }
-          }
-        });
-        
-        txt += `Total Cost: $${mealPlan.totalCost}\n`;
-        txt += `Total Calories: ${mealPlan.totalNutrition.calories}\n`;
-        return txt;
-        
-      default:
-        return JSON.stringify(mealPlan, null, 2);
+export const generateShoppingList = (mealPlan) => {
+  const shoppingList = {
+    categories: [],
+  };
+
+  // Process each meal type
+  ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+    const meal = mealPlan.activePlan?.[mealType] || mealPlan[mealType];
+    if (meal && meal.ingredients) {
+      meal.ingredients.forEach((ingredient) => {
+        addIngredientToShoppingList(shoppingList, ingredient);
+      });
     }
-  } catch (error) {
-    console.error('Error exporting meal plan:', error);
-    return '';
-  }
+  });
+
+  // Calculate total cost
+  shoppingList.totalCost = shoppingList.categories.reduce((total, category) => {
+    return (
+      total +
+      category.items.reduce((categoryTotal, item) => {
+        return categoryTotal + (item.price || 0);
+      }, 0)
+    );
+  }, 0);
+
+  return shoppingList;
 };
 
 /**
- * Get user preferences for filtering
- * @returns {Object} - User dietary preferences and allergens
+ * Helper function to add ingredient to shopping list
+ * @param {Object} shoppingList - Shopping list object
+ * @param {Object} ingredient - Ingredient object
  */
-export const getUserPreferences = () => {
-  try {
-    return {
-      allergens: JSON.parse(localStorage.getItem('userAllergens') || '[]'),
-      dietaryPreferences: JSON.parse(localStorage.getItem('userDietaryPrefs') || '[]'),
-      budget: parseFloat(localStorage.getItem('userBudget') || '0'),
-      currency: localStorage.getItem('userCurrency') || 'USD'
-    };
-  } catch (error) {
-    console.error('Error loading user preferences:', error);
-    return {
-      allergens: [],
-      dietaryPreferences: [],
-      budget: 0,
-      currency: 'USD'
-    };
+const addIngredientToShoppingList = (shoppingList, ingredient) => {
+  const categoryName = ingredient.category || 'Other';
+  
+  let category = shoppingList.categories.find((cat) => cat.name === categoryName);
+  
+  if (!category) {
+    category = { name: categoryName, items: [] };
+    shoppingList.categories.push(category);
   }
-};
-
-/**
- * Save user preferences
- * @param {Object} preferences - User preferences to save
- * @returns {boolean} - Success status
- */
-export const saveUserPreferences = (preferences) => {
-  try {
-    if (preferences.allergens) {
-      localStorage.setItem('userAllergens', JSON.stringify(preferences.allergens));
-    }
-    if (preferences.dietaryPreferences) {
-      localStorage.setItem('userDietaryPrefs', JSON.stringify(preferences.dietaryPreferences));
-    }
-    if (preferences.budget !== undefined) {
-      localStorage.setItem('userBudget', preferences.budget.toString());
-    }
-    if (preferences.currency) {
-      localStorage.setItem('userCurrency', preferences.currency);
-    }
-    return true;
-  } catch (error) {
-    console.error('Error saving user preferences:', error);
-    return false;
+  
+  const existingItem = category.items.find((i) => i.name === ingredient.ingredient_name);
+  
+  if (existingItem) {
+    existingItem.quantity += ingredient.quantity;
+    existingItem.price += ingredient.price || 0;
+  } else {
+    category.items.push({
+      name: ingredient.ingredient_name,
+      quantity: ingredient.quantity,
+      unit: ingredient.unit,
+      price: ingredient.price || 0,
+    });
   }
 };
 
 export default {
-  getRecipesByMealPlanner,
-  getRecipeById,
+  fetchMealPlanRecipes,
+  fetchRecipesByMealType,
+  getRandomRecipe,
   generateRandomMealPlan,
-  calculateTotalNutrition,
-  calculateTotalCost,
-  getAllergens,
-  generateShoppingList,
-  getRetailerInfo,
-  saveMealPlan,
+  calculateMealPlanCost,
+  calculateMealPlanNutrition,
+  getMealPlanAllergens,
+  getMealPlanMarketCosts,
+  getCheapestMarket,
   getSavedMealPlans,
+  saveMealPlan,
   deleteMealPlanById,
-  loadMealPlanById,
-  getShoppingListByMealPlanId,
-  exportMealPlan,
-  getUserPreferences,
-  saveUserPreferences
+  updateMealPlan,
+  getMealPlanByIndex,
+  generateShoppingList,
 };
