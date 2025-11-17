@@ -596,6 +596,72 @@ export const getBookmarkedRecipesData = async () => {
   }
 };
 
+/**
+ * Get recipes by creator/user ID
+ * Fetches all recipes for a creator, handling pagination automatically
+ * @param {number} creatorId - User ID
+ * @returns {Promise<Array>} Array of all recipes for the creator
+ */
+export const getRecipesByCreator = async (creatorId) => {
+  try {
+    const allRecipes = [];
+    let page = 1;
+    let total = null;
+    const pageSize = 100; // Fetch 100 per page to minimize requests
+    
+    while (true) {
+    const response = await axios.get(`${API_BASE_URL}/recipes/`, {
+      params: {
+          creator_id: creatorId,
+          page: page,
+          page_size: pageSize
+      },
+      headers: getAuthHeaders()
+    });
+      
+      const data = response.data;
+      const recipes = data.results || [];
+      
+      // If no recipes returned, break
+      if (!recipes || recipes.length === 0) {
+        break;
+      }
+      
+      allRecipes.push(...recipes);
+      
+      // Get total from first response
+      if (total === null) {
+        total = data.total || 0;
+      }
+      
+      // Check if there are more pages
+      // If we got fewer recipes than pageSize, we're on the last page
+      // Or if page * pageSize >= total, we've fetched all recipes
+      const currentTotal = allRecipes.length;
+      if (recipes.length < pageSize || (total > 0 && currentTotal >= total)) {
+        break;
+      }
+      
+      page++;
+      
+      // Safety limit to prevent infinite loops
+      if (page > 100) {
+        console.warn(`Reached safety limit while fetching recipes for creator ${creatorId}`);
+        break;
+      }
+    }
+    
+    return allRecipes;
+  } catch (error) {
+    // If 404 error, it means no more pages (this is expected)
+    if (error.response?.status === 404) {
+      return allRecipes; // Return what we have so far
+    }
+    console.error(`Error fetching recipes for creator ${creatorId}:`, error);
+    return [];
+  }
+};
+
 export default {
   getWikidataImage,
   getRecipeById,
@@ -611,5 +677,6 @@ export default {
   addToBookmarks,
   removeFromBookmarks,
   isBookmarked,
-  getBookmarkedRecipesData
+  getBookmarkedRecipesData,
+  getRecipesByCreator
 };

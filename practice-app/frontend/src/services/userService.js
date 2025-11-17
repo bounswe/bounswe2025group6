@@ -59,9 +59,12 @@ const userService = {
   },
 
   // Get current user profile
-  getCurrentUser: async () => {
+  getCurrentUser: async (userId) => {
     try {
-      const response = await api.get("/api/users/me/");
+      if (!userId) {
+        throw new Error("User ID is required");
+      }
+      const response = await api.get(`/api/users/${userId}/`);
       return response.data;
     } catch (error) {
       console.error("Error fetching current user profile:", error);
@@ -70,9 +73,12 @@ const userService = {
   },
 
   // Update user profile
-  updateProfile: async (userData) => {
+  updateProfile: async (userId, userData) => {
     try {
-      const response = await api.patch("/api/users/me/", userData);
+      if (!userId) {
+        throw new Error("User ID is required");
+      }
+      const response = await api.patch(`/api/users/${userId}/`, userData);
       return response.data;
     } catch (error) {
       console.error("Error updating user profile:", error);
