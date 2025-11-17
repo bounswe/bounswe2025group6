@@ -1,0 +1,396 @@
+.meal-plan-recipe-card {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+    border: 2px solid transparent;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .meal-plan-recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    border-color: rgba(56, 161, 105, 0.3);
+  }
+  
+  .meal-plan-recipe-card.selected {
+    border-color: #38a169;
+    box-shadow: 0 8px 30px rgba(56, 161, 105, 0.25);
+    background: linear-gradient(135deg, #f0fff4, #e6fffa);
+  }
+  
+  .meal-plan-recipe-card.selected:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(56, 161, 105, 0.3);
+  }
+  
+  /* Recipe Image */
+  .meal-plan-recipe-card-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f7fafc;
+  }
+  
+  .meal-plan-image-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  
+  .meal-plan-loader-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(56, 161, 105, 0.3);
+    border-top-color: #38a169;
+    border-radius: 50%;
+    animation: meal-plan-spin 1s linear infinite;
+  }
+  
+  @keyframes meal-plan-spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Selection Indicator */
+  .selection-indicator {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #38a169;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(56, 161, 105, 0.3);
+    animation: meal-plan-pop 0.3s ease-out;
+  }
+  
+  @keyframes meal-plan-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .selection-checkmark {
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  /* Meal Type Badge */
+  .meal-type-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.9), rgba(52, 73, 94, 0.9));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Recipe Content */
+  .meal-plan-recipe-card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .meal-plan-recipe-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Recipe Info */
+  .meal-plan-recipe-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .meal-plan-recipe-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .cost-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #f0fff4, #e6fffa);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #c6f6d5;
+  }
+  
+  .cost-amount {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #38a169;
+  }
+  
+  .market-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .meal-plan-recipe-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #4a5568;
+  }
+  
+  .time-info {
+    font-weight: 600;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .prep-cook-info {
+    color: #68d391;
+    font-size: 0.8rem;
+  }
+  
+  .meal-plan-nutrition-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  
+  .nutrition-item {
+    font-size: 0.85rem;
+    color: #2d3748;
+    background: #f7fafc;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .creator-info {
+    font-size: 0.8rem;
+    color: #68d391;
+    font-style: italic;
+    margin-top: auto;
+  }
+  
+  /* Action Buttons */
+  .meal-plan-recipe-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  
+  .meal-plan-recipe-actions .select-recipe-btn,
+  .meal-plan-recipe-actions .view-recipe-btn {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  
+  /* Primary button (Select for Plan) */
+  .meal-plan-recipe-actions .select-recipe-btn {
+    background: linear-gradient(135deg, #38a169, #48bb78);
+    color: white;
+    box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
+  }
+  
+  .meal-plan-recipe-actions .select-recipe-btn:hover {
+    background: linear-gradient(135deg, #2d5016, #38a169);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+  }
+  
+  /* Secondary button (Selected state) */
+  .meal-plan-recipe-card.selected .select-recipe-btn {
+    background: linear-gradient(135deg, #68d391, #38a169);
+    color: white;
+  }
+  
+  .meal-plan-recipe-card.selected .select-recipe-btn:hover {
+    background: linear-gradient(135deg, #48bb78, #2d5016);
+  }
+  
+  /* Outline button (View Details) */
+  .meal-plan-recipe-actions .view-recipe-btn {
+    background: transparent;
+    color: #38a169;
+    border-color: #38a169;
+  }
+  
+  .meal-plan-recipe-actions .view-recipe-btn:hover {
+    background: #38a169;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.2);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .meal-plan-recipe-card-image {
+      height: 180px;
+    }
+    
+    .meal-plan-recipe-card-content {
+      padding: 16px;
+    }
+    
+    .meal-plan-recipe-title {
+      font-size: 1.1rem;
+    }
+    
+    .meal-plan-recipe-actions {
+      flex-direction: column;
+    }
+    
+    .meal-plan-recipe-actions .select-recipe-btn,
+    .meal-plan-recipe-actions .view-recipe-btn {
+      flex: none;
+    }
+    
+    .meal-plan-nutrition-info {
+      flex-direction: column;
+      gap: 6px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .meal-plan-recipe-card-image {
+      height: 160px;
+    }
+    
+    .meal-plan-recipe-card-content {
+      padding: 14px;
+    }
+    
+    .meal-plan-recipe-title {
+      font-size: 1rem;
+    }
+    
+    .cost-info {
+      flex-direction: column;
+      gap: 4px;
+      text-align: center;
+    }
+    
+    .meal-plan-recipe-meta {
+      text-align: center;
+    }
+  }
+  
+  /* Dark theme support */
+  @media (prefers-color-scheme: dark) {
+    .meal-plan-recipe-card {
+      background: linear-gradient(135deg, #2d3748, #4a5568);
+      border-color: #4a5568;
+    }
+    
+    .meal-plan-recipe-card.selected {
+      background: linear-gradient(135deg, #1a202c, #2d3748);
+    }
+    
+    .meal-plan-recipe-title {
+      color: #f7fafc;
+    }
+    
+    .meal-plan-recipe-meta {
+      color: #a0aec0;
+    }
+    
+    .time-info {
+      color: #e2e8f0;
+    }
+    
+    .nutrition-item {
+      background: #4a5568;
+      border-color: #718096;
+      color: #e2e8f0;
+    }
+    
+    .cost-info {
+      background: linear-gradient(135deg, #1a202c, #2d3748);
+      border-color: #4a5568;
+    }
+  }
+  
+  /* Animation for recipe loading */
+  .meal-plan-recipe-card {
+    animation: meal-plan-fade-in 0.5s ease-out;
+  }
+  
+  @keyframes meal-plan-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Focus states for accessibility */
+  .meal-plan-recipe-card:focus-within {
+    outline: 3px solid rgba(56, 161, 105, 0.5);
+    outline-offset: 2px;
+  }
+  
+  .meal-plan-recipe-actions button:focus {
+    outline: 2px solid rgba(56, 161, 105, 0.8);
+    outline-offset: 2px;
+  }
