@@ -1,160 +1,698 @@
-// src/pages/meal-planner/SavedMealPlansPage.jsx
-
+// SavedMealPlansPage.jsx - Manage saved meal plans
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getSavedMealPlans, deleteMealPlanById } from '../../services/mealPlanService';
-import { useToast } from '../../components/ui/Toast';
+import { useNavigate } from 'react-router-dom';
+import { 
+  getSavedMealPlans, 
+  deleteMealPlanById, 
+  loadMealPlanById,
+  exportMealPlan 
+} from '../../services/mealPlanService';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
+import { useToast } from '../../components/ui/Toast';
 import '../../styles/SavedMealPlansPage.css';
 
 const SavedMealPlansPage = () => {
   const navigate = useNavigate();
-  const toast = useToast();
-
-  const [savedPlans, setSavedPlans] = useState([]);
+  const { showToast } = useToast();
+  
+  const [mealPlans, setMealPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState('date');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortBy, setSortBy] = useState('date');
+  const [filterText, setFilterText] = useState('');
+  const [selectedPlans, setSelectedPlans] = useState(new Set());
 
+  // Load meal plans on component mount
   useEffect(() => {
-    const loadPlans = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getSavedMealPlans();
-        setSavedPlans(data);
-      } catch (err) {
-        toast.error('Failed to load saved meal plans');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadPlans();
-  }, [toast]);
+    loadMealPlans();
+  }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this meal plan?')) return;
+  const loadMealPlans = () => {
+    setIsLoading(true);
     try {
-      await deleteMealPlanById(id);
-      setSavedPlans(prev => prev.filter((_, idx) => idx !== id));
-      toast.success('Meal plan deleted');
-    } catch {
-      toast.error('Failed to delete meal plan');
+      const plans = getSavedMealPlans();
+      console.log('Loaded meal plans:', plans);
+      setMealPlans(plans);
+    } catch (error) {
+      console.error('Error loading meal plans:', error);
+      if (showToast) {
+        showToast('Error loading meal plans', 'error');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString();
+  // Filter and sort meal plans
+  const filteredAndSortedPlans = React.useMemo(() => {
+    let filtered = mealPlans.filter(plan =>
+      plan.name.toLowerCase().includes(filterText.toLowerCase())
+    );
 
-  const sortPlans = (plans) => {
-    const sorted = [...plans].sort((a, b) => {
-      let comp = 0;
-      switch (sortOption) {
-        case 'date':
-          comp = new Date(a.date) - new Date(b.date); break;
-        case 'budget':
-          comp = a.totalCost - b.totalCost; break;
+    filtered.sort((a, b) => {
+      switch (sortBy) {
         case 'name':
-          comp = (a.meals?.breakfast?.title || '').localeCompare(b.meals?.breakfast?.title || ''); break;
+          return a.name.localeCompare(b.name);
+        case 'cost':
+          return (a.totalCost || 0) - (b.totalCost || 0);
+        case 'calories':
+          return (a.totalNutrition?.calories || 0) - (b.totalNutrition?.calories || 0);
+        case 'date':
         default:
-          break;
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       }
-      return sortDirection === 'asc' ? comp : -comp;
     });
-    return sorted;
+
+    return filtered;
+  }, [mealPlans, filterText, sortBy]);
+
+  // Calculate statistics
+  const stats = React.useMemo(() => {
+    if (mealPlans.length === 0) return { totalPlans: 0, avgCost: 0, avgCalories: 0, totalCost: 0 };
+    
+    const totalCost = mealPlans.reduce((sum, plan) => sum + (plan.totalCost || 0), 0);
+    const totalCalories = mealPlans.reduce((sum, plan) => sum + (plan.totalNutrition?.calories || 0), 0);
+    
+    return {
+      totalPlans: mealPlans.length,
+      avgCost: totalCost / mealPlans.length,
+      avgCalories: Math.round(totalCalories / mealPlans.length),
+      totalCost: totalCost
+    };
+  }, [mealPlans]);
+
+  // Handle plan selection
+  const handlePlanSelect = (planId, isSelected) => {
+    setSelectedPlans(prev => {
+      const newSelected = new Set(prev);
+      if (isSelected) {
+        newSelected.add(planId);
+      } else {
+        newSelected.delete(planId);
+      }
+      return newSelected;
+    });
   };
 
-  const filteredPlans = sortPlans(
-    savedPlans.filter(p => {
-      const titles = Object.values(p.meals || {}).map(m => m?.title?.toLowerCase() || '');
-      return searchTerm === '' || titles.some(t => t.includes(searchTerm.toLowerCase()));
-    })
-  );
+  // Handle select all
+  const handleSelectAll = (isSelected) => {
+    if (isSelected) {
+      setSelectedPlans(new Set(filteredAndSortedPlans.map(plan => plan.id)));
+    } else {
+      setSelectedPlans(new Set());
+    }
+  };
 
-  const toggleSort = () => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-  useEffect(() => {
-      document.title = "Saved Meal Plans";
-    }, []);
-  return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Saved Meal Plans</h1>
-          <p className="text-gray-600">Manage your saved meal plans</p>
+  // Handle viewing plan details
+  const handleViewPlan = (plan) => {
+    setSelectedPlan(plan);
+    setShowDetailModal(true);
+  };
+
+  // Handle plan deletion
+  const handleDeletePlan = (plan) => {
+    setPlanToDelete(plan);
+    setShowDeleteConfirm(true);
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (selectedPlans.size === 0) return;
+    
+    const planNames = Array.from(selectedPlans)
+      .map(id => mealPlans.find(p => p.id === id)?.name)
+      .filter(Boolean);
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedPlans.size} meal plan(s)?\n\n${planNames.join('\n')}`)) {
+      let successCount = 0;
+      
+      selectedPlans.forEach(planId => {
+        if (deleteMealPlanById(planId)) {
+          successCount++;
+        }
+      });
+      
+      setMealPlans(prev => prev.filter(plan => !selectedPlans.has(plan.id)));
+      setSelectedPlans(new Set());
+      
+      if (showToast) {
+        showToast(`Successfully deleted ${successCount} meal plan(s)`, 'success');
+      }
+    }
+  };
+
+  const confirmDelete = () => {
+    if (planToDelete) {
+      const success = deleteMealPlanById(planToDelete.id);
+      if (success) {
+        setMealPlans(prev => prev.filter(plan => plan.id !== planToDelete.id));
+        
+        // Clean up associated shopping list
+        try {
+          const savedLists = JSON.parse(localStorage.getItem('savedShoppingLists') || '[]');
+          const filteredLists = savedLists.filter(list => 
+            !(list.mealPlanReference && list.mealPlanReference.id === planToDelete.id)
+          );
+          localStorage.setItem('savedShoppingLists', JSON.stringify(filteredLists));
+        } catch (error) {
+          console.error('Error cleaning up shopping list:', error);
+        }
+        
+        if (showToast) {
+          showToast('Meal plan deleted successfully', 'success');
+        }
+      } else {
+        if (showToast) {
+          showToast('Error deleting meal plan', 'error');
+        }
+      }
+    }
+    setShowDeleteConfirm(false);
+    setPlanToDelete(null);
+  };
+
+  // Handle loading plan to meal planner
+  const handleLoadToPlan = (plan) => {
+    try {
+      localStorage.setItem('loadedMealPlan', JSON.stringify(plan));
+      navigate('/meal-planner');
+      if (showToast) {
+        showToast('Meal plan loaded to planner', 'success');
+      }
+    } catch (error) {
+      console.error('Error loading plan to meal planner:', error);
+      if (showToast) {
+        showToast('Error loading plan', 'error');
+      }
+    }
+  };
+
+  // Handle exporting plan
+  const handleExportPlan = (plan) => {
+    try {
+      const exportData = exportMealPlan(plan, 'json');
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(exportData);
+      
+      const exportFileDefaultName = `meal-plan-${plan.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      
+      if (showToast) {
+        showToast('Meal plan exported', 'success');
+      }
+    } catch (error) {
+      console.error('Error exporting meal plan:', error);
+      if (showToast) {
+        showToast('Error exporting meal plan', 'error');
+      }
+    }
+  };
+
+  // Handle viewing shopping list
+  const handleViewShoppingList = (plan) => {
+    navigate('/shopping-list', { 
+      state: { 
+        fromMealPlan: plan.id,
+        mealPlanName: plan.name 
+      } 
+    });
+  };
+
+  // Handle duplicating a plan
+  const handleDuplicatePlan = (plan) => {
+    try {
+      const duplicatedPlan = {
+        ...plan,
+        id: Date.now().toString(),
+        name: `${plan.name} (Copy)`,
+        createdAt: new Date().toISOString()
+      };
+      
+      const savedPlans = getSavedMealPlans();
+      savedPlans.push(duplicatedPlan);
+      localStorage.setItem('savedMealPlans', JSON.stringify(savedPlans));
+      
+      setMealPlans(prev => [...prev, duplicatedPlan]);
+      
+      if (showToast) {
+        showToast('Meal plan duplicated', 'success');
+      }
+    } catch (error) {
+      console.error('Error duplicating meal plan:', error);
+      if (showToast) {
+        showToast('Error duplicating meal plan', 'error');
+      }
+    }
+  };
+
+  const MealPlanCard = ({ plan, isSelected, onSelect, onView, onDelete, onLoad, onExport, onViewShopping, onDuplicate }) => (
+    <div className={`plan-card ${isSelected ? 'selected' : ''}`}>
+      <div className="plan-card-header">
+        <div className="plan-header-left">
+          <input
+            type="checkbox"
+            className="plan-select-checkbox"
+            checked={isSelected}
+            onChange={(e) => onSelect(plan.id, e.target.checked)}
+          />
+          <div>
+            <h3 className="plan-title">{plan.name}</h3>
+            <p className="plan-date">{new Date(plan.createdAt).toLocaleDateString()}</p>
+          </div>
         </div>
-        <Button onClick={() => navigate('/meal-planner')}>+ Create New Plan</Button>
+        <div className="plan-status">
+          {plan.totalNutrition && (
+            <span className="status-badge complete">Complete</span>
+          )}
+        </div>
       </div>
 
-      <Card className="mb-6">
-        <Card.Body>
-          <div className="flex flex-col md:flex-row gap-4">
+      <div className="plan-card-body">
+        {/* Meal Summary */}
+        <div className="meal-summary">
+          {Object.entries(plan.meals || {}).map(([mealType, meal]) => (
+            <div key={mealType} className="meal-row">
+              <span className="meal-type">
+                {mealType === 'breakfast' ? '🌅' : mealType === 'lunch' ? '☀️' : '🌙'}
+                {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+              </span>
+              <span className={`meal-name ${!meal ? 'empty' : ''}`}>
+                {meal ? meal.name : 'Not selected'}
+              </span>
+              {meal && (
+                <span className="meal-cost">${parseFloat(meal.cost_per_serving || 0).toFixed(2)}</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Plan Totals */}
+        <div className="plan-totals">
+          <div className="total-cost">
+            <span className="total-cost-label">Total Cost</span>
+            <span className="total-cost-value">${(plan.totalCost || 0).toFixed(2)}</span>
+          </div>
+          
+          {plan.totalNutrition && (
+            <div className="nutrition-summary">
+              <div className="nutrition-item">
+                <span className="nutrition-value">{plan.totalNutrition.calories || 0}</span>
+                <span>cal</span>
+              </div>
+              <div className="nutrition-item">
+                <span className="nutrition-value">{plan.totalNutrition.protein || 0}g</span>
+                <span>protein</span>
+              </div>
+              <div className="nutrition-item">
+                <span className="nutrition-value">{plan.totalNutrition.carbs || 0}g</span>
+                <span>carbs</span>
+              </div>
+              <div className="nutrition-item">
+                <span className="nutrition-value">{plan.totalNutrition.fat || 0}g</span>
+                <span>fat</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Plan Actions */}
+        <div className="plan-actions">
+          <Button 
+            onClick={() => onView(plan)}
+            variant="primary"
+            size="small"
+          >
+            View Details
+          </Button>
+          
+          <Button 
+            onClick={() => onLoad(plan)}
+            variant="outline"
+            size="small"
+          >
+            Load to Planner
+          </Button>
+          
+          <div className="action-dropdown">
+            <Button 
+              variant="outline"
+              size="small"
+              className="dropdown-trigger"
+              onClick={(e) => {
+                e.currentTarget.parentNode.classList.toggle('active');
+              }}
+            >
+              ⋯
+            </Button>
+            <div className="dropdown-menu">
+              <button onClick={() => onViewShopping(plan)}>🛒 Shopping List</button>
+              <button onClick={() => onDuplicate(plan)}>📋 Duplicate</button>
+              <button onClick={() => onExport(plan)}>📁 Export</button>
+              <button 
+                onClick={() => onDelete(plan)}
+                className="delete-action"
+              >
+                🗑 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="saved-plans-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading meal plans...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="saved-plans-container">
+      {/* Header */}
+      <div className="saved-plans-header">
+        <div>
+          <h1 className="saved-plans-title">📋 Saved Meal Plans</h1>
+          <p className="saved-plans-subtitle">Manage and reuse your meal plans</p>
+        </div>
+        
+        <div className="header-actions">
+          <Button
+            onClick={loadMealPlans}
+            variant="outline"
+          >
+            🔄 Refresh
+          </Button>
+          <Button
+            onClick={() => navigate('/meal-planner')}
+            variant="primary"
+          >
+            ➕ Create New Plan
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Summary */}
+      {mealPlans.length > 0 && (
+        <div className="stats-summary">
+          <div className="stats-grid">
+            <div className="stat-item">
+              <span className="stat-value">{stats.totalPlans}</span>
+              <span className="stat-label">Total Plans</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">${stats.avgCost.toFixed(2)}</span>
+              <span className="stat-label">Avg Cost</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">{stats.avgCalories}</span>
+              <span className="stat-label">Avg Calories</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">${stats.totalCost.toFixed(2)}</span>
+              <span className="stat-label">Total Saved</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Controls */}
+      <div className="filter-controls">
+        <div className="search-section">
+          <div className="search-input-container">
+            <span className="search-icon">🔍</span>
             <input
               type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search meal plans..."
-              className="w-full px-3 py-2 border rounded-md"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="search-input"
             />
-            <select
-              value={sortOption}
-              onChange={e => setSortOption(e.target.value)}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="budget">Sort by Cost</option>
-              <option value="name">Sort by Name</option>
-            </select>
-            <Button variant="secondary" onClick={toggleSort}>{sortDirection === 'asc' ? '⬆️' : '⬇️'}</Button>
           </div>
-        </Card.Body>
-      </Card>
+          
+          <div className="filter-section">
+            <div className="filter-group">
+              <label htmlFor="sort-select">Sort by:</label>
+              <select 
+                id="sort-select"
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                className="filter-select"
+              >
+                <option value="date">Date (Newest First)</option>
+                <option value="name">Name</option>
+                <option value="cost">Cost (Low to High)</option>
+                <option value="calories">Calories (Low to High)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {isLoading ? (
-        <p className="text-center text-gray-500 py-12">Loading...</p>
-      ) : filteredPlans.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlans.map((plan, index) => (
-            <Card
-            key={index}
-            className="plan-card hover:shadow-md transition-shadow bg-white rounded-xl"
-          >
-              <Card.Body>
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <h2 className="font-semibold text-lg">{plan.name || `Meal Plan (${formatDate(plan.date)})`}</h2>
-                    <p className="text-sm text-gray-500">{formatDate(plan.date)}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="xs" onClick={() => handleDelete(index)}>🗑️</Button>
-                    <Button variant="ghost" size="xs" onClick={() => navigate(`/meal-planner?load=${index}`)}>✏️</Button>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  {Object.entries(plan.meals || {}).map(([type, meal]) => meal && (
-                    <div key={type} className="flex justify-between text-sm">
-                      <span className="capitalize">{type}</span>
-                      <span>{meal.title}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t pt-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Total Cost:</span>
-                    <span>₺{plan.totalCost}</span>
-                  </div>
-                  <div className="mt-1 text-gray-600">
-                    {plan.totalNutrition?.calories || 0} cal • {plan.totalNutrition?.protein || 0}g protein
-                  </div>
-                </div>
-                <Button variant="secondary" size="sm" className="w-full mt-4" onClick={() => navigate(`/shopping-list?plan=${index}`)}>
-                  View Shopping List
-                </Button>
-              </Card.Body>
-            </Card>
+      {/* Bulk Actions */}
+      {filteredAndSortedPlans.length > 0 && (
+        <div className="bulk-actions">
+          <div className="bulk-actions-left">
+            <input
+              type="checkbox"
+              className="select-all-checkbox"
+              checked={selectedPlans.size === filteredAndSortedPlans.length && filteredAndSortedPlans.length > 0}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />
+            <span className="selection-info">
+              {selectedPlans.size > 0 
+                ? `${selectedPlans.size} plan(s) selected`
+                : `${filteredAndSortedPlans.length} plan(s) total`
+              }
+            </span>
+          </div>
+          
+          {selectedPlans.size > 0 && (
+            <div className="bulk-action-buttons">
+              <Button
+                onClick={handleBulkDelete}
+                variant="outline"
+                size="small"
+              >
+                🗑 Delete Selected ({selectedPlans.size})
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Meal Plans Grid */}
+      {filteredAndSortedPlans.length > 0 ? (
+        <div className="plans-grid">
+          {filteredAndSortedPlans.map(plan => (
+            <MealPlanCard
+              key={plan.id}
+              plan={plan}
+              isSelected={selectedPlans.has(plan.id)}
+              onSelect={handlePlanSelect}
+              onView={handleViewPlan}
+              onDelete={handleDeletePlan}
+              onLoad={handleLoadToPlan}
+              onExport={handleExportPlan}
+              onViewShopping={handleViewShoppingList}
+              onDuplicate={handleDuplicatePlan}
+            />
           ))}
         </div>
       ) : (
-        <Card><Card.Body className="text-center py-12 text-gray-500">No meal plans found.</Card.Body></Card>
+        <div className="empty-state">
+          <div className="empty-state-icon">📋</div>
+          <h2>
+            {filterText ? 'No meal plans match your search' : 'No Saved Meal Plans'}
+          </h2>
+          <p>
+            {filterText 
+              ? 'Try adjusting your search terms or clearing your search to see all plans.' 
+              : 'Create your first meal plan to get started with organized meal planning.'
+            }
+          </p>
+          
+          {!filterText && (
+            <Button
+              onClick={() => navigate('/meal-planner')}
+              variant="primary"
+            >
+              Create Your First Meal Plan
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Plan Detail Modal */}
+      {showDetailModal && selectedPlan && (
+        <Modal 
+          isOpen={showDetailModal} 
+          onClose={() => setShowDetailModal(false)}
+          title={selectedPlan.name}
+          size="large"
+        >
+          <div className="plan-detail">
+            <div className="detail-header">
+              <p><strong>Created:</strong> {new Date(selectedPlan.createdAt).toLocaleDateString()}</p>
+              {selectedPlan.date && (
+                <p><strong>Planned for:</strong> {new Date(selectedPlan.date).toLocaleDateString()}</p>
+              )}
+            </div>
+
+            {/* Meals */}
+            <div className="detail-meals">
+              <h4>Meals:</h4>
+              {selectedPlan.meals && Object.entries(selectedPlan.meals).map(([mealType, meal]) => (
+                meal && (
+                  <div key={mealType} className="detail-meal">
+                    <div className="meal-header">
+                      <h5>
+                        {mealType === 'breakfast' ? '🌅' : mealType === 'lunch' ? '☀️' : '🌙'}
+                        {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                      </h5>
+                      <span className="meal-cost">
+                        ${parseFloat(meal.cost_per_serving || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    
+                    <div className="meal-info">
+                      <p><strong>{meal.name}</strong></p>
+                      
+                      {meal.recipe_nutritions && (
+                        <div className="meal-nutrition">
+                          <span>🔥 {meal.recipe_nutritions.calories || 0}cal</span>
+                          <span>🥩 {meal.recipe_nutritions.protein || 0}g protein</span>
+                          <span>🥖 {meal.recipe_nutritions.carbs || 0}g carbs</span>
+                          <span>🥑 {meal.recipe_nutritions.fat || 0}g fat</span>
+                        </div>
+                      )}
+                      
+                      <div className="meal-meta">
+                        <span>⏱ {meal.total_time || (meal.prep_time + meal.cook_time) || 0}min</span>
+                        {meal.difficulty_rating && (
+                          <span>⭐ {meal.difficulty_rating}/5 difficulty</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={() => {
+                        setShowDetailModal(false);
+                        navigate(`/recipes/${meal.id}`);
+                      }}
+                      variant="outline"
+                      size="small"
+                    >
+                      View Recipe
+                    </Button>
+                  </div>
+                )
+              ))}
+            </div>
+
+            {/* Totals */}
+            {selectedPlan.totalNutrition && (
+              <div className="detail-totals">
+                <h4>Total Nutrition:</h4>
+                <div className="nutrition-grid">
+                  <div className="nutrition-item">
+                    <span>Calories</span>
+                    <strong>{selectedPlan.totalNutrition.calories}</strong>
+                  </div>
+                  <div className="nutrition-item">
+                    <span>Protein</span>
+                    <strong>{selectedPlan.totalNutrition.protein}g</strong>
+                  </div>
+                  <div className="nutrition-item">
+                    <span>Carbs</span>
+                    <strong>{selectedPlan.totalNutrition.carbs}g</strong>
+                  </div>
+                  <div className="nutrition-item">
+                    <span>Fat</span>
+                    <strong>{selectedPlan.totalNutrition.fat}g</strong>
+                  </div>
+                </div>
+                
+                <div className="total-cost-display">
+                  <span>Total Cost: </span>
+                  <strong>${(selectedPlan.totalCost || 0).toFixed(2)}</strong>
+                </div>
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <Button
+                onClick={() => handleLoadToPlan(selectedPlan)}
+                variant="primary"
+              >
+                Load to Meal Planner
+              </Button>
+              <Button
+                onClick={() => handleViewShoppingList(selectedPlan)}
+                variant="outline"
+              >
+                View Shopping List
+              </Button>
+              <Button
+                onClick={() => handleDuplicatePlan(selectedPlan)}
+                variant="outline"
+              >
+                Duplicate Plan
+              </Button>
+              <Button
+                onClick={() => setShowDetailModal(false)}
+                variant="outline"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && planToDelete && (
+        <Modal 
+          isOpen={showDeleteConfirm} 
+          onClose={() => setShowDeleteConfirm(false)}
+          title="Confirm Delete"
+        >
+          <div className="delete-confirm">
+            <p>Are you sure you want to delete "{planToDelete.name}"?</p>
+            <p className="delete-warning">
+              This action cannot be undone and will also delete the associated shopping list.
+            </p>
+            
+            <div className="modal-actions">
+              <Button
+                onClick={() => setShowDeleteConfirm(false)}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                variant="primary"
+                className="delete-button"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
