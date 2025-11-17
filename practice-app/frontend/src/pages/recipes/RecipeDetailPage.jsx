@@ -3,8 +3,11 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { getRecipeById, getWikidataImage, deleteRecipe } from '../../services/recipeService';
 import userService, { getUsername } from '../../services/userService';
+import { toggleBookmark, getBookmarkedRecipes } from '../../services/bookmarkService';
+import { translateIngredient } from '../../utils/ingredientTranslations';
 // Removed wikidata import as it's not needed
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { useAuth } from '../../contexts/AuthContext';
 import RatingStars from '../../components/recipe/RatingStars';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
@@ -17,15 +20,22 @@ import { useTranslation } from "react-i18next";
 const RecipeDetailPage = () => {
   const { id } = useParams();  const [recipe, setRecipe] = useState(null);
   const [creatorName, setCreatorName] = useState('');
+  const [creatorId, setCreatorId] = useState(null);
   const [error, setError] = useState(null);
   const [isPageReady, setIsPageReady] = useState(false);
   const [recipeId, setRecipeId] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [recipeImage, setRecipeImage] = useState(null);
   const [totalNutrition, setTotalNutrition] = useState(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const navigate = useNavigate();
   const { currency } = useCurrency();
-  const { t } = useTranslation();
+  const { currentUser: authUser } = useAuth();
+  const { t, i18n } = useTranslation();
+  
+  // Get current language for ingredient translation
+  const currentLanguage = i18n.language.startsWith('tr') ? 'tr' : 'en';
 
   // Calculate total nutrition for the recipe
   const calculateTotalNutrition = (recipeData) => {
@@ -115,7 +125,72 @@ const RecipeDetailPage = () => {
     } catch (error) {
       console.error('Error refreshing recipe after rating change:', error);
     }
-  };  useEffect(() => {
+  };
+
+  // Handle bookmark toggle
+  const handleBookmarkToggle = async () => {
+    if (!authUser || !authUser.id) {
+      alert('Please login to bookmark recipes');
+      return;
+    }
+
+    try {
+      setIsBookmarking(true);
+      await toggleBookmark(Number(id), isBookmarked);
+      
+      // Refresh bookmark status from backend
+      const bookmarkIds = await getBookmarkedRecipes(authUser.id);
+      if (!bookmarkIds || bookmarkIds.length === 0) {
+        setIsBookmarked(false);
+      } else {
+        const recipeId = Number(id);
+        const bookmarked = bookmarkIds.some(
+          bookmarkId => {
+            const id = typeof bookmarkId === 'object' ? bookmarkId.id || bookmarkId : bookmarkId;
+            return Number(id) === recipeId;
+          }
+        );
+        setIsBookmarked(bookmarked);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      alert('Failed to bookmark recipe. Please try again.');
+    } finally {
+      setIsBookmarking(false);
+    }
+  };
+
+  // Check if recipe is bookmarked
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      if (!authUser || !authUser.id || !id) return;
+      
+      try {
+        const bookmarkIds = await getBookmarkedRecipes(authUser.id);
+        if (!bookmarkIds || bookmarkIds.length === 0) {
+          setIsBookmarked(false);
+          return;
+        }
+        
+        // Check if current recipe ID is in the bookmarked IDs
+        const recipeId = Number(id);
+        const bookmarked = bookmarkIds.some(
+          bookmarkId => {
+            const id = typeof bookmarkId === 'object' ? bookmarkId.id || bookmarkId : bookmarkId;
+            return Number(id) === recipeId;
+          }
+        );
+        setIsBookmarked(bookmarked);
+      } catch (error) {
+        console.error('Error checking bookmark status:', error);
+        setIsBookmarked(false);
+      }
+    };
+
+    checkBookmarkStatus();
+  }, [authUser, id]);
+
+  useEffect(() => {
     const loadRecipeAndImage = async () => {
       try {
         const recipeData = await getRecipeById(Number(id));
@@ -126,8 +201,9 @@ const RecipeDetailPage = () => {
           const nutrition = calculateTotalNutrition(recipeData);
           setTotalNutrition(nutrition);
           
-          // Fetch creator name
+          // Fetch creator name and ID
           if (recipeData.creator_id) {
+            setCreatorId(recipeData.creator_id);
             const name = await getUsername(recipeData.creator_id);
             setCreatorName(name);
           }
@@ -266,22 +342,80 @@ const RecipeDetailPage = () => {
           </div>
         )}
 
-        {/* Report button positioned above creator info */}
-        {currentUser && currentUser.id !== recipe.creator_id && (
+        {/* Bookmark and Report buttons positioned above creator info */}
+        {authUser && (
           <div style={{ 
             position: 'absolute', 
             bottom: '60px', 
             right: '20px',
-            zIndex: 10
+            zIndex: 10,
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center'
           }}>
-            <ReportButton targetType="recipe" targetId={id} />
+            {/* Bookmark button */}
+            <button
+              onClick={handleBookmarkToggle}
+              disabled={isBookmarking}
+              style={{
+                background: isBookmarked ? '#48bb78' : 'white',
+                border: '2px solid #48bb78',
+                borderRadius: '8px',
+                padding: '8px',
+                width: '40px',
+                height: '40px',
+                cursor: isBookmarking ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+                opacity: isBookmarking ? 0.6 : 1
+              }}
+              title={isBookmarked ? 'Remove bookmark' : 'Bookmark recipe'}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill={isBookmarked ? 'white' : 'none'}
+                stroke={isBookmarked ? 'white' : '#48bb78'}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ transition: 'all 0.2s ease' }}
+              >
+                <path d="M6 2v20l6-4 6 4V2H6z" />
+              </svg>
+            </button>
+
+            {/* Report button - only show if not owner */}
+            {currentUser && currentUser.id !== recipe.creator_id && (
+              <ReportButton targetType="recipe" targetId={id} />
+            )}
           </div>
         )}
 
         {/* Creator information positioned at bottom right */}
         <div className="creator-info-bottom-right">
           <p className="creator-name">
-            {t("recipeDetailPageCreatedBy")}: {creatorName || t("recipeDetailPageLoading")}
+            {t("recipeDetailPageCreatedBy")}:{' '}
+            {creatorId ? (
+              <span
+                onClick={() => navigate(`/profile/${creatorId}`)}
+                style={{
+                  cursor: 'pointer',
+                  color: '#48bb78',
+                  textDecoration: 'underline',
+                  fontWeight: '600'
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#38a169'}
+                onMouseLeave={(e) => e.target.style.color = '#48bb78'}
+              >
+                {creatorName || t("recipeDetailPageLoading")}
+              </span>
+            ) : (
+              <span>{creatorName || t("recipeDetailPageLoading")}</span>
+            )}
           </p>
         </div>
         
@@ -454,12 +588,14 @@ const RecipeDetailPage = () => {
                 key={index} 
                 className="ingredient-item"
                 onClick={() => navigate(`/ingredients/${item.ingredient.id}?recipeId=${id}`)}
-                title={`View details for ${item.ingredient.name}`}
+                title={`View details for ${translateIngredient(item.ingredient.name, currentLanguage)}`}
               >
                 <span className="ingredient-full-text">
                   <span className="ingredient-quantity">{formatQuantity(item.quantity)} {item.unit}</span>
                   <span className="ingredient-separator"> - </span>
-                  <span className="ingredient-name">{item.ingredient.name}</span>
+                  <span className="ingredient-name">
+                    {translateIngredient(item.ingredient.name, currentLanguage)}
+                  </span>
                 </span>
               </li>
             ))}
