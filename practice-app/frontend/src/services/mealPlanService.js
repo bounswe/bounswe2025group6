@@ -1,7 +1,266 @@
 // src/services/mealPlanService.js
 
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 // Local storage key for saved meal plans
 const STORAGE_KEY = 'mealPlanner_savedMealPlans';
+
+/**
+ * Fetch recipes from backend meal planner endpoint with filters
+ * @param {Object} filters - Filter parameters
+ * @returns {Promise<Object>} Paginated recipe list
+ */
+export const fetchMealPlanRecipes = async (filters = {}) => {
+  try {
+    const token = localStorage.getItem('fithub_access_token');
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
+
+    // Build query parameters
+    const params = {};
+    
+    // Recipe name search
+    if (filters.name) params.name = filters.name;
+    
+    // Meal type (breakfast, lunch, dinner)
+    if (filters.meal_type) params.meal_type = filters.meal_type;
+    
+    // Cost per serving filters
+    if (filters.min_cost_per_serving) params.min_cost_per_serving = filters.min_cost_per_serving;
+    if (filters.max_cost_per_serving) params.max_cost_per_serving = filters.max_cost_per_serving;
+    
+    // Rating filters
+    if (filters.min_difficulty_rating) params.min_difficulty_rating = filters.min_difficulty_rating;
+    if (filters.max_difficulty_rating) params.max_difficulty_rating = filters.max_difficulty_rating;
+    if (filters.min_taste_rating) params.min_taste_rating = filters.min_taste_rating;
+    if (filters.max_taste_rating) params.max_taste_rating = filters.max_taste_rating;
+    if (filters.min_health_rating) params.min_health_rating = filters.min_health_rating;
+    if (filters.max_health_rating) params.max_health_rating = filters.max_health_rating;
+    if (filters.min_like_count) params.min_like_count = filters.min_like_count;
+    if (filters.max_like_count) params.max_like_count = filters.max_like_count;
+    
+    // Nutrition filters
+    if (filters.min_calories) params.min_calories = filters.min_calories;
+    if (filters.max_calories) params.max_calories = filters.max_calories;
+    if (filters.min_carbs) params.min_carbs = filters.min_carbs;
+    if (filters.max_carbs) params.max_carbs = filters.max_carbs;
+    if (filters.min_fat) params.min_fat = filters.min_fat;
+    if (filters.max_fat) params.max_fat = filters.max_fat;
+    if (filters.min_protein) params.min_protein = filters.min_protein;
+    if (filters.max_protein) params.max_protein = filters.max_protein;
+    
+    // Time filters
+    if (filters.min_prep_time) params.min_prep_time = filters.min_prep_time;
+    if (filters.max_prep_time) params.max_prep_time = filters.max_prep_time;
+    if (filters.min_cook_time) params.min_cook_time = filters.min_cook_time;
+    if (filters.max_cook_time) params.max_cook_time = filters.max_cook_time;
+    if (filters.min_total_time) params.min_total_time = filters.min_total_time;
+    if (filters.max_total_time) params.max_total_time = filters.max_total_time;
+    
+    // Boolean filters
+    if (filters.has_image !== undefined) params.has_image = filters.has_image;
+    if (filters.is_approved !== undefined) params.is_approved = filters.is_approved;
+    if (filters.is_featured !== undefined) params.is_featured = filters.is_featured;
+    
+    // Pagination
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
+
+    const response = await axios.get(`${API_BASE_URL}/recipes/meal_planner/`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching meal plan recipes:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch recipes for a specific meal type with filters
+ * @param {string} mealType - 'breakfast', 'lunch', or 'dinner'
+ * @param {Object} additionalFilters - Additional filters
+ * @returns {Promise<Array>} Array of recipes
+ */
+export const fetchRecipesByMealType = async (mealType, additionalFilters = {}) => {
+  try {
+    const filters = {
+      meal_type: mealType,
+      page_size: 50, // Get more results for variety
+      ...additionalFilters,
+    };
+    
+    const response = await fetchMealPlanRecipes(filters);
+    return response.results || [];
+  } catch (error) {
+    console.error(`Error fetching ${mealType} recipes:`, error);
+    return [];
+  }
+};
+
+/**
+ * Get random recipe from filtered results
+ * @param {string} mealType - 'breakfast', 'lunch', or 'dinner'
+ * @param {Object} filters - Filter parameters
+ * @returns {Promise<Object|null>} Random recipe or null
+ */
+export const getRandomRecipe = async (mealType, filters = {}) => {
+  try {
+    const recipes = await fetchRecipesByMealType(mealType, filters);
+    if (recipes.length === 0) return null;
+    
+    const randomIndex = Math.floor(Math.random() * recipes.length);
+    return recipes[randomIndex];
+  } catch (error) {
+    console.error('Error getting random recipe:', error);
+    return null;
+  }
+};
+
+/**
+ * Generate a random meal plan based on filters
+ * @param {Object} filters - Filter parameters
+ * @returns {Promise<Object>} Meal plan with breakfast, lunch, dinner
+ */
+export const generateRandomMealPlan = async (filters = {}) => {
+  try {
+    const [breakfast, lunch, dinner] = await Promise.all([
+      getRandomRecipe('breakfast', filters),
+      getRandomRecipe('lunch', filters),
+      getRandomRecipe('dinner', filters),
+    ]);
+
+    return {
+      breakfast,
+      lunch,
+      dinner,
+    };
+  } catch (error) {
+    console.error('Error generating random meal plan:', error);
+    throw error;
+  }
+};
+
+/**
+ * Calculate total cost of meal plan
+ * @param {Object} mealPlan - Meal plan object with breakfast, lunch, dinner
+ * @returns {number} Total cost
+ */
+export const calculateMealPlanCost = (mealPlan) => {
+  let total = 0;
+  if (mealPlan.breakfast?.cost_per_serving) {
+    total += parseFloat(mealPlan.breakfast.cost_per_serving);
+  }
+  if (mealPlan.lunch?.cost_per_serving) {
+    total += parseFloat(mealPlan.lunch.cost_per_serving);
+  }
+  if (mealPlan.dinner?.cost_per_serving) {
+    total += parseFloat(mealPlan.dinner.cost_per_serving);
+  }
+  return parseFloat(total.toFixed(2));
+};
+
+/**
+ * Calculate total nutrition of meal plan
+ * @param {Object} mealPlan - Meal plan object with breakfast, lunch, dinner
+ * @returns {Object} Total nutrition values
+ */
+export const calculateMealPlanNutrition = (mealPlan) => {
+  const nutrition = {
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  };
+
+  ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+    const meal = mealPlan[mealType];
+    if (meal) {
+      // Get nutrition from recipe_nutritions if available, otherwise try direct properties
+      const nutritionData = meal.recipe_nutritions || meal;
+      nutrition.calories += parseFloat(nutritionData.calories || 0);
+      nutrition.protein += parseFloat(nutritionData.protein || 0);
+      nutrition.carbs += parseFloat(nutritionData.carbs || 0);
+      nutrition.fat += parseFloat(nutritionData.fat || 0);
+    }
+  });
+
+  return {
+    calories: parseFloat(nutrition.calories.toFixed(2)),
+    protein: parseFloat(nutrition.protein.toFixed(2)),
+    carbs: parseFloat(nutrition.carbs.toFixed(2)),
+    fat: parseFloat(nutrition.fat.toFixed(2)),
+  };
+};
+
+/**
+ * Get all allergens from meal plan
+ * @param {Object} mealPlan - Meal plan object
+ * @returns {Array} Array of unique allergens
+ */
+export const getMealPlanAllergens = (mealPlan) => {
+  const allergens = new Set();
+  
+  ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+    const meal = mealPlan[mealType];
+    if (meal?.allergens && Array.isArray(meal.allergens)) {
+      meal.allergens.forEach((allergen) => allergens.add(allergen));
+    }
+  });
+  
+  return Array.from(allergens);
+};
+
+/**
+ * Get cheapest market for meal plan
+ * @param {Object} mealPlan - Meal plan object
+ * @returns {Object} Market costs comparison
+ */
+export const getMealPlanMarketCosts = (mealPlan) => {
+  const markets = ['A101', 'SOK', 'BIM', 'MIGROS'];
+  const marketTotals = {};
+  
+  markets.forEach((market) => {
+    let total = 0;
+    ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+      const meal = mealPlan[mealType];
+      if (meal?.recipe_costs?.[market]) {
+        total += parseFloat(meal.recipe_costs[market]);
+      }
+    });
+    marketTotals[market] = parseFloat(total.toFixed(2));
+  });
+  
+  return marketTotals;
+};
+
+/**
+ * Get cheapest market name
+ * @param {Object} marketCosts - Market costs object
+ * @returns {string} Cheapest market name
+ */
+export const getCheapestMarket = (marketCosts) => {
+  let cheapest = null;
+  let minCost = Infinity;
+  
+  Object.entries(marketCosts).forEach(([market, cost]) => {
+    if (cost > 0 && cost < minCost) {
+      minCost = cost;
+      cheapest = market;
+    }
+  });
+  
+  return cheapest;
+};
+
+// ==================== LOCAL STORAGE FUNCTIONS ====================
 
 /**
  * Get all saved meal plans from localStorage
@@ -19,25 +278,26 @@ export const getSavedMealPlans = () => {
 
 /**
  * Save a meal plan to localStorage
- * @param {Object} plan The meal plan to save
+ * @param {Object} plan - The meal plan to save
  * @returns {Object} The saved meal plan
  */
 export const saveMealPlan = (plan) => {
   try {
-    // Get existing plans
     const plans = getSavedMealPlans();
     
-    // Add new plan
-    const updatedPlans = [...plans, { 
-      ...plan, 
-      id: Date.now(), // Add a unique ID
-      date: new Date().toISOString() // Ensure there's a date
-    }];
+    const newPlan = {
+      ...plan,
+      id: Date.now(),
+      date: new Date().toISOString(),
+      totalCost: calculateMealPlanCost(plan),
+      totalNutrition: calculateMealPlanNutrition(plan),
+      allergens: getMealPlanAllergens(plan),
+    };
     
-    // Save to localStorage
+    const updatedPlans = [...plans, newPlan];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlans));
     
-    return plan;
+    return newPlan;
   } catch (error) {
     console.error('Error saving meal plan:', error);
     throw new Error('Failed to save meal plan');
@@ -46,23 +306,18 @@ export const saveMealPlan = (plan) => {
 
 /**
  * Delete a meal plan by index
- * @param {number} index The index of the plan to delete
+ * @param {number} index - The index of the plan to delete
  * @returns {boolean} Success status
  */
 export const deleteMealPlanById = (index) => {
   try {
-    // Get existing plans
     const plans = getSavedMealPlans();
     
-    // Check if index is valid
     if (index < 0 || index >= plans.length) {
       throw new Error('Invalid meal plan index');
     }
     
-    // Remove the plan at the specified index
     const updatedPlans = plans.filter((_, i) => i !== index);
-    
-    // Save to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlans));
     
     return true;
@@ -74,26 +329,22 @@ export const deleteMealPlanById = (index) => {
 
 /**
  * Update a meal plan by index
- * @param {number} index The index of the plan to update
- * @param {Object} updatedPlan The updated plan data
+ * @param {number} index - The index of the plan to update
+ * @param {Object} updatedPlan - The updated plan data
  * @returns {Object} The updated plan
  */
 export const updateMealPlan = (index, updatedPlan) => {
   try {
-    // Get existing plans
     const plans = getSavedMealPlans();
     
-    // Check if index is valid
     if (index < 0 || index >= plans.length) {
       throw new Error('Invalid meal plan index');
     }
     
-    // Update the plan
-    const updatedPlans = plans.map((plan, i) => 
+    const updatedPlans = plans.map((plan, i) =>
       i === index ? { ...plan, ...updatedPlan } : plan
     );
     
-    // Save to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlans));
     
     return updatedPlan;
@@ -105,15 +356,13 @@ export const updateMealPlan = (index, updatedPlan) => {
 
 /**
  * Get a meal plan by index
- * @param {number} index The index of the plan to retrieve
+ * @param {number} index - The index of the plan to retrieve
  * @returns {Object} The meal plan
  */
 export const getMealPlanByIndex = (index) => {
   try {
-    // Get existing plans
     const plans = getSavedMealPlans();
     
-    // Check if index is valid
     if (index < 0 || index >= plans.length) {
       throw new Error('Invalid meal plan index');
     }
@@ -126,188 +375,82 @@ export const getMealPlanByIndex = (index) => {
 };
 
 /**
- * Generate a shopping list from a meal plan
- * @param {Object} mealPlan The meal plan
- * @returns {Object} The shopping list categorized by food type
+ * Generate shopping list from meal plan using actual recipe ingredients
+ * @param {Object} mealPlan - The meal plan
+ * @returns {Object} Shopping list with categories
  */
 export const generateShoppingList = (mealPlan) => {
-  // This is a simplified implementation
-  // In a real app, you would have a database of ingredients for each meal
-  
-  // Mock shopping list generation based on meal types
   const shoppingList = {
-    categories: []
+    categories: [],
   };
-  
-  // Check for breakfast
-  if (mealPlan.activePlan?.breakfast) {
-    const breakfastItems = generateItemsForMeal(mealPlan.activePlan.breakfast);
-    breakfastItems.forEach(item => addItemToShoppingList(shoppingList, item));
-  }
-  
-  // Check for lunch
-  if (mealPlan.activePlan?.lunch) {
-    const lunchItems = generateItemsForMeal(mealPlan.activePlan.lunch);
-    lunchItems.forEach(item => addItemToShoppingList(shoppingList, item));
-  }
-  
-  // Check for dinner
-  if (mealPlan.activePlan?.dinner) {
-    const dinnerItems = generateItemsForMeal(mealPlan.activePlan.dinner);
-    dinnerItems.forEach(item => addItemToShoppingList(shoppingList, item));
-  }
-  
+
+  // Process each meal type
+  ['breakfast', 'lunch', 'dinner'].forEach((mealType) => {
+    const meal = mealPlan.activePlan?.[mealType] || mealPlan[mealType];
+    if (meal && meal.ingredients) {
+      meal.ingredients.forEach((ingredient) => {
+        addIngredientToShoppingList(shoppingList, ingredient);
+      });
+    }
+  });
+
   // Calculate total cost
   shoppingList.totalCost = shoppingList.categories.reduce((total, category) => {
-    return total + category.items.reduce((categoryTotal, item) => {
-      return categoryTotal + item.price;
-    }, 0);
+    return (
+      total +
+      category.items.reduce((categoryTotal, item) => {
+        return categoryTotal + (item.price || 0);
+      }, 0)
+    );
   }, 0);
-  
+
   return shoppingList;
 };
 
 /**
- * Helper function to generate items for a meal
- * @param {Object} meal The meal object
- * @returns {Array} Array of ingredients/items
+ * Helper function to add ingredient to shopping list
+ * @param {Object} shoppingList - Shopping list object
+ * @param {Object} ingredient - Ingredient object
  */
-const generateItemsForMeal = (meal) => {
-  // In a real app, this would be fetched from a database
-  // Here we're using a simplified mock implementation
+const addIngredientToShoppingList = (shoppingList, ingredient) => {
+  const categoryName = ingredient.category || 'Other';
   
-  const mockIngredients = {
-    // Breakfast meals
-    1: [ // Oatmeal with Fruit
-      { name: "Oats", quantity: "50g", price: 10, category: "Grains" },
-      { name: "Banana", quantity: "1", price: 5, category: "Produce" },
-      { name: "Blueberries", quantity: "50g", price: 15, category: "Produce" },
-      { name: "Honey", quantity: "15ml", price: 8, category: "Sweeteners" },
-    ],
-    2: [ // Menemen
-      { name: "Eggs", quantity: "2", price: 10, category: "Dairy" },
-      { name: "Tomatoes", quantity: "2", price: 8, category: "Produce" },
-      { name: "Bell Pepper", quantity: "1", price: 7, category: "Produce" },
-      { name: "Onion", quantity: "1/2", price: 3, category: "Produce" },
-    ],
-    3: [ // Whole Grain Toast with Avocado
-      { name: "Whole Grain Bread", quantity: "2 slices", price: 8, category: "Grains" },
-      { name: "Avocado", quantity: "1/2", price: 15, category: "Produce" },
-      { name: "Lemon Juice", quantity: "5ml", price: 3, category: "Condiments" },
-      { name: "Salt", quantity: "pinch", price: 1, category: "Spices" },
-    ],
-    4: [ // Greek Yogurt with Honey
-      { name: "Greek Yogurt", quantity: "200g", price: 15, category: "Dairy" },
-      { name: "Honey", quantity: "15ml", price: 8, category: "Sweeteners" },
-      { name: "Almonds", quantity: "15g", price: 12, category: "Nuts" },
-    ],
-    5: [ // Spinach and Feta Omelette
-      { name: "Eggs", quantity: "3", price: 15, category: "Dairy" },
-      { name: "Spinach", quantity: "50g", price: 8, category: "Produce" },
-      { name: "Feta Cheese", quantity: "30g", price: 12, category: "Dairy" },
-      { name: "Olive Oil", quantity: "5ml", price: 3, category: "Oils" },
-    ],
-    
-    // Lunch meals
-    6: [ // Grilled Chicken Salad
-      { name: "Chicken Breast", quantity: "150g", price: 25, category: "Protein" },
-      { name: "Mixed Greens", quantity: "100g", price: 15, category: "Produce" },
-      { name: "Cherry Tomatoes", quantity: "8", price: 10, category: "Produce" },
-      { name: "Cucumber", quantity: "1/2", price: 5, category: "Produce" },
-      { name: "Olive Oil", quantity: "15ml", price: 8, category: "Oils" },
-    ],
-    7: [ // Vegetarian Quinoa Bowl
-      { name: "Quinoa", quantity: "100g", price: 18, category: "Grains" },
-      { name: "Bell Pepper", quantity: "1", price: 7, category: "Produce" },
-      { name: "Chickpeas", quantity: "100g", price: 8, category: "Protein" },
-      { name: "Feta Cheese", quantity: "30g", price: 12, category: "Dairy" },
-      { name: "Lemon Juice", quantity: "10ml", price: 5, category: "Condiments" },
-    ],
-    8: [ // Lentil Soup
-      { name: "Red Lentils", quantity: "100g", price: 12, category: "Legumes" },
-      { name: "Onion", quantity: "1", price: 5, category: "Produce" },
-      { name: "Carrots", quantity: "2", price: 6, category: "Produce" },
-      { name: "Vegetable Broth", quantity: "500ml", price: 8, category: "Condiments" },
-    ],
-    9: [ // Mediterranean Wrap
-      { name: "Whole Wheat Wrap", quantity: "1", price: 8, category: "Grains" },
-      { name: "Hummus", quantity: "50g", price: 12, category: "Spreads" },
-      { name: "Tomato", quantity: "1", price: 5, category: "Produce" },
-      { name: "Cucumber", quantity: "1/2", price: 5, category: "Produce" },
-      { name: "Feta Cheese", quantity: "30g", price: 12, category: "Dairy" },
-    ],
-    10: [ // Tuna Salad Sandwich
-      { name: "Whole Grain Bread", quantity: "2 slices", price: 8, category: "Grains" },
-      { name: "Tuna", quantity: "100g", price: 20, category: "Protein" },
-      { name: "Mayonnaise", quantity: "15g", price: 5, category: "Condiments" },
-      { name: "Celery", quantity: "1 stalk", price: 3, category: "Produce" },
-      { name: "Lettuce", quantity: "20g", price: 4, category: "Produce" },
-    ],
-    
-    // Dinner meals
-    11: [ // Stuffed Peppers
-      { name: "Bell Peppers", quantity: "2", price: 14, category: "Produce" },
-      { name: "Ground Beef", quantity: "150g", price: 30, category: "Protein" },
-      { name: "Rice", quantity: "100g", price: 8, category: "Grains" },
-      { name: "Onion", quantity: "1", price: 5, category: "Produce" },
-      { name: "Tomato Sauce", quantity: "100ml", price: 12, category: "Condiments" },
-    ],
-    12: [ // Baked Salmon & Veggies
-      { name: "Salmon Fillet", quantity: "200g", price: 60, category: "Protein" },
-      { name: "Broccoli", quantity: "150g", price: 12, category: "Produce" },
-      { name: "Carrots", quantity: "2", price: 6, category: "Produce" },
-      { name: "Olive Oil", quantity: "15ml", price: 8, category: "Oils" },
-      { name: "Lemon", quantity: "1", price: 5, category: "Produce" },
-    ],
-    13: [ // Pasta Primavera
-      { name: "Pasta", quantity: "100g", price: 10, category: "Grains" },
-      { name: "Zucchini", quantity: "1", price: 8, category: "Produce" },
-      { name: "Bell Pepper", quantity: "1", price: 7, category: "Produce" },
-      { name: "Cherry Tomatoes", quantity: "10", price: 12, category: "Produce" },
-      { name: "Parmesan Cheese", quantity: "20g", price: 10, category: "Dairy" },
-    ],
-    14: [ // Beef Stir Fry
-      { name: "Beef Strips", quantity: "200g", price: 40, category: "Protein" },
-      { name: "Broccoli", quantity: "150g", price: 12, category: "Produce" },
-      { name: "Bell Pepper", quantity: "1", price: 7, category: "Produce" },
-      { name: "Soy Sauce", quantity: "15ml", price: 6, category: "Condiments" },
-      { name: "Rice", quantity: "100g", price: 8, category: "Grains" },
-    ],
-    15: [ // Vegetable Curry with Rice
-      { name: "Rice", quantity: "100g", price: 8, category: "Grains" },
-      { name: "Chickpeas", quantity: "100g", price: 8, category: "Protein" },
-      { name: "Coconut Milk", quantity: "200ml", price: 15, category: "Dairy" },
-      { name: "Curry Paste", quantity: "30g", price: 12, category: "Spices" },
-      { name: "Mixed Vegetables", quantity: "200g", price: 20, category: "Produce" },
-    ],
-  };
+  let category = shoppingList.categories.find((cat) => cat.name === categoryName);
   
-  return mockIngredients[meal.id] || [];
-};
-
-/**
- * Helper function to add an item to the shopping list
- * @param {Object} shoppingList The shopping list object
- * @param {Object} item The item to add
- */
-const addItemToShoppingList = (shoppingList, item) => {
-  // Find the category
-  let category = shoppingList.categories.find(cat => cat.name === item.category);
-  
-  // If category doesn't exist, create it
   if (!category) {
-    category = { name: item.category, items: [] };
+    category = { name: categoryName, items: [] };
     shoppingList.categories.push(category);
   }
   
-  // Check if the item already exists in the category
-  const existingItem = category.items.find(i => i.name === item.name);
+  const existingItem = category.items.find((i) => i.name === ingredient.ingredient_name);
   
   if (existingItem) {
-    // If item exists, we could update the quantity (simplified approach)
-    existingItem.price += item.price;
+    existingItem.quantity += ingredient.quantity;
+    existingItem.price += ingredient.price || 0;
   } else {
-    // If item doesn't exist, add it
-    category.items.push({ ...item });
+    category.items.push({
+      name: ingredient.ingredient_name,
+      quantity: ingredient.quantity,
+      unit: ingredient.unit,
+      price: ingredient.price || 0,
+    });
   }
+};
+
+export default {
+  fetchMealPlanRecipes,
+  fetchRecipesByMealType,
+  getRandomRecipe,
+  generateRandomMealPlan,
+  calculateMealPlanCost,
+  calculateMealPlanNutrition,
+  getMealPlanAllergens,
+  getMealPlanMarketCosts,
+  getCheapestMarket,
+  getSavedMealPlans,
+  saveMealPlan,
+  deleteMealPlanById,
+  updateMealPlan,
+  getMealPlanByIndex,
+  generateShoppingList,
 };

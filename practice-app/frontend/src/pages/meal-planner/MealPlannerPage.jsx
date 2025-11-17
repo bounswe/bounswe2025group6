@@ -1,213 +1,418 @@
+// src/pages/meal-planner/MealPlannerPage.jsx
+
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useMealPlan } from '../../contexts/MealPlanContext';
-import { useToast } from '../../components/ui/Toast';
+import { Link, useNavigate } from 'react-router-dom';
+import RecipeCard from '../../components/recipe/RecipeCard';
 import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
+import { useToast } from '../../components/ui/Toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import MealPlanFilters from '../../components/meal-planner/MealPlanFilters';
+import MealPlanSummary from '../../components/meal-planner/MealPlanSummary';
+import {
+  fetchRecipesByMealType,
+  generateRandomMealPlan,
+  calculateMealPlanCost,
+  calculateMealPlanNutrition,
+  getMealPlanAllergens,
+} from '../../services/mealPlanService';
 import '../../styles/MealPlannerPage.css';
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 
 const MealPlannerPage = () => {
-  const {
-    mealOptions,
-    activePlan,
-    updateActiveMeal,
-    saveMealPlan,
-    resetActivePlan,
-    calculateTotalCost,
-    calculateTotalNutrition,
-    isLoading,
-  } = useMealPlan();
   const { t } = useTranslation();
-  
-
   const toast = useToast();
+  const navigate = useNavigate();
+  const { currency } = useCurrency();
 
-  const [filters, setFilters] = useState({ meals: ['breakfast', 'lunch', 'dinner'], maxBudget: '' });
+  const [breakfastRecipes, setBreakfastRecipes] = useState([]);
+  const [lunchRecipes, setLunchRecipes] = useState([]);
+  const [dinnerRecipes, setDinnerRecipes] = useState([]);
 
-  const handleFilterChange = (e) => {
-    const { name, value, checked, type } = e.target;
-    if (type === 'checkbox') {
-      setFilters((prev) => {
-        const meals = checked
-          ? [...prev.meals, name]
-          : prev.meals.filter((meal) => meal !== name);
-        return { ...prev, meals };
-      });
-    } else {
-      setFilters((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+  const [mealPlan, setMealPlan] = useState({
+    breakfast: null,
+    lunch: null,
+    dinner: null,
+  });
 
-  const handleMealSelection = (mealType, meal) => {
-    updateActiveMeal(mealType, meal === activePlan[mealType] ? null : meal);
-  };
+  const [filters, setFilters] = useState({
+    mealTypes: ['breakfast', 'lunch', 'dinner'],
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSaveMealPlan = () => {
-    const plan = {
-      date: new Date().toISOString(),
-      meals: activePlan,
-      totalCost: calculateTotalCost(),
-      totalNutrition: calculateTotalNutrition(),
-    };
-
-    const success = saveMealPlan(plan);
-    if (success) {
-      toast.success('Meal plan saved successfully!');
-    } else {
-      toast.error('Failed to save meal plan');
-    }
-  };
-
-  const filteredMealOptions = Object.entries(mealOptions)
-    .filter(([mealType]) => filters.meals.includes(mealType))
-    .reduce((acc, [mealType, meals]) => {
-      acc[mealType] = meals.filter((meal) => !filters.maxBudget || meal.cost <= Number(filters.maxBudget));
-      return acc;
-    }, {});
-
-  const totalCost = calculateTotalCost();
-  const totalNutrition = calculateTotalNutrition();
-  const hasSelectedMeals = Object.values(activePlan).some(Boolean);
+  // Initial load - always restore state if exists
   useEffect(() => {
-    document.title = "Meal Planner";
+    document.title = 'Meal Planner';
+    
+    // Check if we came from recipe detail (for scroll restoration)
+    const cameFromRecipeDetail = localStorage.getItem('returnToMealPlanner');
+    
+    // Ensure page starts at top by default (unless coming from recipe detail)
+    if (!cameFromRecipeDetail) {
+      window.scrollTo(0, 0);
+    }
+    
+    // Always try to restore state from localStorage
+    const savedState = localStorage.getItem('mealPlannerState');
+    
+    if (savedState) {
+      try {
+        const { filters: savedFilters, mealPlan: savedMealPlan, scrollPosition, breakfastRecipes: savedBreakfast, lunchRecipes: savedLunch, dinnerRecipes: savedDinner } = JSON.parse(savedState);
+        
+        // Check if we have valid saved data
+        const hasValidRecipes = (savedBreakfast && savedBreakfast.length > 0) || 
+                                (savedLunch && savedLunch.length > 0) || 
+                                (savedDinner && savedDinner.length > 0);
+        
+        if (hasValidRecipes) {
+          // Restore everything
+          if (savedFilters) {
+            setFilters(savedFilters);
+          }
+          if (savedMealPlan) {
+            setMealPlan(savedMealPlan);
+          }
+          if (savedBreakfast && savedBreakfast.length > 0) {
+            setBreakfastRecipes(savedBreakfast);
+          }
+          if (savedLunch && savedLunch.length > 0) {
+            setLunchRecipes(savedLunch);
+          }
+          if (savedDinner && savedDinner.length > 0) {
+            setDinnerRecipes(savedDinner);
+          }
+          
+          // Restore scroll position ONLY if coming from recipe detail
+          if (cameFromRecipeDetail) {
+            setTimeout(() => {
+              window.scrollTo(0, scrollPosition || 0);
+            }, 100);
+          }
+          
+          return; // Don't load recipes again if we restored valid state
+        }
+      } catch (error) {
+        console.error('Error restoring meal planner state:', error);
+        // If restore fails, continue to load recipes normally
+      }
+    }
+
+    // Load recipes on first mount (or if restore failed)
+    const baseFilters = { ...filters };
+    delete baseFilters.mealTypes;
+
+    if (filters.mealTypes.includes('breakfast')) {
+      loadBreakfastRecipes(baseFilters);
+    }
+    if (filters.mealTypes.includes('lunch')) {
+      loadLunchRecipes(baseFilters);
+    }
+    if (filters.mealTypes.includes('dinner')) {
+      loadDinnerRecipes(baseFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Reload recipes when currency changes
+  useEffect(() => {
+    // Skip initial mount (already loaded in first useEffect)
+    // Only reload when currency changes
+    const baseFilters = { ...filters };
+    delete baseFilters.mealTypes;
+
+    if (filters.mealTypes.includes('breakfast')) {
+      loadBreakfastRecipes(baseFilters);
+    }
+    if (filters.mealTypes.includes('lunch')) {
+      loadLunchRecipes(baseFilters);
+    }
+    if (filters.mealTypes.includes('dinner')) {
+      loadDinnerRecipes(baseFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency]);
+
+  // Save state whenever filters or mealPlan changes
+  useEffect(() => {
+    const state = {
+      filters,
+      mealPlan,
+      breakfastRecipes,
+      lunchRecipes,
+      dinnerRecipes,
+      scrollPosition: window.scrollY
+    };
+    localStorage.setItem('mealPlannerState', JSON.stringify(state));
+  }, [filters, mealPlan, breakfastRecipes, lunchRecipes, dinnerRecipes]);
+
+  const loadAllRecipes = async () => {
+    const baseFilters = { ...filters };
+    delete baseFilters.mealTypes;
+
+    if (filters.mealTypes.includes('breakfast')) {
+      loadBreakfastRecipes(baseFilters);
+    }
+    if (filters.mealTypes.includes('lunch')) {
+      loadLunchRecipes(baseFilters);
+    }
+    if (filters.mealTypes.includes('dinner')) {
+      loadDinnerRecipes(baseFilters);
+    }
+  };
+
+  const loadBreakfastRecipes = async (additionalFilters = {}) => {
+    try {
+      const recipes = await fetchRecipesByMealType('breakfast', additionalFilters);
+      setBreakfastRecipes(recipes);
+    } catch (error) {
+      console.error('Error loading breakfast recipes:', error);
+      toast.error('Failed to load breakfast recipes');
+    }
+  };
+
+  const loadLunchRecipes = async (additionalFilters = {}) => {
+    try {
+      const recipes = await fetchRecipesByMealType('lunch', additionalFilters);
+      setLunchRecipes(recipes);
+    } catch (error) {
+      console.error('Error loading lunch recipes:', error);
+      toast.error('Failed to load lunch recipes');
+    }
+  };
+
+  const loadDinnerRecipes = async (additionalFilters = {}) => {
+    try {
+      const recipes = await fetchRecipesByMealType('dinner', additionalFilters);
+      setDinnerRecipes(recipes);
+    } catch (error) {
+      console.error('Error loading dinner recipes:', error);
+      toast.error('Failed to load dinner recipes');
+    }
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    
+    const baseFilters = { ...newFilters };
+    delete baseFilters.mealTypes;
+
+    if (newFilters.mealTypes.includes('breakfast')) {
+      loadBreakfastRecipes(baseFilters);
+    } else {
+      setBreakfastRecipes([]);
+    }
+
+    if (newFilters.mealTypes.includes('lunch')) {
+      loadLunchRecipes(baseFilters);
+    } else {
+      setLunchRecipes([]);
+    }
+
+    if (newFilters.mealTypes.includes('dinner')) {
+      loadDinnerRecipes(baseFilters);
+    } else {
+      setDinnerRecipes([]);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilters({ mealTypes: ['breakfast', 'lunch', 'dinner'] });
+    loadAllRecipes();
+  };
+
+  const handleSelectRecipe = (mealType, recipe) => {
+    setMealPlan((prev) => ({
+      ...prev,
+      [mealType]: prev[mealType]?.id === recipe.id ? null : recipe,
+    }));
+  };
+
+  const handleGenerateRandom = async () => {
+    setIsLoading(true);
+    try {
+      const baseFilters = { ...filters };
+      delete baseFilters.mealTypes;
+
+      const randomPlan = await generateRandomMealPlan(baseFilters);
+      setMealPlan(randomPlan);
+      toast.success('Random meal plan generated!');
+      
+      // Scroll to bottom to show meal plan summary
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 500);
+    } catch (error) {
+      console.error('Error generating random meal plan:', error);
+      toast.error('Failed to generate random meal plan');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearMealPlan = () => {
+    setMealPlan({
+      breakfast: null,
+      lunch: null,
+      dinner: null,
+    });
+    toast.info('Meal plan cleared');
+    // Scroll to top of page
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleGenerateShopping = () => {
+    localStorage.setItem('currentMealPlan', JSON.stringify({ activePlan: mealPlan }));
+  };
+
+  const totalCost = calculateMealPlanCost(mealPlan);
+  const totalNutrition = calculateMealPlanNutrition(mealPlan);
+  const allergens = getMealPlanAllergens(mealPlan);
+
   return (
-    <div className="meal-planner-container">
+    <div className="meal-planner-page">
       <div className="meal-planner-header">
         <h1 className="meal-planner-title">Meal Planner</h1>
-        <div className="flex gap-2">
-          <Link to="/saved-meal-plans">
-            <Button variant="secondary">View Saved Plans</Button>
-          </Link>
-          <Link to="/shopping-list">
-            <Button disabled={!hasSelectedMeals}>Generate Shopping List</Button>
-          </Link>
+        <div className="header-actions">
+          <button 
+            onClick={handleGenerateRandom} 
+            disabled={isLoading}
+            className="modern-green-button"
+          >
+            🎲 Generate Random Plan
+          </button>
         </div>
       </div>
 
-      <Card className="mb-6">
-        <Card.Body>
-          <h2 className="text-xl font-semibold mb-4">Filters</h2>
-          <div className="flex flex-wrap gap-4">
-            <div className="space-y-2">
-              <h3 className="font-medium">Meal Types</h3>
-              <div className="flex gap-3">
-                {['breakfast', 'lunch', 'dinner'].map((type) => (
-                  <label key={type} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name={type}
-                      checked={filters.meals.includes(type)}
-                      onChange={handleFilterChange}
-                      className="mr-1"
-                    />
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="font-medium">Budget</h3>
-              <input
-                type="number"
-                name="maxBudget"
-                placeholder="Max cost per meal (₺)"
-                value={filters.maxBudget}
-                onChange={handleFilterChange}
-                className="border rounded px-3 py-1 w-48"
-              />
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
+      {/* Main Layout: Sidebar + Content */}
+      <div className="meal-planner-layout">
+        {/* Left Sidebar - Filters (1/4) */}
+        <aside className="meal-planner-sidebar">
+          <MealPlanFilters 
+            onFilterChange={handleFilterChange} 
+            onClearFilters={handleClearFilters}
+            initialFilters={filters}
+          />
+        </aside>
 
-      {isLoading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Loading meal options...</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(filteredMealOptions).map(([mealType, meals]) => (
-            <section key={mealType}>
-              <h2 className="text-2xl font-semibold capitalize mb-4">{mealType}</h2>
-              {meals.length > 0 ? (
-                <div className="meal-options">
-                  {meals.map((meal) => (
-                    <Card
-                      key={meal.id}
-                      className={`meal-card ${activePlan[mealType]?.id === meal.id ? 'selected' : ''}`}
-                      onClick={() => handleMealSelection(mealType, meal)}
+        {/* Right Content - Recipes (3/4) */}
+        <main className="meal-planner-content">
+          {/* Breakfast Section */}
+          {filters.mealTypes.includes('breakfast') && (
+            <section className="meal-section">
+              <h2 className="meal-section-title">
+                <span className="meal-icon">🍳</span>
+                Breakfast Recipes
+              </h2>
+              {breakfastRecipes.length > 0 ? (
+                <div className="recipe-grid">
+                  {breakfastRecipes.map((recipe) => (
+                    <div
+                      key={recipe.id}
+                      className={`recipe-card-wrapper ${
+                        mealPlan.breakfast?.id === recipe.id ? 'selected' : ''
+                      }`}
                     >
-                      <Card.Body>
-                        <h3 className="font-semibold text-lg">{meal.title}</h3>
-                        <p className="text-gray-600 mb-2">₺{meal.cost}</p>
-                        <div className="text-sm text-gray-500">
-                          <p>{meal.calories} calories</p>
-                          <p>Protein: {meal.protein}g</p>
-                          <p>Carbs: {meal.carbs}g</p>
-                          <p>Fat: {meal.fat}g</p>
+                      <RecipeCard recipe={recipe} />
+                      <button
+                        className={`select-recipe-btn ${
+                          mealPlan.breakfast?.id === recipe.id ? 'selected' : ''
+                        }`}
+                        onClick={() => handleSelectRecipe('breakfast', recipe)}
+                      >
+                        {mealPlan.breakfast?.id === recipe.id ? '✓ Selected' : 'Select for Breakfast'}
+                      </button>
                         </div>
-                      </Card.Body>
-                    </Card>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">No meals available for the selected filters.</p>
+                <p className="no-recipes">No breakfast recipes found. Try adjusting your filters.</p>
               )}
             </section>
-          ))}
-        </div>
-      )}
+          )}
 
-      <Card className="my-6">
-        <Card.Header>
-          <h2 className="text-xl font-semibold">Meal Plan Summary</h2>
-        </Card.Header>
-        <Card.Body>
-          {hasSelectedMeals ? (
-            <div>
-              <div className="space-y-3 mb-4">
-                {Object.entries(activePlan).map(
-                  ([type, meal]) =>
-                    meal && (
-                      <div key={type} className="flex justify-between">
-                        <span className="capitalize">{type}:</span>
-                        <span>{meal.title} (₺{meal.cost})</span>
+          {/* Lunch Section */}
+          {filters.mealTypes.includes('lunch') && (
+            <section className="meal-section">
+              <h2 className="meal-section-title">
+                <span className="meal-icon">🥗</span>
+                Lunch Recipes
+              </h2>
+              {lunchRecipes.length > 0 ? (
+                <div className="recipe-grid">
+                  {lunchRecipes.map((recipe) => (
+                    <div
+                      key={recipe.id}
+                      className={`recipe-card-wrapper ${
+                        mealPlan.lunch?.id === recipe.id ? 'selected' : ''
+                      }`}
+                    >
+                      <RecipeCard recipe={recipe} />
+                      <button
+                        className={`select-recipe-btn ${
+                          mealPlan.lunch?.id === recipe.id ? 'selected' : ''
+                        }`}
+                        onClick={() => handleSelectRecipe('lunch', recipe)}
+                      >
+                        {mealPlan.lunch?.id === recipe.id ? '✓ Selected' : 'Select for Lunch'}
+                      </button>
                       </div>
-                    )
-                )}
-                <hr className="my-2" />
-                <div className="flex justify-between font-semibold">
-                  <span>Total:</span>
-                  <span>₺{totalCost}</span>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <p className="no-recipes">No lunch recipes found. Try adjusting your filters.</p>
+              )}
+            </section>
+          )}
 
-              <div className="nutrition-summary">
-                <h3 className="font-semibold mb-2">Nutrition Summary</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>Calories: {totalNutrition.calories}</div>
-                  <div>Protein: {totalNutrition.protein}g</div>
-                  <div>Carbs: {totalNutrition.carbs}g</div>
-                  <div>Fat: {totalNutrition.fat}g</div>
-                </div>
+          {/* Dinner Section */}
+          {filters.mealTypes.includes('dinner') && (
+            <section className="meal-section">
+              <h2 className="meal-section-title">
+                <span className="meal-icon">🍽️</span>
+                Dinner Recipes
+              </h2>
+              {dinnerRecipes.length > 0 ? (
+                <div className="recipe-grid">
+                  {dinnerRecipes.map((recipe) => (
+                    <div
+                      key={recipe.id}
+                      className={`recipe-card-wrapper ${
+                        mealPlan.dinner?.id === recipe.id ? 'selected' : ''
+                      }`}
+                    >
+                      <RecipeCard recipe={recipe} />
+                      <button
+                        className={`select-recipe-btn ${
+                          mealPlan.dinner?.id === recipe.id ? 'selected' : ''
+                        }`}
+                        onClick={() => handleSelectRecipe('dinner', recipe)}
+                      >
+                        {mealPlan.dinner?.id === recipe.id ? '✓ Selected' : 'Select for Dinner'}
+                      </button>
               </div>
-
-              <div className="flex gap-2">
-                <Button variant="success" onClick={handleSaveMealPlan}>
-                  Save Meal Plan
-                </Button>
-                <Button variant="secondary" onClick={resetActivePlan}>
-                  Clear Selections
-                </Button>
-              </div>
+                  ))}
             </div>
           ) : (
-            <p className="text-gray-500">Select meals from the options above to build your meal plan.</p>
+                <p className="no-recipes">No dinner recipes found. Try adjusting your filters.</p>
+              )}
+            </section>
           )}
-        </Card.Body>
-      </Card>
+        </main>
+      </div>
+
+      {/* Meal Plan Summary */}
+      <MealPlanSummary
+        mealPlan={mealPlan}
+        totalCost={totalCost}
+        totalNutrition={totalNutrition}
+        allergens={allergens}
+        onClear={handleClearMealPlan}
+        onGenerateShopping={handleGenerateShopping}
+      />
     </div>
   );
 };

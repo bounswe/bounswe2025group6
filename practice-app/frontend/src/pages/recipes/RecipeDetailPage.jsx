@@ -201,7 +201,15 @@ const RecipeDetailPage = () => {
         <button 
           className="recipe-back-button" 
           onClick={() => {
-            // Check if there are search filters in sessionStorage or localStorage
+            // Check if we came from meal planner first
+            const returnToMealPlanner = localStorage.getItem('returnToMealPlanner');
+            if (returnToMealPlanner) {
+              localStorage.removeItem('returnToMealPlanner');
+              navigate(returnToMealPlanner);
+              return;
+            }
+            
+            // Otherwise check recipe search filters
             const searchFilters = localStorage.getItem('recipeSearchFilters') || sessionStorage.getItem('recipeSearchFilters');
             if (searchFilters) {
               navigate(`/recipes?${searchFilters}`);

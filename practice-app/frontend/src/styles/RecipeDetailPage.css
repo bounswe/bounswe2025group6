@@ -177,6 +177,7 @@
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-align: center;
 }
 
 .recipe-detail-page-box-title-container {
@@ -576,20 +577,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 15px;
+  justify-content: center;
+  padding: 1.25rem 1rem;
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   border: 1px solid #e2e8f0;
   cursor: pointer;
+  min-height: 140px;
 }
 
 .market-cost-item .market-logo {
   width: 60px;
   height: 60px;
   object-fit: contain;
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

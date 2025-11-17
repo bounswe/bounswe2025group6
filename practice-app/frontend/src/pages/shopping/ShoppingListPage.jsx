@@ -1,247 +1,331 @@
 // src/pages/shopping/ShoppingListPage.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useMealPlan } from '../../contexts/MealPlanContext';
-import { generateShoppingList } from '../../services/mealPlanService';
+import { Link, useNavigate } from 'react-router-dom';
+import { getRecipeById } from '../../services/recipeService';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
 import '../../styles/ShoppingListPage.css';
 import '../../styles/style.css';
 import { useTranslation } from "react-i18next";
 
 const ShoppingListPage = () => {
-  const { activePlan } = useMealPlan();
-  const [shoppingList, setShoppingList] = useState({ categories: [], totalCost: 0 });
-  const [isLoading, setIsLoading] = useState(true);
-  const [checkedItems, setCheckedItems] = useState({});
-  const [selectedMarket, setSelectedMarket] = useState('BIM');
   const { t } = useTranslation();
+  const { currency } = useCurrency();
+  const navigate = useNavigate();
+  
+  const [recipes, setRecipes] = useState([]);
+  const [consolidatedIngredients, setConsolidatedIngredients] = useState([]);
+  const [marketCosts, setMarketCosts] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
-  // Market price modifiers (simplified)
-  const marketPriceModifiers = {
-    'BIM': 1.0, // Base price
-    'A101': 1.05, // 5% more expensive
-    'Migros': 1.12, // 12% more expensive
-    'CarrefourSA': 1.15, // 15% more expensive
-  };
   useEffect(() => {
     document.title = "Shopping List";
-  }, []);
-  useEffect(() => {
-    // Generate shopping list from active meal plan
-    const generateList = async () => {
-      setIsLoading(true);
+    
+    // Check if we're returning from ingredient detail
+    const savedState = localStorage.getItem('shoppingListState');
+    if (savedState) {
       try {
-        const list = await generateShoppingList({ activePlan });
-        setShoppingList(list);
-      } catch (error) {
-        console.error('Error generating shopping list:', error);
-      } finally {
+        const { recipes: savedRecipes, consolidatedIngredients: savedIngredients, marketCosts: savedMarketCosts } = JSON.parse(savedState);
+        setRecipes(savedRecipes);
+        setConsolidatedIngredients(savedIngredients);
+        setMarketCosts(savedMarketCosts);
         setIsLoading(false);
+        
+        // Clear the saved state
+        localStorage.removeItem('shoppingListState');
+        return;
+      } catch (error) {
+        console.error('Error restoring shopping list state:', error);
       }
-    };
+    }
+    
+    loadMealPlanAndRecipes();
+  }, []);
 
-    generateList();
-  }, [activePlan]);
+  const loadMealPlanAndRecipes = async () => {
+    setIsLoading(true);
+    try {
+      // Get meal plan from localStorage
+      const storedPlan = localStorage.getItem('currentMealPlan');
+      if (!storedPlan) {
+        setIsLoading(false);
+        return;
+      }
 
-  // Initialize checkedItems for all items in the shopping list
-  useEffect(() => {
-    const initialCheckedState = {};
-    shoppingList.categories.forEach(category => {
-      category.items.forEach(item => {
-        const itemKey = `${category.name}-${item.name}`;
-        initialCheckedState[itemKey] = false;
-      });
-    });
-    setCheckedItems(initialCheckedState);
-  }, [shoppingList]);
+      const { activePlan } = JSON.parse(storedPlan);
+      const recipeIds = [];
+      
+      if (activePlan.breakfast) recipeIds.push(activePlan.breakfast.id);
+      if (activePlan.lunch) recipeIds.push(activePlan.lunch.id);
+      if (activePlan.dinner) recipeIds.push(activePlan.dinner.id);
 
-  // Toggle check state for an item
-  const toggleItemCheck = (categoryName, itemName) => {
-    const itemKey = `${categoryName}-${itemName}`;
-    setCheckedItems(prev => ({
-      ...prev,
-      [itemKey]: !prev[itemKey]
-    }));
-  };
+      // Fetch full recipe details with ingredients
+      const recipeDetails = await Promise.all(
+        recipeIds.map(id => getRecipeById(id))
+      );
 
-  // Calculate the estimated cost at selected market
-  const getMarketEstimate = (basePrice) => {
-    return Math.round(basePrice * marketPriceModifiers[selectedMarket]);
-  };
+      setRecipes(recipeDetails);
+      
+      // Consolidate ingredients
+      const ingredientsMap = new Map();
+      
+      recipeDetails.forEach(recipe => {
+        if (recipe.ingredients) {
+          recipe.ingredients.forEach(recipeIngredient => {
+            const ingredientId = recipeIngredient.ingredient.id;
+            const ingredientName = recipeIngredient.ingredient_name || recipeIngredient.ingredient.name;
+            const quantity = parseFloat(recipeIngredient.quantity) || 0;
+            const unit = recipeIngredient.unit;
 
-  // Get number of checked items
-  const getCheckedItemsCount = () => {
-    return Object.values(checkedItems).filter(Boolean).length;
-  };
-
-  // Get total number of items
-  const getTotalItemsCount = () => {
-    return Object.keys(checkedItems).length;
-  };
-
-  // Calculate remaining total (unchecked items)
-  const getRemainingTotal = () => {
-    let remaining = 0;
-    shoppingList.categories.forEach(category => {
-      category.items.forEach(item => {
-        const itemKey = `${category.name}-${item.name}`;
-        if (!checkedItems[itemKey]) {
-          remaining += item.price;
+            // Create unique key for same ingredient and unit
+            const key = `${ingredientId}-${unit}`;
+            
+            if (ingredientsMap.has(key)) {
+              const existing = ingredientsMap.get(key);
+              existing.quantity += quantity;
+              
+              // Add costs for each market
+              if (recipeIngredient.costs_for_recipe) {
+                Object.keys(recipeIngredient.costs_for_recipe).forEach(market => {
+                  if (existing.costs_for_recipe[market] !== undefined && recipeIngredient.costs_for_recipe[market] !== undefined) {
+                    existing.costs_for_recipe[market] += parseFloat(recipeIngredient.costs_for_recipe[market] || 0);
+                  }
+                });
+              }
+            } else {
+              ingredientsMap.set(key, {
+                ingredientId,
+                name: ingredientName,
+                quantity,
+                unit,
+                costs_for_recipe: recipeIngredient.costs_for_recipe ? 
+                  Object.fromEntries(
+                    Object.entries(recipeIngredient.costs_for_recipe).map(([k, v]) => [k, parseFloat(v || 0)])
+                  ) : {},
+              });
+            }
+          });
         }
       });
-    });
-    return getMarketEstimate(remaining);
+
+      const consolidated = Array.from(ingredientsMap.values());
+      setConsolidatedIngredients(consolidated);
+
+      // Calculate total costs per market
+      const totals = { A101: 0, SOK: 0, BIM: 0, MIGROS: 0 };
+      consolidated.forEach(ingredient => {
+        Object.keys(totals).forEach(market => {
+          if (ingredient.costs_for_recipe[market] !== undefined) {
+            totals[market] += ingredient.costs_for_recipe[market];
+          }
+        });
+      });
+
+      setMarketCosts(totals);
+
+    } catch (error) {
+      console.error('Error loading shopping list:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Clear all checked items
-  const clearCheckedItems = () => {
-    const clearedState = {};
-    Object.keys(checkedItems).forEach(key => {
-      clearedState[key] = false;
-    });
-    setCheckedItems(clearedState);
+  const getCheapestMarket = () => {
+    const markets = Object.entries(marketCosts).filter(([_, cost]) => cost > 0);
+    if (markets.length === 0) return null;
+    
+    return markets.reduce((min, [market, cost]) => 
+      cost < min[1] ? [market, cost] : min
+    , markets[0]);
   };
 
-  // Check all items
-  const checkAllItems = () => {
-    const checkedState = {};
-    Object.keys(checkedItems).forEach(key => {
-      checkedState[key] = true;
+  const handleIngredientClick = (ingredientId) => {
+    // Save current shopping list state
+    localStorage.setItem('shoppingListState', JSON.stringify({
+      recipes,
+      consolidatedIngredients,
+      marketCosts
+    }));
+    navigate(`/ingredients/${ingredientId}`);
+  };
+
+  const copyToClipboard = () => {
+    let text = '🛒 Shopping List\n\n';
+    
+    // Add recipes
+    text += '📋 Recipes:\n';
+    recipes.forEach((recipe, index) => {
+      const nutrition = recipe.recipe_nutritions || {};
+      text += `${index + 1}. ${recipe.name}\n`;
+      text += `   Calories: ${nutrition.calories || 0} cal | `;
+      text += `Protein: ${nutrition.protein || 0}g | `;
+      text += `Carbs: ${nutrition.carbs || 0}g | `;
+      text += `Fat: ${nutrition.fat || 0}g\n\n`;
     });
-    setCheckedItems(checkedState);
+
+    // Add ingredients
+    text += '\n📦 Ingredients:\n';
+    consolidatedIngredients.forEach((ingredient, index) => {
+      text += `${index + 1}. ${ingredient.quantity.toFixed(2)} ${ingredient.unit} ${ingredient.name}\n`;
+    });
+
+    // Add market costs
+    text += '\n💰 Total Costs:\n';
+    const cheapest = getCheapestMarket();
+    Object.entries(marketCosts).forEach(([market, cost]) => {
+      const marker = cheapest && market === cheapest[0] ? '✓ ' : '  ';
+      text += `${marker}${market}: ${cost.toFixed(2)} ${currency}\n`;
+    });
+
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="text-center py-12">
-          <p className="text-gray-500">Generating your shopping list...</p>
+      <div className="shopping-list-container">
+        <div className="loading-state">Loading shopping list...</div>
+      </div>
+    );
+  }
+
+  if (recipes.length === 0) {
+    return (
+      <div className="shopping-list-container">
+        <div className="empty-state">
+          <p>No meal plan found. Please create a meal plan first.</p>
+          <Link to="/meal-planner">
+            <Button>Go to Meal Planner</Button>
+          </Link>
         </div>
       </div>
     );
   }
 
+  const cheapestMarket = getCheapestMarket();
+
   return (
-    <div className="container" style={{ maxWidth: '800px' }}>
-      <div className="">
-        <h1 className="">Shopping List</h1>
-        <Button onClick={() => window.print()} variant="secondary">
-          Print List
-        </Button>
+    <div className="shopping-list-container">
+      {/* Header */}
+      <div className="shopping-list-header">
+        <h1 className="shopping-list-title">🛒 Shopping List</h1>
+        <button 
+          onClick={copyToClipboard}
+          className="copy-button"
+          title="Copy to clipboard"
+        >
+          {copied ? '✓ Copied!' : '📋 Copy'}
+        </button>
       </div>
 
-      {/* Progress Bar */}
-      <div className="">
-        <div className="">
-          <span>Progress: {getCheckedItemsCount()}/{getTotalItemsCount()} items</span>
-          <span>Remaining: ₺{getRemainingTotal()}</span>
-        </div>
-        <div className="">
-          <div 
-            className="" 
-            style={{ width: `${(getCheckedItemsCount() / getTotalItemsCount()) * 100}%` }}
-          ></div>
-        </div>
-      </div>
+      {/* Main Content - 2 Columns */}
+      <div className="shopping-list-content">
+        {/* Left Column - Recipes + Markets */}
+        <div className="left-column">
+          {/* Recipes Summary */}
+          <div className="recipes-summary-section">
+            <h2 className="section-title">📋 Recipes</h2>
+            <div className="recipes-summary-grid">
+              {recipes.map((recipe, index) => {
+                const nutrition = recipe.recipe_nutritions || {};
+                return (
+                  <div key={recipe.id} className="recipe-summary-card">
+                    <h3 className="recipe-summary-name">{recipe.name}</h3>
+                    <div className="recipe-summary-nutrition">
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Calories:</span>
+                        <span className="nutrition-value">{parseFloat(nutrition.calories || 0).toFixed(0)} cal</span>
+                      </div>
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Protein:</span>
+                        <span className="nutrition-value">{parseFloat(nutrition.protein || 0).toFixed(1)}g</span>
+                      </div>
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Carbs:</span>
+                        <span className="nutrition-value">{parseFloat(nutrition.carbs || 0).toFixed(1)}g</span>
+                      </div>
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Fat:</span>
+                        <span className="nutrition-value">{parseFloat(nutrition.fat || 0).toFixed(1)}g</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-      {/* Market Selection */}
-      <Card className="">
-        <Card.Body>
-          <h2 className="">Choose Market</h2>
-          <div className="">
-            {Object.keys(marketPriceModifiers).map(market => (
-              <button
-                key={market}
-                onClick={() => setSelectedMarket(market)}
-                className={`px-4 py-2 rounded-md ${
-                  selectedMarket === market 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-800'
-                }`}
+          {/* Market Costs Summary */}
+          <div className="market-costs-section">
+        <h2 className="section-title">💰 Market Comparison</h2>
+        <div className="market-costs-grid">
+          {Object.entries(marketCosts).map(([market, cost]) => {
+            const isCheapest = cheapestMarket && market === cheapestMarket[0];
+            const getMarketLogo = (marketName) => {
+              switch(marketName) {
+                case 'A101': return '/src/assets/market_logos/a101.png';
+                case 'SOK': return '/src/assets/market_logos/sok.png';
+                case 'BIM': return '/src/assets/market_logos/bim.png';
+                case 'MIGROS': return '/src/assets/market_logos/migros.png';
+                default: return null;
+              }
+            };
+            
+            return (
+              <div 
+                key={market} 
+                className={`market-cost-card ${isCheapest ? 'cheapest' : ''}`}
               >
-                {market}
-              </button>
-            ))}
-          </div>
-          <div className="">
-            <p className="">
-              Estimated total at {selectedMarket}: <span className="">₺{getMarketEstimate(shoppingList.totalCost)}</span>
-            </p>
-          </div>
-        </Card.Body>
-      </Card>
-
-      {/* Shopping List */}
-      <div className="">
-        <div className="">
-          <h2 className="">Items to Buy</h2>
-          <div className="">
-            <Button size="sm" variant="secondary" onClick={clearCheckedItems}>
-              Uncheck All
-            </Button>
-            <Button size="sm" onClick={checkAllItems}>
-              Check All
-            </Button>
-          </div>
+                {isCheapest && <div className="cheapest-badge">✓ Best Deal</div>}
+                {getMarketLogo(market) && (
+                  <img 
+                    src={getMarketLogo(market)} 
+                    alt={market} 
+                    className="market-logo-img" 
+                  />
+                )}
+                <div className="market-name">{market}</div>
+                <div className="market-cost">
+                  {cost.toFixed(2)} {currency}
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        {shoppingList.categories.length > 0 ? (
-          <div className="">
-            {shoppingList.categories.map((category, index) => (
-              <Card key={index}>
-                <Card.Header>
-                  <h3 className="">{category.name}</h3>
-                </Card.Header>
-                <Card.Body>
-                  <ul className="">
-                    {category.items.map((item, itemIdx) => {
-                      const itemKey = `${category.name}-${item.name}`;
-                      return (
-                        <li key={itemIdx} className="py-2">
-                          <label className="flex items-center justify-between cursor-pointer">
-                            <div className="flex items-center">
-                              <input
-                                type="checkbox"
-                                checked={checkedItems[itemKey] || false}
-                                onChange={() => toggleItemCheck(category.name, item.name)}
-                                className="mr-3 h-5 w-5"
-                              />
-                              <span className={checkedItems[itemKey] ? 'line-through text-gray-400' : ''}>
-                                {item.quantity} {item.name}
-                              </span>
-                            </div>
-                            <span className={checkedItems[itemKey] ? 'text-gray-400' : 'font-medium'}>
-                              ₺{item.price}
-                            </span>
-                          </label>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <Card.Body>
-              <p className="">
-                No items in your shopping list. Add meals to your meal plan first.
-              </p>
-            </Card.Body>
-          </Card>
-        )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="">
+        </div>
+
+        {/* Right Column - Ingredients List */}
+        <div className="ingredients-section">
+          <h2 className="section-title">📦 Ingredients</h2>
+          <div className="ingredients-list">
+            {consolidatedIngredients.map((ingredient, index) => (
+              <div 
+                key={`${ingredient.ingredientId}-${ingredient.unit}`}
+                className="ingredient-item"
+                onClick={() => handleIngredientClick(ingredient.ingredientId)}
+              >
+                <span className="ingredient-index">{index + 1}.</span>
+                <span className="ingredient-details">
+                  <span className="ingredient-quantity">
+                    {ingredient.quantity.toFixed(2)} {ingredient.unit}
+                  </span>
+                  <span className="ingredient-name">{ingredient.name}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="shopping-list-actions">
         <Link to="/meal-planner">
-          <Button variant="secondary">Back to Meal Planner</Button>
-        </Link>
-        <Link to="/dashboard">
-          <Button variant="ghost">Back to Dashboard</Button>
+          <button className="back-to-planner-button">← Back to Meal Planner</button>
         </Link>
       </div>
     </div>
