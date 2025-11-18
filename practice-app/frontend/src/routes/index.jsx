@@ -26,6 +26,7 @@ import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
 import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
 import UploadRecipePage from '../pages/recipes/UploadRecipePage';
 import ProfilePage from '../pages/profile/ProfilePage';
+import OtherUserProfilePage from '../pages/profile/OtherUserProfilePage';
 
 import CommunityPage from '../pages/community/CommunityPage';
 import PostDetailPage from '../pages/community/PostDetailPage';
@@ -244,6 +245,16 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Other User Profile */}
+        <Route 
+          path="/profile/:userId" 
+          element={
+            <ProtectedRoute>
+              <OtherUserProfilePage />
             </ProtectedRoute>
           } 
         />

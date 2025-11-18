@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js'; // Import userService
@@ -652,11 +653,14 @@ const PostDetailPage = () => {
                 <span 
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/community/profile/${post.author}`);
+                    navigate(`/profile/${post.author}`);
                   }}
                   className="author-link"
                 >
                   {getUserName(post.author)}
+                  {userMap[post.author]?.typeOfCook && (
+                    <Badge role={userMap[post.author].typeOfCook} size="small" />
+                  )}
                 </span>
               </div>
               <div className="post-timestamp">{formatDate(post.created_at)}</div>
@@ -707,20 +711,7 @@ const PostDetailPage = () => {
               >
                 ▼ {post.downvote_count || 0}
               </button>
-              <button 
-                onClick={handleRemoveVote}
-                className="vote-button remove-vote"
-                disabled={isVoting || !userVote.hasVoted}
-                aria-label="Remove vote"
-              >
-                {t("postDetailPageRemoveVote")}
-              </button>
             </div>
-            {userVote.hasVoted && (
-              <div style={{ marginLeft: '10px', fontSize: '0.9rem', color: userVote.voteType === 'up' ? 'green' : 'red' }}>
-                {t("postDetailPageVoted")} {userVote.voteType}
-              </div>
-            )}
             <div className="post-stats" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>👁️ {post.view_count} {t("Views")}</span>
               {/* Report button positioned at right of views */}
@@ -783,11 +774,14 @@ const PostDetailPage = () => {
                             <span 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/community/profile/${comment.author}`);
+                                navigate(`/profile/${comment.author}`);
                               }}
                               className="author-link"
                             >
                               {getUserName(comment.author)}
+                              {userMap[comment.author]?.typeOfCook && (
+                                <Badge role={userMap[comment.author].typeOfCook} size="small" />
+                              )}
                             </span>
                           </div>
                           <div className="comment-time">
@@ -828,24 +822,7 @@ const PostDetailPage = () => {
                           >
                             ▼ {comment.downvote_count || 0}
                           </button>
-                          <button 
-                            onClick={() => handleRemoveCommentVote(comment.id)}
-                            className="vote-button remove-vote"
-                            disabled={!comment.userVote?.hasVoted}
-                            aria-label="Remove vote"
-                            style={{
-                              opacity: comment.userVote?.hasVoted ? '1' : '0.5',
-                              cursor: comment.userVote?.hasVoted ? 'pointer' : 'not-allowed'
-                            }}
-                          >
-                            {t("postDetailPageRemoveVote")}
-                          </button>
                         </div>
-                        {comment.userVote?.hasVoted && (
-                          <div style={{ marginLeft: '10px', fontSize: '0.9rem', color: comment.userVote.voteType === 'up' ? 'green' : 'red' }}>
-                            {t("postDetailPageVoted")} {comment.userVote.voteType}
-                          </div>
-                        )}
                       </div>
                     </Card.Body>
                   </Card>

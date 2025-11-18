@@ -1,0 +1,31 @@
+/* src/styles/Badge.css */
+
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 600;
+  vertical-align: middle;
+  margin-left: -7px;
+  background: none !important;
+  /* Color is set inline based on badge role */
+}
+
+.user-badge-small {
+  font-size: 1.2rem !important;
+}
+
+.user-badge-medium {
+  font-size: 1.5rem !important;
+}
+
+.user-badge-large {
+  font-size: 2rem !important;
+}
+
+.user-badge:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+

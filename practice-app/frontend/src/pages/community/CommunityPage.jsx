@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import ReportButton from '../../components/report/ReportButton';
+import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js';
@@ -480,11 +481,14 @@ const CommunityPage = () => {
                         <span 
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent post detail navigation
-                            navigate(`/community/profile/${post.author}`);
+                            navigate(`/profile/${post.author}`);
                           }}
                           className="author-link"
                         >
                           {getUserName(post.author)}
+                          {userMap[post.author]?.typeOfCook && (
+                            <Badge role={userMap[post.author].typeOfCook} size="small" />
+                          )}
                         </span>
                       </span>
                       <span>{formatDate(post.created_at)}</span>
@@ -515,17 +519,6 @@ const CommunityPage = () => {
                           aria-label="Downvote"
                         >
                           ▼ {post.downvote_count}
-                        </button>
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            handleRemoveVote(post.id); 
-                          }}
-                          className={`vote-button ${!userVotes[post.id] ? 'disabled' : ''}`}
-                          aria-label="Remove vote"
-                          disabled={!userVotes[post.id]}
-                        >
-                          {t("communityPageRemoveVote")}
                         </button>
                       </div>
                       <div className="post-stats">
