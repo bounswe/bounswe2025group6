@@ -223,11 +223,17 @@ class IngredientQuantity {
   ingredient; // This will be the detailed ingredient object
   final double quantity;
   final String unit;
+  final Map<String, dynamic>?
+  costsForRecipe; // Market costs for this ingredient in recipe
+  final Map<String, dynamic>?
+  nutritionInfoForRecipe; // Nutrition info for this ingredient in recipe
 
   IngredientQuantity({
     required this.ingredient,
     required this.quantity,
     required this.unit,
+    this.costsForRecipe,
+    this.nutritionInfoForRecipe,
   });
 
   factory IngredientQuantity.fromJson(Map<String, dynamic> json) {
@@ -244,8 +250,16 @@ class IngredientQuantity {
       ingredient: IngredientDetail.fromJson(
         json['ingredient'] as Map<String, dynamic>,
       ),
-      quantity: quantity,
-      unit: json['unit'] as String? ?? '',
+      quantity: double.tryParse(json['quantity']?.toString() ?? '') ?? 0.0,
+      unit: json['unit']?.toString() ?? '',
+      costsForRecipe:
+          json['costs_for_recipe'] is Map
+              ? json['costs_for_recipe'] as Map<String, dynamic>?
+              : null,
+      nutritionInfoForRecipe:
+          json['nutrion_info_for_recipe'] is Map
+              ? json['nutrion_info_for_recipe'] as Map<String, dynamic>?
+              : null,
     );
   }
 }
