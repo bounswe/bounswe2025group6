@@ -438,9 +438,19 @@ const CommunityPage = () => {
           </div>
           
           {/* Filter action buttons */}
-          <div className="filter-actions">
-            <Button onClick={applyFilters} style={{ marginTop: '10px', marginRight: '10px' }}>{t("communityPageApplyFilters")}</Button>
-            <Button onClick={resetFilters} style={{ marginTop: '10px' }}>{t("communityPageResetFilters")}</Button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+            <button 
+              onClick={applyFilters} 
+              className="apply-filters-btn"
+            >
+              {t("communityPageApplyFilters")}
+            </button>
+            <button 
+              onClick={resetFilters} 
+              className="reset-filters-btn"
+            >
+              {t("communityPageResetFilters")}
+            </button>
           </div>
         </Card.Body>
       </Card>
