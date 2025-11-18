@@ -37,6 +37,7 @@ const OtherUserProfilePage = () => {
 
   // Load user profile
   useEffect(() => {
+    document.title = 'Profile';
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
