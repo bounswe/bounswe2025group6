@@ -8,6 +8,8 @@ import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js'; // Import userService
+import { formatDate } from '../../utils/dateFormatter';
+import { getCurrentUser } from '../../services/authService';
 import '../../styles/PostDetailPage.css';
 import ReportButton from '../../components/report/ReportButton';
 import { useTranslation } from "react-i18next";
@@ -38,9 +40,23 @@ const PostDetailPage = () => {
   const [isVoting, setIsVoting] = useState(false);
   // Add state for storing user details
   const [userMap, setUserMap] = useState({});
+  const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
 
   useEffect(() => {
     loadPostAndVoteStatus();
+    // Load user's preferred date format
+    const loadUserDateFormat = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user && user.id) {
+          const userData = await userService.getUserById(user.id);
+          setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+        }
+      } catch (error) {
+        console.error('Error loading user date format:', error);
+      }
+    };
+    loadUserDateFormat();
   }, [id, currentUser]);
 
   useEffect(() => {
@@ -600,15 +616,8 @@ const PostDetailPage = () => {
     navigate(`/community/edit/${id}`);
   };
 
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formatDateDisplay = (dateString) => {
+    return formatDate(dateString, userDateFormat);
   };
 
   const formatContent = (content) =>
@@ -663,7 +672,7 @@ const PostDetailPage = () => {
                   )}
                 </span>
               </div>
-              <div className="post-timestamp">{formatDate(post.created_at)}</div>
+              <div className="post-timestamp">{formatDateDisplay(post.created_at)}</div>
             </div>
             {currentUser && post.author === currentUser.id && (
               <div className="post-actions-btn">
@@ -785,7 +794,7 @@ const PostDetailPage = () => {
                             </span>
                           </div>
                           <div className="comment-time">
-                            {formatDate(comment.created_at)}
+                            {formatDateDisplay(comment.created_at)}
                           </div>
                         </div>
                         {currentUser && comment.author === currentUser.id && (

@@ -1,7 +1,8 @@
 /* src/styles/ProfilePage.css */
 
 .modern-profile-page {
-  max-width: 1400px;
+  width: 900px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 2rem;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -148,6 +149,7 @@
 /* Tabs */
 .profile-tabs {
   display: flex;
+  justify-content: center;
   gap: 1rem;
   margin-bottom: 2rem;
   background: white;
@@ -809,6 +811,86 @@
 .copy-btn:hover {
   background: #48bb78;
   color: white;
+}
+
+/* Settings Tab */
+.settings-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.settings-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 2rem 0;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-label {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 1rem;
+}
+
+.settings-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: #48bb78;
+}
+
+.settings-input[type="date"] {
+  cursor: pointer;
+}
+
+.settings-hint {
+  color: #718096;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.settings-save-btn {
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #48bb78, #38a169);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+  align-self: flex-start;
+}
+
+.settings-save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.settings-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Responsive */

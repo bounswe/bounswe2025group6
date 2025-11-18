@@ -8,6 +8,8 @@ import { getFollowers, getFollowing, toggleFollow } from "../../services/followS
 import forumService from "../../services/forumService";
 import RecipeCard from "../../components/recipe/RecipeCard";
 import Badge, { getBadgeLabel, getBadgeColor } from "../../components/ui/Badge";
+import { formatDate } from "../../utils/dateFormatter";
+import { getCurrentUser as getCurrentUserService } from "../../services/authService";
 import "../../styles/OtherUserProfilePage.css";
 
 const OtherUserProfilePage = () => {
@@ -26,6 +28,7 @@ const OtherUserProfilePage = () => {
   const [comments, setComments] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
   
   // Popup states
   const [showFollowersPopup, setShowFollowersPopup] = useState(false);
@@ -53,6 +56,17 @@ const OtherUserProfilePage = () => {
           loadPostsAndComments(userId),
           checkFollowStatus(userId)
         ]);
+        
+        // Load current user's preferred date format
+        try {
+          const currentUserData = await getCurrentUserService();
+          if (currentUserData && currentUserData.id) {
+            const currentUserProfile = await userService.getUserById(currentUserData.id);
+            setUserDateFormat(currentUserProfile.preferredDateFormat || 'DD/MM/YYYY');
+          }
+        } catch (error) {
+          console.error('Error loading user date format:', error);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -376,7 +390,7 @@ const OtherUserProfilePage = () => {
                 >
                   <h3>{post.title}</h3>
                   <p>{post.content.substring(0, 150)}{post.content.length > 150 ? '...' : ''}</p>
-                  <span className="other-post-date">{new Date(post.created_at).toLocaleDateString()}</span>
+                  <span className="other-post-date">{formatDate(post.created_at, userDateFormat)}</span>
                 </div>
               ))
             )}
@@ -396,7 +410,7 @@ const OtherUserProfilePage = () => {
                 >
                   <p className="other-comment-on">On: <strong>{comment.postTitle}</strong></p>
                   <p className="other-comment-content">{comment.content}</p>
-                  <span className="other-comment-date">{new Date(comment.created_at).toLocaleDateString()}</span>
+                  <span className="other-comment-date">{formatDate(comment.created_at, userDateFormat)}</span>
                 </div>
               ))
             )}

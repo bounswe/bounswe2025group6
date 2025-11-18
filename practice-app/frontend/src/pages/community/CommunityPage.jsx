@@ -9,6 +9,8 @@ import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
 import userService from '../../services/userService.js';
+import { formatDate } from '../../utils/dateFormatter';
+import { getCurrentUser } from '../../services/authService';
 import '../../styles/CommunityPage.css';
 import { useTranslation } from "react-i18next";
 
@@ -32,6 +34,7 @@ const CommunityPage = () => {
   const [sortBy, setSortBy] = useState('recent');
   const [userMap, setUserMap] = useState({});
   const [userVotes, setUserVotes] = useState({});  // { postId: 'up' | 'down' }
+  const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
 
   // Available tags from API documentation
   const availableTags = [
@@ -42,6 +45,19 @@ const CommunityPage = () => {
 
   useEffect(() => {
     loadPosts();
+    // Load user's preferred date format
+    const loadUserDateFormat = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user && user.id) {
+          const userData = await userService.getUserById(user.id);
+          setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+        }
+      } catch (error) {
+        console.error('Error loading user date format:', error);
+      }
+    };
+    loadUserDateFormat();
   }, [pagination.page]);
 
   // Apply filters when the Apply Filters button is clicked
@@ -386,15 +402,8 @@ const CommunityPage = () => {
 
   const goToPostDetail = (postId) => navigate(`/community/post/${postId}`);
 
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formatDateDisplay = (dateString) => {
+    return formatDate(dateString, userDateFormat);
   };
 
   const handlePageChange = (newPage) => {
@@ -491,7 +500,7 @@ const CommunityPage = () => {
                           )}
                         </span>
                       </span>
-                      <span>{formatDate(post.created_at)}</span>
+                      <span>{formatDateDisplay(post.created_at)}</span>
                     </div>
                     <h2>{post.title}</h2>
                     <p>{post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content}</p>
