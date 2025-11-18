@@ -4,6 +4,7 @@ import '../services/health_rating_service.dart';
 import '../services/profile_service.dart';
 import '../models/recipe_rating.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class RatingDialog extends StatefulWidget {
   final int recipeId;
@@ -275,7 +276,9 @@ class _RatingDialogState extends State<RatingDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        widget.existingRating != null ? 'Update Rating' : 'Rate Recipe',
+        widget.existingRating != null 
+          ? AppLocalizations.of(context)!.editRating 
+          : AppLocalizations.of(context)!.rateRecipe,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
       ),
       content: SingleChildScrollView(
@@ -308,8 +311,8 @@ class _RatingDialogState extends State<RatingDialog> {
               ),
 
             // Taste Rating Section
-            const Text(
-              'Taste Rating',
+            Text(
+              AppLocalizations.of(context)!.tasteRating,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -376,14 +379,14 @@ class _RatingDialogState extends State<RatingDialog> {
                     _tasteRating = null;
                   });
                 },
-                child: const Text('Clear taste rating'),
+                child: Text(AppLocalizations.of(context)!.clearTasteRating),
               ),
 
             const Divider(height: 32),
 
             // Difficulty Rating Section
-            const Text(
-              'Difficulty Rating',
+            Text(
+              AppLocalizations.of(context)!.difficultyRating,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -451,14 +454,14 @@ class _RatingDialogState extends State<RatingDialog> {
                     _difficultyRating = null;
                   });
                 },
-                child: const Text('Clear difficulty rating'),
+                child: Text(AppLocalizations.of(context)!.clearDifficultyRating),
               ),
 
             // Health Rating Section (Only for Dietitians)
             if (_isDietitian) ...[
               const Divider(height: 32),
-              const Text(
-                'Health Rating (Dietitian Only)',
+              Text(
+                '${AppLocalizations.of(context)!.healthRating} (Dietitian Only)',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -525,7 +528,7 @@ class _RatingDialogState extends State<RatingDialog> {
                       _healthRating = null;
                     });
                   },
-                  child: const Text('Clear health rating'),
+                  child: Text(AppLocalizations.of(context)!.clearHealthRating),
                 ),
             ],
           ],
@@ -536,12 +539,12 @@ class _RatingDialogState extends State<RatingDialog> {
         if (widget.existingRating != null)
           TextButton(
             onPressed: _isLoading ? null : _deleteRating,
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: Colors.red)),
           ),
         const Spacer(),
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _submitRating,
@@ -559,7 +562,7 @@ class _RatingDialogState extends State<RatingDialog> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                  : Text(widget.existingRating != null ? 'Update' : 'Submit'),
+                  : Text(widget.existingRating != null ? AppLocalizations.of(context)!.update : AppLocalizations.of(context)!.rateRecipe),
         ),
       ],
     );

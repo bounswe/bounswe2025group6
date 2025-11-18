@@ -229,6 +229,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     recipe_costs = serializers.SerializerMethodField()
     recipe_nutritions = serializers.SerializerMethodField()
     cost_per_serving = serializers.SerializerMethodField()
+    allergens = serializers.SerializerMethodField()
 
     image_relative_url = serializers.SerializerMethodField()
     image_full_url = serializers.SerializerMethodField()
@@ -245,6 +246,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'recipe_costs',
             'recipe_nutritions',
             'cost_per_serving',
+            'allergens',
             'difficulty_rating',
             'difficulty_rating_count',
             'taste_rating',
@@ -285,6 +287,9 @@ class RecipeListSerializer(serializers.ModelSerializer):
                 preferredCurrency = "USD"
             user = DummyUser()
         return obj.calculate_cost_per_serving(user)
+    
+    def get_allergens(self, obj):
+        return obj.check_allergens()
     
     def get_image_relative_url(self, obj):
         return str(obj.image) if obj.image else None
