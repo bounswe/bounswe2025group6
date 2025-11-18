@@ -249,6 +249,9 @@
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
 }
 
+.recipe-detail-page-header-buttons button {
+  margin-left: 10px;
+}
 
 /* Creator information positioned at top right */
 .creator-info-top-right {
