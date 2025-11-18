@@ -201,6 +201,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             openapi.Parameter('has_image', openapi.IN_QUERY, description="Filter recipes that have an image", type=openapi.TYPE_BOOLEAN),
             openapi.Parameter('is_approved', openapi.IN_QUERY, description="Filter only approved recipes", type=openapi.TYPE_BOOLEAN),
             openapi.Parameter('is_featured', openapi.IN_QUERY, description="Filter only featured recipes", type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter('exclude_allergens', openapi.IN_QUERY, description="Comma-separated list of allergens to exclude (e.g., 'nuts,gluten')", type=openapi.TYPE_STRING),
             *pagination_params,  # include page & page_size
         ],
         responses={200: RecipeListSerializer(many=True)},
@@ -249,6 +250,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         has_image = request.query_params.get("has_image")
         is_approved = request.query_params.get("is_approved")
         is_featured = request.query_params.get("is_featured")
+        exclude_allergens = request.query_params.get("exclude_allergens")
 
         # Apply filters dynamically
         filters = Q()
@@ -338,6 +340,36 @@ class RecipeViewSet(viewsets.ModelViewSet):
             filters &= Q(is_featured=(is_featured.lower() == "true"))
 
         queryset = queryset.filter(filters)
+
+        # Filter out recipes containing excluded allergens
+        if exclude_allergens:
+            from ingredients.models import Ingredient
+            # Parse comma-separated allergens
+            allergens_to_exclude = [a.strip().lower() for a in exclude_allergens.split(',') if a.strip()]
+            
+            if allergens_to_exclude:
+                # Get recipe IDs that contain any of the excluded allergens
+                # We need to check through RecipeIngredient -> Ingredient -> allergens JSONField
+                recipe_ids_with_allergens = set()
+                
+                for allergen in allergens_to_exclude:
+                    # Find all ingredients that contain this allergen
+                    # For JSONField list, use contains with the value directly (not as a list)
+                    ingredients_with_allergen = Ingredient.objects.filter(
+                        allergens__contains=allergen
+                    )
+                    
+                    # Find all recipes that use these ingredients
+                    recipe_ids = RecipeIngredient.objects.filter(
+                        ingredient__in=ingredients_with_allergen,
+                        deleted_on__isnull=True
+                    ).values_list('recipe_id', flat=True).distinct()
+                    
+                    recipe_ids_with_allergens.update(recipe_ids)
+                
+                # Exclude recipes that contain any of the excluded allergens
+                if recipe_ids_with_allergens:
+                    queryset = queryset.exclude(id__in=recipe_ids_with_allergens)
 
         # Paginate results
         page = self.paginate_queryset(queryset)
