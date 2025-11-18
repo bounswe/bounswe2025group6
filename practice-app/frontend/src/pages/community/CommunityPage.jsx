@@ -158,17 +158,33 @@ const CommunityPage = () => {
       const idsToFetch = userIds.filter(id => !newUserMap[id]);
       
       if (idsToFetch.length > 0) {
-        // This would be your actual API call to get user details
-        for (const userId of idsToFetch) {
+        // Fetch user details and badges in parallel
+        const userPromises = idsToFetch.map(async (userId) => {
           try {
-            const userDetails = await userService.getUserById(userId);
-            newUserMap[userId] = userDetails;
+            const userData = await userService.getUserById(userId);
+            const badgeData = await userService.getUserRecipeCount(userId);
+            return {
+              id: userId,
+              user: userData,
+              badge: badgeData.badge
+            };
           } catch (error) {
-            console.error(`Error fetching details for user ${userId}:`, error);
-            // Use a placeholder for users we couldn't fetch
-            newUserMap[userId] = { id: userId, username: `User ${userId}` };
+            console.error(`Error fetching user ${userId}:`, error);
+            return { id: userId, user: null, badge: null };
           }
-        }
+        });
+        
+        const userResults = await Promise.all(userPromises);
+        
+        userResults.forEach(({ id, user, badge }) => {
+          if (user) {
+            newUserMap[id] = {
+              ...user,
+              badge: badge,
+              usertype: user.usertype || null
+            };
+          }
+        });
         
         setUserMap(newUserMap);
       }
@@ -495,9 +511,7 @@ const CommunityPage = () => {
                           className="author-link"
                         >
                           {getUserName(post.author)}
-                          {userMap[post.author]?.typeOfCook && (
-                            <Badge role={userMap[post.author].typeOfCook} size="small" />
-                          )}
+                          <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
                         </span>
                       </span>
                       <span>{formatDateDisplay(post.created_at)}</span>

@@ -1,12 +1,13 @@
 /* src/styles/OtherUserProfilePage.css */
 
 .other-user-profile-page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  min-height: 100vh;
-}
+    width: 900px;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
 
 /* Profile Header */
 .other-profile-header {

@@ -187,18 +187,35 @@ const PostDetailPage = () => {
       const idsToFetch = userIds.filter(id => !newUserMap[id]);
       
       if (idsToFetch.length > 0) {
-        // This would be your actual API call to get user details
-        // For example:
-        for (const userId of idsToFetch) {
+        // Fetch user details and badges in parallel
+        const userPromises = idsToFetch.map(async (userId) => {
           try {
-            const userDetails = await userService.getUserById(userId);
-            newUserMap[userId] = userDetails;
+            const userData = await userService.getUserById(userId);
+            const badgeData = await userService.getUserRecipeCount(userId);
+            return {
+              id: userId,
+              user: userData,
+              badge: badgeData.badge
+            };
           } catch (error) {
-            console.error(`Error fetching details for user ${userId}:`, error);
-            // Use a placeholder for users we couldn't fetch
-            newUserMap[userId] = { id: userId, username: `User ${userId}` };
+            console.error(`Error fetching user ${userId}:`, error);
+            return { id: userId, user: null, badge: null };
           }
-        }
+        });
+        
+        const userResults = await Promise.all(userPromises);
+        
+        userResults.forEach(({ id, user, badge }) => {
+          if (user) {
+            newUserMap[id] = {
+              ...user,
+              badge: badge,
+              usertype: user.usertype || null
+            };
+          } else {
+            newUserMap[id] = { id: id, username: `User ${id}`, badge: null, usertype: null };
+          }
+        });
         
         setUserMap(newUserMap);
       }
@@ -667,9 +684,7 @@ const PostDetailPage = () => {
                   className="author-link"
                 >
                   {getUserName(post.author)}
-                  {userMap[post.author]?.typeOfCook && (
-                    <Badge role={userMap[post.author].typeOfCook} size="small" />
-                  )}
+                  <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
                 </span>
               </div>
               <div className="post-timestamp">{formatDateDisplay(post.created_at)}</div>
@@ -788,9 +803,7 @@ const PostDetailPage = () => {
                               className="author-link"
                             >
                               {getUserName(comment.author)}
-                              {userMap[comment.author]?.typeOfCook && (
-                                <Badge role={userMap[comment.author].typeOfCook} size="small" />
-                              )}
+                              <Badge badge={userMap[comment.author]?.badge} size="small" usertype={userMap[comment.author]?.usertype} />
                             </span>
                           </div>
                           <div className="comment-time">

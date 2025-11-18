@@ -405,7 +405,7 @@ const RecipeDetailPage = () => {
             {/* Report button - right side, only show if not owner */}
             {currentUser && currentUser.id !== recipe.creator_id && (
               <div className="recipe-report-button-wrapper">
-                <ReportButton targetType="recipe" targetId={id} />
+              <ReportButton targetType="recipe" targetId={id} />
               </div>
             )}
           </div>

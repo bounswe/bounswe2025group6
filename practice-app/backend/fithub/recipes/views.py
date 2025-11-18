@@ -360,7 +360,7 @@ def get_user_recipe_count(request, user_id):
     Get the number of recipes created by a specific user
     """
     try:
-        recipe_count = Recipe.objects.filter(creator_id=user_id).count()
+        recipe_count = Recipe.objects.filter(creator_id=user_id, deleted_on=None).count()
         badge = None
         if recipe_count >=20:
             badge = "Experienced Home Cook"

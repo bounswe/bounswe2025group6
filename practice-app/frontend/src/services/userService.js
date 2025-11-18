@@ -109,6 +109,18 @@ const userService = {
   },
 
   getUsername,
+
+  // Get user recipe count and badge
+  getUserRecipeCount: async (userId) => {
+    try {
+      const response = await api.get(`/recipes/user/${userId}/recipe-count/`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user recipe count:", error);
+      // Return default values if error
+      return { user_id: userId, recipe_count: 0, badge: null };
+    }
+  },
 };
 
 export default userService;

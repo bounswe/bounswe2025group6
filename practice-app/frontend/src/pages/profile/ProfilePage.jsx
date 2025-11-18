@@ -26,6 +26,7 @@ const ProfilePage = () => {
   // State
   const [activeTab, setActiveTab] = useState("recipes");
   const [userProfile, setUserProfile] = useState(null);
+  const [userBadge, setUserBadge] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [myRecipes, setMyRecipes] = useState([]);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
@@ -39,6 +40,7 @@ const ProfilePage = () => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [nationality, setNationality] = useState('');
   const [nationalityOther, setNationalityOther] = useState('');
+  const [accessibilityNeeds, setAccessibilityNeeds] = useState('none');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   
@@ -77,6 +79,10 @@ const ProfilePage = () => {
         const userData = await userService.getUserById(user.id);
         setUserProfile(userData);
         
+        // Fetch user badge
+        const badgeData = await userService.getUserRecipeCount(user.id);
+        setUserBadge(badgeData.badge);
+        
         // Initialize settings form fields
         if (userData.date_of_birth) {
           // Format date for input (YYYY-MM-DD)
@@ -96,6 +102,8 @@ const ProfilePage = () => {
           setNationality('');
           setNationalityOther('');
         }
+        // Initialize accessibility needs
+        setAccessibilityNeeds(userData.accessibilityNeeds || 'none');
 
         // Load all user data in parallel
         await Promise.all([
@@ -312,7 +320,7 @@ const ProfilePage = () => {
     const newDatePref = e.target.value;
     try {
       await userService.updateUserById(userProfile.id, {
-        preferredDateFormat: newDatePref,
+      preferredDateFormat: newDatePref,
       });
       setUserProfile({ ...userProfile, preferredDateFormat: newDatePref });
     } catch (error) {
@@ -347,6 +355,9 @@ const ProfilePage = () => {
       } else {
         updateData.nationality = null;
       }
+      
+      // Add accessibility needs
+      updateData.accessibilityNeeds = accessibilityNeeds || 'none';
       
       const updatedUser = await userService.updateUserById(userProfile.id, updateData);
       setUserProfile(updatedUser);
@@ -451,6 +462,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
       {/* Header with profile info */}
       <div className="profile-header">
         <div className="profile-header-content">
+          <div className="profile-info">
           <div className="profile-avatar">
             {userProfile.profilePhoto ? (
               <img src={userProfile.profilePhoto} alt={userProfile.username} />
@@ -458,19 +470,18 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
               <div className="profile-avatar-placeholder">{userProfile.username?.[0]?.toUpperCase() || 'U'}</div>
             )}
           </div>
-          <div className="profile-info">
             <h1 className="profile-username">
-              {userProfile.username}
-              {userProfile.typeOfCook && <Badge role={userProfile.typeOfCook} size="large" />}
+              <span className="profile-username-wrapper">
+                <span className="profile-username-text">{userProfile.username}</span>
+                <Badge badge={userBadge} size="large" usertype={userProfile.usertype} />
+              </span>
             </h1>
-            {userProfile.typeOfCook && (
               <p 
                 className="profile-badge-label"
-                style={{ color: getBadgeColor(userProfile.typeOfCook) }}
+              style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
               >
-                {getBadgeLabel(userProfile.typeOfCook)}
+              {getBadgeLabel(userBadge, userProfile.usertype)}
               </p>
-            )}
             <p className="profile-email">{userProfile.email}</p>
             <div className="profile-stats">
               <div className="stat-item" onClick={() => setShowFollowersPopup(true)}>
@@ -710,6 +721,23 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                 </small>
               </div>
 
+              <div className="settings-group">
+                <label className="settings-label">Accessibility Needs</label>
+                <select
+                  className="settings-input"
+                  value={accessibilityNeeds}
+                  onChange={(e) => setAccessibilityNeeds(e.target.value)}
+                >
+                  <option value="none">None</option>
+                  <option value="colorblind">Colorblind</option>
+                  <option value="visual">Visual</option>
+                  <option value="hearing">Hearing</option>
+                </select>
+                <small className="settings-hint">
+                  Select any accessibility needs you may have
+                </small>
+              </div>
+
               <button
                 className="settings-save-btn"
                 onClick={handleSaveSettings}
@@ -772,7 +800,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      {user.typeOfCook && <Badge role={user.typeOfCook} size="small" />}
+                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
@@ -832,7 +860,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      {user.typeOfCook && <Badge role={user.typeOfCook} size="small" />}
+                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
                     </div>
               </div>
                 ))
