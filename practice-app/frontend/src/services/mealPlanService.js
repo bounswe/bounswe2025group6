@@ -19,6 +19,24 @@ export const fetchMealPlanRecipes = async (filters = {}) => {
       throw new Error('Authentication token not found');
     }
 
+    // Helper function to parse numeric values and convert to number
+    const parseNumber = (value) => {
+      if (value === null || value === undefined || value === '') {
+        return null;
+      }
+      // Convert to string first, then trim whitespace
+      const strValue = String(value).trim();
+      if (strValue === '') {
+        return null;
+      }
+      const parsed = parseFloat(strValue);
+      // Check if parsed value is valid
+      if (isNaN(parsed) || !isFinite(parsed)) {
+        return null;
+      }
+      return parsed;
+    };
+    
     // Build query parameters
     const params = {};
     
@@ -28,46 +46,78 @@ export const fetchMealPlanRecipes = async (filters = {}) => {
     // Meal type (breakfast, lunch, dinner)
     if (filters.meal_type) params.meal_type = filters.meal_type;
     
-    // Cost per serving filters
-    if (filters.min_cost_per_serving) params.min_cost_per_serving = filters.min_cost_per_serving;
-    if (filters.max_cost_per_serving) params.max_cost_per_serving = filters.max_cost_per_serving;
+    // Cost per serving filters (number -> string for query params)
+    const minCost = parseNumber(filters.min_cost_per_serving);
+    if (minCost !== null) params.min_cost_per_serving = String(minCost);
+    const maxCost = parseNumber(filters.max_cost_per_serving);
+    if (maxCost !== null) params.max_cost_per_serving = String(maxCost);
     
-    // Rating filters
-    if (filters.min_difficulty_rating) params.min_difficulty_rating = filters.min_difficulty_rating;
-    if (filters.max_difficulty_rating) params.max_difficulty_rating = filters.max_difficulty_rating;
-    if (filters.min_taste_rating) params.min_taste_rating = filters.min_taste_rating;
-    if (filters.max_taste_rating) params.max_taste_rating = filters.max_taste_rating;
-    if (filters.min_health_rating) params.min_health_rating = filters.min_health_rating;
-    if (filters.max_health_rating) params.max_health_rating = filters.max_health_rating;
-    if (filters.min_like_count) params.min_like_count = filters.min_like_count;
-    if (filters.max_like_count) params.max_like_count = filters.max_like_count;
+    // Rating filters (number -> string for query params)
+    const minDifficulty = parseNumber(filters.min_difficulty_rating);
+    if (minDifficulty !== null) params.min_difficulty_rating = String(minDifficulty);
+    const maxDifficulty = parseNumber(filters.max_difficulty_rating);
+    if (maxDifficulty !== null) params.max_difficulty_rating = String(maxDifficulty);
+    const minTaste = parseNumber(filters.min_taste_rating);
+    if (minTaste !== null) params.min_taste_rating = String(minTaste);
+    const maxTaste = parseNumber(filters.max_taste_rating);
+    if (maxTaste !== null) params.max_taste_rating = String(maxTaste);
+    const minHealth = parseNumber(filters.min_health_rating);
+    if (minHealth !== null) params.min_health_rating = String(minHealth);
+    const maxHealth = parseNumber(filters.max_health_rating);
+    if (maxHealth !== null) params.max_health_rating = String(maxHealth);
+    const minLike = parseNumber(filters.min_like_count);
+    if (minLike !== null) params.min_like_count = String(minLike);
+    const maxLike = parseNumber(filters.max_like_count);
+    if (maxLike !== null) params.max_like_count = String(maxLike);
     
-    // Nutrition filters
-    if (filters.min_calories) params.min_calories = filters.min_calories;
-    if (filters.max_calories) params.max_calories = filters.max_calories;
-    if (filters.min_carbs) params.min_carbs = filters.min_carbs;
-    if (filters.max_carbs) params.max_carbs = filters.max_carbs;
-    if (filters.min_fat) params.min_fat = filters.min_fat;
-    if (filters.max_fat) params.max_fat = filters.max_fat;
-    if (filters.min_protein) params.min_protein = filters.min_protein;
-    if (filters.max_protein) params.max_protein = filters.max_protein;
+    // Nutrition filters (number -> string for query params)
+    const minCalories = parseNumber(filters.min_calories);
+    if (minCalories !== null) params.min_calories = String(minCalories);
+    const maxCalories = parseNumber(filters.max_calories);
+    if (maxCalories !== null) params.max_calories = String(maxCalories);
+    const minCarbs = parseNumber(filters.min_carbs);
+    if (minCarbs !== null) params.min_carbs = String(minCarbs);
+    const maxCarbs = parseNumber(filters.max_carbs);
+    if (maxCarbs !== null) params.max_carbs = String(maxCarbs);
+    const minFat = parseNumber(filters.min_fat);
+    if (minFat !== null) params.min_fat = String(minFat);
+    const maxFat = parseNumber(filters.max_fat);
+    if (maxFat !== null) params.max_fat = String(maxFat);
+    const minProtein = parseNumber(filters.min_protein);
+    if (minProtein !== null) params.min_protein = String(minProtein);
+    const maxProtein = parseNumber(filters.max_protein);
+    if (maxProtein !== null) params.max_protein = String(maxProtein);
     
-    // Time filters
-    if (filters.min_prep_time) params.min_prep_time = filters.min_prep_time;
-    if (filters.max_prep_time) params.max_prep_time = filters.max_prep_time;
-    if (filters.min_cook_time) params.min_cook_time = filters.min_cook_time;
-    if (filters.max_cook_time) params.max_cook_time = filters.max_cook_time;
-    if (filters.min_total_time) params.min_total_time = filters.min_total_time;
-    if (filters.max_total_time) params.max_total_time = filters.max_total_time;
+    // Time filters (integer -> string for query params)
+    const minPrepTime = parseNumber(filters.min_prep_time);
+    if (minPrepTime !== null) params.min_prep_time = String(Math.floor(minPrepTime));
+    const maxPrepTime = parseNumber(filters.max_prep_time);
+    if (maxPrepTime !== null) params.max_prep_time = String(Math.floor(maxPrepTime));
+    const minCookTime = parseNumber(filters.min_cook_time);
+    if (minCookTime !== null) params.min_cook_time = String(Math.floor(minCookTime));
+    const maxCookTime = parseNumber(filters.max_cook_time);
+    if (maxCookTime !== null) params.max_cook_time = String(Math.floor(maxCookTime));
+    const minTotalTime = parseNumber(filters.min_total_time);
+    if (minTotalTime !== null) params.min_total_time = String(Math.floor(minTotalTime));
+    const maxTotalTime = parseNumber(filters.max_total_time);
+    if (maxTotalTime !== null) params.max_total_time = String(Math.floor(maxTotalTime));
     
     // Boolean filters
     if (filters.has_image !== undefined) params.has_image = filters.has_image;
     if (filters.is_approved !== undefined) params.is_approved = filters.is_approved;
     if (filters.is_featured !== undefined) params.is_featured = filters.is_featured;
     
-    // Pagination
-    if (filters.page) params.page = filters.page;
-    if (filters.page_size) params.page_size = filters.page_size;
+    // Allergen exclusion filter
+    // Backend expects comma-separated string (e.g., 'nuts,gluten')
+    if (filters.excludeAllergens && Array.isArray(filters.excludeAllergens) && filters.excludeAllergens.length > 0) {
+      params.exclude_allergens = filters.excludeAllergens.join(',');
+    }
+    
+    // Pagination (integer -> string for query params)
+    const page = parseNumber(filters.page);
+    if (page !== null) params.page = String(Math.floor(page));
+    const pageSize = parseNumber(filters.page_size);
+    if (pageSize !== null) params.page_size = String(Math.floor(pageSize));
 
     const response = await axios.get(`${API_BASE_URL}/recipes/meal_planner/`, {
       params,
