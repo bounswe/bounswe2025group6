@@ -448,7 +448,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                                   const SizedBox(width: 8),
                                                   Expanded(
                                                     child: Text(
-                                                      '${item.ingredient.name} (${item.quantity} ${item.unit})',
+                                                      '${translateIngredient(context, item.ingredient.name)} (${item.quantity} ${item.unit})',
                                                       style:
                                                           Theme.of(
                                                             context,

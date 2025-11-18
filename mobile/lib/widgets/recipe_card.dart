@@ -261,6 +261,18 @@ class _RecipeCardState extends State<RecipeCard> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (_creatorBadge != null) ...[
+                    const SizedBox(height: 6),
+                    BadgeWidget(
+                      badge: _creatorBadge!,
+                      fontSize: 10,
+                      iconSize: 12,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
 
                   // Info chips row
