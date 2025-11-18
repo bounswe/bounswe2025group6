@@ -342,10 +342,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         # Paginate results
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = RecipeListSerializer(page, many=True)
+            serializer = RecipeListSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
 
-        serializer = RecipeListSerializer(queryset, many=True)
+        serializer = RecipeListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
     
 class MealPlannerPagination(PageNumberPagination):
