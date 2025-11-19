@@ -26,3 +26,15 @@ def update_recipe_cost(sender, instance, **kwargs):
     user = recipe.creator
     recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
     recipe.save(update_fields=['cost_per_serving'])
+
+@receiver(post_save, sender=RecipeIngredient)
+@receiver(post_delete, sender=RecipeIngredient)
+def update_recipe_nutrition(sender, instance, **kwargs):
+    """Update recipe nutrition fields when ingredients are added/removed"""
+    recipe = instance.recipe
+    nutrition_info = recipe.calculate_nutrition_info()
+    recipe.calories = nutrition_info.get('calories')
+    recipe.protein = nutrition_info.get('protein')
+    recipe.fat = nutrition_info.get('fat')
+    recipe.carbs = nutrition_info.get('carbs')
+    recipe.save(update_fields=['calories', 'protein', 'fat', 'carbs'])
