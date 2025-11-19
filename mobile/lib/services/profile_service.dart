@@ -345,4 +345,60 @@ class ProfileService {
   void clearAllBadgeCache() {
     _badgeCache.clear();
   }
+
+  Future<void> deleteAccount() async {
+    token = await StorageService.getJwtAccessToken();
+    final userId = await StorageService.getUserId();
+
+    if (token == null || userId == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token or User ID missing.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      var response = await http.delete(
+        Uri.parse('$baseUrl/api/users/$userId/'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
+        }
+
+        response = await http.delete(
+          Uri.parse('$baseUrl/api/users/$userId/'),
+          headers: headers,
+        );
+      }
+
+      if (response.statusCode == 204) {
+        // Account successfully marked as deleted (deleted_on column set)
+        return;
+      } else if (response.statusCode == 404) {
+        final errorBody = jsonDecode(response.body);
+        throw ProfileServiceException(
+          errorBody['detail'] ?? 'User account not found.',
+          statusCode: response.statusCode,
+        );
+      } else {
+        throw ProfileServiceException(
+          'Failed to delete account. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ProfileServiceException) {
+        rethrow;
+      }
+      throw ProfileServiceException(e.toString());
+    }
+  }
 }
