@@ -18,6 +18,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 
 from rest_framework.decorators import api_view
+from decimal import Decimal, InvalidOperation
 
 
 # Created for swagger documentation, paginate get request
@@ -231,6 +232,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         min_like_count = request.query_params.get("min_like_count")
         max_like_count = request.query_params.get("max_like_count")
 
+        # Convert nutrition query parameters to Decimal
         min_calories = request.query_params.get("min_calories")
         max_calories = request.query_params.get("max_calories")
         min_carbs = request.query_params.get("min_carbs")
@@ -239,6 +241,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
         max_fat = request.query_params.get("max_fat")
         min_protein = request.query_params.get("min_protein")
         max_protein = request.query_params.get("max_protein")
+        
+        # Helper function to convert to Decimal
+        def to_decimal(value):
+            if value is None:
+                return None
+            try:
+                return Decimal(str(value))
+            except (InvalidOperation, ValueError):
+                return None
+        
+        min_calories = to_decimal(min_calories)
+        max_calories = to_decimal(max_calories)
+        min_carbs = to_decimal(min_carbs)
+        max_carbs = to_decimal(max_carbs)
+        min_fat = to_decimal(min_fat)
+        max_fat = to_decimal(max_fat)
+        min_protein = to_decimal(min_protein)
+        max_protein = to_decimal(max_protein)
 
         min_prep_time = request.query_params.get("min_prep_time")
         max_prep_time = request.query_params.get("max_prep_time")
