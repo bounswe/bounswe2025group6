@@ -24,12 +24,12 @@
 
 .average-stars-container {
   display: flex;
-  gap: 3px;
+  gap: 6px;
   align-items: center;
 }
 
 .big-star {
-  font-size: 18px;
+  font-size: 24px;
   color: #ddd;
   user-select: none;
 }
@@ -64,12 +64,12 @@
 
 .stars-container.small-stars {
   display: flex;
-  gap: 3px;
+  gap: 6px;
   align-items: center;
 }
 
 .small-star {
-  font-size: 14px;
+  font-size: 20px;
   color: #ddd;
   transition: all 0.2s ease;
   user-select: none;

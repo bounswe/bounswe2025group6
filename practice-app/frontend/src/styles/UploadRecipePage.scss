@@ -24,7 +24,7 @@
   // Recipe steps section comes first
   .form-group:has(.steps-input) {
     margin-left: 10px;
-    
+    z-index: 0; // Lower z-index so ingredient dropdown can appear above
     order: 0; // Moves this section to the top
   }
 
@@ -161,8 +161,8 @@
 // Style the ingredients dropdown
 .ingredient-search {
   position: relative;
-    margin-left: 10px;
-
+  z-index: 10000; // Ensure search container is above other elements
+  margin-left: 10px;
 
   .search-input {
     margin-top: 10px;
@@ -176,12 +176,15 @@
     left: 0;
     width: 20vw;
     max-width: 50vw;
-    background: white;
+    max-height: 200px; // Limit dropdown height
+    background: #ffffff !important; // Solid white background, no opacity
+    opacity: 1 !important; // Ensure full opacity
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 4px;
-    overflow: hidden;
-    z-index: 1000;
+    overflow-y: auto; // Enable scrolling when content exceeds max-height
+    overflow-x: hidden;
+    z-index: 10001 !important; // Ensure dropdown appears above recipe steps
 
     li {
       
@@ -316,6 +319,12 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 1.5rem;
+  position: relative; // Create stacking context
+
+  // Ingredients section should have lower z-index to allow dropdown to appear above
+  &.ingredients-section {
+    z-index: 1; // Lower z-index so dropdown can appear above
+  }
 
   label {
     margin-right: 10px; // Add margin between label and input

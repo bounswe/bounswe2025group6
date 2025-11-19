@@ -9,6 +9,7 @@ import { translateIngredient } from '../../utils/ingredientTranslations';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useAuth } from '../../contexts/AuthContext';
 import RatingStars from '../../components/recipe/RatingStars';
+import { formatDate } from '../../utils/dateFormatter';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
 import { getCurrentUser } from '../../services/authService';
@@ -29,6 +30,7 @@ const RecipeDetailPage = () => {
   const [totalNutrition, setTotalNutrition] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarking, setIsBookmarking] = useState(false);
+  const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
   const navigate = useNavigate();
   const { currency } = useCurrency();
   const { currentUser: authUser } = useAuth();
@@ -256,6 +258,16 @@ const RecipeDetailPage = () => {
       try {
         const user = await getCurrentUser();
         setCurrentUser(user);
+        
+        // Load user's preferred date format
+        if (user && user.id) {
+          try {
+            const userData = await userService.getUserById(user.id);
+            setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          } catch (error) {
+            console.error('Error loading user date format:', error);
+          }
+        }
       } catch (error) {
         console.error('Error fetching current user:', error);
         setCurrentUser(null);
@@ -342,35 +354,38 @@ const RecipeDetailPage = () => {
           </div>
         )}
 
-        {/* Bookmark and Report buttons positioned above creator info */}
+        {/* Creator information positioned at top right */}
+        <div className="creator-info-top-right">
+          <div className="creator-info-content">
+            <p className="creator-name">
+              {t("recipeDetailPageCreatedBy")}:{' '}
+              {creatorId ? (
+                <span
+                  className="creator-link"
+                  onClick={() => navigate(`/profile/${creatorId}`)}
+                >
+                  {creatorName || t("recipeDetailPageLoading")}
+                </span>
+              ) : (
+                <span>{creatorName || t("recipeDetailPageLoading")}</span>
+              )}
+            </p>
+            {recipe.created_at && (
+              <p className="creator-date">
+                {formatDate(recipe.created_at, userDateFormat)}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Bookmark and Report buttons positioned at bottom */}
         {authUser && (
-          <div style={{ 
-            position: 'absolute', 
-            bottom: '60px', 
-            right: '20px',
-            zIndex: 10,
-            display: 'flex',
-            gap: '10px',
-            alignItems: 'center'
-          }}>
-            {/* Bookmark button */}
+          <div className="recipe-actions-bottom">
+            {/* Bookmark button - left side */}
             <button
+              className={`recipe-bookmark-button ${isBookmarked ? 'bookmarked' : ''}`}
               onClick={handleBookmarkToggle}
               disabled={isBookmarking}
-              style={{
-                background: isBookmarked ? '#48bb78' : 'white',
-                border: '2px solid #48bb78',
-                borderRadius: '8px',
-                padding: '8px',
-                width: '40px',
-                height: '40px',
-                cursor: isBookmarking ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
-                opacity: isBookmarking ? 0.6 : 1
-              }}
               title={isBookmarked ? 'Remove bookmark' : 'Bookmark recipe'}
             >
               <svg
@@ -382,42 +397,19 @@ const RecipeDetailPage = () => {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                style={{ transition: 'all 0.2s ease' }}
               >
                 <path d="M6 2v20l6-4 6 4V2H6z" />
               </svg>
             </button>
 
-            {/* Report button - only show if not owner */}
+            {/* Report button - right side, only show if not owner */}
             {currentUser && currentUser.id !== recipe.creator_id && (
+              <div className="recipe-report-button-wrapper">
               <ReportButton targetType="recipe" targetId={id} />
+              </div>
             )}
           </div>
         )}
-
-        {/* Creator information positioned at bottom right */}
-        <div className="creator-info-bottom-right">
-          <p className="creator-name">
-            {t("recipeDetailPageCreatedBy")}:{' '}
-            {creatorId ? (
-              <span
-                onClick={() => navigate(`/profile/${creatorId}`)}
-                style={{
-                  cursor: 'pointer',
-                  color: '#48bb78',
-                  textDecoration: 'underline',
-                  fontWeight: '600'
-                }}
-                onMouseEnter={(e) => e.target.style.color = '#38a169'}
-                onMouseLeave={(e) => e.target.style.color = '#48bb78'}
-              >
-                {creatorName || t("recipeDetailPageLoading")}
-              </span>
-            ) : (
-              <span>{creatorName || t("recipeDetailPageLoading")}</span>
-            )}
-          </p>
-        </div>
         
       </div>
       

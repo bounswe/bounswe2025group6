@@ -1,5 +1,6 @@
 // src/services/followService.js
 import axios from 'axios';
+import userService from './userService';
 
 // Create an axios instance with auth
 const api = axios.create({
@@ -76,7 +77,7 @@ export const getFollowers = async (userId) => {
         const users = response.data.results || [];
         
         // Check each user's followedUsers list
-        users.forEach(user => {
+        for (const user of users) {
           if (user.followedUsers && Array.isArray(user.followedUsers)) {
             const isFollowing = user.followedUsers.some(followedId => {
               const id = typeof followedId === 'object' ? followedId.id : followedId;
@@ -84,15 +85,25 @@ export const getFollowers = async (userId) => {
             });
             
             if (isFollowing) {
+              // Fetch badge for this user
+              let badge = null;
+              try {
+                const badgeData = await userService.getUserRecipeCount(user.id);
+                badge = badgeData.badge;
+              } catch (error) {
+                console.error(`Error fetching badge for user ${user.id}:`, error);
+              }
+              
               followers.push({
                 id: user.id,
                 username: user.username,
                 profilePhoto: user.profilePhoto,
-                typeOfCook: user.typeOfCook
+                badge: badge,
+                usertype: user.usertype || null
               });
             }
           }
-        });
+        }
         
         // Check if there are more pages
         hasMore = response.data.next !== null && users.length > 0;
@@ -137,17 +148,28 @@ export const getFollowing = async (userId) => {
       try {
         const id = typeof userIdOrId === 'object' ? userIdOrId.id : userIdOrId;
         const userResponse = await api.get(`/api/users/${id}/`);
+        
+        // Fetch badge for this user
+        let badge = null;
+        try {
+          const badgeData = await userService.getUserRecipeCount(id);
+          badge = badgeData.badge;
+        } catch (error) {
+          console.error(`Error fetching badge for user ${id}:`, error);
+        }
+        
         return {
           id: userResponse.data.id,
           username: userResponse.data.username,
           profilePhoto: userResponse.data.profilePhoto,
-          typeOfCook: userResponse.data.typeOfCook
+          badge: badge,
+          usertype: userResponse.data.usertype || null
         };
       } catch (error) {
         console.error(`Error fetching user ${userIdOrId}:`, error);
         // Return minimal object if fetch fails
         const id = typeof userIdOrId === 'object' ? userIdOrId.id : userIdOrId;
-        return { id: Number(id), username: `User ${id}` };
+        return { id: Number(id), username: `User ${id}`, badge: null, usertype: null };
       }
     });
     

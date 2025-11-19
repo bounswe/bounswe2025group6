@@ -16,7 +16,8 @@ const RecipeCard = ({ recipe }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [creatorName, setCreatorName] = useState('');
-  const [creatorRole, setCreatorRole] = useState('');
+  const [creatorBadge, setCreatorBadge] = useState(null);
+  const [creatorUsertype, setCreatorUsertype] = useState(null);
   const cardRef = useRef(null);
 
   // Lazy loading with IntersectionObserver
@@ -79,7 +80,15 @@ const RecipeCard = ({ recipe }) => {
         try {
           const userData = await userService.getUserById(recipe.creator_id);
           setCreatorName(userData.username || 'Unknown');
-          setCreatorRole(userData.typeOfCook || '');
+          setCreatorUsertype(userData.usertype || null);
+          // Fetch badge for creator
+          try {
+            const badgeData = await userService.getUserRecipeCount(recipe.creator_id);
+            setCreatorBadge(badgeData.badge);
+          } catch (error) {
+            console.error('Error fetching creator badge:', error);
+            setCreatorBadge(null);
+          }
         } catch (error) {
           console.error('Error fetching creator data:', error);
           setCreatorName('Unknown');
@@ -166,7 +175,7 @@ const RecipeCard = ({ recipe }) => {
               <span className="time-info">{recipe.prep_time}m prep • {recipe.cook_time}m cook</span>
               <span className="creator-info">
                 by {creatorName || 'Loading...'}
-                {creatorRole && <Badge role={creatorRole} size="small" />}
+                <Badge badge={creatorBadge} size="small" usertype={creatorUsertype} />
               </span>
             </div>
           </div>

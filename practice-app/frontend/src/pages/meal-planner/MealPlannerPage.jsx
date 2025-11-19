@@ -42,7 +42,8 @@ const MealPlannerPage = () => {
   // Initial load - always restore state if exists
   useEffect(() => {
     document.title = 'Meal Planner';
-    
+    window.scrollTo(0, 0);
+
     // Check if we came from recipe detail (for scroll restoration)
     const cameFromRecipeDetail = localStorage.getItem('returnToMealPlanner');
     

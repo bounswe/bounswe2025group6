@@ -76,16 +76,13 @@ const IngredientDetailPage = () => {
             <p><strong>{t("Allergens")}:</strong> {ing.allergens.join(', ') || 'None'}</p>
             <p><strong>{t("DietaryInfo")}:</strong> {ing.dietary_info.join(', ')}</p>
             <p><strong>Base Unit:</strong> {ing.base_unit}</p>
-            <p><strong>Allowed Units:</strong> {ing.allowed_units.join(', ')}</p>
-            <p><small>{t("Created")}: {new Date(ing.created_at).toLocaleString()}</small></p>
+            <p><strong>All Units:</strong> {ing.allowed_units.join(', ')}</p>
           </div>
 
           {/* Market Prices Section */}
           {ing.prices && (
             <div className="market-prices-section">
-              <p className="price-quantity-info">
-                Per {ing.base_quantity} {ing.base_unit}
-              </p>
+
               <div className="market-prices-grid">
                 {(() => {
                   // Find the cheapest market (exclude 'currency' key)
@@ -122,6 +119,9 @@ const IngredientDetailPage = () => {
                   );
                 })()}
               </div>
+              <p className="price-quantity-info">
+                Per {ing.base_quantity} {ing.base_unit}
+              </p>
             </div>
           )}
         </div>

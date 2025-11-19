@@ -130,8 +130,17 @@ export const fetchRecipes = async (page = 1, pageSize = 10, filters = {}) => {
  */
 export const getRecipesByMealPlanner = async (filters = {}) => {
   try {
+    // Build params object, transforming excludeAllergens array to exclude_allergens string
+    const params = { ...filters };
+    
+    // Backend expects exclude_allergens as comma-separated string (e.g., 'nuts,gluten')
+    if (params.excludeAllergens && Array.isArray(params.excludeAllergens) && params.excludeAllergens.length > 0) {
+      params.exclude_allergens = params.excludeAllergens.join(',');
+      delete params.excludeAllergens; // Remove camelCase version
+    }
+    
     const response = await axios.get(`${API_BASE_URL}/recipes/meal_planner/`, {
-      params: filters,
+      params,
       headers: getAuthHeaders(),
     });
 

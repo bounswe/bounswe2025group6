@@ -157,7 +157,7 @@ const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => 
   };
 
   const commonAllergens = [
-    'Dairy', 'Eggs', 'Nuts', 'Peanuts',
+    'Dairy', 'Egg', 'Nuts', 'Peanuts',
     'Shellfish', 'Fish', 'Wheat', 'Soy', 'Gluten'
   ];
 
