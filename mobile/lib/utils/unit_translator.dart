@@ -6,7 +6,9 @@ import 'package:fithub/l10n/app_localizations.dart';
 /// store/send the raw value) while providing localized labels for UI.
 String translateUnit(BuildContext context, String backendUnit) {
   final loc = AppLocalizations.of(context);
-  final key = backendUnit.trim().toLowerCase();
+  // Normalize backend unit: trim, lowercase, remove non-alphanumeric
+  var key = backendUnit.trim().toLowerCase();
+  key = key.replaceAll(RegExp(r'[^a-z0-9]'), '');
 
   final map = <String, String>{
     'g': loc?.grams ?? 'g',
