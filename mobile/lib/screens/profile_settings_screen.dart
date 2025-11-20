@@ -246,7 +246,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         // Show success message after navigation
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Account deleted successfully'),
+            content: Text(AppLocalizations.of(context)!.accountDeletedSuccessfully),
             backgroundColor: Colors.green,
           ),
         );

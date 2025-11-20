@@ -892,6 +892,8 @@
     "@deleteAccountWarning": { "description": "Warning message about permanent deletion" },
     "failedToDeleteAccount": "Hesap silinemedi: {error}",
     "@failedToDeleteAccount": { "description": "Error message when account deletion fails", "placeholders": { "error": {} } },
+    "accountDeletedSuccessfully": "Hesap başarıyla silindi",
+    "@accountDeletedSuccessfully": { "description": "Success message after account deletion" },
 
     "almond_milk": "Badem sütü",
     "apple": "Elma",

@@ -136,6 +136,10 @@
   "@deleteAccountWarning": { "description": "Warning message about permanent deletion" },
   "failedToDeleteAccount": "Failed to delete account: {error}",
   "@failedToDeleteAccount": { "description": "Error message when account deletion fails", "placeholders": { "error": {} } },
+  "accountDeletedSuccessfully": "Account deleted successfully",
+  "@accountDeletedSuccessfully": { "description": "Success message after account deletion" },
+  "accountDeletedSuccessfully": "Account deleted successfully",
+  "@accountDeletedSuccessfully": { "description": "Success message after account deletion" },
 
   "createNewPasswordTitle": "Create New Password",
   "@createNewPasswordTitle": { "description": "AppBar title for create new password screen" },
