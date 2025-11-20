@@ -1,15 +1,48 @@
 /* Terms Content Styles */
 .terms-content {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #1f2933;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 45px rgba(15, 52, 67, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #38a169 rgba(226, 232, 240, 0.6);
+}
+
+.terms-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terms-content::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.6);
+  border-radius: 999px;
+}
+
+.terms-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #38a169, #48bb78);
+  border-radius: 999px;
+}
+
+.modal-header {
+  align-items: center;
+  position:relative;
+  top: 0;
+  background-color: white;
+  border-radius: 8px 8px 0 0;
+  z-index: 10;
 }
 
 .terms-last-updated {
   text-align: right;
   font-style: italic;
-  color: #666;
-  margin-bottom: 20px;
+  color: #64748b;
+  margin-bottom: 1.25rem;
 }
 
 .terms-intro {
@@ -17,11 +50,11 @@
 }
 
 .terms-content h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #4CAF50;
-  margin-top: 24px;
-  margin-bottom: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2f855a;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .terms-content p {
@@ -29,10 +62,10 @@
 }
 
 .terms-content ul {
-  padding-left: 20px;
-  margin-bottom: 20px;
+  padding-left: 1.2rem;
+  margin-bottom: 1.25rem;
 }
 
 .terms-content li {
-  margin-bottom: 8px;
+  margin-bottom: 0.65rem;
 }

@@ -1,6 +1,6 @@
 body, html {
   background: linear-gradient(to right, #38a169, #2b6cb0);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #1e293b;
   margin: 0;
   padding: 0;
@@ -268,7 +268,7 @@ body, html {
 }
 
 .logo-text {
-  font-family: Arial;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 20px;
   font-weight: bold;
 }
