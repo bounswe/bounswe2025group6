@@ -9,6 +9,7 @@ import 'package:fithub/models/ingredient.dart'; // Import IngredientDetail
 import 'package:flutter_typeahead/flutter_typeahead.dart'; // Import flutter_typeahead
 import '../l10n/app_localizations.dart';
 import 'package:fithub/utils/ingredient_translator.dart';
+import 'package:fithub/utils/unit_translator.dart';
 
 class UploadRecipeScreen extends StatefulWidget {
   const UploadRecipeScreen({super.key});
@@ -624,7 +625,12 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                                       (unit) =>
                                                           DropdownMenuItem(
                                                             value: unit,
-                                                            child: Text(unit),
+                                                            child: Text(
+                                                              translateUnit(
+                                                                context,
+                                                                unit,
+                                                              ),
+                                                            ),
                                                           ),
                                                     )
                                                     .toList(),

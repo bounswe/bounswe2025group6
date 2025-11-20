@@ -15,6 +15,7 @@ import '../widgets/total_nutrition_widget.dart';
 import '../widgets/market_prices_widget.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/ingredient_translator.dart';
+import '../utils/unit_translator.dart';
 import '../providers/currency_provider.dart';
 import './other_user_profile_screen.dart';
 
@@ -53,7 +54,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       final profile = await _profileService.getUserProfile();
       if (mounted) {
         setState(() {
-          _isBookmarked = profile.bookmarkRecipes?.contains(widget.recipeId) ?? false;
+          _isBookmarked =
+              profile.bookmarkRecipes?.contains(widget.recipeId) ?? false;
         });
       }
     } catch (e) {
@@ -114,7 +116,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)!.failedToUpdateBookmark(e.toString()),
+              AppLocalizations.of(
+                context,
+              )!.failedToUpdateBookmark(e.toString()),
             ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
@@ -133,7 +137,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Future<void> _fetchCreatorUsername(int creatorId) async {
     if (_isLoadingUsername || _creatorUsername != null) return;
-    
+
     setState(() {
       _isLoadingUsername = true;
     });
@@ -172,25 +176,28 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _isTogglingBookmark ? null : _toggleBookmark,
-        backgroundColor: _isTogglingBookmark 
-            ? Colors.grey 
-            : (_isBookmarked ? AppTheme.primaryGreen : Colors.white),
-        child: _isTogglingBookmark
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        backgroundColor:
+            _isTogglingBookmark
+                ? Colors.grey
+                : (_isBookmarked ? AppTheme.primaryGreen : Colors.white),
+        child:
+            _isTogglingBookmark
+                ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                : Icon(
+                  _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: _isBookmarked ? Colors.white : AppTheme.primaryGreen,
                 ),
-              )
-            : Icon(
-                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                color: _isBookmarked ? Colors.white : AppTheme.primaryGreen,
-              ),
-        tooltip: _isBookmarked 
-            ? AppLocalizations.of(context)!.removeBookmark 
-            : AppLocalizations.of(context)!.bookmarkRecipe,
+        tooltip:
+            _isBookmarked
+                ? AppLocalizations.of(context)!.removeBookmark
+                : AppLocalizations.of(context)!.bookmarkRecipe,
       ),
       body: FutureBuilder<Recipe>(
         future: _recipeFuture,
@@ -306,7 +313,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // Creator Username
                           if (_creatorUsername != null)
                             Center(
@@ -322,10 +329,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          OtherUserProfileScreen(
-                                        userId: recipe.creatorId,
-                                      ),
+                                      builder:
+                                          (context) => OtherUserProfileScreen(
+                                            userId: recipe.creatorId,
+                                          ),
                                     ),
                                   );
                                 },
@@ -447,12 +454,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                                   ),
                                                   const SizedBox(width: 8),
                                                   Expanded(
-                                                    child: Text(
-                                                      '${translateIngredient(context, item.ingredient.name)} (${item.quantity} ${item.unit})',
-                                                      style:
-                                                          Theme.of(
-                                                            context,
-                                                          ).textTheme.bodyLarge,
+                                                    child: Builder(
+                                                      builder: (ctx) {
+                                                        final unitLabel =
+                                                            translateUnit(
+                                                              ctx,
+                                                              item.unit,
+                                                            );
+                                                        return Text(
+                                                          '${translateIngredient(ctx, item.ingredient.name)} (${item.quantity} $unitLabel)',
+                                                          style:
+                                                              Theme.of(ctx)
+                                                                  .textTheme
+                                                                  .bodyLarge,
+                                                        );
+                                                      },
                                                     ),
                                                   ),
                                                 ],

@@ -14,6 +14,7 @@ import '../widgets/meal_planner_filter_panel.dart';
 import '../widgets/recipe_selector_dialog.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/unit_translator.dart';
 import '../providers/currency_provider.dart';
 import '../utils/date_formatter.dart';
 import '../utils/ingredient_translator.dart';
@@ -917,7 +918,9 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
               );
               return CheckboxListTile(
                 title: Text(translatedName),
-                subtitle: Text('${item.quantity} ${item.unit}'),
+                subtitle: Text(
+                  '${item.quantity} ${translateUnit(context, item.unit)}',
+                ),
                 value: item.isChecked,
                 onChanged: (bool? value) {
                   setState(() {
@@ -1056,7 +1059,11 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
             context,
             item.ingredientName,
           );
-          return item.copyWith(ingredientName: translatedName);
+          final translatedUnit = translateUnit(context, item.unit);
+          return item.copyWith(
+            ingredientName: translatedName,
+            unit: translatedUnit,
+          );
         }).toList();
 
     final translatedShoppingList = _shoppingList!.copyWith(

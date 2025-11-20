@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/unit_translator.dart';
 import '../providers/currency_provider.dart';
 
 class MealPlannerFilterPanel extends StatefulWidget {
@@ -25,7 +26,7 @@ class MealPlannerFilterPanel extends StatefulWidget {
 class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
   late Map<String, dynamic> _filters;
   String? _selectedMealType;
-  
+
   // Key to force rebuild of form when resetting
   Key _formKey = UniqueKey();
 
@@ -106,8 +107,10 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
       if (_maxFat != null) 'maxFat': _maxFat,
       if (_minTotalTime != null) 'minTotalTime': _minTotalTime,
       if (_maxTotalTime != null) 'maxTotalTime': _maxTotalTime,
-      if (_minDifficultyRating != null) 'minDifficultyRating': _minDifficultyRating,
-      if (_maxDifficultyRating != null) 'maxDifficultyRating': _maxDifficultyRating,
+      if (_minDifficultyRating != null)
+        'minDifficultyRating': _minDifficultyRating,
+      if (_maxDifficultyRating != null)
+        'maxDifficultyRating': _maxDifficultyRating,
       if (_minTasteRating != null) 'minTasteRating': _minTasteRating,
       if (_maxTasteRating != null) 'maxTasteRating': _maxTasteRating,
       if (_minHealthRating != null) 'minHealthRating': _minHealthRating,
@@ -143,7 +146,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
       _featuredOnly = null;
       _selectedMealType = null;
       _filters.clear();
-      
+
       // Force rebuild of form to clear all text fields
       _formKey = UniqueKey();
     });
@@ -155,10 +158,14 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     if (_minCost != null && _maxCost != null && _minCost! > _maxCost!) {
       return false;
     }
-    if (_minCalories != null && _maxCalories != null && _minCalories! > _maxCalories!) {
+    if (_minCalories != null &&
+        _maxCalories != null &&
+        _minCalories! > _maxCalories!) {
       return false;
     }
-    if (_minProtein != null && _maxProtein != null && _minProtein! > _maxProtein!) {
+    if (_minProtein != null &&
+        _maxProtein != null &&
+        _minProtein! > _maxProtein!) {
       return false;
     }
     if (_minCarbs != null && _maxCarbs != null && _minCarbs! > _maxCarbs!) {
@@ -167,19 +174,27 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     if (_minFat != null && _maxFat != null && _minFat! > _maxFat!) {
       return false;
     }
-    if (_minTotalTime != null && _maxTotalTime != null && _minTotalTime! > _maxTotalTime!) {
+    if (_minTotalTime != null &&
+        _maxTotalTime != null &&
+        _minTotalTime! > _maxTotalTime!) {
       return false;
     }
-    if (_minDifficultyRating != null && _maxDifficultyRating != null && _minDifficultyRating! > _maxDifficultyRating!) {
+    if (_minDifficultyRating != null &&
+        _maxDifficultyRating != null &&
+        _minDifficultyRating! > _maxDifficultyRating!) {
       return false;
     }
-    if (_minTasteRating != null && _maxTasteRating != null && _minTasteRating! > _maxTasteRating!) {
+    if (_minTasteRating != null &&
+        _maxTasteRating != null &&
+        _minTasteRating! > _maxTasteRating!) {
       return false;
     }
-    if (_minHealthRating != null && _maxHealthRating != null && _minHealthRating! > _maxHealthRating!) {
+    if (_minHealthRating != null &&
+        _maxHealthRating != null &&
+        _minHealthRating! > _maxHealthRating!) {
       return false;
     }
-    
+
     // Validate positive numbers
     if (_minCost != null && _minCost! < 0) return false;
     if (_maxCost != null && _maxCost! < 0) return false;
@@ -193,39 +208,40 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     if (_maxFat != null && _maxFat! < 0) return false;
     if (_minTotalTime != null && _minTotalTime! < 0) return false;
     if (_maxTotalTime != null && _maxTotalTime! < 0) return false;
-    
+
     return true;
   }
 
   void _applyFilters() {
     if (!_validateFilters()) {
       final localizations = AppLocalizations.of(context)!;
-      
+
       // Show alert dialog which will appear above the modal
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.error_outline, color: AppTheme.errorColor),
-              const SizedBox(width: 8),
-              Text(localizations.validationError),
-            ],
-          ),
-          content: Text(
-            '${localizations.fixValidationErrors}\n\n${localizations.validationCheckList}',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(localizations.ok),
+        builder:
+            (context) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: AppTheme.errorColor),
+                  const SizedBox(width: 8),
+                  Text(localizations.validationError),
+                ],
+              ),
+              content: Text(
+                '${localizations.fixValidationErrors}\n\n${localizations.validationCheckList}',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(localizations.ok),
+                ),
+              ],
             ),
-          ],
-        ),
       );
       return;
     }
-    
+
     _saveFiltersToMap();
     widget.onApplyFilters(_filters, _selectedMealType);
     Navigator.pop(context);
@@ -311,7 +327,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                     // Nutrition Filters
                     _buildSectionTitle(localizations.nutritionFilters),
                     const SizedBox(height: 12),
-                    
+
                     _buildSubSectionTitle(localizations.caloriesLabel),
                     _buildRangeInputs(
                       localizations.minLabel,
@@ -320,7 +336,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                       _maxCalories,
                       (min) => setState(() => _minCalories = min),
                       (max) => setState(() => _maxCalories = max),
-                      suffix: 'kcal',
+                      suffix: localizations.kcal,
                       step: 50,
                     ),
                     const SizedBox(height: 12),
@@ -333,7 +349,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                       _maxProtein,
                       (min) => setState(() => _minProtein = min),
                       (max) => setState(() => _maxProtein = max),
-                      suffix: 'g',
+                      suffix: translateUnit(context, 'g'),
                       step: 5,
                     ),
                     const SizedBox(height: 12),
@@ -346,7 +362,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                       _maxCarbs,
                       (min) => setState(() => _minCarbs = min),
                       (max) => setState(() => _maxCarbs = max),
-                      suffix: 'g',
+                      suffix: translateUnit(context, 'g'),
                       step: 5,
                     ),
                     const SizedBox(height: 12),
@@ -359,7 +375,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                       _maxFat,
                       (min) => setState(() => _minFat = min),
                       (max) => setState(() => _maxFat = max),
-                      suffix: 'g',
+                      suffix: translateUnit(context, 'g'),
                       step: 5,
                     ),
                     const SizedBox(height: 24),
@@ -373,7 +389,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                       _maxTotalTime?.toDouble(),
                       (min) => setState(() => _minTotalTime = min?.toInt()),
                       (max) => setState(() => _maxTotalTime = max?.toInt()),
-                      suffix: 'min',
+                      suffix: localizations.minutesAbbr,
                       step: 15,
                     ),
                     const SizedBox(height: 24),
@@ -501,21 +517,23 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: mealTypes.map((type) {
-        final isSelected = _selectedMealType == type['value'];
-        final value = type['value'];
-        return FilterChip(
-          label: Text(type['label'] as String),
-          selected: isSelected,
-          onSelected: (selected) {
-            setState(() {
-              _selectedMealType = selected ? (value is String ? value : null) : null;
-            });
-          },
-          selectedColor: AppTheme.primaryGreen.withOpacity(0.3),
-          checkmarkColor: AppTheme.primaryGreen,
-        );
-      }).toList(),
+      children:
+          mealTypes.map((type) {
+            final isSelected = _selectedMealType == type['value'];
+            final value = type['value'];
+            return FilterChip(
+              label: Text(type['label'] as String),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedMealType =
+                      selected ? (value is String ? value : null) : null;
+                });
+              },
+              selectedColor: AppTheme.primaryGreen.withOpacity(0.3),
+              checkmarkColor: AppTheme.primaryGreen,
+            );
+          }).toList(),
     );
   }
 
@@ -530,7 +548,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     double step = 1,
   }) {
     final localizations = AppLocalizations.of(context)!;
-    
+
     return Row(
       children: [
         Expanded(
@@ -540,7 +558,8 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
               suffixText: suffix,
               border: const OutlineInputBorder(),
               errorMaxLines: 1,
-              helperText: ' ', // Reserve space for error message to prevent layout shift
+              helperText:
+                  ' ', // Reserve space for error message to prevent layout shift
               helperMaxLines: 1,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -548,20 +567,20 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: (value) {
               if (value == null || value.isEmpty) return null;
-              
+
               final parsed = double.tryParse(value);
               if (parsed == null) {
                 return localizations.invalidNumber;
               }
-              
+
               if (parsed < 0) {
                 return localizations.mustBePositive;
               }
-              
+
               if (maxValue != null && parsed > maxValue) {
                 return localizations.minGreaterThanMax;
               }
-              
+
               return null;
             },
             onChanged: (value) {
@@ -569,7 +588,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                 onMinChanged(null);
                 return;
               }
-              
+
               final parsed = double.tryParse(value);
               if (parsed != null && parsed >= 0) {
                 onMinChanged(parsed);
@@ -585,7 +604,8 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
               suffixText: suffix,
               border: const OutlineInputBorder(),
               errorMaxLines: 1,
-              helperText: ' ', // Reserve space for error message to prevent layout shift
+              helperText:
+                  ' ', // Reserve space for error message to prevent layout shift
               helperMaxLines: 1,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -593,20 +613,20 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: (value) {
               if (value == null || value.isEmpty) return null;
-              
+
               final parsed = double.tryParse(value);
               if (parsed == null) {
                 return localizations.invalidNumber;
               }
-              
+
               if (parsed < 0) {
                 return localizations.mustBePositive;
               }
-              
+
               if (minValue != null && parsed < minValue) {
                 return localizations.maxLessThanMin;
               }
-              
+
               return null;
             },
             onChanged: (value) {
@@ -614,7 +634,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                 onMaxChanged(null);
                 return;
               }
-              
+
               final parsed = double.tryParse(value);
               if (parsed != null && parsed >= 0) {
                 onMaxChanged(parsed);
@@ -653,10 +673,7 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
           ],
         ),
         RangeSlider(
-          values: RangeValues(
-            minValue ?? 0.0,
-            maxValue ?? 5.0,
-          ),
+          values: RangeValues(minValue ?? 0.0, maxValue ?? 5.0),
           min: 0.0,
           max: 5.0,
           divisions: 10,
@@ -689,4 +706,3 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     );
   }
 }
-
