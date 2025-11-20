@@ -167,8 +167,16 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
                         unit=unit
                     )
 
-                # Optional: calculate and save cost
-                recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
+                # Calculate and save cost and nutrition info
+                # Always store canonical value in USD in the DB so filters remain comparable.
+                class _DummyUSDUser:
+                    preferredCurrency = "USD"
+                recipe.cost_per_serving = recipe.calculate_cost_per_serving(_DummyUSDUser())
+                nutrition_info = recipe.calculate_nutrition_info()
+                recipe.calories = nutrition_info.get('calories')
+                recipe.protein = nutrition_info.get('protein')
+                recipe.fat = nutrition_info.get('fat')
+                recipe.carbs = nutrition_info.get('carbs')
                 recipe.save()
 
                 return recipe  # If all succeeds, transaction is committed
@@ -220,6 +228,13 @@ class RecipeUpdateSerializer(RecipeBaseSerializer):
 
         if ingredients_json:
             self.handle_ingredients(instance, ingredients_json, clear_existing=True)
+            # Update nutrition info after ingredients are updated (signal will also do this, but we do it explicitly)
+            nutrition_info = instance.calculate_nutrition_info()
+            instance.calories = nutrition_info.get('calories')
+            instance.protein = nutrition_info.get('protein')
+            instance.fat = nutrition_info.get('fat')
+            instance.carbs = nutrition_info.get('carbs')
+            instance.save(update_fields=['calories', 'protein', 'fat', 'carbs'])
 
         return instance
 

@@ -18,6 +18,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 
 from rest_framework.decorators import api_view
+from decimal import Decimal, InvalidOperation
 
 
 # Created for swagger documentation, paginate get request
@@ -231,6 +232,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         min_like_count = request.query_params.get("min_like_count")
         max_like_count = request.query_params.get("max_like_count")
 
+        # Convert nutrition query parameters to Decimal
         min_calories = request.query_params.get("min_calories")
         max_calories = request.query_params.get("max_calories")
         min_carbs = request.query_params.get("min_carbs")
@@ -239,6 +241,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
         max_fat = request.query_params.get("max_fat")
         min_protein = request.query_params.get("min_protein")
         max_protein = request.query_params.get("max_protein")
+        
+        # Helper function to convert to Decimal
+        def to_decimal(value):
+            if value is None:
+                return None
+            try:
+                return Decimal(str(value))
+            except (InvalidOperation, ValueError):
+                return None
+        
+        min_calories = to_decimal(min_calories)
+        max_calories = to_decimal(max_calories)
+        min_carbs = to_decimal(min_carbs)
+        max_carbs = to_decimal(max_carbs)
+        min_fat = to_decimal(min_fat)
+        max_fat = to_decimal(max_fat)
+        min_protein = to_decimal(min_protein)
+        max_protein = to_decimal(max_protein)
 
         min_prep_time = request.query_params.get("min_prep_time")
         max_prep_time = request.query_params.get("max_prep_time")
@@ -270,10 +290,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             filters &= Q(meal_type=meal_type)
         
-        if min_cost_per_serving:
-            filters &= Q(cost_per_serving__gte=min_cost_per_serving)
-        if max_cost_per_serving:
-            filters &= Q(cost_per_serving__lte=max_cost_per_serving)
+        if min_cost_per_serving or max_cost_per_serving:
+            # Query params are supplied in the requesting user's preferred currency.
+            # Convert them to canonical DB currency (USD) before filtering.
+            def _to_usd(value):
+                val = to_decimal(value)
+                if val is None:
+                    return None
+                user_currency = getattr(request.user, 'preferredCurrency', 'USD')
+                # Use same default rate as Ingredient.get_price_for_user
+                usd_to_try_rate = Decimal('40.0')
+                if user_currency == 'TRY':
+                    # convert TRY to USD
+                    return (val / usd_to_try_rate).quantize(Decimal('0.01'))
+                return val
+
+            if min_cost_per_serving:
+                min_val_usd = _to_usd(min_cost_per_serving)
+                if min_val_usd is not None:
+                    filters &= Q(cost_per_serving__gte=min_val_usd)
+            if max_cost_per_serving:
+                max_val_usd = _to_usd(max_cost_per_serving)
+                if max_val_usd is not None:
+                    filters &= Q(cost_per_serving__lte=max_val_usd)
         
         if min_difficulty_rating:
             filters &= Q(difficulty_rating__gte=min_difficulty_rating)
@@ -392,7 +431,7 @@ def get_user_recipe_count(request, user_id):
     Get the number of recipes created by a specific user
     """
     try:
-        recipe_count = Recipe.objects.filter(creator_id=user_id).count()
+        recipe_count = Recipe.objects.filter(creator_id=user_id, deleted_on=None).count()
         badge = None
         if recipe_count >=20:
             badge = "Experienced Home Cook"

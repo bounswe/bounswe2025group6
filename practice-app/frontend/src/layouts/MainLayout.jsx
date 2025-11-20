@@ -111,14 +111,18 @@ const MainLayout = () => {
           ))}
         </nav>
         <div className="layout-header-right">
+          <select 
+            className="layout-language-select"
+            onChange={langChangeHandler} 
+            defaultValue={i18next.language}
+          >
+            <option value="en">English</option>
+            <option value="tr">Türkçe</option>
+          </select>
           <button className="layout-logout green-button" onClick={handleLogout}>
             {t("logout")}
           </button>
         </div>
-        <select onChange={langChangeHandler} defaultValue={i18next.language}>
-          <option value="en">English</option>
-          <option value="tr">Türkçe</option>
-        </select>
       </header>
 
       <main className="layout-main">

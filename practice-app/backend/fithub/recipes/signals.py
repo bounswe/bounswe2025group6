@@ -21,8 +21,20 @@ def update_like_count_on_delete(sender, instance, **kwargs):
 @receiver(post_delete, sender=RecipeIngredient)
 def update_recipe_cost(sender, instance, **kwargs):
     recipe = instance.recipe
-    # Use the recipe creator's currency preference for the stored value
-    # Note: The API response will calculate this dynamically based on the requesting user's currency
-    user = recipe.creator
-    recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
+    # Store canonical DB value in USD so different users' preferences don't affect DB comparisons
+    class _DummyUSDUser:
+        preferredCurrency = "USD"
+    recipe.cost_per_serving = recipe.calculate_cost_per_serving(_DummyUSDUser())
     recipe.save(update_fields=['cost_per_serving'])
+
+@receiver(post_save, sender=RecipeIngredient)
+@receiver(post_delete, sender=RecipeIngredient)
+def update_recipe_nutrition(sender, instance, **kwargs):
+    """Update recipe nutrition fields when ingredients are added/removed"""
+    recipe = instance.recipe
+    nutrition_info = recipe.calculate_nutrition_info()
+    recipe.calories = nutrition_info.get('calories')
+    recipe.protein = nutrition_info.get('protein')
+    recipe.fat = nutrition_info.get('fat')
+    recipe.carbs = nutrition_info.get('carbs')
+    recipe.save(update_fields=['calories', 'protein', 'fat', 'carbs'])

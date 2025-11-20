@@ -1,13 +1,22 @@
-/* src/styles/MealPlannerPage.css */
+:root {
+  --mp-bg: #f5f7fb;
+  --mp-card-bg: rgba(255, 255, 255, 0.85);
+  --mp-border: rgba(255, 255, 255, 0.35);
+  --mp-primary: #3a7d5a;
+  --mp-primary-dark: #24503a;
+  --mp-accent: #7bdcb5;
+  --mp-muted: #7a8a9c;
+  --mp-shadow: 0 20px 45px rgba(15, 52, 67, 0.15);
+}
 
 .meal-planner-page {
-  background: linear-gradient(to bottom, #a8d5e2, #b8e2c8);
-  border-radius: 10px;
-  padding: 20px;
+  background: linear-gradient(135deg, #ecf2ff 0%, #f8fdf7 45%, #fef6fb 100%);
+  border-radius: 24px;
+  padding: 32px;
   max-width: 1600px;
-  margin: 20px auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
+  margin: 32px auto;
+  box-shadow: var(--mp-shadow);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .meal-planner-header {
@@ -38,27 +47,26 @@
   text-decoration: none;
 }
 
-/* Modern Green Button Style */
 .modern-green-button {
-  background: linear-gradient(135deg, #38a169, #48bb78);
-  color: white;
+  background: linear-gradient(135deg, var(--mp-primary), #2bb673);
+  color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.9rem 1.75rem;
+  border-radius: 999px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  box-shadow: 0 15px 30px rgba(43, 182, 115, 0.25);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .modern-green-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2d5016, #38a169);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #2bb673, #24c08f);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 20px 35px rgba(36, 192, 143, 0.3);
 }
 
 .modern-green-button:disabled {
@@ -78,7 +86,9 @@
 }
 
 .meal-planner-sidebar {
-  /* Sidebar content handled by MealPlanFilters.css */
+  position: sticky;
+  top: 1.5rem;
+  align-self: flex-start;
 }
 
 .meal-planner-content {
@@ -88,34 +98,149 @@
 }
 
 .meal-section {
-  background: linear-gradient(135deg, #ffffff, #f7fafc);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  background: var(--mp-card-bg);
+  backdrop-filter: blur(14px);
+  padding: 1.75rem 2rem;
+  border-radius: 22px;
+  box-shadow: 0 25px 40px rgba(15, 52, 67, 0.08);
+  border: 1px solid var(--mp-border);
+  transition: transform 0.25s ease;
 }
 
-.meal-section-title {
+.meal-section:hover {
+  transform: translateY(-4px);
+}
+
+.meal-section-header {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0.4rem 0 0.75rem 0;
+  margin: 0 0 1.25rem 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 0 0 1.5rem 0;
+  cursor: pointer;
+  color: #12263a;
+  border-bottom: 1px solid rgba(122, 138, 156, 0.2);
+  transition: background 0.25s ease, padding 0.25s ease;
+}
+
+.meal-section-header:focus-visible {
+  outline: 2px solid rgba(43, 182, 115, 0.3);
+  outline-offset: 4px;
+}
+
+.meal-section-header:hover {
+  background: rgba(58, 125, 90, 0.08);
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  border-radius: 14px;
+}
+.meal-section-header:hover {
+  background: rgba(58, 125, 90, 0.12);
+}
+
+.meal-section-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, rgba(58, 125, 90, 0.15), rgba(43, 182, 115, 0.25));
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.45), 0 6px 14px rgba(26, 86, 64, 0.16);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--mp-primary);
+  transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.meal-section-header.expanded .meal-section-arrow {
+  transform: rotate(90deg);
+  background: linear-gradient(135deg, rgba(43, 182, 115, 0.3), rgba(58, 125, 90, 0.45));
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.45), 0 8px 16px rgba(26, 86, 64, 0.22);
+}
+
+.meal-section-header.collapsed .meal-section-arrow {
+  transform: rotate(0deg);
+  background: linear-gradient(135deg, rgba(170, 181, 196, 0.3), rgba(122, 138, 156, 0.35));
+  color: var(--mp-muted);
+}
+
+.meal-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1c340d;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #c6f6d5;
+}
+
+.meal-section-content {
+  max-height: 2000px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease, transform 0.35s ease;
+  will-change: max-height, opacity, transform;
+}
+
+.meal-section-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+.section-collapsed-note {
+  text-align: center;
+  color: var(--mp-muted);
+  font-style: italic;
+  padding: 1rem 0;
 }
 
 .meal-icon {
   font-size: 2rem;
 }
 
-/* Recipe Grid - 3 columns */
+/* Recipe Grid - default 3 columns, responsive overrides below */
 .recipe-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.75rem;
+  transition: opacity 0.3s ease;
+}
+
+.meal-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pagination-button {
+  background: linear-gradient(135deg, var(--mp-primary), #48bb78);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-button:disabled {
+  background: #e2e8f0;
+  color: #a0aec0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pagination-info {
+  font-weight: 600;
+  color: #2d3748;
 }
 
 .recipe-card-wrapper {
@@ -126,10 +251,15 @@
   background: transparent;
 }
 
+.recipe-card-wrapper:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(15, 52, 67, 0.12);
+}
+
 .recipe-card-wrapper.selected {
-  background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
-  box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
-  transform: scale(1.02);
+  background: rgba(43, 182, 115, 0.12);
+  box-shadow: 0 15px 30px rgba(58, 125, 90, 0.2);
+  transform: translateY(-4px);
 }
 
 .recipe-card-wrapper.selected::before {

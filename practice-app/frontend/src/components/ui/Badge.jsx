@@ -3,40 +3,75 @@ import React from 'react';
 import '../../styles/Badge.css';
 
 /**
- * Badge component to display user's cook type/role
- * @param {string} role - User's cook type (beginner, intermediate, expert, professional)
+ * Badge component to display user's experience badge
+ * @param {string} badge - User's badge (null, "Home Cook", "Experienced Home Cook")
  * @param {string} size - Size of badge (small, medium, large)
+ * @param {string} usertype - User's type (e.g., 'dietitian')
  */
-const Badge = ({ role, size = 'small' }) => {
-  // Normalize role: trim whitespace and convert to lowercase
-  const normalizedRole = role ? role.toString().trim().toLowerCase() : '';
-  
-  if (!normalizedRole) return null;
+const Badge = ({ badge, size = 'small', usertype }) => {
+  // If user is a dietitian, show black star
+  if (usertype === 'dietitian') {
+    const fontSizeMap = {
+      small: '1.2rem',
+      medium: '1.5rem',
+      large: '2rem'
+    };
+    return (
+      <span 
+        className={`user-badge user-badge-${size}`}
+        style={{ 
+          color: '#000000',
+          fontSize: fontSizeMap[size] || fontSizeMap.small
+        }}
+        title="Dietitian"
+      >
+        ★
+      </span>
+    );
+  }
+  // If badge is null or empty, show green star (default) or black if dietitian
+  if (!badge) {
+    const fontSizeMap = {
+      small: '1.2rem',
+      medium: '1.5rem',
+      large: '2rem'
+    };
+    const badgeColor = usertype === 'dietitian' ? '#000000' : '#48bb78';
+    const badgeTitle = usertype === 'dietitian' ? 'Dietitian' : '';
+    return (
+      <span 
+        className={`user-badge user-badge-${size}`}
+        style={{ 
+          color: badgeColor,
+          fontSize: fontSizeMap[size] || fontSizeMap.small
+        }}
+        title={badgeTitle}
+      >
+        ★
+      </span>
+    );
+  }
+
+  // Normalize badge: trim whitespace
+  const normalizedBadge = badge.toString().trim();
 
   const badgeConfig = {
-    beginner: {
+    'Home Cook': {
       icon: '★',
-      color: '#48bb78', // Yeşil yıldız
-      label: 'Beginner'
-    },
-    intermediate: {
-      icon: '★',
-      color: '#4299e1', // Mavi yıldız (Home Cook)
+      color: '#4299e1', // Mavi yıldız
       label: 'Home Cook'
     },
-    expert: {
+    'Experienced Home Cook': {
       icon: '★',
-      color: '#9f7aea', // Mor yıldız (Experienced Cook)
-      label: 'Experienced Cook'
-    },
-    professional: {
-      icon: '★',
-      color: '#000000', // Siyah yıldız (Dietitian)
-      label: 'Dietitian'
+      color: '#9f7aea', // Mor yıldız
+      label: 'Experienced Home Cook'
     }
   };
 
-  const config = badgeConfig[normalizedRole] || badgeConfig.beginner;
+  const config = badgeConfig[normalizedBadge];
+  
+  // If badge doesn't match known values, return null
+  if (!config) return null;
 
   // Font size based on badge size
   const fontSizeMap = {
@@ -60,55 +95,35 @@ const Badge = ({ role, size = 'small' }) => {
 };
 
 /**
- * Get badge label for a given role
- * @param {string} role - User's cook type
+ * Get badge label for a given badge
+ * @param {string} badge - User's badge (null, "Home Cook", "Experienced Home Cook")
+ * @param {string} usertype - User's type (e.g., 'dietitian')
  * @returns {string} Badge label
  */
-export const getBadgeLabel = (role) => {
-  if (!role) return '';
-  
-  const normalizedRole = role.toString().trim().toLowerCase();
-  
-  const badgeConfig = {
-    beginner: 'Beginner',
-    intermediate: 'Home Cook',
-    expert: 'Experienced Cook',
-    professional: 'Professional'
-  };
-  
-  return badgeConfig[normalizedRole] || '';
+export const getBadgeLabel = (badge, usertype) => {
+  if (usertype === 'dietitian') return 'Dietitian';
+  if (!badge) return 'Beginner';
+  return badge.toString().trim();
 };
 
 /**
- * Get badge color for a given role
- * @param {string} role - User's cook type
+ * Get badge color for a given badge
+ * @param {string} badge - User's badge (null, "Home Cook", "Experienced Home Cook")
+ * @param {string} usertype - User's type (e.g., 'dietitian')
  * @returns {string} Badge color hex code
  */
-export const getBadgeColor = (role) => {
-  if (!role) return '#48bb78';
+export const getBadgeColor = (badge, usertype) => {
+  if (usertype === 'dietitian') return '#000000'; // Black for dietitian
+  if (!badge) return '#48bb78'; // Green for null badge
   
-  const normalizedRole = role.toString().trim().toLowerCase();
+  const normalizedBadge = badge.toString().trim();
   
   const badgeConfig = {
-    beginner: {
-      color: '#48bb78', // Yeşil
-      label: 'Beginner'
-    },
-    intermediate: {
-      color: '#4299e1', // Mavi (Home Cook)
-      label: 'Home Cook'
-    },
-    expert: {
-      color: '#9f7aea', // Mor (Experienced Cook)
-      label: 'Experienced Cook'
-    },
-    professional: {
-      color: '#000000', // Siyah (Professional)
-      label: 'Professional'
-    }
+    'Home Cook': '#4299e1',
+    'Experienced Home Cook': '#9f7aea'
   };
   
-  return badgeConfig[normalizedRole]?.color || '#4299e1';
+  return badgeConfig[normalizedBadge] || '#48bb78'; // Default to green
 };
 
 export default Badge;

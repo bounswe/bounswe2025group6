@@ -39,6 +39,7 @@ const UploadRecipePage = () => {
 
   // Fetch ALL ingredients once on mount for search functionality
   useEffect(() => {
+    document.title = 'Upload Recipe';
     const fetchAllIngredients = async () => {
       try {
         setLoading(true);

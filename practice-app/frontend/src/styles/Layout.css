@@ -1,6 +1,6 @@
 body, html {
   background: linear-gradient(to right, #38a169, #2b6cb0);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #1e293b;
   margin: 0;
   padding: 0;
@@ -17,14 +17,13 @@ body, html {
 
 .layout-header {
   width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   box-sizing: border-box;
   padding: 15px 20px;
   background-color: rgba(10, 10, 10, .7);
-  
+  gap: 1rem;
 }
 
 .layout-header-left a{
@@ -46,6 +45,8 @@ body, html {
 
 .layout-nav {
   display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .layout-nav a {
@@ -103,6 +104,12 @@ body, html {
   font-weight: 500;
   gap: 1rem;
   color: #ffffff;
+}
+
+.layout-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 
@@ -230,6 +237,51 @@ body, html {
   .layout-header-right {
     right: 1vw;
   }
+
+  .layout-language-select {
+    padding: 0.4rem 2rem 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.layout-language-select {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 0.5rem 2.5rem 0.5rem 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  margin-right: 0.75rem;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.layout-language-select:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.layout-language-select:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.layout-language-select option {
+  background: rgba(10, 10, 10, 0.95);
+  color: #ffffff;
+  padding: 0.5rem;
 }
 
 .page-AuthLayout footer {
@@ -268,7 +320,7 @@ body, html {
 }
 
 .logo-text {
-  font-family: Arial;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 20px;
   font-weight: bold;
 }

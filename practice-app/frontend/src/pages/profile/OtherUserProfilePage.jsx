@@ -8,6 +8,8 @@ import { getFollowers, getFollowing, toggleFollow } from "../../services/followS
 import forumService from "../../services/forumService";
 import RecipeCard from "../../components/recipe/RecipeCard";
 import Badge, { getBadgeLabel, getBadgeColor } from "../../components/ui/Badge";
+import { formatDate } from "../../utils/dateFormatter";
+import { getCurrentUser as getCurrentUserService } from "../../services/authService";
 import "../../styles/OtherUserProfilePage.css";
 
 const OtherUserProfilePage = () => {
@@ -18,6 +20,7 @@ const OtherUserProfilePage = () => {
   // State
   const [activeTab, setActiveTab] = useState("recipes");
   const [userProfile, setUserProfile] = useState(null);
+  const [userBadge, setUserBadge] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
   const [followers, setFollowers] = useState([]);
@@ -26,6 +29,7 @@ const OtherUserProfilePage = () => {
   const [comments, setComments] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
   
   // Popup states
   const [showFollowersPopup, setShowFollowersPopup] = useState(false);
@@ -33,6 +37,7 @@ const OtherUserProfilePage = () => {
 
   // Load user profile
   useEffect(() => {
+    document.title = 'Profile';
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
@@ -45,6 +50,10 @@ const OtherUserProfilePage = () => {
 
         const userData = await userService.getUserById(userId);
         setUserProfile(userData);
+        
+        // Fetch user badge
+        const badgeData = await userService.getUserRecipeCount(userId);
+        setUserBadge(badgeData.badge);
 
         // Load all user data in parallel
         await Promise.all([
@@ -53,6 +62,17 @@ const OtherUserProfilePage = () => {
           loadPostsAndComments(userId),
           checkFollowStatus(userId)
         ]);
+        
+        // Load current user's preferred date format
+        try {
+          const currentUserData = await getCurrentUserService();
+          if (currentUserData && currentUserData.id) {
+            const currentUserProfile = await userService.getUserById(currentUserData.id);
+            setUserDateFormat(currentUserProfile.preferredDateFormat || 'DD/MM/YYYY');
+          }
+        } catch (error) {
+          console.error('Error loading user date format:', error);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -290,16 +310,14 @@ const OtherUserProfilePage = () => {
           <div className="other-profile-info">
             <h1 className="other-profile-username">
               {userProfile.username}
-              {userProfile.typeOfCook && <Badge role={userProfile.typeOfCook} size="large" />}
+              <Badge badge={userBadge} size="large" usertype={userProfile.usertype} />
             </h1>
-            {userProfile.typeOfCook && (
-              <p 
-                className="other-profile-badge-label"
-                style={{ color: getBadgeColor(userProfile.typeOfCook) }}
-              >
-                {getBadgeLabel(userProfile.typeOfCook)}
-              </p>
-            )}
+            <p 
+              className="other-profile-badge-label"
+              style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
+            >
+              {getBadgeLabel(userBadge, userProfile.usertype)}
+            </p>
             <div className="other-profile-stats">
               <div className="other-stat-item" onClick={() => setShowFollowersPopup(true)}>
                 <span className="other-stat-count">{followers.length}</span>
@@ -376,7 +394,7 @@ const OtherUserProfilePage = () => {
                 >
                   <h3>{post.title}</h3>
                   <p>{post.content.substring(0, 150)}{post.content.length > 150 ? '...' : ''}</p>
-                  <span className="other-post-date">{new Date(post.created_at).toLocaleDateString()}</span>
+                  <span className="other-post-date">{formatDate(post.created_at, userDateFormat)}</span>
                 </div>
               ))
             )}
@@ -396,7 +414,7 @@ const OtherUserProfilePage = () => {
                 >
                   <p className="other-comment-on">On: <strong>{comment.postTitle}</strong></p>
                   <p className="other-comment-content">{comment.content}</p>
-                  <span className="other-comment-date">{new Date(comment.created_at).toLocaleDateString()}</span>
+                  <span className="other-comment-date">{formatDate(comment.created_at, userDateFormat)}</span>
                 </div>
               ))
             )}
@@ -454,7 +472,7 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      {user.typeOfCook && <Badge role={user.typeOfCook} size="small" />}
+                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
@@ -513,7 +531,7 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      {user.typeOfCook && <Badge role={user.typeOfCook} size="small" />}
+                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))

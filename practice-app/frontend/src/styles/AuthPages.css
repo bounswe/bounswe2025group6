@@ -443,7 +443,7 @@
 }
 
 .logo-text {
-  font-family: Arial;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 20px;
   font-weight: bold;
 }

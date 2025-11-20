@@ -1,7 +1,7 @@
 // src/pages/auth/EmailVerificationPage.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 const EmailVerificationPage = () => {
   const { t } = useTranslation();
   const { token } = useParams();
+  const navigate = useNavigate();
   const { verifyEmail, isLoading } = useAuth();
   const toast = useToast();
   
@@ -29,6 +30,10 @@ const EmailVerificationPage = () => {
         await verifyEmail(token);
         setVerificationStatus('success');
         toast.success('Email verified successfully');
+        // Automatically redirect to login page after 2 seconds
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } catch (error) {
         console.error('Email verification error:', error);
         setVerificationStatus('error');
@@ -38,7 +43,7 @@ const EmailVerificationPage = () => {
     };
     
     verifyEmailToken();
-  }, [token, verifyEmail, toast]);
+  }, [token, verifyEmail, toast, navigate]);
   useEffect(() => {
       document.title = "Email Verification - FitHub";
     }, []);

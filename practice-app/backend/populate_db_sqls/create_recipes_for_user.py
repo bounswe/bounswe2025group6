@@ -412,8 +412,10 @@ def create_recipes_for_user(user_id):
             )
             print(f"  - Added {quantity} {unit} of {ingredient_name}")
         
-        # Calculate and save cost_per_serving (signal will also do this, but we do it explicitly)
-        recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
+        # Calculate and save cost_per_serving in USD (signal will also do this, but we do it explicitly)
+        class _DummyUSDUser:
+            preferredCurrency = "USD"
+        recipe.cost_per_serving = recipe.calculate_cost_per_serving(_DummyUSDUser())
         recipe.save()
         
         created_recipes.append(recipe)
