@@ -1,6 +1,6 @@
 // src/pages/DashboardPage.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
@@ -10,6 +10,44 @@ import userService from "../services/userService";
 import reportService from "../services/reportService"; // Add this import
 import analyticsService from "../services/analyticsService";
 import { useTranslation } from "react-i18next";
+
+const ANALYTICS_PULSE = [
+  {
+    key: "users_count",
+    label: "Active FitHubers",
+    sublabel: "planning meals right now",
+    icon: "👥",
+    accent: "community"
+  },
+  {
+    key: "recipes_count",
+    label: "Fresh Recipes",
+    sublabel: "waiting to inspire you",
+    icon: "🍲",
+    accent: "recipes"
+  },
+  {
+    key: "ingredients_count",
+    label: "Pantry Staples",
+    sublabel: "ready for your next dish",
+    icon: "🥬",
+    accent: "ingredients"
+  },
+  {
+    key: "posts_count",
+    label: "Community Stories",
+    sublabel: "to browse & react",
+    icon: "📣",
+    accent: "community"
+  },
+  {
+    key: "comments_count",
+    label: "Conversations",
+    sublabel: "buzzing with ideas",
+    icon: "💬",
+    accent: "comments"
+  }
+];
 
 const DashboardPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -76,6 +114,17 @@ const DashboardPage = () => {
     document.title = "Dashboard";
   }, []);
 
+  const highlightCards = useMemo(() => {
+    return ANALYTICS_PULSE.map((metric) => {
+      const value = analytics?.[metric.key];
+      return {
+        ...metric,
+        value
+      };
+    });
+  }, [analytics]);
+
+
   if (!currentUser || isCheckingAdmin) {
     return <div>{t("loading")}</div>;
   }
@@ -83,25 +132,43 @@ const DashboardPage = () => {
   return (
     <div className="dashboard-container dashboard-cards">
       <div className="dashboard-header">
-        <div>
+        <div className="dashboard-intro">
           <h1 className="dashboard-title">
             {getWelcomeMessage()}, {username}!
           </h1>
           <p className="dashboard-subtitle">{t("dashbboardSubtitle")}</p>
         </div>
-        <div className="dashboard-analytics">
+        <section className="dashboard-analytics">
           {analyticsError ? (
-            <p style={{ color: 'red' }}>Error loading analytics: {analyticsError}</p>
+            <p style={{ color: "red" }}>
+              Error loading analytics: {analyticsError}
+            </p>
           ) : (
-            <ul>
-              <li>{analytics?.users_count ?? "Loading..."} users are using FitHub</li>
-              <li>{analytics?.recipes_count ?? "Loading..."} recipes are waiting for you!</li>
-              <li>We have {analytics?.ingredients_count ?? "Loading..."} ingredients in our database.</li>
-              <li>Are you ready to discover {analytics?.posts_count ?? "Loading..."} posts?</li>
-              <li>There are {analytics?.comments_count ?? "Loading..."} comments, let's join discussions!</li>
-            </ul>
+            <>
+              <div className="analytics-card-grid">
+                {highlightCards.map((card) => (
+                  <article
+                    key={card.key}
+                    className={`analytics-card variant-${card.accent}`}
+                  >
+                    <div className="analytics-card-header">
+                      <span className="analytics-icon">{card.icon}</span>
+                      <div className="analytics-value">
+                        <span>
+                          {card.value !== undefined && card.value !== null
+                            ? card.value
+                            : "—"}
+                        </span>
+                        <small>{card.label}</small>
+                      </div>
+                    </div>
+                    <p className="analytics-sublabel">{card.sublabel}</p>
+                  </article>
+                ))}
+              </div>
+            </>
           )}
-        </div>
+        </section>
       </div>
 
       <div className="dashboard-cards">
