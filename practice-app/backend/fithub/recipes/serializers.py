@@ -168,7 +168,10 @@ class RecipeCreateSerializer(RecipeBaseSerializer):
                     )
 
                 # Calculate and save cost and nutrition info
-                recipe.cost_per_serving = recipe.calculate_cost_per_serving(user)
+                # Always store canonical value in USD in the DB so filters remain comparable.
+                class _DummyUSDUser:
+                    preferredCurrency = "USD"
+                recipe.cost_per_serving = recipe.calculate_cost_per_serving(_DummyUSDUser())
                 nutrition_info = recipe.calculate_nutrition_info()
                 recipe.calories = nutrition_info.get('calories')
                 recipe.protein = nutrition_info.get('protein')
