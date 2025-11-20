@@ -176,7 +176,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             children: [
               Icon(Icons.warning, color: Colors.red),
               SizedBox(width: 10),
-              Text('Delete Account?'),
+              Text(AppLocalizations.of(context)!.deleteAccountTitle),
             ],
           ),
           content: Column(
@@ -184,12 +184,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Are you sure you want to delete your account?',
+                AppLocalizations.of(context)!.deleteAccountConfirmation,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               Text(
-                'Your account will be deleted permanently.',
+                AppLocalizations.of(context)!.deleteAccountWarning,
                 style: TextStyle(
                   color: Colors.grey[700],
                 ),
@@ -199,7 +199,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -207,7 +207,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: Text('Delete Account'),
+              child: Text(AppLocalizations.of(context)!.deleteAccount),
             ),
           ],
         );
@@ -259,7 +259,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to delete account: ${e.toString()}'),
+            content: Text(AppLocalizations.of(context)!.failedToDeleteAccount(e.toString())),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
           ),
@@ -574,7 +574,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               child: ElevatedButton.icon(
                 onPressed: _showDeleteAccountDialog,
                 icon: Icon(Icons.delete_forever),
-                label: Text('Delete Account'),
+                label: Text(AppLocalizations.of(context)!.deleteAccount),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
@@ -584,7 +584,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              'Your account will be deleted permanently.',
+              AppLocalizations.of(context)!.deleteAccountWarning,
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 12,
