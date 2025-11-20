@@ -290,10 +290,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             filters &= Q(meal_type=meal_type)
         
-        if min_cost_per_serving:
-            filters &= Q(cost_per_serving__gte=min_cost_per_serving)
-        if max_cost_per_serving:
-            filters &= Q(cost_per_serving__lte=max_cost_per_serving)
+        if min_cost_per_serving or max_cost_per_serving:
+            # Query params are supplied in the requesting user's preferred currency.
+            # Convert them to canonical DB currency (USD) before filtering.
+            def _to_usd(value):
+                val = to_decimal(value)
+                if val is None:
+                    return None
+                user_currency = getattr(request.user, 'preferredCurrency', 'USD')
+                # Use same default rate as Ingredient.get_price_for_user
+                usd_to_try_rate = Decimal('40.0')
+                if user_currency == 'TRY':
+                    # convert TRY to USD
+                    return (val / usd_to_try_rate).quantize(Decimal('0.01'))
+                return val
+
+            if min_cost_per_serving:
+                min_val_usd = _to_usd(min_cost_per_serving)
+                if min_val_usd is not None:
+                    filters &= Q(cost_per_serving__gte=min_val_usd)
+            if max_cost_per_serving:
+                max_val_usd = _to_usd(max_cost_per_serving)
+                if max_val_usd is not None:
+                    filters &= Q(cost_per_serving__lte=max_val_usd)
         
         if min_difficulty_rating:
             filters &= Q(difficulty_rating__gte=min_difficulty_rating)
