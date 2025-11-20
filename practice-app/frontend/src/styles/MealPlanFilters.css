@@ -30,6 +30,7 @@
   border-top: 2px solid #e2e8f0;
 }
 
+.apply-filters-btn,
 .clear-filters-btn {
   width: 100%;
   padding: 0.75rem 1.5rem;
@@ -44,12 +45,26 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+.apply-filters-btn {
   background: linear-gradient(135deg, #38a169, #48bb78);
-  color: white;
+  color: #ffffff;
+}
+
+.apply-filters-btn:hover {
+  background: linear-gradient(135deg, #2d5016, #38a169);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.clear-filters-btn {
+  background: #edf2f7;
+  color: #2d3748;
 }
 
 .clear-filters-btn:hover {
-  background: linear-gradient(135deg, #2d5016, #38a169);
+  background: #e2e8f0;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }

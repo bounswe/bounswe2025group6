@@ -3,43 +3,46 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/MealPlanFilters.css';
 
-const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => {
-  const defaultFilters = {
-    name: '',
-    mealTypes: ['breakfast', 'lunch', 'dinner'],
-    min_cost_per_serving: '',
-    max_cost_per_serving: '',
-    min_calories: '',
-    max_calories: '',
-    min_protein: '',
-    max_protein: '',
-    min_carbs: '',
-    max_carbs: '',
-    min_fat: '',
-    max_fat: '',
-    min_prep_time: '',
-    max_prep_time: '',
-    min_cook_time: '',
-    max_cook_time: '',
-    min_total_time: '',
-    max_total_time: '',
-    min_difficulty_rating: '',
-    max_difficulty_rating: '',
-    min_taste_rating: '',
-    max_taste_rating: '',
-    min_health_rating: '',
-    max_health_rating: '',
-    has_image: false,
-    is_approved: false,
-    is_featured: false,
-    excludeAllergens: [],
-  };
+export const MEAL_PLANNER_DEFAULT_FILTERS = {
+  name: '',
+  mealTypes: ['breakfast', 'lunch', 'dinner'],
+  min_cost_per_serving: '',
+  max_cost_per_serving: '',
+  min_calories: '',
+  max_calories: '',
+  min_protein: '',
+  max_protein: '',
+  min_carbs: '',
+  max_carbs: '',
+  min_fat: '',
+  max_fat: '',
+  min_prep_time: '',
+  max_prep_time: '',
+  min_cook_time: '',
+  max_cook_time: '',
+  min_total_time: '',
+  max_total_time: '',
+  min_difficulty_rating: '',
+  max_difficulty_rating: '',
+  min_taste_rating: '',
+  max_taste_rating: '',
+  min_health_rating: '',
+  max_health_rating: '',
+  has_image: false,
+  is_approved: false,
+  is_featured: false,
+  excludeAllergens: [],
+};
 
-  const [filters, setFilters] = useState({
-    ...defaultFilters,
-    ...(initialFilters || {}),
-    excludeAllergens: initialFilters?.excludeAllergens || []
-  });
+const cloneFilterPayload = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
+  ...MEAL_PLANNER_DEFAULT_FILTERS,
+  ...payload,
+  mealTypes: payload?.mealTypes ? [...payload.mealTypes] : [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
+  excludeAllergens: payload?.excludeAllergens ? [...payload.excludeAllergens] : [],
+});
+
+const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initialFilters }) => {
+  const [filters, setFilters] = useState(() => cloneFilterPayload(initialFilters));
   const [isFirstMount, setIsFirstMount] = useState(true);
 
   // Parent'tan gelen initialFilters değiştiğinde local state'i güncelle
@@ -58,7 +61,7 @@ const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => 
       const filtersString = JSON.stringify(filters);
       const initialFiltersString = JSON.stringify(initialFilters);
       if (filtersString !== initialFiltersString) {
-        setFilters(initialFilters);
+        setFilters(cloneFilterPayload(initialFilters));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,8 +90,9 @@ const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => 
       [name]: type === 'checkbox' ? checked : value,
     };
     
-    setFilters(newFilters);
-    onFilterChange(newFilters);
+    const payload = cloneFilterPayload(newFilters);
+    setFilters(payload);
+    onFilterChange(payload);
   };
 
   const handleMealTypeToggle = (mealType) => {
@@ -101,8 +105,9 @@ const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => 
       mealTypes: newMealTypes,
     };
     
-    setFilters(newFilters);
-    onFilterChange(newFilters);
+    const payload = cloneFilterPayload(newFilters);
+    setFilters(payload);
+    onFilterChange(payload);
   };
 
   const handleAllergenToggle = (allergen) => {
@@ -116,43 +121,20 @@ const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => 
       excludeAllergens: newAllergens,
     };
     
-    setFilters(newFilters);
-    onFilterChange(newFilters);
+    const payload = cloneFilterPayload(newFilters);
+    setFilters(payload);
+    onFilterChange(payload);
+  };
+
+  const handleApply = () => {
+    onApplyFilters(cloneFilterPayload(filters));
   };
 
   const handleClear = () => {
-    const clearedFilters = {
-      name: '',
-      mealTypes: ['breakfast', 'lunch', 'dinner'],
-      min_cost_per_serving: '',
-      max_cost_per_serving: '',
-      min_calories: '',
-      max_calories: '',
-      min_protein: '',
-      max_protein: '',
-      min_carbs: '',
-      max_carbs: '',
-      min_fat: '',
-      max_fat: '',
-      min_prep_time: '',
-      max_prep_time: '',
-      min_cook_time: '',
-      max_cook_time: '',
-      min_total_time: '',
-      max_total_time: '',
-      min_difficulty_rating: '',
-      max_difficulty_rating: '',
-      min_taste_rating: '',
-      max_taste_rating: '',
-      min_health_rating: '',
-      max_health_rating: '',
-      has_image: false,
-      is_approved: false,
-      is_featured: false,
-      excludeAllergens: [],
-    };
+    const clearedFilters = cloneFilterPayload(MEAL_PLANNER_DEFAULT_FILTERS);
     
     setFilters(clearedFilters);
+    onFilterChange(clearedFilters);
     onClearFilters();
   };
 
@@ -602,6 +584,9 @@ const MealPlanFilters = ({ onFilterChange, onClearFilters, initialFilters }) => 
 
         {/* Action Buttons */}
         <div className="filter-actions">
+          <button onClick={handleApply} className="apply-filters-btn">
+            Apply Filters
+          </button>
           <button onClick={handleClear} className="clear-filters-btn">
             Clear All
           </button>

@@ -1,12 +1,10 @@
 // src/pages/meal-planner/MealPlannerPage.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import RecipeCard from '../../components/recipe/RecipeCard';
-import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import MealPlanFilters from '../../components/meal-planner/MealPlanFilters';
+import MealPlanFilters, { MEAL_PLANNER_DEFAULT_FILTERS } from '../../components/meal-planner/MealPlanFilters';
 import MealPlanSummary from '../../components/meal-planner/MealPlanSummary';
 import {
   fetchRecipesByMealType,
@@ -16,12 +14,17 @@ import {
   getMealPlanAllergens,
 } from '../../services/mealPlanService';
 import '../../styles/MealPlannerPage.css';
-import { useTranslation } from 'react-i18next';
+
+const RECIPES_PER_PAGE = 6;
+
+const createDefaultFilters = () => ({
+  ...MEAL_PLANNER_DEFAULT_FILTERS,
+  mealTypes: [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
+  excludeAllergens: [...MEAL_PLANNER_DEFAULT_FILTERS.excludeAllergens],
+});
 
 const MealPlannerPage = () => {
-  const { t } = useTranslation();
   const toast = useToast();
-  const navigate = useNavigate();
   const { currency } = useCurrency();
 
   const [breakfastRecipes, setBreakfastRecipes] = useState([]);
@@ -34,190 +37,189 @@ const MealPlannerPage = () => {
     dinner: null,
   });
 
-  const [filters, setFilters] = useState({
-    mealTypes: ['breakfast', 'lunch', 'dinner'],
+  const [appliedFilters, setAppliedFilters] = useState(() => createDefaultFilters());
+  const [pendingFilters, setPendingFilters] = useState(() => createDefaultFilters());
+  const [mealPagination, setMealPagination] = useState({
+    breakfast: 1,
+    lunch: 1,
+    dinner: 1,
   });
+  const [isRestoringState, setIsRestoringState] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initial load - always restore state if exists
+  // Restore state (filters, recipes, meal plan) if available
   useEffect(() => {
     document.title = 'Meal Planner';
     window.scrollTo(0, 0);
 
-    // Check if we came from recipe detail (for scroll restoration)
     const cameFromRecipeDetail = localStorage.getItem('returnToMealPlanner');
-    
-    // Ensure page starts at top by default (unless coming from recipe detail)
     if (!cameFromRecipeDetail) {
       window.scrollTo(0, 0);
     }
-    
-    // Always try to restore state from localStorage
+
     const savedState = localStorage.getItem('mealPlannerState');
-    
+
     if (savedState) {
       try {
-        const { filters: savedFilters, mealPlan: savedMealPlan, scrollPosition, breakfastRecipes: savedBreakfast, lunchRecipes: savedLunch, dinnerRecipes: savedDinner } = JSON.parse(savedState);
-        
-        // Check if we have valid saved data
-        const hasValidRecipes = (savedBreakfast && savedBreakfast.length > 0) || 
-                                (savedLunch && savedLunch.length > 0) || 
-                                (savedDinner && savedDinner.length > 0);
-        
-        if (hasValidRecipes) {
-          // Restore everything
-          if (savedFilters) {
-            setFilters(savedFilters);
-          }
-          if (savedMealPlan) {
-            setMealPlan(savedMealPlan);
-          }
-          if (savedBreakfast && savedBreakfast.length > 0) {
-            setBreakfastRecipes(savedBreakfast);
-          }
-          if (savedLunch && savedLunch.length > 0) {
-            setLunchRecipes(savedLunch);
-          }
-          if (savedDinner && savedDinner.length > 0) {
-            setDinnerRecipes(savedDinner);
-          }
-          
-          // Restore scroll position ONLY if coming from recipe detail
-          if (cameFromRecipeDetail) {
-            setTimeout(() => {
-              window.scrollTo(0, scrollPosition || 0);
-            }, 100);
-          }
-          
-          return; // Don't load recipes again if we restored valid state
+        const parsed = JSON.parse(savedState);
+        const savedApplied = parsed.appliedFilters || parsed.filters;
+        const savedPending = parsed.pendingFilters || savedApplied;
+        const savedMealPlan = parsed.mealPlan;
+
+        if (savedApplied) {
+          setAppliedFilters(cloneFilters(savedApplied));
+        }
+        if (savedPending) {
+          setPendingFilters(cloneFilters(savedPending));
+        }
+        if (savedMealPlan) {
+          setMealPlan(savedMealPlan);
+        }
+        if (parsed.breakfastRecipes) {
+          setBreakfastRecipes(parsed.breakfastRecipes);
+        }
+        if (parsed.lunchRecipes) {
+          setLunchRecipes(parsed.lunchRecipes);
+        }
+        if (parsed.dinnerRecipes) {
+          setDinnerRecipes(parsed.dinnerRecipes);
+        }
+        if (parsed.mealPagination) {
+          setMealPagination({
+            breakfast: parsed.mealPagination.breakfast || 1,
+            lunch: parsed.mealPagination.lunch || 1,
+            dinner: parsed.mealPagination.dinner || 1,
+          });
+        }
+
+        if (cameFromRecipeDetail && parsed.scrollPosition) {
+          setTimeout(() => {
+            window.scrollTo(0, parsed.scrollPosition || 0);
+          }, 100);
         }
       } catch (error) {
         console.error('Error restoring meal planner state:', error);
-        // If restore fails, continue to load recipes normally
       }
     }
 
-    // Load recipes on first mount (or if restore failed)
-    const baseFilters = { ...filters };
-    delete baseFilters.mealTypes;
-
-    if (filters.mealTypes.includes('breakfast')) {
-      loadBreakfastRecipes(baseFilters);
-    }
-    if (filters.mealTypes.includes('lunch')) {
-      loadLunchRecipes(baseFilters);
-    }
-    if (filters.mealTypes.includes('dinner')) {
-      loadDinnerRecipes(baseFilters);
-    }
+    setIsRestoringState(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reload recipes when currency changes
+  // Load recipes when applied filters or currency change
   useEffect(() => {
-    // Skip initial mount (already loaded in first useEffect)
-    // Only reload when currency changes
-    const baseFilters = { ...filters };
-    delete baseFilters.mealTypes;
-
-    if (filters.mealTypes.includes('breakfast')) {
-      loadBreakfastRecipes(baseFilters);
-    }
-    if (filters.mealTypes.includes('lunch')) {
-      loadLunchRecipes(baseFilters);
-    }
-    if (filters.mealTypes.includes('dinner')) {
-      loadDinnerRecipes(baseFilters);
-    }
+    if (isRestoringState) return;
+    loadAllRecipes(appliedFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currency]);
+  }, [appliedFilters, currency, isRestoringState]);
 
   // Save state whenever filters or mealPlan changes
   useEffect(() => {
     const state = {
-      filters,
+      appliedFilters,
+      pendingFilters,
       mealPlan,
       breakfastRecipes,
       lunchRecipes,
       dinnerRecipes,
+      mealPagination,
       scrollPosition: window.scrollY
     };
     localStorage.setItem('mealPlannerState', JSON.stringify(state));
-  }, [filters, mealPlan, breakfastRecipes, lunchRecipes, dinnerRecipes]);
+  }, [
+    appliedFilters,
+    pendingFilters,
+    mealPlan,
+    breakfastRecipes,
+    lunchRecipes,
+    dinnerRecipes,
+    mealPagination,
+  ]);
 
-  const loadAllRecipes = async () => {
-    const baseFilters = { ...filters };
+  const cloneFilters = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
+    ...createDefaultFilters(),
+    ...payload,
+    mealTypes: payload?.mealTypes ? [...payload.mealTypes] : [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
+    excludeAllergens: payload?.excludeAllergens ? [...payload.excludeAllergens] : [],
+  });
+
+  const loadAllRecipes = async (filtersToUse = appliedFilters) => {
+    const baseFilters = { ...filtersToUse };
     delete baseFilters.mealTypes;
 
-    if (filters.mealTypes.includes('breakfast')) {
-      loadBreakfastRecipes(baseFilters);
-    }
-    if (filters.mealTypes.includes('lunch')) {
-      loadLunchRecipes(baseFilters);
-    }
-    if (filters.mealTypes.includes('dinner')) {
-      loadDinnerRecipes(baseFilters);
-    }
-  };
+    const requests = [];
 
-  const loadBreakfastRecipes = async (additionalFilters = {}) => {
-    try {
-      const recipes = await fetchRecipesByMealType('breakfast', additionalFilters);
-      setBreakfastRecipes(recipes);
-    } catch (error) {
-      console.error('Error loading breakfast recipes:', error);
-      toast.error('Failed to load breakfast recipes');
-    }
-  };
-
-  const loadLunchRecipes = async (additionalFilters = {}) => {
-    try {
-      const recipes = await fetchRecipesByMealType('lunch', additionalFilters);
-      setLunchRecipes(recipes);
-    } catch (error) {
-      console.error('Error loading lunch recipes:', error);
-      toast.error('Failed to load lunch recipes');
-    }
-  };
-
-  const loadDinnerRecipes = async (additionalFilters = {}) => {
-    try {
-      const recipes = await fetchRecipesByMealType('dinner', additionalFilters);
-      setDinnerRecipes(recipes);
-    } catch (error) {
-      console.error('Error loading dinner recipes:', error);
-      toast.error('Failed to load dinner recipes');
-    }
-  };
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    
-    const baseFilters = { ...newFilters };
-    delete baseFilters.mealTypes;
-
-    if (newFilters.mealTypes.includes('breakfast')) {
-      loadBreakfastRecipes(baseFilters);
+    if (filtersToUse.mealTypes.includes('breakfast')) {
+      requests.push(loadRecipesForMeal('breakfast', baseFilters));
     } else {
       setBreakfastRecipes([]);
+      setMealPagination((prev) => ({ ...prev, breakfast: 1 }));
     }
 
-    if (newFilters.mealTypes.includes('lunch')) {
-      loadLunchRecipes(baseFilters);
+    if (filtersToUse.mealTypes.includes('lunch')) {
+      requests.push(loadRecipesForMeal('lunch', baseFilters));
     } else {
       setLunchRecipes([]);
+      setMealPagination((prev) => ({ ...prev, lunch: 1 }));
     }
 
-    if (newFilters.mealTypes.includes('dinner')) {
-      loadDinnerRecipes(baseFilters);
+    if (filtersToUse.mealTypes.includes('dinner')) {
+      requests.push(loadRecipesForMeal('dinner', baseFilters));
     } else {
       setDinnerRecipes([]);
+      setMealPagination((prev) => ({ ...prev, dinner: 1 }));
     }
+
+    await Promise.allSettled(requests);
+  };
+
+  const loadRecipesForMeal = async (mealType, additionalFilters = {}) => {
+    try {
+      const recipes = await fetchRecipesByMealType(mealType, additionalFilters);
+      switch (mealType) {
+        case 'breakfast':
+          setBreakfastRecipes(recipes);
+          break;
+        case 'lunch':
+          setLunchRecipes(recipes);
+          break;
+        case 'dinner':
+          setDinnerRecipes(recipes);
+          break;
+        default:
+          break;
+      }
+      setMealPagination((prev) => ({ ...prev, [mealType]: 1 }));
+    } catch (error) {
+      console.error(`Error loading ${mealType} recipes:`, error);
+      toast.error(`Failed to load ${mealType} recipes`);
+    }
+  };
+
+  const handlePendingFiltersChange = (newFilters) => {
+    setPendingFilters(cloneFilters(newFilters));
+  };
+
+  const handleApplyFilters = (filtersToApply) => {
+    const payload = cloneFilters(filtersToApply);
+    setAppliedFilters(payload);
+    setPendingFilters(payload);
+    setMealPagination({
+      breakfast: 1,
+      lunch: 1,
+      dinner: 1,
+    });
   };
 
   const handleClearFilters = () => {
-    setFilters({ mealTypes: ['breakfast', 'lunch', 'dinner'] });
-    loadAllRecipes();
+    const resetFilters = createDefaultFilters();
+    setPendingFilters(resetFilters);
+    setAppliedFilters(resetFilters);
+    setMealPagination({
+      breakfast: 1,
+      lunch: 1,
+      dinner: 1,
+    });
   };
 
   const handleSelectRecipe = (mealType, recipe) => {
@@ -230,7 +232,7 @@ const MealPlannerPage = () => {
   const handleGenerateRandom = async () => {
     setIsLoading(true);
     try {
-      const baseFilters = { ...filters };
+      const baseFilters = { ...appliedFilters };
       delete baseFilters.mealTypes;
 
       const randomPlan = await generateRandomMealPlan(baseFilters);
@@ -273,6 +275,90 @@ const MealPlannerPage = () => {
   const totalNutrition = calculateMealPlanNutrition(mealPlan);
   const allergens = getMealPlanAllergens(mealPlan);
 
+  const handlePageChange = (mealType, direction) => {
+    setMealPagination((prev) => {
+      const totalRecipes = {
+        breakfast: breakfastRecipes.length,
+        lunch: lunchRecipes.length,
+        dinner: dinnerRecipes.length,
+      }[mealType];
+      const totalPages = Math.max(1, Math.ceil(totalRecipes / RECIPES_PER_PAGE));
+      const nextPage = Math.min(
+        totalPages,
+        Math.max(1, (prev[mealType] || 1) + direction)
+      );
+      if (nextPage === prev[mealType]) return prev;
+      return { ...prev, [mealType]: nextPage };
+    });
+  };
+
+  const renderMealSection = (mealType, icon, title, recipes, selectedRecipe) => {
+    if (!appliedFilters.mealTypes.includes(mealType)) {
+      return null;
+    }
+
+    const totalPages = Math.max(1, Math.ceil(recipes.length / RECIPES_PER_PAGE));
+    const currentPage = Math.min(mealPagination[mealType] || 1, totalPages);
+    const startIndex = (currentPage - 1) * RECIPES_PER_PAGE;
+    const paginatedRecipes = recipes.slice(startIndex, startIndex + RECIPES_PER_PAGE);
+
+    return (
+      <section className="meal-section" key={mealType}>
+        <h2 className="meal-section-title">
+          <span className="meal-icon">{icon}</span>
+          {title}
+        </h2>
+        {recipes.length > 0 ? (
+          <>
+            <div className="recipe-grid">
+              {paginatedRecipes.map((recipe) => (
+                <div
+                  key={recipe.id}
+                  className={`recipe-card-wrapper ${
+                    selectedRecipe?.id === recipe.id ? 'selected' : ''
+                  }`}
+                >
+                  <RecipeCard recipe={recipe} />
+                  <button
+                    className={`select-recipe-btn ${
+                      selectedRecipe?.id === recipe.id ? 'selected' : ''
+                    }`}
+                    onClick={() => handleSelectRecipe(mealType, recipe)}
+                  >
+                    {selectedRecipe?.id === recipe.id ? '✓ Selected' : `Select for ${title.split(' ')[0]}`}
+                  </button>
+                </div>
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="meal-pagination">
+                <button
+                  className="pagination-button"
+                  onClick={() => handlePageChange(mealType, -1)}
+                  disabled={currentPage === 1}
+                >
+                  ← Prev
+                </button>
+                <span className="pagination-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  className="pagination-button"
+                  onClick={() => handlePageChange(mealType, 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="no-recipes">No {mealType} recipes found. Try adjusting your filters.</p>
+        )}
+      </section>
+    );
+  };
+
   return (
     <div className="meal-planner-page">
       <div className="meal-planner-header">
@@ -293,115 +379,18 @@ const MealPlannerPage = () => {
         {/* Left Sidebar - Filters (1/4) */}
         <aside className="meal-planner-sidebar">
           <MealPlanFilters 
-            onFilterChange={handleFilterChange} 
+            onFilterChange={handlePendingFiltersChange} 
+            onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
-            initialFilters={filters}
+            initialFilters={pendingFilters}
           />
         </aside>
 
         {/* Right Content - Recipes (3/4) */}
         <main className="meal-planner-content">
-          {/* Breakfast Section */}
-          {filters.mealTypes.includes('breakfast') && (
-            <section className="meal-section">
-              <h2 className="meal-section-title">
-                <span className="meal-icon">🍳</span>
-                Breakfast Recipes
-              </h2>
-              {breakfastRecipes.length > 0 ? (
-                <div className="recipe-grid">
-                  {breakfastRecipes.map((recipe) => (
-                    <div
-                      key={recipe.id}
-                      className={`recipe-card-wrapper ${
-                        mealPlan.breakfast?.id === recipe.id ? 'selected' : ''
-                      }`}
-                    >
-                      <RecipeCard recipe={recipe} />
-                      <button
-                        className={`select-recipe-btn ${
-                          mealPlan.breakfast?.id === recipe.id ? 'selected' : ''
-                        }`}
-                        onClick={() => handleSelectRecipe('breakfast', recipe)}
-                      >
-                        {mealPlan.breakfast?.id === recipe.id ? '✓ Selected' : 'Select for Breakfast'}
-                      </button>
-                        </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="no-recipes">No breakfast recipes found. Try adjusting your filters.</p>
-              )}
-            </section>
-          )}
-
-          {/* Lunch Section */}
-          {filters.mealTypes.includes('lunch') && (
-            <section className="meal-section">
-              <h2 className="meal-section-title">
-                <span className="meal-icon">🥗</span>
-                Lunch Recipes
-              </h2>
-              {lunchRecipes.length > 0 ? (
-                <div className="recipe-grid">
-                  {lunchRecipes.map((recipe) => (
-                    <div
-                      key={recipe.id}
-                      className={`recipe-card-wrapper ${
-                        mealPlan.lunch?.id === recipe.id ? 'selected' : ''
-                      }`}
-                    >
-                      <RecipeCard recipe={recipe} />
-                      <button
-                        className={`select-recipe-btn ${
-                          mealPlan.lunch?.id === recipe.id ? 'selected' : ''
-                        }`}
-                        onClick={() => handleSelectRecipe('lunch', recipe)}
-                      >
-                        {mealPlan.lunch?.id === recipe.id ? '✓ Selected' : 'Select for Lunch'}
-                      </button>
-                      </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="no-recipes">No lunch recipes found. Try adjusting your filters.</p>
-              )}
-            </section>
-          )}
-
-          {/* Dinner Section */}
-          {filters.mealTypes.includes('dinner') && (
-            <section className="meal-section">
-              <h2 className="meal-section-title">
-                <span className="meal-icon">🍽️</span>
-                Dinner Recipes
-              </h2>
-              {dinnerRecipes.length > 0 ? (
-                <div className="recipe-grid">
-                  {dinnerRecipes.map((recipe) => (
-                    <div
-                      key={recipe.id}
-                      className={`recipe-card-wrapper ${
-                        mealPlan.dinner?.id === recipe.id ? 'selected' : ''
-                      }`}
-                    >
-                      <RecipeCard recipe={recipe} />
-                      <button
-                        className={`select-recipe-btn ${
-                          mealPlan.dinner?.id === recipe.id ? 'selected' : ''
-                        }`}
-                        onClick={() => handleSelectRecipe('dinner', recipe)}
-                      >
-                        {mealPlan.dinner?.id === recipe.id ? '✓ Selected' : 'Select for Dinner'}
-                      </button>
-              </div>
-                  ))}
-            </div>
-          ) : (
-                <p className="no-recipes">No dinner recipes found. Try adjusting your filters.</p>
-              )}
-            </section>
-          )}
+          {renderMealSection('breakfast', '🍳', 'Breakfast Recipes', breakfastRecipes, mealPlan.breakfast)}
+          {renderMealSection('lunch', '🥗', 'Lunch Recipes', lunchRecipes, mealPlan.lunch)}
+          {renderMealSection('dinner', '🍽️', 'Dinner Recipes', dinnerRecipes, mealPlan.dinner)}
         </main>
       </div>
 

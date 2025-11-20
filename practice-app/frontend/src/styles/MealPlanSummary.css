@@ -223,19 +223,17 @@
 .summary-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.75rem;
   padding-top: 0.5rem;
 }
 
 .link-button {
-  flex: 1;
-  min-width: 150px;
   text-decoration: none;
 }
 
 .modern-action-button {
-  flex: 1;
-  min-width: 150px;
+  min-width: 200px;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
@@ -261,13 +259,13 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.modern-action-button.secondary {
-  background: linear-gradient(135deg, #38a169, #48bb78);
+.modern-action-button.danger {
+  background: linear-gradient(135deg, #f56565, #e53e3e);
   color: white;
 }
 
-.modern-action-button.secondary:hover {
-  background: linear-gradient(135deg, #2d5016, #38a169);
+.modern-action-button.danger:hover {
+  background: linear-gradient(135deg, #c53030, #9b2c2c);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -297,10 +295,12 @@
 
   .summary-actions {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .action-button,
-  .link-button {
+  .link-button,
+  .modern-action-button {
     width: 100%;
   }
 }

@@ -156,14 +156,14 @@ const MealPlanSummary = ({
 
         {/* Actions */}
         <div className="summary-actions">
+          <button onClick={onClear} className="modern-action-button danger">
+            🗑️ Remove All Recipes
+          </button>
           <Link to="/shopping-list" className="link-button">
             <button onClick={onGenerateShopping} className="modern-action-button primary">
               🛒 Generate Shopping List
             </button>
           </Link>
-          <button onClick={onClear} className="modern-action-button secondary">
-            🗑️ Clear All
-          </button>
         </div>
       </div>
     </div>
