@@ -29,8 +29,6 @@ export const MEAL_PLANNER_DEFAULT_FILTERS = {
   min_health_rating: '',
   max_health_rating: '',
   has_image: false,
-  is_approved: false,
-  is_featured: false,
   excludeAllergens: [],
 };
 
@@ -560,24 +558,6 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                 onChange={handleInputChange}
               />
               <span>Has Image</span>
-            </label>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="is_approved"
-                checked={filters.is_approved}
-                onChange={handleInputChange}
-              />
-              <span>Approved</span>
-            </label>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="is_featured"
-                checked={filters.is_featured}
-                onChange={handleInputChange}
-              />
-              <span>Featured</span>
             </label>
           </div>
         </div>

@@ -52,19 +52,39 @@ export const fetchMealPlanRecipes = async (filters = {}) => {
     const maxCost = parseNumber(filters.max_cost_per_serving);
     if (maxCost !== null) params.max_cost_per_serving = String(maxCost);
     
-    // Rating filters (number -> string for query params)
-    const minDifficulty = parseNumber(filters.min_difficulty_rating);
-    if (minDifficulty !== null) params.min_difficulty_rating = String(minDifficulty);
-    const maxDifficulty = parseNumber(filters.max_difficulty_rating);
-    if (maxDifficulty !== null) params.max_difficulty_rating = String(maxDifficulty);
-    const minTaste = parseNumber(filters.min_taste_rating);
-    if (minTaste !== null) params.min_taste_rating = String(minTaste);
-    const maxTaste = parseNumber(filters.max_taste_rating);
-    if (maxTaste !== null) params.max_taste_rating = String(maxTaste);
-    const minHealth = parseNumber(filters.min_health_rating);
-    if (minHealth !== null) params.min_health_rating = String(minHealth);
-    const maxHealth = parseNumber(filters.max_health_rating);
-    if (maxHealth !== null) params.max_health_rating = String(maxHealth);
+    // Rating filters handled entirely on the client (so unrated recipes remain visible)
+    const ratingFilterConfigs = [
+      {
+        minKey: 'min_difficulty_rating',
+        maxKey: 'max_difficulty_rating',
+        recipeKey: 'difficulty_rating',
+      },
+      {
+        minKey: 'min_taste_rating',
+        maxKey: 'max_taste_rating',
+        recipeKey: 'taste_rating',
+      },
+      {
+        minKey: 'min_health_rating',
+        maxKey: 'max_health_rating',
+        recipeKey: 'health_rating',
+      },
+    ];
+    
+    const clientSideRatingFilters = [];
+    
+    ratingFilterConfigs.forEach(({ minKey, maxKey, recipeKey }) => {
+      const minValue = parseNumber(filters[minKey]);
+      const maxValue = parseNumber(filters[maxKey]);
+      
+      if (minValue !== null || maxValue !== null) {
+        clientSideRatingFilters.push({
+          recipeKey,
+          minValue,
+          maxValue,
+        });
+      }
+    });
     const minLike = parseNumber(filters.min_like_count);
     if (minLike !== null) params.min_like_count = String(minLike);
     const maxLike = parseNumber(filters.max_like_count);
@@ -102,10 +122,8 @@ export const fetchMealPlanRecipes = async (filters = {}) => {
     const maxTotalTime = parseNumber(filters.max_total_time);
     if (maxTotalTime !== null) params.max_total_time = String(Math.floor(maxTotalTime));
     
-    // Boolean filters
-    if (filters.has_image !== undefined) params.has_image = filters.has_image;
-    if (filters.is_approved !== undefined) params.is_approved = filters.is_approved;
-    if (filters.is_featured !== undefined) params.is_featured = filters.is_featured;
+    // Boolean filters - only send when explicitly enabled
+    if (filters.has_image === true) params.has_image = true;
     
     // Allergen exclusion filter
     // Backend expects comma-separated string (e.g., 'nuts,gluten')
@@ -125,6 +143,44 @@ export const fetchMealPlanRecipes = async (filters = {}) => {
         Authorization: `Bearer ${token}`,
       },
     });
+    
+    if (clientSideRatingFilters.length > 0) {
+      const normalizeRating = (value) => {
+        if (value === null || value === undefined || value === '') {
+          return 1;
+        }
+        const numeric = parseFloat(value);
+        return Number.isNaN(numeric) ? 1 : numeric;
+      };
+
+      const applyClientSideFilters = (items = []) => {
+        return items.filter((recipe) => {
+          return clientSideRatingFilters.every(({ recipeKey, minValue, maxValue }) => {
+            const numericRating = normalizeRating(recipe?.[recipeKey]);
+            if (minValue !== null && numericRating < minValue) {
+              return false;
+            }
+            if (maxValue !== null && numericRating > maxValue) {
+              return false;
+            }
+            return true;
+          });
+        });
+      };
+      
+      if (Array.isArray(response.data?.results)) {
+        const filteredResults = applyClientSideFilters(response.data.results);
+        return {
+          ...response.data,
+          results: filteredResults,
+          count: typeof response.data.count === 'number' ? filteredResults.length : response.data.count,
+        };
+      }
+      
+      if (Array.isArray(response.data)) {
+        return applyClientSideFilters(response.data);
+      }
+    }
 
     return response.data;
   } catch (error) {

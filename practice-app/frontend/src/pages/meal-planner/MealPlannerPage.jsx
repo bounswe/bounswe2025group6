@@ -36,6 +36,11 @@ const MealPlannerPage = () => {
     lunch: null,
     dinner: null,
   });
+  const [collapsedMeals, setCollapsedMeals] = useState({
+    breakfast: false,
+    lunch: false,
+    dinner: false,
+  });
 
   const [appliedFilters, setAppliedFilters] = useState(() => createDefaultFilters());
   const [pendingFilters, setPendingFilters] = useState(() => createDefaultFilters());
@@ -50,12 +55,7 @@ const MealPlannerPage = () => {
   // Restore state (filters, recipes, meal plan) if available
   useEffect(() => {
     document.title = 'Meal Planner';
-    window.scrollTo(0, 0);
 
-    const cameFromRecipeDetail = localStorage.getItem('returnToMealPlanner');
-    if (!cameFromRecipeDetail) {
-      window.scrollTo(0, 0);
-    }
 
     const savedState = localStorage.getItem('mealPlannerState');
 
@@ -92,11 +92,7 @@ const MealPlannerPage = () => {
           });
         }
 
-        if (cameFromRecipeDetail && parsed.scrollPosition) {
-          setTimeout(() => {
-            window.scrollTo(0, parsed.scrollPosition || 0);
-          }, 100);
-        }
+
       } catch (error) {
         console.error('Error restoring meal planner state:', error);
       }
@@ -271,6 +267,13 @@ const MealPlannerPage = () => {
     localStorage.setItem('currentMealPlan', JSON.stringify({ activePlan: mealPlan }));
   };
 
+  const toggleMealSection = (mealType) => {
+    setCollapsedMeals((prev) => ({
+      ...prev,
+      [mealType]: !prev[mealType],
+    }));
+  };
+
   const totalCost = calculateMealPlanCost(mealPlan);
   const totalNutrition = calculateMealPlanNutrition(mealPlan);
   const allergens = getMealPlanAllergens(mealPlan);
@@ -301,60 +304,73 @@ const MealPlannerPage = () => {
     const currentPage = Math.min(mealPagination[mealType] || 1, totalPages);
     const startIndex = (currentPage - 1) * RECIPES_PER_PAGE;
     const paginatedRecipes = recipes.slice(startIndex, startIndex + RECIPES_PER_PAGE);
+    const isCollapsed = collapsedMeals[mealType];
 
     return (
       <section className="meal-section" key={mealType}>
-        <h2 className="meal-section-title">
-          <span className="meal-icon">{icon}</span>
-          {title}
-        </h2>
-        {recipes.length > 0 ? (
-          <>
-            <div className="recipe-grid">
-              {paginatedRecipes.map((recipe) => (
-                <div
-                  key={recipe.id}
-                  className={`recipe-card-wrapper ${
-                    selectedRecipe?.id === recipe.id ? 'selected' : ''
-                  }`}
-                >
-                  <RecipeCard recipe={recipe} />
-                  <button
-                    className={`select-recipe-btn ${
+        <button
+          type="button"
+          className={`meal-section-header ${isCollapsed ? 'collapsed' : 'expanded'}`}
+          onClick={() => toggleMealSection(mealType)}
+        >
+          <span className="meal-section-arrow">{'>'}</span>
+          <div className="meal-section-title">
+            <span className="meal-icon">{icon}</span>
+            {title}
+          </div>
+        </button>
+        <div
+          className={`meal-section-content ${isCollapsed ? 'collapsed' : 'expanded'}`}
+          aria-hidden={isCollapsed}
+        >
+          {recipes.length > 0 ? (
+            <>
+              <div className="recipe-grid">
+                {paginatedRecipes.map((recipe) => (
+                  <div
+                    key={recipe.id}
+                    className={`recipe-card-wrapper ${
                       selectedRecipe?.id === recipe.id ? 'selected' : ''
                     }`}
-                    onClick={() => handleSelectRecipe(mealType, recipe)}
                   >
-                    {selectedRecipe?.id === recipe.id ? '✓ Selected' : `Select for ${title.split(' ')[0]}`}
+                    <RecipeCard recipe={recipe} />
+                    <button
+                      className={`select-recipe-btn ${
+                        selectedRecipe?.id === recipe.id ? 'selected' : ''
+                      }`}
+                      onClick={() => handleSelectRecipe(mealType, recipe)}
+                    >
+                      {selectedRecipe?.id === recipe.id ? '✓ Selected' : `Select for ${title.split(' ')[0]}`}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="meal-pagination">
+                  <button
+                    className="pagination-button"
+                    onClick={() => handlePageChange(mealType, -1)}
+                    disabled={currentPage === 1}
+                  >
+                    ← Prev
+                  </button>
+                  <span className="pagination-info">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    className="pagination-button"
+                    onClick={() => handlePageChange(mealType, 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next →
                   </button>
                 </div>
-              ))}
-            </div>
-            {totalPages > 1 && (
-              <div className="meal-pagination">
-                <button
-                  className="pagination-button"
-                  onClick={() => handlePageChange(mealType, -1)}
-                  disabled={currentPage === 1}
-                >
-                  ← Prev
-                </button>
-                <span className="pagination-info">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  className="pagination-button"
-                  onClick={() => handlePageChange(mealType, 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next →
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="no-recipes">No {mealType} recipes found. Try adjusting your filters.</p>
-        )}
+              )}
+            </>
+          ) : (
+            <p className="no-recipes">No {mealType} recipes found. Try adjusting your filters.</p>
+          )}
+        </div>
       </section>
     );
   };
