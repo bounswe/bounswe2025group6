@@ -7,6 +7,7 @@ import '../models/user_profile.dart';
 import '../services/profile_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/label_localization.dart';
+import 'login_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   static const String routeName = '/profile-settings';
@@ -162,6 +163,108 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               );
             }
           }
+    }
+  }
+
+  Future<void> _showDeleteAccountDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.red),
+              SizedBox(width: 10),
+              Text(AppLocalizations.of(context)!.deleteAccountTitle),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.deleteAccountConfirmation,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text(
+                AppLocalizations.of(context)!.deleteAccountWarning,
+                style: TextStyle(
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(AppLocalizations.of(context)!.deleteAccount),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _deleteAccount();
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+        ),
+      ),
+    );
+
+    try {
+      await _profileService.deleteAccount();
+      
+      if (mounted) {
+        // Close the loading dialog
+        Navigator.of(context).pop();
+        
+        // Navigate to login screen and clear navigation stack
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+
+        // Show success message after navigation
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.accountDeletedSuccessfully),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        // Close the loading dialog
+        Navigator.of(context).pop();
+        
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.failedToDeleteAccount(e.toString())),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -462,6 +565,32 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   ),
                 ],
               ),
+            ),
+            SizedBox(height: 30),
+            Divider(thickness: 2, color: Colors.red.shade200),
+            SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _showDeleteAccountDialog,
+                icon: Icon(Icons.delete_forever),
+                label: Text(AppLocalizations.of(context)!.deleteAccount),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              AppLocalizations.of(context)!.deleteAccountWarning,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
