@@ -43,6 +43,9 @@ const PostDetailPage = () => {
   const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
 
   useEffect(() => {
+    // Scroll to top instantly when component mounts or id changes to prevent flickering
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    
     loadPostAndVoteStatus();
     // Load user's preferred date format
     const loadUserDateFormat = async () => {

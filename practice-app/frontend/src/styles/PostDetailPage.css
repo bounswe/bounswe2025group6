@@ -6,6 +6,19 @@
   padding: 2rem;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Back Button */
@@ -42,6 +55,9 @@
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.05);
   padding: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.4s ease-in-out 0.1s forwards;
+  min-height: 200px;
 }
 
 .post-detail-card .card-body {
@@ -478,8 +494,7 @@
 
 /* Loading & Error States */
 .post-detail-loading,
-.post-detail-not-found,
-.comments-loading {
+.post-detail-not-found {
   text-align: center;
   padding: 3rem 2rem;
   font-size: 1.1rem;
@@ -487,6 +502,25 @@
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1000px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.comments-loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1rem;
+  color: #718096;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsive Design */

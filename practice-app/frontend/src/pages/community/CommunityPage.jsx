@@ -472,7 +472,9 @@ const CommunityPage = () => {
     }
   };
 
-  const goToPostDetail = (postId) => navigate(`/community/post/${postId}`);
+  const goToPostDetail = (postId) => {
+    navigate(`/community/post/${postId}`);
+  };
 
   const formatDateDisplay = (dateString) => {
     return formatDate(dateString, userDateFormat);
