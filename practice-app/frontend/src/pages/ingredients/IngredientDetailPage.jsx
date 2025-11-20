@@ -62,7 +62,10 @@ const IngredientDetailPage = () => {
   if (!ing) return <div>{t("NotFound")}</div>;
 
   const translatedIngredientName = translateIngredient(ing.name, currentLanguage);
-
+  const baseQuantityLabel = ing.base_quantity && ing.base_unit
+    ? `${ing.base_quantity} ${ing.base_unit}`
+    : '100g';
+  
   return (
     <div className="ingredient-detail-page">
       <h1>{translatedIngredientName}</h1>
@@ -135,7 +138,7 @@ const IngredientDetailPage = () => {
             
             return nutritionData && (
               <div className="nutrition-section">
-                <h3>Nutritional Information (per 100g)</h3>
+                <h3>Nutritional Information (per {baseQuantityLabel})</h3>
                 <div className="nutrition-cards">
                   <>
                     {/* Calories */}
