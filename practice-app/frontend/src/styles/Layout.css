@@ -13,6 +13,8 @@ body, html {
   min-height: 100vh;
   box-sizing: border-box;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-header {
@@ -118,6 +120,8 @@ body, html {
     box-sizing: border-box;
     padding: 5px 20px;
     background-color: rgba(10, 10, 10, .7);
+    margin-top: auto;
+    width: 100%;
 }
 
 .layout-footer-inner {
@@ -156,6 +160,7 @@ body, html {
   align-items: stretch;
   padding-left: 0;
   padding-right: 0;
+  flex: 1;
 }
 
 .layout-main-inner {
