@@ -601,7 +601,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                         AppLocalizations.of(
                                           context,
                                         )!.difficultyLabel,
-                                        '${recipe.difficultyRating}/5',
+                                        '${recipe.difficultyRating!.toStringAsFixed(1)}/5',
                                         context,
                                       ),
                                     if (recipe.tasteRating != null)
@@ -611,7 +611,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                         AppLocalizations.of(
                                           context,
                                         )!.tasteRatingLabel,
-                                        '${recipe.tasteRating}/5',
+                                        '${recipe.tasteRating!.toStringAsFixed(1)}/5',
                                         context,
                                       ),
                                     if (recipe.healthRating != null)
@@ -621,7 +621,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                         AppLocalizations.of(
                                           context,
                                         )!.healthRatingLabel,
-                                        '${recipe.healthRating}/5',
+                                        '${recipe.healthRating!.toStringAsFixed(1)}/5',
                                         context,
                                       ),
                                     _buildDetailRow(
