@@ -4,7 +4,7 @@
   background: linear-gradient(to bottom, #c9e6ee, #caf3d9);
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   border: 1px solid #c6f6d5;
   position: relative;
 }

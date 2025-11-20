@@ -7,7 +7,9 @@
 body {
   background-color: #f7fafc;
   color: #2d3748;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* === BUTTONS === */

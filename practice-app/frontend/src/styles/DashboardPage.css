@@ -8,6 +8,7 @@
   padding: 0;
   box-sizing: border-box;
   overflow-x: hidden;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .dashboard-header {

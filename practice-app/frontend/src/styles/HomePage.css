@@ -1,7 +1,7 @@
 /* src/styles/HomePage.css */
 
 .homepage {
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #2d3748;
   background-color: #f7fafc;
 }

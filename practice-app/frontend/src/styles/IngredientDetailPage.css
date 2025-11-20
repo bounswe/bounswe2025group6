@@ -2,7 +2,7 @@
   max-width: 1200px;
   margin: 20px auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background: linear-gradient(to bottom, #c9e6ee, #caf3d9);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
