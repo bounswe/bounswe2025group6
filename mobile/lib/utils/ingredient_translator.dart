@@ -113,6 +113,7 @@ String translateIngredient(BuildContext context, String backendName) {
     'maple_syrup': loc.maple_syrup,
     'yellow_onion': loc.yellow_onion,
     'bread': loc.bread,
+    'flour': loc.flour,
     'pasta': loc.pasta,
     'water': loc.water,
   };
