@@ -4,6 +4,8 @@ import '../models/recipe.dart';
 import '../services/profile_service.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/badge_widget.dart';
+import '../utils/user_badge_helper.dart';
 import '../widgets/recipe_card.dart';
 import '../l10n/app_localizations.dart';
 
@@ -16,8 +18,8 @@ class OtherUserProfileScreen extends StatefulWidget {
     Key? key,
     required this.userId,
     ProfileService? profileService,
-  })  : profileService = profileService ?? ProfileService(),
-        super(key: key);
+  }) : profileService = profileService ?? ProfileService(),
+       super(key: key);
 
   @override
   _OtherUserProfileScreenState createState() => _OtherUserProfileScreenState();
@@ -29,6 +31,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
   UserProfile? _userProfile;
   bool _isLoading = true;
   String? _errorMessage;
+  String? _userBadge; // Store user's badge for external profile
 
   List<Recipe> _userRecipes = [];
   bool _isLoadingRecipes = true;
@@ -61,14 +64,40 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       if (_userProfile != null) {
         await _checkIfFollowing();
         _loadAndFilterUserRecipes();
+        _loadUserBadge();
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage =
-            AppLocalizations.of(context)!.failedToLoadProfile(e.toString());
+        _errorMessage = AppLocalizations.of(
+          context,
+        )!.failedToLoadProfile(e.toString());
       });
+    }
+  }
+
+  Future<void> _loadUserBadge() async {
+    final userId = _userProfile?.id;
+    if (userId == null) return;
+    try {
+      final badgeData = await _profileService.getRecipeCountBadge(userId);
+      if (!mounted) return;
+      setState(() {
+        _userBadge = normalizeBadgeFromApi(
+          badgeData?['badge'],
+          userType: _userProfile?.userType,
+        );
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _userBadge = normalizeBadgeFromApi(
+            null,
+            userType: _userProfile?.userType,
+          );
+        });
+      }
     }
   }
 
@@ -78,8 +107,8 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       final currentUserProfile = await _profileService.getUserProfile();
       if (mounted) {
         setState(() {
-          _isFollowing = currentUserProfile.followedUsers
-                  ?.contains(widget.userId) ??
+          _isFollowing =
+              currentUserProfile.followedUsers?.contains(widget.userId) ??
               false;
         });
       }
@@ -104,9 +133,10 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       final allRecipes = await _recipeService.getAllRecipes(pageSize: 100);
       if (!mounted) return;
 
-      final filteredRecipes = allRecipes
-          .where((recipe) => recipe.creatorId == widget.userId)
-          .toList();
+      final filteredRecipes =
+          allRecipes
+              .where((recipe) => recipe.creatorId == widget.userId)
+              .toList();
 
       setState(() {
         _userRecipes = filteredRecipes;
@@ -116,8 +146,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingRecipes = false;
-        _recipesErrorMessage =
-            AppLocalizations.of(context)!.failedToLoadRecipes(e.toString());
+        _recipesErrorMessage = AppLocalizations.of(
+          context,
+        )!.failedToLoadRecipes(e.toString());
       });
     }
   }
@@ -229,7 +260,8 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
 
     if (_userProfile == null) {
       return Center(
-          child: Text(AppLocalizations.of(context)!.profileDataNotAvailable));
+        child: Text(AppLocalizations.of(context)!.profileDataNotAvailable),
+      );
     }
     return _buildProfileDisplay();
   }
@@ -245,9 +277,10 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
             radius: 60,
             backgroundImage: _getProfileImageProvider(),
             backgroundColor: Colors.grey.shade300,
-            child: _getProfileImageProvider() == null
-                ? Icon(Icons.person, size: 60, color: Colors.grey.shade700)
-                : null,
+            child:
+                _getProfileImageProvider() == null
+                    ? Icon(Icons.person, size: 60, color: Colors.grey.shade700)
+                    : null,
           ),
         ),
         SizedBox(height: 20),
@@ -255,44 +288,49 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
           child: Text(
             profile.username,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryGreen,
-                ),
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryGreen,
+            ),
           ),
         ),
+        if (_userBadge != null) ...[
+          SizedBox(height: 12),
+          Center(child: LargeBadgeWidget(badge: _userBadge!)),
+        ],
         Center(
           child: Text(
             profile.publicProfile ? profile.email : 'Private',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(color: Colors.grey.shade700),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade700),
           ),
         ),
         SizedBox(height: 10),
         Center(
           child: Text(
             '${AppLocalizations.of(context)!.joinedLabel}: ${MaterialLocalizations.of(context).formatShortDate(profile.joinedDate)}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.grey.shade600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
           ),
         ),
         SizedBox(height: 20),
         Center(
           child: ElevatedButton.icon(
             onPressed: _isFollowLoading ? null : _handleFollowUnfollow,
-            icon: _isFollowLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            icon:
+                _isFollowLoading
+                    ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                    : Icon(
+                      _isFollowing ? Icons.person_remove : Icons.person_add,
                     ),
-                  )
-                : Icon(_isFollowing ? Icons.person_remove : Icons.person_add),
             label: Text(
               _isFollowing
                   ? AppLocalizations.of(context)!.unfollowButton
@@ -308,7 +346,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
         ),
         SizedBox(height: 30),
         _buildSectionTitle(
-            context, AppLocalizations.of(context)!.activityStats),
+          context,
+          AppLocalizations.of(context)!.activityStats,
+        ),
         _buildInfoCard([
           _buildInfoTile(
             Icons.receipt_long_outlined,
@@ -330,8 +370,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
           ),
         ]),
         SizedBox(height: 20),
-        _buildSectionTitle(
-            context, AppLocalizations.of(context)!.myRecipes),
+        _buildSectionTitle(context, AppLocalizations.of(context)!.myRecipes),
         _buildUserRecipesSection(),
         SizedBox(height: 40),
       ],
@@ -405,9 +444,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.primaryGreen,
-              fontWeight: FontWeight.w600,
-            ),
+          color: AppTheme.primaryGreen,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
