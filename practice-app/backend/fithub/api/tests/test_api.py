@@ -111,23 +111,34 @@ class EndpointAPITests(TestCase):
         user.refresh_from_db()
         assert user.check_password("newpass123")
 
-    def test_request_verify_code_and_reset_flow(self):
-        with patch.object(api_views, "send_mail") as mock_send:
+    def test_request_code_verify_and_reset_password(self):
+        with patch("api.serializers.send_mail") as mock_send:
             req = factory.post("/request-code/", {"email": self.user.email}, format="json")
             resp = dispatch_view(RequestResetCodeView, req)
             assert resp.status_code in (200, 201)
-            mock_send.assert_called()
+            mock_send.assert_called_once()
 
         record = PasswordResetCode.objects.filter(email=self.user.email).last()
         assert record is not None
+        assert record.is_used is False
 
-        verify_req = factory.post("/verify-code/", {"email": self.user.email, "code": record.code}, format="json")
+        verify_req = factory.post(
+            "/verify-code/",
+            {"email": self.user.email, "code": record.code},
+            format="json",
+        )
         verify_resp = dispatch_view(VerifyResetCodeView, verify_req)
         assert verify_resp.status_code == 200
         token_str = verify_resp.data.get("token")
         assert token_str is not None
+        record.refresh_from_db()
+        assert record.is_used is True
 
-        reset_req = factory.post("/reset-with-token/", {"token": token_str, "new_password": "brandnewpw"}, format="json")
+        reset_req = factory.post(
+            "/reset-with-token/",
+            {"token": token_str, "new_password": "brandnewpw"},
+            format="json",
+        )
         reset_resp = dispatch_view(ResetPasswordView, reset_req)
         assert reset_resp.status_code == 200
         self.user.refresh_from_db()
@@ -171,11 +182,14 @@ class EndpointAPITests(TestCase):
         assert resp2.status_code == 200
 
     def test_bookmark_recipe_action(self):
-        try:
-            recipe = Recipe.objects.create(title="T", instructions="x")
-        except Exception:
-            # If Recipe model requires more fields or app is not present, skip test cleanly.
-            self.skipTest("Recipe model unavailable or requires extra fields; skipping bookmark test.")
+        recipe = Recipe.objects.create(
+            name="Sample",
+            steps=["mix"],
+            prep_time=5,
+            cook_time=10,
+            meal_type="lunch",
+            creator=self.user,
+        )
 
         view = RegisteredUserViewSet.as_view({"post": "bookmark_recipe"})
         req = factory.post("/users/bookmark/", {"recipe_id": recipe.id}, format="json")
