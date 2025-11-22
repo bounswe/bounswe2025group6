@@ -8,7 +8,7 @@ import ReportButton from '../../components/report/ReportButton';
 import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import forumService from '../../services/forumService';
-import userService from '../../services/userService.js';
+import userService, { getUsername } from '../../services/userService.js';
 import { formatDate } from '../../utils/dateFormatter';
 import { getCurrentUser } from '../../services/authService';
 import '../../styles/CommunityPage.css';
@@ -176,14 +176,56 @@ const CommunityPage = () => {
         
         const userResults = await Promise.all(userPromises);
         
-        userResults.forEach(({ id, user, badge }) => {
-          if (user) {
-            newUserMap[id] = {
-              ...user,
-              badge: badge,
-              usertype: user.usertype || null
-            };
-          }
+        // Process users and fetch missing usernames
+        const processedUsers = await Promise.all(
+          userResults.map(async ({ id, user, badge }) => {
+            if (user) {
+              // If user exists but username is missing, try to fetch it separately
+              if (!user.username || !user.username.trim()) {
+                try {
+                  const username = await getUsername(id);
+                  if (username && username !== 'Unknown') {
+                    user.username = username;
+                  }
+                } catch (error) {
+                  console.error(`Error fetching username for user ${id}:`, error);
+                }
+              }
+              
+              return {
+                id,
+                userData: {
+                  ...user,
+                  badge: badge,
+                  usertype: user.usertype || null
+                }
+              };
+            } else {
+              // Try to fetch username even if user fetch failed
+              try {
+                const username = await getUsername(id);
+                return {
+                  id,
+                  userData: { 
+                    id: id, 
+                    username: username && username !== 'Unknown' ? username : `User ${id}`, 
+                    badge: null, 
+                    usertype: null 
+                  }
+                };
+              } catch (error) {
+                return {
+                  id,
+                  userData: { id: id, username: `User ${id}`, badge: null, usertype: null }
+                };
+              }
+            }
+          })
+        );
+        
+        // Update userMap with processed users
+        processedUsers.forEach(({ id, userData }) => {
+          newUserMap[id] = userData;
         });
         
         setUserMap(newUserMap);
@@ -196,14 +238,28 @@ const CommunityPage = () => {
   // Function to get user's name/username from userMap
   const getUserName = (userId) => {
     if (!userMap[userId]) {
-      return `User #${userId}`;  // Fallback if user details not available
+      // Try to fetch user if not in map
+      fetchUserDetails([userId]);
+      return `User #${userId}`;  // Temporary fallback while fetching
     }
     
-    // Return username or full name depending on what's available
-    return userMap[userId].username || 
-           (userMap[userId].first_name && userMap[userId].last_name ? 
-            `${userMap[userId].first_name} ${userMap[userId].last_name}` : 
-            `User #${userId}`);
+    const user = userMap[userId];
+    // Return username if available and not empty
+    if (user.username && user.username.trim()) {
+      return user.username;
+    }
+    
+    // Try full name if username not available
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    
+    // Last resort: try to fetch again if username is missing
+    if (!user.username) {
+      fetchUserDetails([userId]);
+    }
+    
+    return `User #${userId}`;  // Fallback if username still not available
   };
 
   // Updated CommunityPage handleVote function to match the fixed endpoints
@@ -416,7 +472,9 @@ const CommunityPage = () => {
     }
   };
 
-  const goToPostDetail = (postId) => navigate(`/community/post/${postId}`);
+  const goToPostDetail = (postId) => {
+    navigate(`/community/post/${postId}`);
+  };
 
   const formatDateDisplay = (dateString) => {
     return formatDate(dateString, userDateFormat);
