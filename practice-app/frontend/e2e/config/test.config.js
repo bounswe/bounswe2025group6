@@ -26,7 +26,7 @@ module.exports = {
   testData: {
     validUser: {
       email: "taha.kukul@std.bogazici.edu.tr",
-      password: "Deneme12345",
+      password: "Test12345",
     },
     invalidUser: {
       email: "invalid@example.com",
