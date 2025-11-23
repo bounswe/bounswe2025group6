@@ -820,6 +820,8 @@
   "@generateShoppingList": { "description": "Button text to generate shopping list" },
   "filters": "Filters",
   "@filters": { "description": "Filters label" },
+  "clearAll": "Clear All",
+  "@clearAll": { "description": "Button label to clear every active filter" },
   "applyFilters": "Apply Filters",
   "@applyFilters": { "description": "Button to apply filters" },
   "resetFilters": "Reset Filters",

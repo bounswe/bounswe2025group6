@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
 import '../models/ingredient.dart';
+import '../models/paginated_recipes.dart';
 import 'storage_service.dart';
 
 class RecipeService {
@@ -118,6 +119,291 @@ class RecipeService {
       return <Recipe>[];
     }
   }
+
+  /// Fetches recipes with pagination metadata
+  Future<PaginatedRecipes> getPaginatedRecipes({int page = 1, int pageSize = 10}) async {
+    String url = '$baseUrl/recipes/'; // Removed /api prefix for recipes
+    Map<String, String> queryParams = {
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
+    
+    url += '?' + Uri(queryParameters: queryParams).query;
+
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
+      throw Exception(
+        'JWT Access token is not available. Please log in again.',
+      );
+    }
+
+    try {
+      print('RecipeService: Fetching paginated recipes from $url');
+      var response = await http.get(Uri.parse(url), headers: headers);
+      print('RecipeService: Response status code: ${response.statusCode}');
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.get(Uri.parse(url), headers: headers);
+        print(
+          'RecipeService: After refresh - status code: ${response.statusCode}',
+        );
+      }
+
+      if (response.statusCode == 200) {
+        print('RecipeService: Parsing paginated response body');
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        
+        final paginatedRecipes = PaginatedRecipes.fromJson(
+          responseData,
+          fallbackPage: page,
+          fallbackPageSize: pageSize,
+        );
+        print('RecipeService: Successfully parsed ${paginatedRecipes.results.length} recipes on page ${paginatedRecipes.page}');
+        
+        return paginatedRecipes;
+      } else if (response.statusCode == 500) {
+        // Backend may fail computing recipe costs for some ingredients.
+        print('RecipeService: Backend returned 500 error');
+        print('RecipeService: Response body: ${response.body}');
+        // Return empty paginated result
+        return PaginatedRecipes(
+          page: page,
+          pageSize: pageSize,
+          total: 0,
+          results: <Recipe>[],
+        );
+      } else {
+        print('RecipeService: Unexpected status code: ${response.statusCode}');
+        print('RecipeService: Response body: ${response.body}');
+        throw Exception(
+          'Failed to load recipes (status code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      // Handle network errors or other exceptions without breaking the app
+      print('RecipeService: Exception occurred: $e');
+      return PaginatedRecipes(
+        page: page,
+        pageSize: pageSize,
+        total: 0,
+        results: <Recipe>[],
+      );
+    }
+  }
+
+
+  /// Fetches filtered recipes from meal_planner endpoint with pagination
+  /// Supports all backend filters
+  Future<PaginatedRecipes> getFilteredRecipes({
+    int page = 1,
+    int pageSize = 10,
+    String? name,
+    String? mealType,
+    double? minCostPerServing,
+    double? maxCostPerServing,
+    int? minPrepTime,
+    int? maxPrepTime,
+    int? minCookTime,
+    int? maxCookTime,
+    int? minTotalTime,
+    int? maxTotalTime,
+    double? minCalories,
+    double? maxCalories,
+    double? minProtein,
+    double? maxProtein,
+    double? minCarbs,
+    double? maxCarbs,
+    double? minFat,
+    double? maxFat,
+    double? minDifficultyRating,
+    double? maxDifficultyRating,
+    double? minTasteRating,
+    double? maxTasteRating,
+    double? minHealthRating,
+    double? maxHealthRating,
+    int? minLikeCount,
+    int? maxLikeCount,
+    String? excludeAllergens,
+    bool? hasImage,
+    bool? isApproved,
+    bool? isFeatured,
+  }) async {
+    String url = '$baseUrl/recipes/meal_planner/';
+    Map<String, String> queryParams = {
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
+
+    // Add optional filters
+    if (name != null && name.isNotEmpty) {
+      queryParams['name'] = name;
+    }
+    if (mealType != null && mealType.isNotEmpty) {
+      queryParams['meal_type'] = mealType;
+    }
+    
+    // Cost filters
+    if (minCostPerServing != null) {
+      queryParams['min_cost_per_serving'] = minCostPerServing.toString();
+    }
+    if (maxCostPerServing != null) {
+      queryParams['max_cost_per_serving'] = maxCostPerServing.toString();
+    }
+    
+    // Time filters
+    if (minPrepTime != null) {
+      queryParams['min_prep_time'] = minPrepTime.toString();
+    }
+    if (maxPrepTime != null) {
+      queryParams['max_prep_time'] = maxPrepTime.toString();
+    }
+    if (minCookTime != null) {
+      queryParams['min_cook_time'] = minCookTime.toString();
+    }
+    if (maxCookTime != null) {
+      queryParams['max_cook_time'] = maxCookTime.toString();
+    }
+    if (minTotalTime != null) {
+      queryParams['min_total_time'] = minTotalTime.toString();
+    }
+    if (maxTotalTime != null) {
+      queryParams['max_total_time'] = maxTotalTime.toString();
+    }
+    
+    // Nutrition filters
+    if (minCalories != null) {
+      queryParams['min_calories'] = minCalories.toString();
+    }
+    if (maxCalories != null) {
+      queryParams['max_calories'] = maxCalories.toString();
+    }
+    if (minProtein != null) {
+      queryParams['min_protein'] = minProtein.toString();
+    }
+    if (maxProtein != null) {
+      queryParams['max_protein'] = maxProtein.toString();
+    }
+    if (minCarbs != null) {
+      queryParams['min_carbs'] = minCarbs.toString();
+    }
+    if (maxCarbs != null) {
+      queryParams['max_carbs'] = maxCarbs.toString();
+    }
+    if (minFat != null) {
+      queryParams['min_fat'] = minFat.toString();
+    }
+    if (maxFat != null) {
+      queryParams['max_fat'] = maxFat.toString();
+    }
+    
+    // Rating filters
+    if (minDifficultyRating != null) {
+      queryParams['min_difficulty_rating'] = minDifficultyRating.toString();
+    }
+    if (maxDifficultyRating != null) {
+      queryParams['max_difficulty_rating'] = maxDifficultyRating.toString();
+    }
+    if (minTasteRating != null) {
+      queryParams['min_taste_rating'] = minTasteRating.toString();
+    }
+    if (maxTasteRating != null) {
+      queryParams['max_taste_rating'] = maxTasteRating.toString();
+    }
+    if (minHealthRating != null) {
+      queryParams['min_health_rating'] = minHealthRating.toString();
+    }
+    if (maxHealthRating != null) {
+      queryParams['max_health_rating'] = maxHealthRating.toString();
+    }
+    
+    // Like count filters
+    if (minLikeCount != null) {
+      queryParams['min_like_count'] = minLikeCount.toString();
+    }
+    if (maxLikeCount != null) {
+      queryParams['max_like_count'] = maxLikeCount.toString();
+    }
+    
+    // Other filters
+    if (excludeAllergens != null && excludeAllergens.isNotEmpty) {
+      queryParams['exclude_allergens'] = excludeAllergens;
+    }
+    if (hasImage != null) {
+      queryParams['has_image'] = hasImage.toString();
+    }
+    if (isApproved != null) {
+      queryParams['is_approved'] = isApproved.toString();
+    }
+    if (isFeatured != null) {
+      queryParams['is_featured'] = isFeatured.toString();
+    }
+
+    url += '?' + Uri(queryParameters: queryParams).query;
+
+    token = await StorageService.getJwtAccessToken();
+    if (token == null || token!.isEmpty) {
+      throw Exception(
+        'JWT Access token is not available. Please log in again.',
+      );
+    }
+
+    try {
+      print('RecipeService: Fetching filtered recipes from $url');
+      var response = await http.get(Uri.parse(url), headers: headers);
+      print('RecipeService: Response status code: ${response.statusCode}');
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) throw Exception('Authentication failed');
+
+        response = await http.get(Uri.parse(url), headers: headers);
+        print(
+          'RecipeService: After refresh - status code: ${response.statusCode}',
+        );
+      }
+
+      if (response.statusCode == 200) {
+        print('RecipeService: Parsing filtered response body');
+        final Map<String, dynamic> responseData = json.decode(response.body);
+
+        final paginatedRecipes = PaginatedRecipes.fromJson(
+          responseData,
+          fallbackPage: page,
+          fallbackPageSize: pageSize,
+        );
+        print('RecipeService: Successfully parsed ${paginatedRecipes.results.length} filtered recipes on page ${paginatedRecipes.page}');
+
+        return paginatedRecipes;
+      } else if (response.statusCode == 500) {
+        print('RecipeService: Backend returned 500 error');
+        print('RecipeService: Response body: ${response.body}');
+        return PaginatedRecipes(
+          page: page,
+          pageSize: pageSize,
+          total: 0,
+          results: <Recipe>[],
+        );
+      } else {
+        print('RecipeService: Unexpected status code: ${response.statusCode}');
+        print('RecipeService: Response body: ${response.body}');
+        throw Exception(
+          'Failed to load filtered recipes (status code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      print('RecipeService: Exception occurred: $e');
+      return PaginatedRecipes(
+        page: page,
+        pageSize: pageSize,
+        total: 0,
+        results: <Recipe>[],
+      );
+    }
+  }
+
 
   // Fetches detailed information for a specific recipe by its ID.
   Future<Recipe> getRecipeDetails(int recipeId) async {

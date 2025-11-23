@@ -645,6 +645,8 @@
     "@generateShoppingList": { "description": "Button text to generate shopping list in Turkish" },
     "filters": "Filtreler",
     "@filters": { "description": "Filters label in Turkish" },
+    "clearAll": "Tümünü Temizle",
+    "@clearAll": { "description": "Button label to clear every active filter in Turkish" },
     "applyFilters": "Filtreleri Uygula",
     "@applyFilters": { "description": "Button to apply filters in Turkish" },
     "resetFilters": "Filtreleri Sıfırla",
