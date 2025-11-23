@@ -67,7 +67,7 @@ const ProfilePage = () => {
 
   // Load user profile
   useEffect(() => {
-    document.title = 'Profile';
+    document.title = t('profile');
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
@@ -449,13 +449,13 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <div>Loading profile...</div>
+        <div>{t('profilePageLoadingProfile')}</div>
       </div>
     );
   }
 
   if (!userProfile) {
-    return <div>Error loading profile</div>;
+    return <div>{t('profilePageErrorLoading')}</div>;
   }
 
   return (
@@ -487,15 +487,15 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
             <div className="profile-stats">
               <div className="stat-item" onClick={() => setShowFollowersPopup(true)}>
                 <span className="stat-count">{followers.length}</span>
-                <span className="stat-label">Followers</span>
+                <span className="stat-label">{t('profilePageFollowers')}</span>
               </div>
               <div className="stat-item" onClick={() => setShowFollowingPopup(true)}>
                 <span className="stat-count">{following.length}</span>
-                <span className="stat-label">Following</span>
+                <span className="stat-label">{t('profilePageFollowing')}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-count">{myRecipes.length}</span>
-                <span className="stat-label">Recipes</span>
+                <span className="stat-label">{t('profilePageRecipes')}</span>
               </div>
             </div>
           </div>
@@ -508,37 +508,37 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
           className={`profile-tab ${activeTab === 'recipes' ? 'active' : ''}`}
           onClick={() => setActiveTab('recipes')}
         >
-          Recipes
+          {t('profilePageRecipes')}
         </button>
         <button
           className={`profile-tab ${activeTab === 'bookmarks' ? 'active' : ''}`}
           onClick={() => setActiveTab('bookmarks')}
         >
-          Bookmarks
+          {t('profilePageBookmarks')}
         </button>
         <button
           className={`profile-tab ${activeTab === 'shopping-lists' ? 'active' : ''}`}
           onClick={() => setActiveTab('shopping-lists')}
         >
-          Shopping Lists
+          {t('profilePageShoppingLists')}
         </button>
         <button
           className={`profile-tab ${activeTab === 'posts' ? 'active' : ''}`}
           onClick={() => setActiveTab('posts')}
         >
-          Posts
+          {t('profilePagePosts')}
         </button>
         <button
           className={`profile-tab ${activeTab === 'comments' ? 'active' : ''}`}
           onClick={() => setActiveTab('comments')}
         >
-          Comments
+          {t('profilePageComments')}
         </button>
         <button
           className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
-          Preferences
+          {t('profilePagePreferences')}
         </button>
       </div>
 
@@ -547,7 +547,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         {activeTab === 'recipes' && (
           <div className="recipes-grid">
             {myRecipes.length === 0 ? (
-              <p className="empty-message">You haven't created any recipes yet.</p>
+              <p className="empty-message">{t('profilePageNoRecipesCreated')}</p>
             ) : (
               myRecipes.map(recipe => (
                 <RecipeCard key={recipe.id} recipe={recipe} />
@@ -559,7 +559,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         {activeTab === 'bookmarks' && (
           <div className="recipes-grid">
             {bookmarkedRecipes.length === 0 ? (
-              <p className="empty-message">You haven't bookmarked any recipes yet.</p>
+              <p className="empty-message">{t('profilePageNoRecipesBookmarked')}</p>
             ) : (
               bookmarkedRecipes.map(recipe => (
                 <RecipeCard key={recipe.id} recipe={recipe} />
@@ -571,13 +571,13 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         {activeTab === 'shopping-lists' && (
           <div className="shopping-lists-container">
             {shoppingListHistory.length === 0 ? (
-              <p className="empty-message">You haven't created any shopping lists yet.</p>
+              <p className="empty-message">{t('profilePageNoShoppingLists')}</p>
             ) : (
               <div className="shopping-lists-grid">
                 {shoppingListHistory.map(list => (
                   <div key={list.id} className="shopping-list-card">
                     <div className="shopping-list-header">
-                      <h3>{formatDate(list.date, userProfile.preferredDateFormat || 'DD/MM/YYYY')}</h3>
+                      <h3>{formatDate(list.date, userProfile.preferredDateFormat || 'DD/MM/YYYY', t)}</h3>
                       <span className="shopping-list-cost">{list.currency}{list.totalCost.toFixed(2)}</span>
                     </div>
                     <p className="shopping-list-recipes">{list.recipeNames.join(', ')}</p>
@@ -589,13 +589,13 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                           setShowShoppingListPopup(true);
                         }}
                       >
-                        View
+                        {t('profilePageView')}
                 </button>
                 <button
                         className="delete-btn"
                         onClick={() => handleDeleteShoppingList(list.id)}
                       >
-                        Delete
+                        {t('profilePageDelete')}
                       </button>
                     </div>
                   </div>
@@ -608,7 +608,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         {activeTab === 'posts' && (
           <div className="posts-container">
             {myPosts.length === 0 ? (
-              <p className="empty-message">You haven't created any posts yet.</p>
+              <p className="empty-message">{t('profilePageNoPosts')}</p>
             ) : (
               myPosts.map(post => (
                 <div
@@ -618,7 +618,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                 >
                   <h3>{post.title}</h3>
                   <p>{post.content.substring(0, 150)}{post.content.length > 150 ? '...' : ''}</p>
-                  <span className="post-date">{formatDate(post.created_at, userProfile.preferredDateFormat || 'DD/MM/YYYY')}</span>
+                  <span className="post-date">{formatDate(post.created_at, userProfile.preferredDateFormat || 'DD/MM/YYYY', t)}</span>
                 </div>
               ))
             )}
@@ -628,7 +628,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         {activeTab === 'comments' && (
           <div className="comments-container">
             {myComments.length === 0 ? (
-              <p className="empty-message">You haven't made any comments yet.</p>
+              <p className="empty-message">{t('profilePageNoComments')}</p>
             ) : (
               myComments.map(comment => (
                 <div
@@ -636,7 +636,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                   className="comment-item"
                   onClick={() => navigate(`/community/post/${comment.postId}`)}
                 >
-                  <p className="comment-on">On: <strong>{comment.postTitle}</strong></p>
+                  <p className="comment-on">{t('profilePageCommentOn')} <strong>{comment.postTitle}</strong></p>
                   <p className="comment-content">{comment.content}</p>
                   <span className="comment-date">{formatDate(comment.created_at, userProfile.preferredDateFormat || 'DD/MM/YYYY')}</span>
                 </div>
@@ -647,11 +647,11 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
 
         {activeTab === 'settings' && (
           <div className="settings-container">
-            <h2 className="settings-title">Profile Preferences</h2>
+            <h2 className="settings-title">{t('profilePageSettingsTitle')}</h2>
             
             <div className="settings-form">
               <div className="settings-group">
-                <label className="settings-label">Currency</label>
+                <label className="settings-label">{t('profilePageCurrency')}</label>
                 <select 
                   className="settings-input"
                   value={userProfile.preferredCurrency || 'USD'} 
@@ -663,7 +663,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
               </div>
 
               <div className="settings-group">
-                <label className="settings-label">Date Format</label>
+                <label className="settings-label">{t('profilePageDateFormat')}</label>
                 <select 
                   className="settings-input"
                   value={userProfile.preferredDateFormat || 'DD/MM/YYYY'} 
@@ -676,7 +676,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
               </div>
 
               <div className="settings-group">
-                <label className="settings-label">Date of Birth</label>
+                <label className="settings-label">{t('profilePageDateOfBirth')}</label>
                 <input
                   type="date"
                   className="settings-input"
@@ -687,7 +687,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
               </div>
 
               <div className="settings-group">
-                <label className="settings-label">Nationality</label>
+                <label className="settings-label">{t('profilePageNationality')}</label>
                 <select
                   className="settings-input"
                   value={nationality}
@@ -698,12 +698,12 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     }
                   }}
                 >
-                  <option value="">Select nationality...</option>
-                  <option value="Do not specify">Do not specify</option>
+                  <option value="">{t('profilePageSelectNationality')}</option>
+                  <option value="Do not specify">{t('profilePageDoNotSpecify')}</option>
                   {commonNationalities.map(nat => (
                     <option key={nat} value={nat}>{nat}</option>
                   ))}
-                  <option value="Other">Other</option>
+                  <option value="Other">{t('profilePageOther')}</option>
                 </select>
                 {nationality === 'Other' && (
                   <input
@@ -712,30 +712,30 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     style={{ marginTop: '0.5rem' }}
                     value={nationalityOther}
                     onChange={(e) => setNationalityOther(e.target.value)}
-                    placeholder="Enter your nationality"
+                    placeholder={t('profilePageEnterNationality')}
                   />
                 )}
                 <small className="settings-hint">
                   {nationality === 'Other' 
-                    ? 'Please enter your nationality below'
-                    : 'Select your nationality or choose "Do not specify"'}
+                    ? t('profilePageNationalityOtherHint')
+                    : t('profilePageNationalityHint')}
                 </small>
               </div>
 
               <div className="settings-group">
-                <label className="settings-label">Accessibility Needs</label>
+                <label className="settings-label">{t('profilePageAccessibilityNeeds')}</label>
                 <select
                   className="settings-input"
                   value={accessibilityNeeds}
                   onChange={(e) => setAccessibilityNeeds(e.target.value)}
                 >
-                  <option value="none">None</option>
-                  <option value="colorblind">Colorblind</option>
-                  <option value="visual">Visual</option>
-                  <option value="hearing">Hearing</option>
+                  <option value="none">{t('profilePageAccessibilityNone')}</option>
+                  <option value="colorblind">{t('profilePageAccessibilityColorblind')}</option>
+                  <option value="visual">{t('profilePageAccessibilityVisual')}</option>
+                  <option value="hearing">{t('profilePageAccessibilityHearing')}</option>
                 </select>
                 <small className="settings-hint">
-                  Select any accessibility needs you may have
+                  {t('profilePageAccessibilityHint')}
                 </small>
               </div>
 
@@ -744,7 +744,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                 onClick={handleSaveSettings}
                 disabled={isSavingSettings || isSaved}
               >
-                {isSavingSettings ? 'Saving...' : isSaved ? 'Saved' : 'Save Preferences'}
+                {isSavingSettings ? t('profilePageSaving') : isSaved ? t('profilePageSaved') : t('profilePageSavePreferences')}
               </button>
             </div>
           </div>
@@ -756,7 +756,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         <div className="other-popup-overlay" onClick={() => setShowFollowersPopup(false)}>
           <div className="other-popup-content" onClick={(e) => e.stopPropagation()}>
             <div className="other-popup-header">
-              <h2>Followers</h2>
+              <h2>{t('profilePageFollowers')}</h2>
               <button className="other-close-btn" onClick={() => setShowFollowersPopup(false)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -773,7 +773,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
-                <p>No followers yet</p>
+                <p>{t('profilePageNoFollowers')}</p>
                 </div>
               ) : (
                 followers.map(user => (
@@ -816,7 +816,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         <div className="other-popup-overlay" onClick={() => setShowFollowingPopup(false)}>
           <div className="other-popup-content" onClick={(e) => e.stopPropagation()}>
             <div className="other-popup-header">
-              <h2>Following</h2>
+              <h2>{t('profilePageFollowing')}</h2>
               <button className="other-close-btn" onClick={() => setShowFollowingPopup(false)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -833,7 +833,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
-                <p>Not following anyone yet</p>
+                <p>{t('profilePageNoFollowing')}</p>
                 </div>
               ) : (
                 following.map(user => (
@@ -883,11 +883,11 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
               {selectedShoppingList && (
                 <div className="shopping-list-detail">
                   <div className="recipes-section">
-                    <h3>Recipes</h3>
-                    <p>{selectedShoppingList.recipeNames?.join(', ') || 'No recipes'}</p>
+                    <h3>{t('profilePageRecipes')}</h3>
+                    <p>{selectedShoppingList.recipeNames?.join(', ') || t('profilePageNoRecipes')}</p>
                   </div>
                   <div className="ingredients-section">
-                    <h3>Ingredients</h3>
+                    <h3>{t('Ingredients')}</h3>
                     {selectedShoppingList.ingredients && selectedShoppingList.ingredients.length > 0 ? (
                       <ul>
                         {selectedShoppingList.ingredients.map((ing, idx) => (
@@ -897,20 +897,20 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                         ))}
                       </ul>
                     ) : (
-                      <p>No ingredients</p>
+                      <p>{t('profilePageNoIngredients')}</p>
                     )}
                   </div>
                   <div className="total-section">
-                    <h3>Total Cost: {selectedShoppingList.currency || 'USD'}{(selectedShoppingList.totalCost || 0).toFixed(2)}</h3>
+                    <h3>{t('profilePageTotalCost')} {selectedShoppingList.currency || 'USD'}{(selectedShoppingList.totalCost || 0).toFixed(2)}</h3>
                     {selectedShoppingList.marketCosts && selectedShoppingList.marketCosts.length > 0 && (
-                      <p>Best Market: {selectedShoppingList.marketCosts.reduce((best, market) => market.totalCost < best.totalCost ? market : best).marketName}</p>
+                      <p>{t('profilePageBestMarket')} {selectedShoppingList.marketCosts.reduce((best, market) => market.totalCost < best.totalCost ? market : best).marketName}</p>
                     )}
                   </div>
                   <button
                     className="copy-btn"
                     onClick={() => copyShoppingListToClipboard(selectedShoppingList)}
                   >
-                    {copied ? '✓ Copied!' : '📋 Copy'}
+                    {copied ? t('profilePageCopied') : t('profilePageCopy')}
                   </button>
                 </div>
               )}

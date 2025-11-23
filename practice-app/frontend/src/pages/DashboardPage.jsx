@@ -14,36 +14,36 @@ import { useTranslation } from "react-i18next";
 const ANALYTICS_PULSE = [
   {
     key: "users_count",
-    label: "Active FitHubers",
-    sublabel: "planning meals right now",
+    labelKey: "analytics_users_label",
+    sublabelKey: "analytics_users_sublabel",
     icon: "👥",
     accent: "community"
   },
   {
     key: "recipes_count",
-    label: "Fresh Recipes",
-    sublabel: "waiting to inspire you",
+    labelKey: "analytics_recipes_label",
+    sublabelKey: "analytics_recipes_sublabel",
     icon: "🍲",
     accent: "recipes"
   },
   {
     key: "ingredients_count",
-    label: "Pantry Staples",
-    sublabel: "ready for your next dish",
+    labelKey: "analytics_ingredients_label",
+    sublabelKey: "analytics_ingredients_sublabel",
     icon: "🥬",
     accent: "ingredients"
   },
   {
     key: "posts_count",
-    label: "Community Stories",
-    sublabel: "to browse & react",
+    labelKey: "analytics_posts_label",
+    sublabelKey: "analytics_posts_sublabel",
     icon: "📣",
     accent: "community"
   },
   {
     key: "comments_count",
-    label: "Conversations",
-    sublabel: "buzzing with ideas",
+    labelKey: "analytics_comments_label",
+    sublabelKey: "analytics_comments_sublabel",
     icon: "💬",
     accent: "comments"
   }
@@ -119,10 +119,12 @@ const DashboardPage = () => {
       const value = analytics?.[metric.key];
       return {
         ...metric,
+        label: t(metric.labelKey),
+        sublabel: t(metric.sublabelKey),
         value
       };
     });
-  }, [analytics]);
+  }, [analytics, t]);
 
 
   if (!currentUser || isCheckingAdmin) {

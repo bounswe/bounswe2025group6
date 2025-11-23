@@ -91,6 +91,15 @@ const RecipeDetailPage = () => {
     return quantity;
   };
 
+  // Normalize dietary info strings to translation key suffixes
+  const sanitizeDietaryKey = (info) => {
+    if (!info || typeof info !== 'string') return '';
+    // Split on any non-alphanumeric character and remove empty parts
+    const parts = info.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+    // Capitalize each part and join, e.g. 'gluten-free' -> 'GlutenFree'
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+  };
+
   const handleDelete = async () => {
     try {
       if (!id) {
@@ -320,7 +329,7 @@ const RecipeDetailPage = () => {
             <span className='recipe-detail-page-header-box-info'>{t("recipeDetailPageDietaryInfo")}: </span>
             {recipe.dietary_info && recipe.dietary_info.length > 0 ? (
               recipe.dietary_info.map((info, index) => (
-                <span className='recipe-detail-page-header-box-dietary' key={index} >{info}</span>
+                <span className='recipe-detail-page-header-box-dietary' key={index} >{t(`dietaryInfo${sanitizeDietaryKey(info)}`, { defaultValue: info })}</span>
               ))
             ) : (
               <span className='recipe-detail-page-header-box-dietary'>{t("recipeDetailPageNone")}</span>
@@ -331,8 +340,7 @@ const RecipeDetailPage = () => {
             {(recipe.allergens || recipe.alergens) && (recipe.allergens || recipe.alergens).length > 0 ? (
             (recipe.allergens || recipe.alergens).map((allergen, index) => (
               <span className='recipe-detail-page-header-box-allergen' key={index}>
-                {allergen.charAt(0).toUpperCase() + allergen.slice(1)}
-                {index < (recipe.allergens || recipe.alergens).length - 1 ? '' : ''}
+                {t(`allergen${sanitizeDietaryKey(allergen)}`, { defaultValue: allergen })}
               </span>
             ))
           ) : (
@@ -422,7 +430,7 @@ const RecipeDetailPage = () => {
               <span className='recipe-detail-page-box-header'>{t("recipeDetailPageMealType")}</span>
               <span className='recipe-detail-page-box-title'>
                 {recipe.meal_type
-                ? recipe.meal_type.charAt(0).toUpperCase() + recipe.meal_type.slice(1)
+                ? t(`mealType${recipe.meal_type.charAt(0).toUpperCase() + recipe.meal_type.slice(1)}`)
                 : 'N/A'}
               </span>
             </div>
@@ -485,7 +493,7 @@ const RecipeDetailPage = () => {
           {/* Market Costs Comparison */}
           {recipe.recipe_costs && Object.keys(recipe.recipe_costs).length > 0 && (
             <div className='recipe-detail-page-market-costs'>
-              <h3>Market Price Comparison ({currency})</h3>
+              <h3>{t("marketPriceComparison")} ({currency})</h3>
               <div className="market-costs-grid">
                 {Object.entries(recipe.recipe_costs).map(([market, cost]) => {
                   const getMarketLogo = (marketName) => {
@@ -535,7 +543,7 @@ const RecipeDetailPage = () => {
             </div>
           </div>
           <div className='recipe-detail-page-star'>
-            <span className='recipe-detail-page-star-header'>{t("recipeDetailPageHealthRating")} (Dietitian)</span>
+            <span className='recipe-detail-page-star-header'>{t("recipeDetailPageHealthRating")} ({t("recipeDetailPageHealthRatingDietitian")})</span>
             <div className='recipe-detail-page-star-title'>
               <InteractiveHealthRating 
                 recipeId={recipe.id} 
@@ -601,7 +609,7 @@ const RecipeDetailPage = () => {
         {((recipe.recipe_nutritions && Object.keys(recipe.recipe_nutritions).length > 0) || 
           (totalNutrition && Object.keys(totalNutrition).length > 0)) && (
         <div className='recipe-detail-page-nutrition'>
-          <h2>Total Nutritional Information</h2>
+          <h2>{t("nutritionTotalNutritionalInformation")}</h2>
           
           {/* Use recipe_nutritions from API if available, otherwise use calculated totalNutrition */}
           {(() => {
@@ -623,7 +631,7 @@ const RecipeDetailPage = () => {
                                 ? nutritionData.calories.toFixed(0) 
                                 : nutritionData.calories}
                             </span>
-                            <span className="nutrition-label">Calories</span>
+                            <span className="nutrition-label">{t("nutritionCalories")}</span>
                             <span className="nutrition-unit">kcal</span>
                           </div>
                         </div>
@@ -639,7 +647,7 @@ const RecipeDetailPage = () => {
                                 ? nutritionData.protein.toFixed(1) 
                                 : nutritionData.protein}
                             </span>
-                            <span className="nutrition-label">Protein</span>
+                            <span className="nutrition-label">{t("nutritionProtein")}</span>
                             <span className="nutrition-unit">g</span>
                           </div>
                         </div>
@@ -655,7 +663,7 @@ const RecipeDetailPage = () => {
                                 ? nutritionData.fat.toFixed(1) 
                                 : nutritionData.fat}
                             </span>
-                            <span className="nutrition-label">Fat</span>
+                            <span className="nutrition-label">{t("nutritionFat")}</span>
                             <span className="nutrition-unit">g</span>
                           </div>
                         </div>
@@ -674,7 +682,7 @@ const RecipeDetailPage = () => {
                                   : carbValue;
                               })()}
                             </span>
-                            <span className="nutrition-label">Carbs</span>
+                            <span className="nutrition-label">{t("nutritionCarbs")}</span>
                             <span className="nutrition-unit">g</span>
                           </div>
                         </div>

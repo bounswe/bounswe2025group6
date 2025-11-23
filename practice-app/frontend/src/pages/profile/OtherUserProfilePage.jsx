@@ -11,8 +11,10 @@ import Badge, { getBadgeLabel, getBadgeColor } from "../../components/ui/Badge";
 import { formatDate } from "../../utils/dateFormatter";
 import { getCurrentUser as getCurrentUserService } from "../../services/authService";
 import "../../styles/OtherUserProfilePage.css";
+import { useTranslation } from "react-i18next";
 
 const OtherUserProfilePage = () => {
+  const { t } = useTranslation();
   const { userId } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -37,7 +39,7 @@ const OtherUserProfilePage = () => {
 
   // Load user profile
   useEffect(() => {
-    document.title = 'Profile';
+    document.title = t('profile');
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
@@ -256,7 +258,7 @@ const OtherUserProfilePage = () => {
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
-      alert('Please login to follow users');
+      alert(t('otherUserProfilePleaseLogin'));
       navigate('/login');
       return;
     }
@@ -286,13 +288,13 @@ const OtherUserProfilePage = () => {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <div>Loading profile...</div>
+        <div>{t('profilePageLoadingProfile')}</div>
       </div>
     );
   }
 
   if (!userProfile) {
-    return <div>User not found</div>;
+    return <div>{t('otherUserProfileUserNotFound')}</div>;
   }
 
   return (
@@ -321,15 +323,15 @@ const OtherUserProfilePage = () => {
             <div className="other-profile-stats">
               <div className="other-stat-item" onClick={() => setShowFollowersPopup(true)}>
                 <span className="other-stat-count">{followers.length}</span>
-                <span className="other-stat-label">Followers</span>
+                <span className="other-stat-label">{t('otherUserProfileFollowers')}</span>
               </div>
               <div className="other-stat-item" onClick={() => setShowFollowingPopup(true)}>
                 <span className="other-stat-count">{following.length}</span>
-                <span className="other-stat-label">Following</span>
+                <span className="other-stat-label">{t('otherUserProfileFollowing')}</span>
               </div>
               <div className="other-stat-item">
                 <span className="other-stat-count">{recipes.length}</span>
-                <span className="other-stat-label">Recipes</span>
+                <span className="other-stat-label">{t('otherUserProfileRecipes')}</span>
               </div>
             </div>
           </div>
@@ -339,7 +341,7 @@ const OtherUserProfilePage = () => {
               onClick={handleFollowToggle}
               disabled={isFollowLoading}
             >
-              {isFollowLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+              {isFollowLoading ? t('otherUserProfileLoading') : isFollowing ? t('otherUserProfileFollowingState') : t('otherUserProfileFollow')}
             </button>
           )}
         </div>
@@ -351,19 +353,19 @@ const OtherUserProfilePage = () => {
           className={`other-profile-tab ${activeTab === 'recipes' ? 'active' : ''}`}
           onClick={() => setActiveTab('recipes')}
         >
-          Recipes
+          {t('otherUserProfileRecipes')}
         </button>
         <button
           className={`other-profile-tab ${activeTab === 'posts' ? 'active' : ''}`}
           onClick={() => setActiveTab('posts')}
         >
-          Posts
+          {t('otherUserProfilePosts')}
         </button>
         <button
           className={`other-profile-tab ${activeTab === 'comments' ? 'active' : ''}`}
           onClick={() => setActiveTab('comments')}
         >
-          Comments
+          {t('otherUserProfileComments')}
         </button>
       </div>
 
@@ -372,7 +374,7 @@ const OtherUserProfilePage = () => {
         {activeTab === 'recipes' && (
           <div className="other-recipes-grid">
             {recipes.length === 0 ? (
-              <p className="other-empty-message">No recipes yet.</p>
+              <p className="other-empty-message">{t('otherUserProfileNoRecipes')}</p>
             ) : (
               recipes.map(recipe => (
                 <RecipeCard key={recipe.id} recipe={recipe} />
@@ -384,7 +386,7 @@ const OtherUserProfilePage = () => {
         {activeTab === 'posts' && (
           <div className="other-posts-container">
             {posts.length === 0 ? (
-              <p className="other-empty-message">No posts yet.</p>
+              <p className="other-empty-message">{t('otherUserProfileNoPosts')}</p>
             ) : (
               posts.map(post => (
                 <div
@@ -404,7 +406,7 @@ const OtherUserProfilePage = () => {
         {activeTab === 'comments' && (
           <div className="other-comments-container">
             {comments.length === 0 ? (
-              <p className="other-empty-message">No comments yet.</p>
+              <p className="other-empty-message">{t('otherUserProfileNoComments')}</p>
             ) : (
               comments.map(comment => (
                 <div
@@ -412,7 +414,7 @@ const OtherUserProfilePage = () => {
                   className="other-comment-item"
                   onClick={() => navigate(`/community/post/${comment.postId}`)}
                 >
-                  <p className="other-comment-on">On: <strong>{comment.postTitle}</strong></p>
+                  <p className="other-comment-on">{t('otherUserProfileCommentOn')} <strong>{comment.postTitle}</strong></p>
                   <p className="other-comment-content">{comment.content}</p>
                   <span className="other-comment-date">{formatDate(comment.created_at, userDateFormat)}</span>
                 </div>
@@ -427,7 +429,7 @@ const OtherUserProfilePage = () => {
         <div className="other-popup-overlay" onClick={() => setShowFollowersPopup(false)}>
           <div className="other-popup-content" onClick={(e) => e.stopPropagation()}>
             <div className="other-popup-header">
-              <h2>Followers</h2>
+              <h2>{t('otherUserProfileFollowers')}</h2>
               <button className="other-close-btn" onClick={() => setShowFollowersPopup(false)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -444,7 +446,7 @@ const OtherUserProfilePage = () => {
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
-                <p>No followers yet</p>
+                <p>{t('otherUserProfileNoFollowers')}</p>
                 </div>
               ) : (
                 followers.map(user => (
@@ -487,7 +489,7 @@ const OtherUserProfilePage = () => {
         <div className="other-popup-overlay" onClick={() => setShowFollowingPopup(false)}>
           <div className="other-popup-content" onClick={(e) => e.stopPropagation()}>
             <div className="other-popup-header">
-              <h2>Following</h2>
+              <h2>{t('otherUserProfileFollowingList')}</h2>
               <button className="other-close-btn" onClick={() => setShowFollowingPopup(false)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -504,7 +506,7 @@ const OtherUserProfilePage = () => {
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
-                <p>Not following anyone yet</p>
+                <p>{t('otherUserProfileNoFollowing')}</p>
                 </div>
               ) : (
                 following.map(user => (

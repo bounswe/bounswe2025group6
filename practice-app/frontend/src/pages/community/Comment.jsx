@@ -16,10 +16,10 @@ const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
     const now = new Date();
     const date = new Date(dateString);
     const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+    if (diff < 60) return t('timeJustNow');
+    if (diff < 3600) return t('timeMinutesAgo', { count: Math.floor(diff / 60) });
+    if (diff < 86400) return t('timeHoursAgo', { count: Math.floor(diff / 3600) });
+    if (diff < 604800) return t('timeDaysAgo', { count: Math.floor(diff / 86400) });
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
@@ -30,23 +30,23 @@ const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
 
   const handleDelete = () => {
     if (!currentUser) {
-      toast.info('Please log in to delete comments');
+      toast.info(t('commentPleaseLogInToDelete'));
       return;
     }
 
     if (currentUser.id !== comment.author) {
-      toast.warning('You can only delete your own comments');
+      toast.warning(t('commentCanOnlyDeleteOwn'));
       return;
     }
 
-    if (window.confirm('Are you sure you want to delete this comment?')) {
+    if (window.confirm(t('commentConfirmDelete'))) {
       onDelete(comment.id);
     }
   };
 
   const handleVote = (voteType) => {
     if (!currentUser) {
-      toast.info('Please log in to vote');
+      toast.info(t('commentPleaseLogInToVote'));
       return;
     }
 
@@ -55,7 +55,7 @@ const Comment = ({ comment, onDelete, onVote, onRemoveVote }) => {
 
   const handleRemoveVote = () => {
     if (!currentUser) {
-      toast.info('Please log in to manage your votes');
+      toast.info(t('commentPleaseLogInToManageVotes'));
       return;
     }
 

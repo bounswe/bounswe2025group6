@@ -51,7 +51,7 @@ const IngredientDetailPage = () => {
   useEffect(() => {
     if (ing) {
       const translatedName = translateIngredient(ing.name, currentLanguage);
-      document.title = `Ingredient | ${translatedName}`;
+      document.title = t('ingredientDetailTitle', { name: translatedName });
     }
   }, [ing, currentLanguage]);
 
@@ -62,9 +62,47 @@ const IngredientDetailPage = () => {
   if (!ing) return <div>{t("NotFound")}</div>;
 
   const translatedIngredientName = translateIngredient(ing.name, currentLanguage);
-  const baseQuantityLabel = ing.base_quantity && ing.base_unit
-    ? `${ing.base_quantity} ${ing.base_unit}`
-    : '100g';
+  // Helper: format numeric quantities (drop unnecessary trailing zeros)
+  const formatQuantity = (q) => {
+    if (q === null || q === undefined || q === '') return '';
+    const n = Number(q);
+    if (Number.isNaN(n)) return String(q);
+    return Number.isInteger(n) ? String(n) : String(n).replace(/(?:\.0+|(?<=\.\d)0+)$/, '');
+  };
+
+  // Normalize category tokens to translation key suffixes
+  const sanitizeCategoryKey = (cat) => {
+    if (!cat || typeof cat !== 'string') return '';
+    // Accept tokens like 'herbs_and_spices', 'gluten-free', 'high_protein'
+    const parts = cat.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+  };
+
+  const getCategoryLabel = (cat) => {
+    if (!cat) return '';
+    const key = `category${sanitizeCategoryKey(cat)}`;
+    return t(key, { defaultValue: cat.replace(/[_-]+/g, ' ') });
+  };
+
+  // Map unit codes to translated, human-friendly labels where possible
+  const mapUnitToLabel = (unit) => (
+    unit === 'pcs' ? t('Pcs') :
+    unit === 'cup' ? t('Cup') :
+    unit === 'tbsp' ? t('Tbsp') :
+    unit === 'tsp' ? t('Tsp') :
+    unit
+  );
+
+  const capitalize = (s) => {
+    if (!s || typeof s !== 'string') return s;
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+
+  const displayBaseUnit = capitalize(mapUnitToLabel(ing.base_unit || 'g'));
+  const displayBaseQuantity = formatQuantity(ing.base_quantity || 100);
+  const baseQuantityLabel = `${displayBaseQuantity} ${displayBaseUnit}`;
+
+  const displayAllowedUnits = (ing.allowed_units || []).map(u => capitalize(mapUnitToLabel(u))).join(', ');
   
   return (
     <div className="ingredient-detail-page">
@@ -74,12 +112,12 @@ const IngredientDetailPage = () => {
         {/* Left Column - Basic Information and Market Prices */}
         <div className="ingredient-left-column">
           <div className="ingredient-basic-info">
-            <h2>Basic Information</h2>
-            <p><strong>{t("Category")}:</strong> {ing.category}</p>
-            <p><strong>{t("Allergens")}:</strong> {ing.allergens.join(', ') || 'None'}</p>
-            <p><strong>{t("DietaryInfo")}:</strong> {ing.dietary_info.join(', ')}</p>
-            <p><strong>Base Unit:</strong> {ing.base_unit}</p>
-            <p><strong>All Units:</strong> {ing.allowed_units.join(', ')}</p>
+            <h2>{t('ingredientDetailBasicInfo')}</h2>
+            <p><strong>{t("Category")}:</strong> {getCategoryLabel(ing.category)}</p>
+            <p><strong>{t("Allergens")}:</strong> {(ing.allergens && ing.allergens.length > 0) ? ing.allergens.map(a => t(`allergen${sanitizeCategoryKey(a)}`, { defaultValue: a })).join(', ') : t('recipeDetailPageNone')}</p>
+            <p><strong>{t("DietaryInfo")}:</strong> {(ing.dietary_info && ing.dietary_info.length > 0) ? ing.dietary_info.map(d => t(`dietaryInfo${sanitizeCategoryKey(d)}`, { defaultValue: d })).join(', ') : t('recipeDetailPageNone')}</p>
+            <p><strong>{t('ingredientDetailBaseUnit')}:</strong> {displayBaseUnit}</p>
+            <p><strong>{t('ingredientDetailAllUnits')}:</strong> {displayAllowedUnits}</p>
           </div>
 
           {/* Market Prices Section */}
@@ -101,29 +139,29 @@ const IngredientDetailPage = () => {
                       <div className={`market-price-item ${cheapestMarket === 'A101' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/a101.png" alt="A101" className="market-logo" />
                         <span className="market-name">A101</span>
-                        <span className="market-price">{ing.prices.A101 ? `${ing.prices.A101} ${priceCurrency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.A101 ? `${ing.prices.A101} ${priceCurrency}` : t('ingredientDetailNA')}</span>
                       </div>
                       <div className={`market-price-item ${cheapestMarket === 'SOK' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/sok.png" alt="ŞOK" className="market-logo" />
                         <span className="market-name">ŞOK</span>
-                        <span className="market-price">{ing.prices.SOK ? `${ing.prices.SOK} ${priceCurrency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.SOK ? `${ing.prices.SOK} ${priceCurrency}` : t('ingredientDetailNA')}</span>
                       </div>
                       <div className={`market-price-item ${cheapestMarket === 'BIM' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/bim.png" alt="BIM" className="market-logo" />
                         <span className="market-name">BIM</span>
-                        <span className="market-price">{ing.prices.BIM ? `${ing.prices.BIM} ${priceCurrency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.BIM ? `${ing.prices.BIM} ${priceCurrency}` : t('ingredientDetailNA')}</span>
                       </div>
                       <div className={`market-price-item ${cheapestMarket === 'MIGROS' ? 'cheapest' : ''}`}>
                         <img src="/src/assets/market_logos/migros.png" alt="MIGROS" className="market-logo" />
                         <span className="market-name">MIGROS</span>
-                        <span className="market-price">{ing.prices.MIGROS ? `${ing.prices.MIGROS} ${priceCurrency}` : 'N/A'}</span>
+                        <span className="market-price">{ing.prices.MIGROS ? `${ing.prices.MIGROS} ${priceCurrency}` : t('ingredientDetailNA')}</span>
                       </div>
                     </>
                   );
                 })()}
               </div>
               <p className="price-quantity-info">
-                Per {ing.base_quantity} {ing.base_unit}
+                {t('ingredientDetailPerQuantity', { quantity: displayBaseQuantity, unit: displayBaseUnit })}
               </p>
             </div>
           )}
@@ -138,7 +176,7 @@ const IngredientDetailPage = () => {
             
             return nutritionData && (
               <div className="nutrition-section">
-                <h3>Nutritional Information (per {baseQuantityLabel})</h3>
+                <h3>{t('ingredientDetailNutritionalTitle', { base: baseQuantityLabel })}</h3>
                 <div className="nutrition-cards">
                   <>
                     {/* Calories */}
@@ -151,7 +189,7 @@ const IngredientDetailPage = () => {
                               ? nutritionData.calories.toFixed(0) 
                               : nutritionData.calories}
                           </span>
-                          <span className="nutrition-label">Calories</span>
+                          <span className="nutrition-label">{t('nutritionCalories')}</span>
                           <span className="nutrition-unit">kcal</span>
                         </div>
                       </div>
@@ -167,7 +205,7 @@ const IngredientDetailPage = () => {
                               ? nutritionData.protein.toFixed(1) 
                               : nutritionData.protein}
                           </span>
-                          <span className="nutrition-label">Protein</span>
+                          <span className="nutrition-label">{t('nutritionProtein')}</span>
                           <span className="nutrition-unit">g</span>
                         </div>
                       </div>
@@ -183,7 +221,7 @@ const IngredientDetailPage = () => {
                               ? nutritionData.fat.toFixed(1) 
                               : nutritionData.fat}
                           </span>
-                          <span className="nutrition-label">Fat</span>
+                          <span className="nutrition-label">{t('nutritionFat')}</span>
                           <span className="nutrition-unit">g</span>
                         </div>
                       </div>
@@ -205,7 +243,7 @@ const IngredientDetailPage = () => {
                                 : carbsValue;
                             })()}
                           </span>
-                          <span className="nutrition-label">Carbs</span>
+                          <span className="nutrition-label">{t('nutritionCarbs')}</span>
                           <span className="nutrition-unit">g</span>
                         </div>
                       </div>
@@ -218,7 +256,7 @@ const IngredientDetailPage = () => {
                   !['calories', 'protein', 'fat', 'carbohydrates', 'carbs'].includes(key)
                 ).length > 0 && (
                   <div className="other-nutrition">
-                    <h4>Other Nutritional Information</h4>
+                    <h4>{t('ingredientDetailOtherNutrition')}</h4>
                     <div className="nutrition-grid">
                       {Object.entries(nutritionData)
                         .filter(([key]) => !['calories', 'protein', 'fat', 'carbohydrates', 'carbs'].includes(key))
@@ -238,15 +276,15 @@ const IngredientDetailPage = () => {
           {/* Additional Wikidata Information */}
           {ing.wikidata_info && (
             <div className="wikidata-section">
-              <h3>Additional Information</h3>
+              <h3>{t('ingredientDetailAdditionalInfo')}</h3>
               {ing.wikidata_info.wikidata_description && (
-                <p><strong>Description:</strong> {ing.wikidata_info.wikidata_description}</p>
+                <p><strong>{t('ingredientDetailDescription')}:</strong> {ing.wikidata_info.wikidata_description}</p>
               )}
               {ing.wikidata_info.origin && (
-                <p><strong>Origin:</strong> {ing.wikidata_info.origin}</p>
+                <p><strong>{t('ingredientDetailOrigin')}:</strong> {ing.wikidata_info.origin}</p>
               )}
               {ing.wikidata_info.is_vegan !== null && (
-                <p><strong>Vegan:</strong> {ing.wikidata_info.is_vegan ? 'Yes' : 'No'}</p>
+                <p><strong>{t('ingredientDetailVegan')}:</strong> {ing.wikidata_info.is_vegan ? t('ingredientDetailYes') : t('ingredientDetailNo')}</p>
               )}
             </div>
           )}

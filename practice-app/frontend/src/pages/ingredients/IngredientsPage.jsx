@@ -37,8 +37,8 @@ const IngredientsPage = () => {
 
   // Set page title on component mount
   useEffect(() => {
-    document.title = "Ingredients";
-  }, []);
+    document.title = t('ingredientsPageTitle');
+  }, [t]);
 
   // Fetch ingredients from API with pagination
   useEffect(() => {
@@ -191,19 +191,19 @@ const IngredientsPage = () => {
 
   // Loading and error states
   if (loading) {
-    return <div>Loading ingredients…</div>;
+    return <div>{t('ingredientsLoading')}</div>;
   }
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (error) return <div className="text-red-500">{t('ingredientsError')} {error}</div>;
 
   // Main render
   return (
     <div className="ingredients-page">
       {/* Page header and search */}
-      <h1 className="page-title">Ingredients</h1>
+      <h1 className="page-title">{t('ingredientsPageTitle')}</h1>
       <div className="searchbox-container">
         <input
           type="text"
-          placeholder="Search ingredients..."
+          placeholder={t('ingredientsSearchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="searchbox"
@@ -213,7 +213,7 @@ const IngredientsPage = () => {
       {/* Ingredients grid with search results or paginated list */}
       {searchQuery.trim() && filteredIngredients.length === 0 ? (
         <div className="no-results">
-          No ingredients found matching "{searchQuery}"
+          {t('ingredientsNoResults')} "{searchQuery}"
         </div>
       ) : (
         <div className={`ingredients-grid fade ${isChanging ? 'fade-loading' : ''}`}>
@@ -268,7 +268,7 @@ const IngredientsPage = () => {
                         {/* Nutritional Information */}
                         {ingredient.wikidata_info && ingredient.wikidata_info.nutrition && (
                           <div className="ingredient-nutrition">
-                            <span className="nutrition-label">Nutrition:</span>
+                            <span className="nutrition-label">{t('ingredientsNutrition')}</span>
                             <div className="nutrition-list">
                               {Object.entries(ingredient.wikidata_info.nutrition).slice(0, 2).map(([key, value]) => (
                                 <span key={key} className="nutrition-item">
@@ -330,7 +330,7 @@ const IngredientsPage = () => {
               onClick={handlePreviousPage} 
               disabled={page === 1}
             >
-              Previous
+              {t('ingredientsPrevious')}
             </button>
             <span className="page-number">{page}</span>
             <button 
@@ -338,7 +338,7 @@ const IngredientsPage = () => {
               onClick={handleNextPage} 
               disabled={!hasNextPage}
             >
-              Next
+              {t('ingredientsNext')}
             </button>
           </div>
           <select 
@@ -347,11 +347,11 @@ const IngredientsPage = () => {
             className="ingredient-dropdown"
             disabled={isChanging}
           >
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={30}>30 per page</option>
-            <option value={40}>40 per page</option>
-            <option value={50}>50 per page</option>
+            <option value={10}>{t('ingredientsPer10')}</option>
+            <option value={20}>{t('ingredientsPer20')}</option>
+            <option value={30}>{t('ingredientsPer30')}</option>
+            <option value={40}>{t('ingredientsPer40')}</option>
+            <option value={50}>{t('ingredientsPer50')}</option>
           </select>
         </div>
       )}

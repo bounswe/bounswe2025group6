@@ -26,7 +26,7 @@ const ShoppingListPage = () => {
   const hasSavedToHistory = useRef(false); // Flag to prevent duplicate saves
 
   useEffect(() => {
-    document.title = "Shopping List";
+    document.title = t('shoppingList');
     
     // Reset save flag when component mounts
     hasSavedToHistory.current = false;
@@ -208,28 +208,28 @@ const ShoppingListPage = () => {
 
   const copyToClipboard = async () => {
     try {
-      let text = '🛒 Shopping List\n\n';
+      let text = t('shoppingListPageTitle') + '\n\n';
       
       // Add recipes
-      text += '📋 Recipes:\n';
+      text += t('shoppingListRecipes') + '\n';
       recipes.forEach((recipe, index) => {
         const nutrition = recipe.recipe_nutritions || {};
         text += `${index + 1}. ${recipe.name}\n`;
-        text += `   Calories: ${nutrition.calories || 0} cal | `;
-        text += `Protein: ${nutrition.protein || 0}g | `;
-        text += `Carbs: ${nutrition.carbs || 0}g | `;
-        text += `Fat: ${nutrition.fat || 0}g\n\n`;
+        text += `   ${t('shoppingListCalories')} ${nutrition.calories || 0} ${t('shoppingListCal')} | `;
+        text += `${t('shoppingListProtein')} ${nutrition.protein || 0}g | `;
+        text += `${t('shoppingListCarbs')} ${nutrition.carbs || 0}g | `;
+        text += `${t('shoppingListFat')} ${nutrition.fat || 0}g\n\n`;
       });
 
       // Add ingredients
-      text += '\n📦 Ingredients:\n';
+      text += '\n' + t('shoppingListIngredients') + '\n';
       consolidatedIngredients.forEach((ingredient, index) => {
         const translatedName = translateIngredient(ingredient.name, currentLanguage);
         text += `${index + 1}. ${ingredient.quantity.toFixed(2)} ${ingredient.unit} ${translatedName}\n`;
       });
 
       // Add market costs
-      text += '\n💰 Total Costs:\n';
+      text += '\n' + t('shoppingListMarketComparison') + '\n';
       const cheapest = getCheapestMarket();
       Object.entries(marketCosts).forEach(([market, cost]) => {
         const marker = cheapest && market === cheapest[0] ? '✓ ' : '  ';
@@ -272,7 +272,7 @@ const ShoppingListPage = () => {
   if (isLoading) {
     return (
       <div className="shopping-list-container">
-        <div className="loading-state">Loading shopping list...</div>
+        <div className="loading-state">{t('shoppingListLoading')}</div>
       </div>
     );
   }
@@ -281,9 +281,9 @@ const ShoppingListPage = () => {
     return (
       <div className="shopping-list-container">
         <div className="empty-state">
-          <p>No meal plan found. Please create a meal plan first.</p>
+          <p>{t('shoppingListNoMealPlan')}</p>
           <Link to="/meal-planner">
-            <Button>Go to Meal Planner</Button>
+            <Button>{t('shoppingListGoToPlanner')}</Button>
           </Link>
         </div>
       </div>
@@ -296,13 +296,13 @@ const ShoppingListPage = () => {
     <div className="shopping-list-container">
       {/* Header */}
       <div className="shopping-list-header">
-        <h1 className="shopping-list-title">🛒 Shopping List</h1>
+        <h1 className="shopping-list-title">{t('shoppingListPageTitle')}</h1>
         <button 
           onClick={copyToClipboard}
           className="copy-button"
           title="Copy to clipboard"
         >
-          {copied ? '✓ Copied!' : '📋 Copy'}
+          {copied ? t('shoppingListCopied') : t('shoppingListCopyButton')}
         </button>
       </div>
 
@@ -312,7 +312,7 @@ const ShoppingListPage = () => {
         <div className="left-column">
           {/* Recipes Summary */}
           <div className="recipes-summary-section">
-            <h2 className="section-title">📋 Recipes</h2>
+            <h2 className="section-title">{t('shoppingListRecipes')}</h2>
             <div className="recipes-summary-grid">
               {recipes.map((recipe, index) => {
                 const nutrition = recipe.recipe_nutritions || {};
@@ -321,19 +321,19 @@ const ShoppingListPage = () => {
                     <h3 className="recipe-summary-name">{recipe.name}</h3>
                     <div className="recipe-summary-nutrition">
                       <div className="nutrition-item">
-                        <span className="nutrition-label">Calories:</span>
-                        <span className="nutrition-value">{parseFloat(nutrition.calories || 0).toFixed(0)} cal</span>
+                        <span className="nutrition-label">{t('shoppingListCalories')}</span>
+                        <span className="nutrition-value">{parseFloat(nutrition.calories || 0).toFixed(0)} {t('shoppingListCal')}</span>
                       </div>
                       <div className="nutrition-item">
-                        <span className="nutrition-label">Protein:</span>
+                        <span className="nutrition-label">{t('shoppingListProtein')}</span>
                         <span className="nutrition-value">{parseFloat(nutrition.protein || 0).toFixed(1)}g</span>
                       </div>
                       <div className="nutrition-item">
-                        <span className="nutrition-label">Carbs:</span>
+                        <span className="nutrition-label">{t('shoppingListCarbs')}</span>
                         <span className="nutrition-value">{parseFloat(nutrition.carbs || 0).toFixed(1)}g</span>
                       </div>
                       <div className="nutrition-item">
-                        <span className="nutrition-label">Fat:</span>
+                        <span className="nutrition-label">{t('shoppingListFat')}</span>
                         <span className="nutrition-value">{parseFloat(nutrition.fat || 0).toFixed(1)}g</span>
                       </div>
                     </div>
@@ -345,7 +345,7 @@ const ShoppingListPage = () => {
 
           {/* Market Costs Summary */}
           <div className="market-costs-section">
-        <h2 className="section-title">💰 Market Comparison</h2>
+        <h2 className="section-title">{t('shoppingListMarketComparison')}</h2>
         <div className="market-costs-grid">
           {Object.entries(marketCosts).map(([market, cost]) => {
             const isCheapest = cheapestMarket && market === cheapestMarket[0];
@@ -364,7 +364,7 @@ const ShoppingListPage = () => {
                 key={market} 
                 className={`market-cost-card ${isCheapest ? 'cheapest' : ''}`}
               >
-                {isCheapest && <div className="cheapest-badge">✓ Best Deal</div>}
+                {isCheapest && <div className="cheapest-badge">{t('shoppingListBestDeal')}</div>}
                 {getMarketLogo(market) && (
                   <img 
                     src={getMarketLogo(market)} 
@@ -386,7 +386,7 @@ const ShoppingListPage = () => {
 
         {/* Right Column - Ingredients List */}
         <div className="ingredients-section">
-          <h2 className="section-title">📦 Ingredients</h2>
+          <h2 className="section-title">{t('shoppingListIngredients')}</h2>
           <div className="ingredients-list">
             {consolidatedIngredients.map((ingredient, index) => (
               <div 
@@ -412,7 +412,7 @@ const ShoppingListPage = () => {
       {/* Actions */}
       <div className="shopping-list-actions">
         <Link to="/meal-planner">
-          <button className="back-to-planner-button">← Back to Meal Planner</button>
+          <button className="back-to-planner-button">{t('shoppingListBackToPlanner')}</button>
         </Link>
       </div>
     </div>

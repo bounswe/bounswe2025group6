@@ -122,8 +122,8 @@ const CommunityPage = () => {
       
     } catch (error) {
       console.error('Error loading posts:', error);
-      setError('Failed to load forum posts');
-      toast.error('Failed to load forum posts');
+      setError(t('communityPageFailedToLoad'));
+      toast.error(t('communityPageFailedToLoad'));
     } finally {
       setIsLoading(false);
     }
@@ -266,7 +266,7 @@ const CommunityPage = () => {
 
   const handleVote = async (postId, voteType) => {
     if (!currentUser) {
-      toast.info('Please log in to vote on posts');
+      toast.info(t('communityPageLogInToVote'));
       return;
     }
 
@@ -308,7 +308,7 @@ const CommunityPage = () => {
         }));
         
         await forumService.deleteVotePost(postId);
-        toast.success('Vote removed!');
+        toast.success(t('communityPageVoteRemoved'));
       } 
       // If already voted but with different type, remove old vote first then create new one
       else if (currentVote) {
@@ -409,18 +409,18 @@ const CommunityPage = () => {
       // Revert optimistic updates
       loadPosts();
       console.error('Error voting on post:', error);
-      toast.error('Failed to vote on post');
+      toast.error(t('communityPageFailedToVote'));
     }
   };
 
   const handleRemoveVote = async (postId) => {
     if (!currentUser) {
-      toast.info('Please log in to manage your votes');
+      toast.info(t('communityPageManageVotes'));
       return;
     }
 
     if (!userVotes[postId]) {
-      toast.info('You have not voted on this post');
+      toast.info(t('communityPageNoVote'));
       return;
     }
 
@@ -459,12 +459,12 @@ const CommunityPage = () => {
       }));
       
       await forumService.deleteVotePost(postId);
-      toast.success('Vote removed successfully!');
+      toast.success(t('communityPageVoteRemoveSuccess'));
     } catch (error) {
       if (error.response?.status === 404) {
-        toast.info('No vote found to remove');
+        toast.info(t('communityPageVoteNotFound'));
       } else {
-        toast.error('Failed to remove vote');
+        toast.error(t('communityPageVoteFailedToRemove'));
       }
       
       // Revert optimistic updates on error
@@ -477,7 +477,7 @@ const CommunityPage = () => {
   };
 
   const formatDateDisplay = (dateString) => {
-    return formatDate(dateString, userDateFormat);
+    return formatDate(dateString, userDateFormat, t);
   };
 
   const handlePageChange = (newPage) => {
@@ -487,8 +487,8 @@ const CommunityPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Community";
-  }, []);
+    document.title = t('communityPageTitle');
+  }, [t]);
 
   return (
     <div className="forum-container">
@@ -505,7 +505,7 @@ const CommunityPage = () => {
           <div className="forum-filter-row">
             <input
               type="text"
-              placeholder="Search posts..."
+              placeholder={t("communityPageSearchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="forum-input"
@@ -560,7 +560,7 @@ const CommunityPage = () => {
                   <div className="forum-post-content">
                     <div className="forum-post-header">
                       <span className="post-author-wrapper">
-                        Posted by{" "}
+                        {t('communityPagePostedBy')}{" "}
                         <span 
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent post detail navigation
@@ -629,7 +629,7 @@ const CommunityPage = () => {
                 {t("previous")}
               </button>
               <span className="pagination-info">
-                Page {pagination.page} of {Math.ceil(pagination.total / pagination.page_size)}
+                {t("communityPagePageOf", { page: pagination.page, total: Math.ceil(pagination.total / pagination.page_size) })}
               </span>
               <button 
                 onClick={() => handlePageChange(pagination.page + 1)}
@@ -645,7 +645,7 @@ const CommunityPage = () => {
         <Card>
           <Card.Body className="forum-empty">
             <h2>{t("communityPageForumEmpty")}</h2>
-            <p>{searchTerm || selectedTag ? 'Try adjusting your search criteria' : 'Be the first to start a discussion!'}</p>
+            <p>{searchTerm || selectedTag ? t('communityPageTryAdjusting') : t('communityPageFirstDiscussion')}</p>
             {(searchTerm || selectedTag) && <Button onClick={resetFilters}>{t("ClearFilters")}</Button>}
             <Button onClick={loadPosts} className="edit-button">{t("Refresh")}</Button>
           </Card.Body>

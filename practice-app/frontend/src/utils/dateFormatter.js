@@ -9,9 +9,10 @@
  * 
  * @param {string|Date} dateString - The date to format (ISO string or Date object)
  * @param {string} preferredFormat - User's preferred date format ('DD/MM/YYYY' or 'MM/DD/YYYY')
+ * @param {function} t - Translation function (optional, for i18n support)
  * @returns {string} Formatted date string
  */
-export const formatDate = (dateString, preferredFormat = 'DD/MM/YYYY') => {
+export const formatDate = (dateString, preferredFormat = 'DD/MM/YYYY', t = null) => {
   if (!dateString) return '';
   
   const now = new Date();
@@ -29,9 +30,15 @@ export const formatDate = (dateString, preferredFormat = 'DD/MM/YYYY') => {
   
   // If within last 24 hours, show relative time
   if (diffHours < 24 && diffDays === 0) {
-    if (diffSeconds < 60) return 'just now';
-    if (diffMinutes < 60) return `${diffMinutes}${diffMinutes === 1 ? ' minute' : ' minutes'} ago`;
-    return `${diffHours}${diffHours === 1 ? ' hour' : ' hours'} ago`;
+    if (diffSeconds < 60) {
+      return t ? t('timeJustNow') : 'just now';
+    }
+    if (diffMinutes < 60) {
+      const minuteText = t ? t('timeMinutesAgo', { count: diffMinutes }) : `${diffMinutes}${diffMinutes === 1 ? ' minute' : ' minutes'} ago`;
+      return minuteText;
+    }
+    const hourText = t ? t('timeHoursAgo', { count: diffHours }) : `${diffHours}${diffHours === 1 ? ' hour' : ' hours'} ago`;
+    return hourText;
   }
   
   // Otherwise, format according to user preference
@@ -56,15 +63,16 @@ export const formatDate = (dateString, preferredFormat = 'DD/MM/YYYY') => {
  * 
  * @param {string|Date} dateString - The date to format
  * @param {string} preferredFormat - User's preferred date format
+ * @param {function} t - Translation function (optional, for i18n support)
  * @returns {string} Formatted date string with time
  */
-export const formatDateTime = (dateString, preferredFormat = 'DD/MM/YYYY') => {
+export const formatDateTime = (dateString, preferredFormat = 'DD/MM/YYYY', t = null) => {
   if (!dateString) return '';
   
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return 'Invalid date';
   
-  const dateStr = formatDate(dateString, preferredFormat);
+  const dateStr = formatDate(dateString, preferredFormat, t);
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   
