@@ -16,6 +16,7 @@ import '../widgets/market_prices_widget.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/ingredient_translator.dart';
 import '../utils/unit_translator.dart';
+import '../utils/dietary_translator.dart';
 import '../providers/currency_provider.dart';
 import './other_user_profile_screen.dart';
 
@@ -600,86 +601,88 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children:
                               [
-                                    if (recipe.costPerServing != null)
-                                      _buildDetailRow(
-                                        Icons.attach_money_outlined,
-                                        // 'Cost per Serving:',
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.costPerServingLabel,
-                                        '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing?.toStringAsFixed(2)}',
-                                        context,
-                                      ),
-                                    if (recipe.difficultyRating != null)
-                                      _buildDetailRow(
-                                        Icons.star_border_outlined,
-                                        // 'Difficulty:',
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.difficultyLabel,
-                                        '${recipe.difficultyRating!.toStringAsFixed(1)}/5',
-                                        context,
-                                      ),
-                                    if (recipe.tasteRating != null)
-                                      _buildDetailRow(
-                                        Icons.thumb_up_alt_outlined,
-                                        // 'Taste Rating:',
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.tasteRatingLabel,
-                                        '${recipe.tasteRating!.toStringAsFixed(1)}/5',
-                                        context,
-                                      ),
-                                    if (recipe.healthRating != null)
-                                      _buildDetailRow(
-                                        Icons.health_and_safety_outlined,
-                                        // 'Health Rating:',
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.healthRatingLabel,
-                                        '${recipe.healthRating!.toStringAsFixed(1)}/5',
-                                        context,
-                                      ),
-                                    _buildDetailRow(
-                                      Icons.favorite_border_outlined,
-                                      // 'Likes:',
-                                      AppLocalizations.of(context)!.likesLabel,
-                                      '${recipe.likeCount}',
+                                if (recipe.costPerServing != null)
+                                  _buildDetailRow(
+                                    Icons.attach_money_outlined,
+                                    // 'Cost per Serving:',
+                                    AppLocalizations.of(
                                       context,
-                                    ),
-                                    _buildDetailRow(
-                                      Icons.comment_outlined,
-                                      // 'Comments:',
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.commentsLabel,
-                                      '${recipe.commentCount}',
+                                    )!.costPerServingLabel,
+                                    '${Provider.of<CurrencyProvider>(context, listen: false).symbol}${recipe.costPerServing?.toStringAsFixed(2)}',
+                                    context,
+                                  ),
+                                if (recipe.difficultyRating != null)
+                                  _buildDetailRow(
+                                    Icons.star_border_outlined,
+                                    // 'Difficulty:',
+                                    AppLocalizations.of(
                                       context,
-                                    ),
-                                    if (recipe.allergens.isNotEmpty)
-                                      _buildDetailRow(
-                                        Icons.warning_amber_outlined,
-                                        // 'Allergens:',
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.allergensLabel,
-                                        recipe.allergens.join(", "),
-                                        context,
-                                      ),
-                                    if (recipe.dietaryInfo.isNotEmpty)
-                                      _buildDetailRow(
-                                        Icons.restaurant_outlined,
-                                        // 'Dietary Info:',
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.dietaryInfoLabel,
-                                        recipe.dietaryInfo.join(", "),
-                                        context,
-                                      ),
-                                  ]
-                                  .where((widget) => widget != null)
-                                  .cast<Widget>()
-                                  .toList(),
+                                    )!.difficultyLabel,
+                                    '${recipe.difficultyRating!.toStringAsFixed(1)}/5',
+                                    context,
+                                  ),
+                                if (recipe.tasteRating != null)
+                                  _buildDetailRow(
+                                    Icons.thumb_up_alt_outlined,
+                                    // 'Taste Rating:',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.tasteRatingLabel,
+                                    '${recipe.tasteRating!.toStringAsFixed(1)}/5',
+                                    context,
+                                  ),
+                                if (recipe.healthRating != null)
+                                  _buildDetailRow(
+                                    Icons.health_and_safety_outlined,
+                                    // 'Health Rating:',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.healthRatingLabel,
+                                    '${recipe.healthRating!.toStringAsFixed(1)}/5',
+                                    context,
+                                  ),
+                                _buildDetailRow(
+                                  Icons.favorite_border_outlined,
+                                  // 'Likes:',
+                                  AppLocalizations.of(context)!.likesLabel,
+                                  '${recipe.likeCount}',
+                                  context,
+                                ),
+                                _buildDetailRow(
+                                  Icons.comment_outlined,
+                                  // 'Comments:',
+                                  AppLocalizations.of(context)!.commentsLabel,
+                                  '${recipe.commentCount}',
+                                  context,
+                                ),
+                                if (recipe.allergens.isNotEmpty)
+                                  _buildDetailRow(
+                                    Icons.warning_amber_outlined,
+                                    // 'Allergens:',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.allergensLabel,
+                                    recipe.allergens.join(", "),
+                                    context,
+                                  ),
+                                if (recipe.dietaryInfo.isNotEmpty)
+                                  _buildDetailRow(
+                                    Icons.restaurant_outlined,
+                                    // 'Dietary Info:',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.dietaryInfoLabel,
+                                    recipe.dietaryInfo
+                                        .map(
+                                          (info) => translateDietaryInfo(
+                                            context,
+                                            info,
+                                          ),
+                                        )
+                                        .join(", "),
+                                    context,
+                                  ),
+                              ].where((widget) => widget != null).cast<Widget>().toList(),
                         ),
                       ),
                     ),
