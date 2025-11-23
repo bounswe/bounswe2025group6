@@ -1,6 +1,7 @@
 // src/components/recipe/InteractiveRatingStars.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { submitRecipeRating, getUserRating } from '../../services/ratingService';
 import { getCurrentUser } from '../../services/authService';
 import { useToast } from '../ui/Toast';
@@ -12,6 +13,7 @@ const InteractiveRatingStars = ({
   averageRating = 0, // Recipe'nin genel rating ortalaması
   onRatingChange 
 }) => {
+  const { t } = useTranslation();
   const [userRatingValue, setUserRatingValue] = useState(0); // Kullanıcının verdiği rating
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,7 +146,7 @@ const InteractiveRatingStars = ({
       {/* User Rating Section (Small Stars) */}
       {user && (
         <div className="user-rating-section">
-          <div className="rate-it-label">Rate it:</div>
+          <div className="rate-it-label">{t("ratingRateIt")}</div>
           <div 
             className={`stars-container small-stars ${!canRate() ? 'disabled' : ''}`}
             onMouseLeave={handleMouseLeave}
@@ -162,7 +164,7 @@ const InteractiveRatingStars = ({
             ))}
           </div>
           <div className="user-rating-info">
-            Your rating: {userRatingValue || 'None'}
+            {t("ratingYourRating")} {userRatingValue || 'None'}
           </div>
         </div>
       )}

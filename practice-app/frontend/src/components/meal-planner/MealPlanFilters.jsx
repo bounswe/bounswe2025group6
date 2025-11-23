@@ -1,6 +1,7 @@
 // src/components/meal-planner/MealPlanFilters.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import '../../styles/MealPlanFilters.css';
 
 export const MEAL_PLANNER_DEFAULT_FILTERS = {
@@ -40,6 +41,25 @@ const cloneFilterPayload = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
 });
 
 const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initialFilters }) => {
+  const { t } = useTranslation();
+  
+  // Normalize allergen tokens to better match locale keys
+  const normalizeAllergenToken = (allergen) => {
+    if (!allergen || typeof allergen !== 'string') return allergen;
+    const s = allergen.toLowerCase().trim();
+    if (s.includes('peanut')) return 'Peanut';
+    if (s === 'nuts' || s === 'nut') return 'Nuts';
+    if (s.includes('tree')) return 'TreeNut';
+    if (s === 'wheat') return 'Gluten';
+    // keep common casing for others (Dairy, Egg, Fish, Soy, Shellfish, Gluten)
+    return allergen;
+  };
+
+  const sanitizeKey = (str) => {
+    if (!str || typeof str !== 'string') return '';
+    const parts = String(str).split(/[^a-zA-Z0-9]+/).filter(Boolean);
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+  };
   const [filters, setFilters] = useState(() => cloneFilterPayload(initialFilters));
   const [isFirstMount, setIsFirstMount] = useState(true);
 
@@ -144,26 +164,26 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
   return (
     <div className="meal-plan-filters-sidebar">
       <div className="filters-header">
-        <h2>Filters</h2>
+        <h2>{t('filtersHeader')}</h2>
       </div>
 
       <div className="filters-content">
         {/* Recipe Search */}
         <div className="filter-section">
-          <label className="filter-label">Recipe Name</label>
+          <label className="filter-label">{t('filtersRecipeName')}</label>
           <input
             type="text"
             name="name"
             value={filters.name}
             onChange={handleInputChange}
-            placeholder="Search..."
+            placeholder={t('filtersSearchPlaceholder')}
             className="filter-input"
           />
         </div>
 
         {/* Meal Types */}
         <div className="filter-section">
-          <label className="filter-label">Meal Types</label>
+          <label className="filter-label">{t('filtersMealTypes')}</label>
           <div className="meal-type-buttons">
             {['breakfast', 'lunch', 'dinner'].map((type) => (
               <button
@@ -177,7 +197,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                   {type === 'lunch' && '🥗'}
                   {type === 'dinner' && '🍽️'}
                 </span>
-                <span className="capitalize">{type}</span>
+                <span className="capitalize">{t(`mealType${type.charAt(0).toUpperCase() + type.slice(1)}`)}</span>
               </button>
             ))}
           </div>
@@ -185,14 +205,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
 
         {/* Budget */}
         <div className="filter-section">
-          <label className="filter-label">Budget (Cost/Serving)</label>
+          <label className="filter-label">{t('filtersBudget')}</label>
           <div className="range-inputs">
             <input
               type="number"
               name="min_cost_per_serving"
               value={filters.min_cost_per_serving}
               onChange={handleInputChange}
-              placeholder="Min"
+              placeholder={t('filtersMin')}
               min="0"
               step="0.01"
               className="filter-input filter-input-small"
@@ -203,7 +223,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               name="max_cost_per_serving"
               value={filters.max_cost_per_serving}
               onChange={handleInputChange}
-              placeholder="Max"
+              placeholder={t('filtersMax')}
               min="0"
               step="0.01"
               className="filter-input filter-input-small"
@@ -217,21 +237,21 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
             className="filter-section-toggle"
             onClick={() => toggleSection('ratings')}
           >
-            <span className="filter-label">Ratings</span>
+            <span className="filter-label">{t('filtersRatings')}</span>
             <span className="toggle-icon">{expandedSections.ratings ? '▼' : '▶'}</span>
           </button>
           
           {expandedSections.ratings && (
             <div className="collapsible-content">
               <div className="filter-subsection">
-                <label className="filter-sublabel">Difficulty (1-5)</label>
+                <label className="filter-sublabel">{t('filtersDifficulty')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_difficulty_rating"
                     value={filters.min_difficulty_rating}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     max="5"
                     step="0.1"
@@ -243,7 +263,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_difficulty_rating"
                     value={filters.max_difficulty_rating}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     max="5"
                     step="0.1"
@@ -253,14 +273,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Taste (1-5)</label>
+                <label className="filter-sublabel">{t('filtersTaste')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_taste_rating"
                     value={filters.min_taste_rating}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     max="5"
                     step="0.1"
@@ -272,7 +292,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_taste_rating"
                     value={filters.max_taste_rating}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     max="5"
                     step="0.1"
@@ -282,14 +302,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Health (1-5)</label>
+                <label className="filter-sublabel">{t('filtersHealth')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_health_rating"
                     value={filters.min_health_rating}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     max="5"
                     step="0.1"
@@ -301,7 +321,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_health_rating"
                     value={filters.max_health_rating}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     max="5"
                     step="0.1"
@@ -319,21 +339,21 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
             className="filter-section-toggle"
             onClick={() => toggleSection('nutrition')}
           >
-            <span className="filter-label">Nutrition</span>
+            <span className="filter-label">{t('filtersNutrition')}</span>
             <span className="toggle-icon">{expandedSections.nutrition ? '▼' : '▶'}</span>
           </button>
           
           {expandedSections.nutrition && (
             <div className="collapsible-content">
               <div className="filter-subsection">
-                <label className="filter-sublabel">Calories</label>
+                <label className="filter-sublabel">{t('filtersCalories')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_calories"
                     value={filters.min_calories}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -343,7 +363,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_calories"
                     value={filters.max_calories}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -351,14 +371,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Protein (g)</label>
+                <label className="filter-sublabel">{t('filtersProtein')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_protein"
                     value={filters.min_protein}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -368,7 +388,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_protein"
                     value={filters.max_protein}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -376,14 +396,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Carbs (g)</label>
+                <label className="filter-sublabel">{t('filtersCarbs')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_carbs"
                     value={filters.min_carbs}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -393,7 +413,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_carbs"
                     value={filters.max_carbs}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -401,14 +421,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Fat (g)</label>
+                <label className="filter-sublabel">{t('filtersFat')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_fat"
                     value={filters.min_fat}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -418,7 +438,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_fat"
                     value={filters.max_fat}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -434,21 +454,21 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
             className="filter-section-toggle"
             onClick={() => toggleSection('time')}
           >
-            <span className="filter-label">Time (minutes)</span>
+            <span className="filter-label">{t('filtersTime')}</span>
             <span className="toggle-icon">{expandedSections.time ? '▼' : '▶'}</span>
           </button>
           
           {expandedSections.time && (
             <div className="collapsible-content">
               <div className="filter-subsection">
-                <label className="filter-sublabel">Prep Time</label>
+                <label className="filter-sublabel">{t('filtersPrepTime')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_prep_time"
                     value={filters.min_prep_time}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -458,7 +478,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_prep_time"
                     value={filters.max_prep_time}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -466,14 +486,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Cook Time</label>
+                <label className="filter-sublabel">{t('filtersCookTime')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_cook_time"
                     value={filters.min_cook_time}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -483,7 +503,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_cook_time"
                     value={filters.max_cook_time}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -491,14 +511,14 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
               </div>
 
               <div className="filter-subsection">
-                <label className="filter-sublabel">Total Time</label>
+                <label className="filter-sublabel">{t('filtersTotalTime')}</label>
                 <div className="range-inputs">
                   <input
                     type="number"
                     name="min_total_time"
                     value={filters.min_total_time}
                     onChange={handleInputChange}
-                    placeholder="Min"
+                    placeholder={t('filtersMin')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -508,7 +528,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     name="max_total_time"
                     value={filters.max_total_time}
                     onChange={handleInputChange}
-                    placeholder="Max"
+                    placeholder={t('filtersMax')}
                     min="0"
                     className="filter-input filter-input-small"
                   />
@@ -524,23 +544,27 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
             className="filter-section-toggle"
             onClick={() => toggleSection('allergens')}
           >
-            <span className="filter-label">⚠️ Exclude Allergens</span>
+            <span className="filter-label">{t('filtersExcludeAllergens')}</span>
             <span className="toggle-icon">{expandedSections.allergens ? '▼' : '▶'}</span>
           </button>
           
           {expandedSections.allergens && (
             <div className="collapsible-content">
               <div className="checkbox-group">
-                {commonAllergens.map((allergen) => (
-                  <label key={allergen} className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={(filters.excludeAllergens || []).includes(allergen)}
-                      onChange={() => handleAllergenToggle(allergen)}
-                    />
-                    <span>{allergen}</span>
-                  </label>
-                ))}
+                {commonAllergens.map((allergen) => {
+                  const normalized = normalizeAllergenToken(allergen);
+                  const labelKey = `allergen${sanitizeKey(normalized)}`;
+                  return (
+                    <label key={allergen} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={(filters.excludeAllergens || []).includes(allergen)}
+                        onChange={() => handleAllergenToggle(allergen)}
+                      />
+                      <span>{t(labelKey, { defaultValue: allergen })}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -548,7 +572,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
 
         {/* Boolean Options */}
         <div className="filter-section">
-          <label className="filter-label">Options</label>
+          <label className="filter-label">{t('filtersOptions')}</label>
           <div className="checkbox-group">
             <label className="checkbox-label">
               <input
@@ -557,7 +581,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                 checked={filters.has_image}
                 onChange={handleInputChange}
               />
-              <span>Has Image</span>
+              <span>{t('filtersHasImage')}</span>
             </label>
           </div>
         </div>
@@ -565,10 +589,10 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
         {/* Action Buttons */}
         <div className="filter-actions">
           <button onClick={handleApply} className="apply-filters-btn">
-            Apply Filters
+            {t('filtersApplyButton')}
           </button>
           <button onClick={handleClear} className="clear-filters-btn">
-            Clear All
+            {t('filtersClearButton')}
           </button>
         </div>
       </div>

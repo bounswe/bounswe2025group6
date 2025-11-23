@@ -130,7 +130,7 @@ const RecipeDiscoveryPage = () => {
       <div className='recipe-discovery-page-header'>
         <input
             type="text"
-            placeholder="Search recipes..."
+            placeholder={t("recipeDiscoverySearchPlaceholder")}
             value={searchQuery}
             onChange={handleSearchChange}
             className="recipe-discovery-page-header-item"

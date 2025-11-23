@@ -1,6 +1,7 @@
 // src/pages/meal-planner/MealPlannerPage.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import RecipeCard from '../../components/recipe/RecipeCard';
 import { useToast } from '../../components/ui/Toast';
 import { useCurrency } from '../../contexts/CurrencyContext';
@@ -26,6 +27,7 @@ const createDefaultFilters = () => ({
 const MealPlannerPage = () => {
   const toast = useToast();
   const { currency } = useCurrency();
+  const { t } = useTranslation();
 
   const [breakfastRecipes, setBreakfastRecipes] = useState([]);
   const [lunchRecipes, setLunchRecipes] = useState([]);
@@ -54,7 +56,7 @@ const MealPlannerPage = () => {
 
   // Restore state (filters, recipes, meal plan) if available
   useEffect(() => {
-    document.title = 'Meal Planner';
+    document.title = t('mealPlannerTitle');
 
 
     const savedState = localStorage.getItem('mealPlannerState');
@@ -233,7 +235,7 @@ const MealPlannerPage = () => {
 
       const randomPlan = await generateRandomMealPlan(baseFilters);
       setMealPlan(randomPlan);
-      toast.success('Random meal plan generated!');
+      toast.success(t('mealPlannerRandomSuccess'));
       
       // Scroll to bottom to show meal plan summary
       setTimeout(() => {
@@ -244,7 +246,7 @@ const MealPlannerPage = () => {
       }, 500);
     } catch (error) {
       console.error('Error generating random meal plan:', error);
-      toast.error('Failed to generate random meal plan');
+      toast.error(t('mealPlannerRandomError'));
     } finally {
       setIsLoading(false);
     }
@@ -256,7 +258,7 @@ const MealPlannerPage = () => {
       lunch: null,
       dinner: null,
     });
-    toast.info('Meal plan cleared');
+    toast.info(t('mealPlannerCleared'));
     // Scroll to top of page
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -340,7 +342,7 @@ const MealPlannerPage = () => {
                       }`}
                       onClick={() => handleSelectRecipe(mealType, recipe)}
                     >
-                      {selectedRecipe?.id === recipe.id ? '✓ Selected' : `Select for ${title.split(' ')[0]}`}
+                      {selectedRecipe?.id === recipe.id ? t('mealPlannerSelected') : `${t('mealPlannerSelectFor')} ${title.split(' ')[0]}`}
                     </button>
                   </div>
                 ))}
@@ -352,23 +354,23 @@ const MealPlannerPage = () => {
                     onClick={() => handlePageChange(mealType, -1)}
                     disabled={currentPage === 1}
                   >
-                    ← Prev
+                    {t('mealPlannerPrevButton')}
                   </button>
                   <span className="pagination-info">
-                    Page {currentPage} of {totalPages}
+                    {t('mealPlannerPageInfo')} {currentPage} {t('mealPlannerOf')} {totalPages}
                   </span>
                   <button
                     className="pagination-button"
                     onClick={() => handlePageChange(mealType, 1)}
                     disabled={currentPage === totalPages}
                   >
-                    Next →
+                    {t('mealPlannerNextButton')}
                   </button>
                 </div>
               )}
             </>
           ) : (
-            <p className="no-recipes">No {mealType} recipes found. Try adjusting your filters.</p>
+            <p className="no-recipes">{t('mealPlannerNoRecipes')}</p>
           )}
         </div>
       </section>
@@ -378,14 +380,14 @@ const MealPlannerPage = () => {
   return (
     <div className="meal-planner-page">
       <div className="meal-planner-header">
-        <h1 className="meal-planner-title">Meal Planner</h1>
+        <h1 className="meal-planner-title">{t('mealPlannerTitle')}</h1>
         <div className="header-actions">
           <button 
             onClick={handleGenerateRandom} 
             disabled={isLoading}
             className="modern-green-button"
           >
-            🎲 Generate Random Plan
+            {t('mealPlannerGenerateButton')}
           </button>
         </div>
       </div>
@@ -404,9 +406,9 @@ const MealPlannerPage = () => {
 
         {/* Right Content - Recipes (3/4) */}
         <main className="meal-planner-content">
-          {renderMealSection('breakfast', '🍳', 'Breakfast Recipes', breakfastRecipes, mealPlan.breakfast)}
-          {renderMealSection('lunch', '🥗', 'Lunch Recipes', lunchRecipes, mealPlan.lunch)}
-          {renderMealSection('dinner', '🍽️', 'Dinner Recipes', dinnerRecipes, mealPlan.dinner)}
+          {renderMealSection('breakfast', '🍳', t('mealPlannerBreakfastRecipes'), breakfastRecipes, mealPlan.breakfast)}
+          {renderMealSection('lunch', '🥗', t('mealPlannerLunchRecipes'), lunchRecipes, mealPlan.lunch)}
+          {renderMealSection('dinner', '🍽️', t('mealPlannerDinnerRecipes'), dinnerRecipes, mealPlan.dinner)}
         </main>
       </div>
 

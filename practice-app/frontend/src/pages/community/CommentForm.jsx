@@ -17,12 +17,12 @@ const CommentForm = ({ postId, onCommentAdded }) => {
     e.preventDefault();
     
     if (!currentUser) {
-      toast.info('Please log in to comment');
+      toast.info(t('commentFormPleaseLogIn'));
       return;
     }
     
     if (!content.trim()) {
-      toast.warning('Comment cannot be empty');
+      toast.warning(t('commentFormCannotBeEmpty'));
       return;
     }
     
@@ -41,13 +41,13 @@ const CommentForm = ({ postId, onCommentAdded }) => {
         onCommentAdded();
       }
       
-      toast.success('Comment added successfully');
+      toast.success(t('commentFormAddedSuccessfully'));
     } catch (error) {
       console.error('Error adding comment:', error);
       if (error.response?.status === 403) {
-        toast.warning('Comments are disabled for this post');
+        toast.warning(t('commentFormDisabled'));
       } else {
-        toast.error('Failed to add comment');
+        toast.error(t('commentFormFailedToAdd'));
       }
     } finally {
       setIsSubmitting(false);
@@ -60,7 +60,7 @@ const CommentForm = ({ postId, onCommentAdded }) => {
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Write a comment..."
+          placeholder={t('commentFormPlaceholder')}
           disabled={isSubmitting}
           required
         />
@@ -69,7 +69,7 @@ const CommentForm = ({ postId, onCommentAdded }) => {
             type="submit" 
             disabled={isSubmitting || !content.trim()}
           >
-            {isSubmitting ? 'Posting...' : 'Post Comment'}
+            {isSubmitting ? t('commentFormPosting') : t('commentFormPostButton')}
           </Button>
         </div>
       </form>

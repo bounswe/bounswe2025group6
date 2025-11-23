@@ -694,7 +694,7 @@ const PostDetailPage = () => {
   };
 
   const formatDateDisplay = (dateString) => {
-    return formatDate(dateString, userDateFormat);
+    return formatDate(dateString, userDateFormat, t);
   };
 
   const formatContent = (content) =>
@@ -726,7 +726,7 @@ const PostDetailPage = () => {
                   onClick={() => navigate('/community')}
                   className="edit-button"
                 >
-                  ← Back to Forum
+                  {t("postDetailPageBackToForum")}
         </Button>
       </div>
 
@@ -735,7 +735,7 @@ const PostDetailPage = () => {
           <div className="post-header">
             <div className="post-meta">
               <div className="post-author">
-                Posted by{" "}
+                {t("postDetailPagePostedBy")}{" "}
                 <span 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -820,7 +820,7 @@ const PostDetailPage = () => {
                   <textarea 
                     value={newComment} 
                     onChange={(e) => setNewComment(e.target.value)} 
-                    placeholder="Write a comment..."
+                    placeholder={t("commentFormPlaceholder")}
                     disabled={isSubmittingComment}
                     required 
                   />
@@ -829,7 +829,7 @@ const PostDetailPage = () => {
                       type="submit" 
                       disabled={isSubmittingComment || !newComment.trim()}
                     >
-                      {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                      {isSubmittingComment ? t("commentFormPosting") : t("commentFormPostButton")}
                     </Button>
                   </div>
                 </form>

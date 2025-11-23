@@ -36,6 +36,10 @@ const EditPostPage = () => {
     loadPost();
   }, [id]);
 
+  useEffect(() => {
+    document.title = t('editPostPageTitle');
+  }, [t]);
+
   const loadPost = async () => {
     setIsLoading(true);
     try {
@@ -43,7 +47,7 @@ const EditPostPage = () => {
       
       // Check if the user is the author
       if (currentUser && post.author !== currentUser.id) {
-        toast.error('You can only edit your own posts');
+        toast.error(t('editPostPageOnlyAuthor'));
         navigate(`/community/post/${id}`);
         return;
       }
@@ -57,7 +61,7 @@ const EditPostPage = () => {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading post:', error);
-      toast.error('Failed to load post for editing');
+      toast.error(t('editPostPageFailedLoad'));
       navigate('/community');
     }
   };
@@ -85,7 +89,7 @@ const EditPostPage = () => {
           tags: [...prev.tags, tag]
         };
       }
-      toast.info('You can select up to 5 tags');
+      toast.info(t('editPostPageMaxTags'));
       return prev;
     });
   };
@@ -94,23 +98,23 @@ const EditPostPage = () => {
     e.preventDefault();
 
     if (!currentUser) {
-      toast.warning('Please log in to edit this post');
+      toast.warning(t('editPostPagePleaseLogIn'));
       navigate('/login');
       return;
     }
 
     if (!formData.title.trim()) {
-      toast.warning('Please enter a title');
+      toast.warning(t('createPostPageEnterTitle'));
       return;
     }
     
     if (!formData.content.trim()) {
-      toast.warning('Please enter content');
+      toast.warning(t('createPostPageEnterContent'));
       return;
     }
     
     if (formData.tags.length === 0) {
-      toast.warning('Please select at least one tag');
+      toast.warning(t('createPostPageSelectTag'));
       return;
     }
 
@@ -124,7 +128,7 @@ const EditPostPage = () => {
         tags: formData.tags
       });
 
-      toast.success('Post updated successfully!');
+      toast.success(t('editPostPageSuccess'));
       navigate(`/community/post/${id}`);
     } catch (error) {
       console.error('Error updating post:', error);
@@ -134,15 +138,15 @@ const EditPostPage = () => {
         const errorMsg = typeof error.response.data === 'object' ? 
           Object.values(error.response.data).flat().join(' ') : 
           error.response.data;
-        toast.error(`Failed to update post: ${errorMsg}`);
+        toast.error(t('editPostPageFailedWithError', { error: errorMsg }));
       } else {
-        toast.error('Failed to update post. Please try again.');
+        toast.error(t('editPostPageFailedGeneric'));
       }
     }
   };
 
   if (isLoading) {
-    return <div className="create-post-loading">{t("editPostPageisLoading")}...</div>;
+    return <div className="create-post-loading">{t('editPostPageisLoading')}</div>;
   }
 
   return (
@@ -164,11 +168,11 @@ const EditPostPage = () => {
                 value={formData.title}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="Enter a title for your post"
+                placeholder={t('editPostPageTitlePlaceholder')}
                 maxLength={100}
                 required
               />
-              <p className="form-helper">{formData.title.length}/100 characters</p>
+              <p className="form-helper">{t('createPostPageCharacterCount', { count: formData.title.length })}</p>
             </div>
 
             <div className="form-group">
@@ -179,7 +183,7 @@ const EditPostPage = () => {
                 value={formData.content}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="What do you want to share or ask?"
+                placeholder={t('editPostPageContentPlaceholder')}
                 rows="8"
                 required
               />
@@ -212,7 +216,7 @@ const EditPostPage = () => {
                   </button>
                 ))}
               </div>
-              <p className="form-helper">{formData.tags.length}/5 tags selected</p>
+              <p className="form-helper">{t('createPostPageTagsCount', { count: formData.tags.length })}</p>
             </div>
 
             <div className="form-actions">
@@ -225,7 +229,7 @@ const EditPostPage = () => {
                 {t("Cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Updating...' : 'Update Post'}
+                {isSubmitting ? t('editPostPageUpdating') : t('editPostPageUpdate')}
               </Button>
             </div>
           </form>

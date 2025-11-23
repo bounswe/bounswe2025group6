@@ -39,7 +39,7 @@ const UploadRecipePage = () => {
 
   // Fetch ALL ingredients once on mount for search functionality
   useEffect(() => {
-    document.title = 'Upload Recipe';
+    document.title = t('uploadRecipePageHeader');
     const fetchAllIngredients = async () => {
       try {
         setLoading(true);
@@ -112,13 +112,13 @@ const UploadRecipePage = () => {
 
     // Validate file type
     if (!file.type.match('image.*')) {
-      toast.error('Please select an image file (PNG or JPG)');
+      toast.error(t('imageSelectFile'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      toast.error(t('imageTooLarge'));
       return;
     }
 
@@ -150,7 +150,7 @@ const UploadRecipePage = () => {
     if (!ingredient || !ingredient.id) return;
 
     if (recipeData.ingredients.some((ing) => ing.id === ingredient.id)) {
-      toast.error("This ingredient is already added");
+      toast.error(t('ingredientAlreadyAdded'));
       return;
     }
 
@@ -196,10 +196,10 @@ const UploadRecipePage = () => {
       };
 
       const newRecipe = await addRecipe(submissionData);
-      toast.success("Recipe uploaded successfully!");
+      toast.success(t('recipeUploadSuccess'));
       navigate(`/recipes/${newRecipe.id}`);
     } catch (error) {
-      toast.error(error.message || "Failed to upload recipe");
+      toast.error(error.message || t('recipeUploadFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -318,7 +318,7 @@ const UploadRecipePage = () => {
           <div className="ingredient-search">
             <input
               type="text"
-              placeholder="Search ingredients..."
+              placeholder={t('ingredientsSearchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
@@ -443,7 +443,7 @@ const UploadRecipePage = () => {
                 stepsText: e.target.value,
               }));
             }}
-            placeholder="Enter each step on a new line"
+            placeholder={t('uploadRecipeStepsPlaceholder')}
             required
             rows={5}
             className="steps-input"
@@ -455,7 +455,7 @@ const UploadRecipePage = () => {
             {t("Cancel")}
           </button>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Uploading..." : "Upload Recipe"}
+            {isSubmitting ? t('uploadRecipePageUploading') : t('uploadRecipePageUpload')}
           </button>
         </div>
       </form>

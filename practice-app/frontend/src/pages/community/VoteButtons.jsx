@@ -17,10 +17,11 @@ const VoteButtons = ({
 }) => {
   const { currentUser } = useAuth();
   const toast = useToast();
+  const { t } = useTranslation();
 
   const handleVote = (voteType) => {
     if (!currentUser) {
-      toast.info('Please log in to vote');
+      toast.info(t('votePleaseLogIn'));
       return;
     }
 
@@ -31,11 +32,9 @@ const VoteButtons = ({
     }
   };
 
-  const { t } = useTranslation();
-
   const handleRemoveVote = () => {
     if (!currentUser) {
-      toast.info('Please log in to manage your votes');
+      toast.info(t('votePleaseLogInManage'));
       return;
     }
 
@@ -47,7 +46,7 @@ const VoteButtons = ({
       <button 
         onClick={() => handleVote('up')} 
         className={`vote-button ${userVote === 'up' ? 'vote-active' : ''}`}
-        aria-label="Upvote"
+        aria-label={t('voteUpvote')}
       >
         ▲ {upvotes || 0}
       </button>
@@ -55,7 +54,7 @@ const VoteButtons = ({
       <button 
         onClick={() => handleVote('down')} 
         className={`vote-button ${userVote === 'down' ? 'vote-active' : ''}`}
-        aria-label="Downvote"
+        aria-label={t('voteDownvote')}
       >
         ▼ {downvotes || 0}
       </button>
@@ -64,7 +63,7 @@ const VoteButtons = ({
         <button 
           onClick={handleRemoveVote} 
           className="vote-button vote-button-remove"
-          aria-label="Remove vote"
+          aria-label={t('voteRemove')}
         >
           ×
         </button>

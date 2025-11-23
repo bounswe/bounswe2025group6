@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import { getRecipeById, getWikidataImage } from '../../services/recipeService';
@@ -11,6 +12,7 @@ import '../../styles/RecipeCard.css';
 
 const RecipeCard = ({ recipe }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { currency } = useCurrency();
   const [recipeImage, setRecipeImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -141,7 +143,9 @@ const RecipeCard = ({ recipe }) => {
       </div>        <div className='recipe-card-content'>
           <h2 style={{ fontSize: getFontSize(recipe.name || '') }}>{recipe.name}</h2>          <div className='recipe-card-content-info'>
             <div className="recipe-card-top-row">
-              <span className="meal-type">{recipe.meal_type || 'No type'}</span>
+              <span className="meal-type">
+                {recipe.meal_type ? t(`mealType${recipe.meal_type.charAt(0).toUpperCase() + recipe.meal_type.slice(1)}`) : 'No type'}
+              </span>
               <span className="cost-with-logo">
                 {recipe.cost_per_serving ? parseFloat(recipe.cost_per_serving).toFixed(2) : '0.00'} {currency}
                 {(() => {
@@ -172,9 +176,9 @@ const RecipeCard = ({ recipe }) => {
               </span>
             </div>
             <div className="recipe-card-bottom-row">
-              <span className="time-info">{recipe.prep_time}m prep • {recipe.cook_time}m cook</span>
+              <span className="time-info">{recipe.prep_time}{t("minutes")} {t("recipeCardPrepTime")} • {recipe.cook_time}{t("minutes")} {t("recipeCardCookTime")}</span>
               <span className="creator-info">
-                by {creatorName || 'Loading...'}
+                {t("recipeCardBy")} {creatorName || 'Loading...'}
                 <Badge badge={creatorBadge} size="small" usertype={creatorUsertype} />
               </span>
             </div>

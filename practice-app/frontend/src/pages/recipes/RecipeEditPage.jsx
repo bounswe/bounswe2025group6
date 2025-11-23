@@ -17,6 +17,10 @@ const RecipeEditPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
 
+  useEffect(() => {
+    document.title = t('editRecipePageHeader');
+  }, [t]);
+
   // Ingredients state
   const [ingredients, setIngredients] = useState([]);
   const [allIngredients, setAllIngredients] = useState([]); // Store all ingredients for search
@@ -104,7 +108,7 @@ const RecipeEditPage = () => {
         // Check if the user is authorized to edit
         const currentUser = await getCurrentUser();
         if (!currentUser || currentUser.id !== recipe.creator_id) {
-          toast.error('You can only edit recipes that you created');
+          toast.error(t('recipeEditOnlyCreator'));
           navigate(`/recipes/${id}`);
           return;
         }
@@ -136,7 +140,7 @@ const RecipeEditPage = () => {
         });
       } catch (err) {
         setError(err.message);
-        toast.error('Failed to load recipe');
+        toast.error(t('recipeEditError', { error: err.message }));
       } finally {
         setLoading(false);
       }
@@ -159,7 +163,7 @@ const RecipeEditPage = () => {
     if (!ingredient || !ingredient.id) return;
 
     if (recipeData.ingredients.some((ing) => ing.id === ingredient.id)) {
-      toast.error("This ingredient is already added");
+      toast.error(t('ingredientAlreadyAdded'));
       return;
     }
 
@@ -194,13 +198,13 @@ const RecipeEditPage = () => {
 
     // Validate file type
     if (!file.type.match('image.*')) {
-      toast.error('Please select an image file (PNG or JPG)');
+      toast.error(t('imageSelectFile'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      toast.error(t('imageTooLarge'));
       return;
     }
 
@@ -250,17 +254,17 @@ const RecipeEditPage = () => {
       };
 
       const updatedRecipe = await updateRecipe(id, updateData);
-      toast.success('Recipe updated successfully!');
+      toast.success(t('recipeUpdateSuccess'));
       navigate(`/recipes/${updatedRecipe.id}`);
     } catch (error) {
-      toast.error(error.message || 'Failed to update recipe');
+      toast.error(error.message || t('recipeUpdateFailed'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div>Loading recipe...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (loading) return <div>{t('recipeEditLoading')}</div>;
+  if (error) return <div className="text-red-500">{t('recipeEditError', { error })}</div>;
 
   return (
     <div className="upload-page-container">
@@ -283,17 +287,17 @@ const RecipeEditPage = () => {
             {recipeData.imagePreview ? (
               <div className="image-preview">
                 <img 
-                  src={recipeData.imagePreview} 
-                  alt="Recipe preview" 
-                  className="preview-image"
-                />
-                <button 
-                  type="button" 
-                  onClick={handleImageRemove}
-                  className="remove-image-btn"
-                  title="Remove Image"
-                >
-                </button>
+                    src={recipeData.imagePreview} 
+                    alt={t('recipePreviewAlt')} 
+                    className="preview-image"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleImageRemove}
+                    className="remove-image-btn"
+                    title={t('uploadRecipeRemoveImage')}
+                  >
+                  </button>
               </div>
             ) : (
               <div className="image-upload-area">
@@ -361,7 +365,7 @@ const RecipeEditPage = () => {
           <div className="ingredient-search">
             <input
               type="text"
-              placeholder="Search ingredients..."
+              placeholder={t('ingredientsSearchPlaceholder')}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -490,12 +494,12 @@ const RecipeEditPage = () => {
 
         <div className="form-group">
           <label htmlFor="steps">{t("uploadRecipePageSteps")} *</label>
-          <textarea
+            <textarea
             id="steps"
             name="stepsText"
             value={recipeData.stepsText}
             onChange={handleChange}
-            placeholder="Enter each step on a new line"
+            placeholder={t('uploadRecipeStepsPlaceholder')}
             required
             rows={5}
             className="steps-input"
@@ -505,7 +509,7 @@ const RecipeEditPage = () => {
         <div className="form-actions">
           <button type="button" onClick={() => navigate(`/recipes/${id}`)}>{t("Cancel")}</button>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? t('saveSaving') : t('saveSaveChanges')}
           </button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 // src/components/recipe/InteractiveHealthRating.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getHealthRating, submitHealthRating } from '../../services/ratingService';
 import { getCurrentUser } from '../../services/authService';
 import { useToast } from '../ui/Toast';
@@ -11,6 +12,7 @@ const InteractiveHealthRating = ({
   averageHealthRating = 0, // Recipe'nin genel health rating ortalaması
   onRatingChange
 }) => {
+  const { t } = useTranslation();
   const [userRating, setUserRating] = useState(0); // Kullanıcının verdiği rating
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,7 +145,7 @@ const InteractiveHealthRating = ({
       {/* User Rating Section (Small Stars) */}
       {user && isDietitian && (
         <div className="user-rating-section">
-          <div className="rate-it-label">Rate it:</div>
+          <div className="rate-it-label">{t("ratingRateIt")}</div>
           <div 
             className={`stars-container small-stars ${!canRate() ? 'disabled' : ''}`}
             onMouseLeave={handleMouseLeave}
@@ -161,7 +163,7 @@ const InteractiveHealthRating = ({
             ))}
           </div>
           <div className="user-rating-info">
-            Your rating: {userRating || 'None'}
+            {t("ratingYourRating")} {userRating || 'None'}
           </div>
         </div>
       )}
@@ -175,7 +177,7 @@ const InteractiveHealthRating = ({
 
       {user && !isDietitian && (
         <div className="rating-restriction">
-          Health rating by dietitians only
+          {t("ratingHealthByDietitansOnly")}
         </div>
       )}
     </div>

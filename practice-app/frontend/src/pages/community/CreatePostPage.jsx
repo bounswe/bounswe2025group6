@@ -54,7 +54,7 @@ const CreatePostPage = () => {
           tags: [...prev.tags, tag]
         };
       }
-      toast.info('You can select up to 5 tags');
+      toast.info(t('createPostPageMaxTags'));
       return prev;
     });
   };
@@ -63,23 +63,23 @@ const CreatePostPage = () => {
     e.preventDefault();
 
     if (!currentUser) {
-      toast.warning('Please log in to create a post');
+      toast.warning(t('createPostPagePleaseLogIn'));
       navigate('/login');
       return;
     }
 
     if (!formData.title.trim()) {
-      toast.warning('Please enter a title');
+      toast.warning(t('createPostPageEnterTitle'));
       return;
     }
     
     if (!formData.content.trim()) {
-      toast.warning('Please enter content');
+      toast.warning(t('createPostPageEnterContent'));
       return;
     }
     
     if (formData.tags.length === 0) {
-      toast.warning('Please select at least one tag');
+      toast.warning(t('createPostPageSelectTag'));
       return;
     }
 
@@ -94,7 +94,7 @@ const CreatePostPage = () => {
         tags: formData.tags
       });
 
-      toast.success('Post created successfully!');
+      toast.success(t('createPostPageSuccess'));
       navigate(`/community/post/${response.id}`);
     } catch (error) {
       console.error('Error creating post:', error);
@@ -104,15 +104,15 @@ const CreatePostPage = () => {
         const errorMsg = typeof error.response.data === 'object' ? 
           Object.values(error.response.data).flat().join(' ') : 
           error.response.data;
-        toast.error(`Failed to create post: ${errorMsg}`);
+        toast.error(t('createPostPageFailedWithError', { error: errorMsg }));
       } else {
-        toast.error('Failed to create post. Please try again.');
+        toast.error(t('createPostPageFailedGeneric'));
       }
     }
   };
   useEffect(() => {
-      document.title = "Create Post";
-    }, []);
+      document.title = t('createPostPageCreatePostTitle');
+    }, [t]);
   return (
     <div className="create-post-container">
       <div className="create-post-header">
@@ -132,11 +132,11 @@ const CreatePostPage = () => {
                 value={formData.title}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="Enter a title for your post"
+                placeholder={t('createPostPageTitlePlaceholder')}
                 maxLength={100}
                 required
               />
-              <p className="form-helper">{formData.title.length}/100 characters</p>
+              <p className="form-helper">{t('createPostPageCharacterCount', { count: formData.title.length })}</p>
             </div>
 
             <div className="form-group">
@@ -147,7 +147,7 @@ const CreatePostPage = () => {
                 value={formData.content}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="What do you want to share or ask?"
+                placeholder={t('createPostPageContentPlaceholder')}
                 rows="8"
                 required
               />
@@ -180,7 +180,7 @@ const CreatePostPage = () => {
                   </button>
                 ))}
               </div>
-              <p className="form-helper">{formData.tags.length}/5 tags selected</p>
+              <p className="form-helper">{t('createPostPageTagsCount', { count: formData.tags.length })}</p>
             </div>
 
             <div className="form-actions">
@@ -191,10 +191,10 @@ const CreatePostPage = () => {
                 disabled={isSubmitting}
                 style={{ backgroundColor: '#b67979', color: 'white' }}
               >
-                Cancel
+                {t('createPostPageCancel')}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Posting...' : 'Post'}
+                {isSubmitting ? t('createPostPagePosting') : t('createPostPagePost')}
               </Button>
             </div>
           </form>

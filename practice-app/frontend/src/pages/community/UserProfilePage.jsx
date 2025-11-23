@@ -15,7 +15,7 @@ const UserProfilePage = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const username = location.state?.username || 'User';
+  const username = location.state?.username || t('User');
 
   const [userProfile, setUserProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
@@ -66,9 +66,9 @@ const UserProfilePage = () => {
           setUserPosts(mockPosts);
           setIsLoading(false);
         }, 800);
-      } catch (error) {
+        } catch (error) {
         console.error('Error loading user profile:', error);
-        toast.error('Failed to load user profile');
+        toast.error(t('userProfileFailedToLoad'));
         setIsLoading(false);
       }
     };
@@ -88,7 +88,7 @@ const UserProfilePage = () => {
   if (isLoading) {
     return (
       <div className="user-profile-container">
-        <div className="user-profile-loading">Loading profile...</div>
+        <div className="user-profile-loading">{t('userProfileLoading')}</div>
       </div>
     );
   }
@@ -99,12 +99,10 @@ const UserProfilePage = () => {
         <Card>
           <Card.Body className="text-center py-8">
             <div className="text-4xl mb-3">🔍</div>
-            <h2 className="text-xl font-semibold mb-2">User not found</h2>
-            <p className="text-gray-600 mb-4">
-              The user you're looking for doesn't exist or has been removed.
-            </p>
+            <h2 className="text-xl font-semibold mb-2">{t('userProfileNotFoundTitle')}</h2>
+            <p className="text-gray-600 mb-4">{t('userProfileNotFoundMessage')}</p>
             <Button variant="secondary" onClick={() => navigate('/community')} size="sm">
-              Back to Community
+              {t('userProfileBackToCommunity')}
             </Button>
           </Card.Body>
         </Card>
@@ -119,7 +117,7 @@ const UserProfilePage = () => {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Back
+          {t('Back')}
         </Button>
       </div>
 
@@ -143,16 +141,16 @@ const UserProfilePage = () => {
               <h1 className="text-2xl font-bold mb-2">{userProfile.username}</h1>
               <p className="text-gray-600 mb-4">{userProfile.bio}</p>
               <div className="text-sm text-gray-500 mb-4">
-                Joined {formatDate(userProfile.joinedDate)}
+                {t('userProfileJoined')} {formatDate(userProfile.joinedDate)}
               </div>
               <div className="user-profile-stats">
                 <div className="text-center">
                   <div className="font-semibold">{userProfile.postsCount}</div>
-                  <div className="text-xs text-gray-500">Posts</div>
+                  <div className="text-xs text-gray-500">{t('userProfilePosts')}</div>
                 </div>
                 <div className="text-center">
                   <div className="font-semibold">{userProfile.commentsCount}</div>
-                  <div className="text-xs text-gray-500">Comments</div>
+                  <div className="text-xs text-gray-500">{t('userProfileComments')}</div>
                 </div>
               </div>
             </div>
@@ -161,13 +159,13 @@ const UserProfilePage = () => {
       </Card>
 
       <div className="user-profile-tabs">
-        <button className={activeTab === 'posts' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('posts')}>Posts</button>
-        <button className={activeTab === 'comments' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('comments')}>Comments</button>
+        <button className={activeTab === 'posts' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('posts')}>{t('userProfilePosts')}</button>
+        <button className={activeTab === 'comments' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('comments')}>{t('userProfileComments')}</button>
       </div>
 
       {activeTab === 'posts' && (
         <div className="space-y-4">
-          {userPosts.length > 0 ? (
+            {userPosts.length > 0 ? (
             userPosts.map(post => (
               <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/community/post/${post.id}`)}>
                 <Card.Body>
@@ -185,9 +183,7 @@ const UserProfilePage = () => {
           ) : (
             <Card>
               <Card.Body className="text-center py-6">
-                <p className="text-gray-600">
-                  This user hasn't posted anything yet.
-                </p>
+                <p className="text-gray-600">{t('userProfileNoPosts')}</p>
               </Card.Body>
             </Card>
           )}
@@ -197,9 +193,7 @@ const UserProfilePage = () => {
       {activeTab === 'comments' && (
         <Card>
           <Card.Body className="text-center py-6">
-            <p className="text-gray-600">
-              Comments will be displayed here in a future update.
-            </p>
+            <p className="text-gray-600">{t('userProfileCommentsPlaceholder')}</p>
           </Card.Body>
         </Card>
       )}
