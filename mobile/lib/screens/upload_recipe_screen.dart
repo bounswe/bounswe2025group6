@@ -104,6 +104,48 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
     });
   }
 
+  /// Normalizes a string for search comparison.
+  /// Converts to lowercase, removes diacritics (Turkish-aware), and removes special characters.
+  /// Example: "Kıyma" -> "kiyma", "Ground Beef" -> "ground beef"
+  String _normalizeForSearch(String s) {
+    var r = s.toLowerCase();
+    // Map Turkish characters to ASCII equivalents for diacritic-insensitive matching
+    const Map<String, String> charMap = {
+      'ı': 'i',
+      'İ': 'i',
+      'ş': 's',
+      'Ş': 's',
+      'ğ': 'g',
+      'Ğ': 'g',
+      'ü': 'u',
+      'Ü': 'u',
+      'ö': 'o',
+      'Ö': 'o',
+      'ç': 'c',
+      'Ç': 'c',
+    };
+    charMap.forEach((k, v) {
+      r = r.replaceAll(k, v);
+    });
+    // Remove characters outside a-z0-9 and spaces
+    r = r.replaceAll(RegExp(r'[^a-z0-9 ]'), '');
+    // Collapse multiple spaces into one and trim
+    r = r.replaceAll(RegExp(r'\s+'), ' ').trim();
+    return r;
+  }
+
+  /// Splits a normalized search string into words for flexible matching.
+  /// Example: "ground beef" -> ["ground", "beef"]
+  List<String> _getSearchTerms(String normalized) {
+    return normalized.split(' ').where((word) => word.isNotEmpty).toList();
+  }
+
+  /// Checks if all search terms appear in the target text.
+  /// This allows flexible matching (e.g., "ground" and "beef" both must appear, but not necessarily adjacent).
+  bool _matchesAllTerms(String target, List<String> searchTerms) {
+    return searchTerms.every((term) => target.contains(term));
+  }
+
   void _removeIngredientField(int index) {
     setState(() {
       _ingredients[index]['name']!.dispose();
@@ -479,17 +521,45 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                                     if (pattern.isEmpty) {
                                       return [];
                                     }
-                                    final q = pattern.toLowerCase();
+
+                                    // Normalize the query for comparison
+                                    final normalizedQuery = _normalizeForSearch(
+                                      pattern,
+                                    );
+                                    final queryTerms = _getSearchTerms(
+                                      normalizedQuery,
+                                    );
+
+                                    // Get current app locale
+                                    final currentLocale =
+                                        Localizations.localeOf(context);
+                                    final isEnglish =
+                                        currentLocale.languageCode == 'en';
+
                                     return _allIngredients.where((ingredient) {
-                                      // Match against localized display AND raw backend name
-                                      final localized =
-                                          translateIngredient(
-                                            context,
-                                            ingredient.name,
-                                          ).toLowerCase();
-                                      final raw = ingredient.name.toLowerCase();
-                                      return localized.contains(q) ||
-                                          raw.contains(q);
+                                      if (isEnglish) {
+                                        // In English mode: search against raw backend name only
+                                        final normalizedRaw =
+                                            _normalizeForSearch(
+                                              ingredient.name,
+                                            );
+                                        return _matchesAllTerms(
+                                          normalizedRaw,
+                                          queryTerms,
+                                        );
+                                      } else {
+                                        // In other languages (Turkish, etc.): search against localized name only
+                                        final localized = translateIngredient(
+                                          context,
+                                          ingredient.name,
+                                        );
+                                        final normalizedLocalized =
+                                            _normalizeForSearch(localized);
+                                        return _matchesAllTerms(
+                                          normalizedLocalized,
+                                          queryTerms,
+                                        );
+                                      }
                                     }).toList();
                                   },
                                   builder: (context, controller, focusNode) {
