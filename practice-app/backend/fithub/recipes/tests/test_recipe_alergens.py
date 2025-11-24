@@ -19,7 +19,7 @@ class RecipeAllergenAndDietaryTests(TestCase):
             name="Quinoa",
             category="grains",
             allergens=[],
-            dietary_info=["gluten-free", "high-protein"],
+            dietary_info=["vegan", "gluten-free", "high-protein"],
             allowed_units=["g", "kg"]                      
         )
 
@@ -27,7 +27,7 @@ class RecipeAllergenAndDietaryTests(TestCase):
             name="Apple",
             category="fruits",
             allergens=[],
-            dietary_info=["vegan"],                 
+            dietary_info=["vegan", "gluten-free"],                 
             allowed_units=["pcs"]                  
         )
         
@@ -99,7 +99,7 @@ class RecipeAllergenAndDietaryTests(TestCase):
         )
         self.assertCountEqual(
             self.allergen_recipe.check_dietary_info(),
-            ["vegan", "gluten-free", "high-protein"]
+            ["high-protein"]
         )
 
     def test_empty_recipe_has_no_allergens_or_dietary_info(self):
