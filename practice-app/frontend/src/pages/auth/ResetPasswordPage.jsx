@@ -40,13 +40,13 @@ const ResetPasswordPage = () => {
     const newErrors = {};
     
     if (!formData.newPassword) {
-      newErrors.newPassword = 'New password is required';
+      newErrors.newPassword = t('resetPassword.newPasswordRequired');
     } else if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters';
+      newErrors.newPassword = t('resetPassword.passwordMinLength');
     }
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('resetPassword.passwordsDoNotMatch');
     }
     
     setErrors(newErrors);
@@ -64,7 +64,7 @@ const ResetPasswordPage = () => {
     try {
       await resetPassword(token, formData.newPassword);
       setIsSuccess(true);
-      toast.success('Password has been reset successfully');
+      toast.success(t('resetPassword.successMessage'));
       
       // Redirect to login after a delay
       setTimeout(() => {
@@ -72,7 +72,7 @@ const ResetPasswordPage = () => {
       }, 3000);
     } catch (error) {
       console.error('Password reset error:', error);
-      toast.error(error.message || 'Failed to reset password');
+      toast.error(error.message || t('resetPassword.failedToast'));
       
       // Check if token error
       if (error.message.toLowerCase().includes('token')) {
@@ -89,7 +89,7 @@ const ResetPasswordPage = () => {
     }
   };
   useEffect(() => {
-      document.title = "Reset Password - FitHub";
+      document.title = t('resetPassword.pageTitle');
     }, []);
   // Display error if no token
   if (!token) {
@@ -97,15 +97,15 @@ const ResetPasswordPage = () => {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h1 className="auth-title">Invalid Reset Link</h1>
-            <p className="auth-subtitle">The password reset link is invalid or has expired</p>
+            <h1 className="auth-title">{t('resetPassword.invalidLink.title')}</h1>
+            <p className="auth-subtitle">{t('resetPassword.invalidLink.subtitle')}</p>
           </div>
           <div className="px-6 py-6 text-center">
             <p className="mb-4">
-              The password reset link you followed is missing a required token.
+              {t('resetPassword.invalidLink.message')}
             </p>
             <Link to="/forgot-password">
-              <Button>Request a new reset link</Button>
+              <Button>{t('resetPassword.requestNewLink')}</Button>
             </Link>
           </div>
         </div>
@@ -117,8 +117,8 @@ const ResetPasswordPage = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Reset Your Password</h1>
-          <p className="auth-subtitle">Enter your new password below</p>
+          <h1 className="auth-title">{t('resetPassword.title')}</h1>
+          <p className="auth-subtitle">{t('resetPassword.subtitle')}</p>
         </div>
         
         {isSuccess ? (
@@ -144,13 +144,13 @@ const ResetPasswordPage = () => {
               <div className="p-3 bg-red-100 border border-red-300 rounded-md mb-4">
                 <p className="text-sm text-red-700">{errors.token}</p>
                 <p className="text-sm text-red-700 mt-2">
-                  Please request a new password reset link.
+                  {t('resetPassword.requestNewLink')}
                 </p>
               </div>
             )}
             
             <div>
-              <label htmlFor="newPassword">New Password</label>
+              <label htmlFor="newPassword">{t('resetPassword.newPasswordLabel')}</label>
               <input
                 type="password"
                 id="newPassword"
@@ -158,16 +158,16 @@ const ResetPasswordPage = () => {
                 value={formData.newPassword}
                 onChange={handleChange}
                 className={errors.newPassword ? 'input-error' : ''}
-                placeholder="••••••••"
+                placeholder={t('resetPassword.placeholderPassword')}
               />
               {errors.newPassword && <p className="text-error">{errors.newPassword}</p>}
               <p className="text-xs text-gray-500 mt-1">
-                Password must be at least 8 characters
+                {t('resetPassword.passwordHelp')}
               </p>
             </div>
             
             <div>
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">{t('resetPassword.confirmPasswordLabel')}</label>
               <input
                 type="password"
                 id="confirmPassword"
@@ -175,7 +175,7 @@ const ResetPasswordPage = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className={errors.confirmPassword ? 'input-error' : ''}
-                placeholder="••••••••"
+                placeholder={t('resetPassword.placeholderPassword')}
               />
               {errors.confirmPassword && <p className="text-error">{errors.confirmPassword}</p>}
             </div>
@@ -185,7 +185,7 @@ const ResetPasswordPage = () => {
               className="auth-submit"
               disabled={isLoading}
             >
-              {isLoading ? 'Resetting Password...' : 'Reset Password'}
+              {isLoading ? t('resetPassword.resetting') : t('resetPassword.resetButton')}
             </Button>
           </form>
         )}

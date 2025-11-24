@@ -169,16 +169,20 @@ const CreatePostPage = () => {
             <div className="form-group">
               <label className="form-label">{t("createPostPageTags")}</label>
               <div className="tag-selector">
-                {availableTags.map(tag => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    className={`tag-button ${formData.tags.includes(tag) ? 'selected' : ''}`}
-                  >
-                    {tag}
-                  </button>
-                ))}
+                {availableTags.map(tag => {
+                  const tagKey = tag.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+                  const label = t(`createPost.tags.${tagKey}`, { defaultValue: tag });
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className={`tag-button ${formData.tags.includes(tag) ? 'selected' : ''}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
               <p className="form-helper">{t('createPostPageTagsCount', { count: formData.tags.length })}</p>
             </div>

@@ -32,9 +32,9 @@ const LoginPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!formData.email.trim()) newErrors.email = t('loginPageEmailRequired');
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('loginPageEmailInvalid');
+    if (!formData.password) newErrors.password = t('loginPagePasswordRequired');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -44,11 +44,11 @@ const LoginPage = () => {
     if (!validateForm()) return;
     try {
       await login({ email: formData.email, password: formData.password });
-      toast.success('Login successful!');
+      toast.success(t('loginPageLoginSuccessToast'));
       navigate(redirectPath);
     } catch (error) {
       if (error.response && error.response.status === 429) {
-        toast.error('Login failed 5 times. Please wait 5 minutes to try again.', {
+        toast.error(t('loginPageLoginFailedTooMany'), {
           duration: 5000,
           style: {
             background: '#ff4b4b',
@@ -59,14 +59,14 @@ const LoginPage = () => {
           },
         });
       } else {
-        toast.error(error.message || 'Failed to login');
+        toast.error(error.message || t('loginPageLoginFailedFallback'));
         if (error.message.toLowerCase().includes('email')) setErrors(prev => ({ ...prev, email: error.message }));
         else if (error.message.toLowerCase().includes('password')) setErrors(prev => ({ ...prev, password: error.message }));
       }
     }
   };
   useEffect(() => {
-    document.title = "Login - FitHub";
+    document.title = t('loginPageTitle');
   }, []);
   return (
     <div className="auth-container">
@@ -85,7 +85,7 @@ const LoginPage = () => {
               value={formData.email}
               onChange={handleChange}
               className={errors.email ? 'input-error' : ''}
-              placeholder="you@example.com"
+              placeholder={t('loginPagePlaceholderEmail')}
             />
             {errors.email && <p className="text-error">{errors.email}</p>}
           </div>
@@ -102,7 +102,7 @@ const LoginPage = () => {
               value={formData.password}
               onChange={handleChange}
               className={errors.password ? 'input-error' : ''}
-              placeholder="••••••••"
+              placeholder={t('loginPagePlaceholderPassword')}
             />
             {errors.password && <p className="text-error">{errors.password}</p>}
           </div>
@@ -119,7 +119,7 @@ const LoginPage = () => {
           </div>
 
           <Button type="submit" className="green-button" disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Log In'}
+            {isLoading ? t('loginPageLoggingIn') : t('loginPageLogIn')}
           </Button>
         </form>
 
