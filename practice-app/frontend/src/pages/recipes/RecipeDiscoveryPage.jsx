@@ -150,7 +150,7 @@ const RecipeDiscoveryPage = () => {
           <button onClick={handlePreviousPage} disabled={currentPage === 1} className='pagination-green-button'>
             {t("previous")}
           </button>
-          <span> {currentPage} </span>
+          <span> {currentPage}/{totalPages} </span>
           <button onClick={handleNextPage} disabled={currentPage === totalPages} className='pagination-green-button'>
             {t("next")}
           </button>

@@ -42,6 +42,17 @@ jest.mock('react-i18next', () => ({
         loginPageRememberMe: 'Remember me',
         loginPageDontHaveAccount: "Don't have an account",
         homePageSignUp: 'Sign Up',
+        loginPageEmailRequired: 'Email is required',
+        loginPageEmailInvalid: 'Please enter a valid email address',
+        loginPagePasswordRequired: 'Password is required',
+        loginPageLoginSuccessToast: 'Login successful!',
+        loginPageLoginFailedTooMany: 'Login failed 5 times. Please wait 5 minutes to try again.',
+        loginPageLoginFailedFallback: 'Login failed',
+        loginPageTitle: 'Login',
+        loginPagePlaceholderEmail: 'Enter your email',
+        loginPagePlaceholderPassword: 'Enter your password',
+        loginPageLoggingIn: 'Logging in...',
+        loginPageLogIn: 'Log In',
       };
       return translations[key] || key;
     },
@@ -90,10 +101,12 @@ describe('LoginPage', () => {
   };
 
   describe('Form Rendering', () => {
-    test('renders login form with all required elements', () => {
+    test('renders login form with all required elements', async () => {
       renderLoginPage();
 
-      expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
+      });
       expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/remember me/i)).toBeInTheDocument();
@@ -265,7 +278,7 @@ describe('LoginPage', () => {
   });
 
   describe('Loading State', () => {
-    test('disables submit button and shows loading text when isLoading is true', () => {
+    test('disables submit button and shows loading text when isLoading is true', async () => {
       useAuth.mockReturnValue({
         login: mockLogin,
         isLoading: true,
@@ -273,9 +286,11 @@ describe('LoginPage', () => {
 
       renderLoginPage();
 
-      const submitButton = screen.getByRole('button', { name: /logging in.../i });
-      expect(submitButton).toBeDisabled();
-      expect(screen.getByText('Logging in...')).toBeInTheDocument();
+      await waitFor(() => {
+        const submitButton = screen.getByRole('button', { name: /logging in.../i });
+        expect(submitButton).toBeDisabled();
+        expect(screen.getByText('Logging in...')).toBeInTheDocument();
+      });
     });
   });
 });

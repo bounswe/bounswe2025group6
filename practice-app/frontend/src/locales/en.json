@@ -686,5 +686,11 @@
   "otherUserProfileFollowers": "Followers",
   "otherUserProfileFollowingList": "Following",
   "otherUserProfileCommentOn": "On:",
-  "otherUserProfilePleaseLogin": "Please login to follow users"
+  "otherUserProfilePleaseLogin": "Please login to follow users",
+  "badge": {
+    "cook": "Cook",
+    "homeCook": "Home Cook",
+    "experiencedCook": "Experienced Home Cook",
+    "dietitian": "Dietitian"
+  }
 }

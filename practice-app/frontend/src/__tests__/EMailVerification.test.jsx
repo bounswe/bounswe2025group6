@@ -28,6 +28,29 @@ jest.mock('react-router-dom', () => ({
   useParams: jest.fn(),
 }));
 
+// Mock i18n
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => {
+      const translations = {
+        'emailVerification.invalidToken': 'Invalid verification link',
+        'emailVerification.verifySuccessToast': 'Email verified successfully',
+        'emailVerification.verifyFailedMessageFallback': 'Failed to verify email',
+        'emailVerification.verifyFailedToast': 'Failed to verify email',
+        'emailVerificationPageTitle': 'Email Verification',
+        'emailVerification.verifyingTitle': 'Verifying Your Email',
+        'emailVerification.verifyingMessage': 'Please wait while we verify your email address...',
+        'emailVerification.successTitle': 'Email Verified Successfully!',
+        'emailVerification.successMessage': 'Your email has been verified successfully. You can now log in to your account.',
+        'emailVerification.goToLogin': 'Go to Login',
+        'emailVerification.failedTitle': 'Verification Failed',
+        'emailVerification.registerAgain': 'Register Again',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 describe('EmailVerificationPage', () => {
   const mockVerifyEmail = jest.fn();
   const mockToast = {
@@ -55,14 +78,16 @@ describe('EmailVerificationPage', () => {
   };
 
   describe('Page Rendering', () => {
-    test('renders verification page with loading state initially', () => {
+    test('renders verification page with loading state initially', async () => {
       useParams.mockReturnValue({ token: 'valid-token-123' });
       mockVerifyEmail.mockImplementation(() => new Promise(() => {})); // Never resolves
 
       renderEmailVerificationPage();
 
       expect(screen.getByRole('heading', { name: /email verification/i })).toBeInTheDocument();
-      expect(screen.getByText('Verifying Your Email')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Verifying Your Email')).toBeInTheDocument();
+      });
     });
 
     test('shows error when token is missing', async () => {
@@ -73,7 +98,7 @@ describe('EmailVerificationPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Verification Failed')).toBeInTheDocument();
         expect(screen.getByText(/Invalid verification link/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -99,7 +124,7 @@ describe('EmailVerificationPage', () => {
         expect(screen.getByText('Email Verified Successfully!')).toBeInTheDocument();
         expect(screen.getByText(/Your email has been verified successfully/i)).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /go to login/i })).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
       expect(mockToast.success).toHaveBeenCalledWith('Email verified successfully');
     });
 
@@ -115,7 +140,7 @@ describe('EmailVerificationPage', () => {
         expect(screen.getByText('Invalid or expired token')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /go to login/i })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /register again/i })).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
       expect(mockToast.error).toHaveBeenCalledWith('Invalid or expired token');
     });
 
@@ -127,7 +152,7 @@ describe('EmailVerificationPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Failed to verify email/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 });

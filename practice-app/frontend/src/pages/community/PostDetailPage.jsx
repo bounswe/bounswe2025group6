@@ -773,9 +773,11 @@ const PostDetailPage = () => {
           <h1 className="post-title">{post.title}</h1>
           <div className="post-content">{formatContent(post.content)}</div>
           <div className="post-tags">
-            {post.tags && post.tags.map((tag, i) => (
-              <span key={i} className="post-tag">#{tag}</span>
-            ))}
+            {post.tags && post.tags.map((tag, i) => {
+              const tagKey = tag.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+              const label = t(`createPost.tags.${tagKey}`, { defaultValue: tag });
+              return <span key={i} className="post-tag">#{label}</span>;
+            })}
           </div>
           <div className="post-actions">
             <div className="vote-buttons">
