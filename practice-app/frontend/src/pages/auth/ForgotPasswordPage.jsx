@@ -30,11 +30,11 @@ const ForgotPasswordPage = () => {
   // Validate email
   const validateEmail = () => {
     if (!email.trim()) {
-      setError('Email is required');
+      setError(t('forgotPassword.emailRequired'));
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
+      setError(t('forgotPassword.emailInvalid'));
       return false;
     }
     return true;
@@ -49,22 +49,22 @@ const ForgotPasswordPage = () => {
       // Always use requestResetCode
       await requestResetCode(email);
       setCurrentStep(2);
-      toast.success('Verification code has been sent to your email');
+      toast.success(t('forgotPassword.verificationSentToast'));
     } catch (error) {
       console.error('Password reset request error:', error);
-      setError(error.message || 'Failed to send reset instructions');
-      toast.error(error.message || 'Failed to send reset instructions');
+      setError(error.message || t('forgotPassword.verificationSentFailed'));
+      toast.error(error.message || t('forgotPassword.verificationSentFailed'));
     }
   };
 
   // Validate code
   const validateCode = () => {
     if (!resetCode.trim()) {
-      setError('Verification code is required');
+      setError(t('forgotPassword.codeRequired'));
       return false;
     }
     if (resetCode.length !== 6 || !/^\d+$/.test(resetCode)) {
-      setError('Verification code must be 6 digits');
+      setError(t('forgotPassword.codeInvalid'));
       return false;
     }
     return true;
@@ -81,26 +81,26 @@ const ForgotPasswordPage = () => {
 
       setIsCodeVerified(true);
       setCurrentStep(3);
-      toast.success('Code verified successfully');
+      toast.success(t('forgotPassword.codeVerifiedToast'));
     } catch (error) {
       console.error('Code verification error:', error);
-      setError(error.message || 'Invalid verification code');
-      toast.error(error.message || 'Invalid verification code');
+      setError(error.message || t('forgotPassword.codeVerifyFailed'));
+      toast.error(error.message || t('forgotPassword.codeVerifyFailed'));
     }
   };
 
   // Validate new password
   const validateNewPassword = () => {
     if (!newPassword) {
-      setError('New password is required');
+      setError(t('forgotPassword.newPasswordRequired'));
       return false;
     }
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('forgotPassword.passwordTooShort'));
       return false;
     }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('forgotPassword.passwordsDoNotMatch'));
       return false;
     }
     return true;
@@ -114,12 +114,12 @@ const ForgotPasswordPage = () => {
     try {
       await resetPassword(verifiedResetToken, newPassword); // Call the resetPassword service
 
-      toast.success('Password has been reset successfully');
+      toast.success(t('forgotPassword.successMessage'));
       setCurrentStep(4);
     } catch (error) {
       console.error('Password reset error:', error);
-      setError(error.message || 'Failed to reset password');
-      toast.error(error.message || 'Failed to reset password');
+      setError(error.message || t('forgotPassword.resetFailed'));
+      toast.error(error.message || t('forgotPassword.resetFailed'));
     }
   };
 
@@ -130,7 +130,7 @@ const ForgotPasswordPage = () => {
         return (
           <form onSubmit={handleEmailSubmit} className="auth-form">
             <div>
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">{t('forgotPassword.emailLabel')}</label>
               <input
                 type="email"
                 id="email"
@@ -140,7 +140,7 @@ const ForgotPasswordPage = () => {
                   setError('');
                 }}
                 className={error ? 'input-error' : ''}
-                placeholder="you@example.com"
+                placeholder={t('forgotPassword.emailPlaceholder')}
               />
               {error && <p className="text-error">{error}</p>}
             </div>
@@ -150,7 +150,7 @@ const ForgotPasswordPage = () => {
               className="auth-submit"
               disabled={isLoading}
             >
-              {isLoading ? 'Sending...' : 'Send Verification Code'}
+              {isLoading ? t('forgotPassword.sending') : t('forgotPassword.sendVerification')}
             </Button>
           </form>
         );
@@ -159,7 +159,7 @@ const ForgotPasswordPage = () => {
         return (
           <form onSubmit={handleCodeVerify} className="auth-form">
             <div>
-              <label htmlFor="resetCode">6-Digit Verification Code</label>
+              <label htmlFor="resetCode">{t('forgotPassword.codeLabel')}</label>
               <input
                 type="text"
                 id="resetCode"
@@ -169,12 +169,12 @@ const ForgotPasswordPage = () => {
                   setError('');
                 }}
                 className={error ? 'input-error' : ''}
-                placeholder="123456"
+                placeholder={t('forgotPassword.codePlaceholder')}
                 maxLength={6}
               />
               {error && <p className="text-error">{error}</p>}
               <p className="text-xs text-gray-500 mt-1">
-                Enter the 6-digit code sent to {email}
+                {t('forgotPassword.codeHelper', { email })}
               </p>
             </div>
             
@@ -183,7 +183,7 @@ const ForgotPasswordPage = () => {
               className="auth-submit"
               disabled={isLoading}
             >
-              {isLoading ? 'Verifying...' : 'Verify Code'}
+              {isLoading ? t('forgotPassword.verifying') : t('forgotPassword.verifyCode')}
             </Button>
             
             <div className="text-center mt-4">
@@ -192,7 +192,7 @@ const ForgotPasswordPage = () => {
                 onClick={() => setCurrentStep(1)}
                 className="text-blue-600 text-sm hover:underline"
               >
-                Back to Email
+                {t('forgotPassword.backToEmail')}
               </button>
             </div>
           </form>
@@ -202,7 +202,7 @@ const ForgotPasswordPage = () => {
         return (
           <form onSubmit={handleResetWithCode} className="auth-form">
             <div>
-              <label htmlFor="newPassword">New Password</label>
+              <label htmlFor="newPassword">{t('forgotPassword.newPasswordLabel')}</label>
               <input
                 type="password"
                 id="newPassword"
@@ -212,15 +212,15 @@ const ForgotPasswordPage = () => {
                   setError('');
                 }}
                 className={error ? 'input-error' : ''}
-                placeholder="••••••••"
+                placeholder={t('forgotPassword.passwordPlaceholder')}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Password must be at least 8 characters
+                {t('forgotPassword.passwordRequirement')}
               </p>
             </div>
             
             <div>
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">{t('forgotPassword.confirmPasswordLabel')}</label>
               <input
                 type="password"
                 id="confirmPassword"
@@ -230,7 +230,7 @@ const ForgotPasswordPage = () => {
                   setError('');
                 }}
                 className={error ? 'input-error' : ''}
-                placeholder="••••••••"
+                placeholder={t('forgotPassword.passwordPlaceholder')}
               />
               {error && <p className="text-error">{error}</p>}
             </div>
@@ -240,7 +240,7 @@ const ForgotPasswordPage = () => {
               className="auth-submit"
               disabled={isLoading}
             >
-              {isLoading ? 'Resetting...' : 'Reset Password'}
+              {isLoading ? t('forgotPassword.resetting') : t('forgotPassword.resetButton')}
             </Button>
           </form>
         );
@@ -253,13 +253,13 @@ const ForgotPasswordPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="success-title">Password Reset Successful</h2>
+            <h2 className="success-title">{t('forgotPassword.successTitle')}</h2>
             <p className="success-message">
-              Your password has been reset successfully. You can now log in with your new password.
+              {t('forgotPassword.successBody')}
             </p>
             <div className="mt-6">
               <Link to="/login">
-                <Button>Go to Login</Button>
+                <Button>{t('forgotPassword.goToLogin')}</Button>
               </Link>
             </div>
           </div>
@@ -271,15 +271,15 @@ const ForgotPasswordPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Forgot Password - FitHub";
+    document.title = t('forgotPassword.pageTitle');
   }, []);
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">Reset Your Password</h1>
-          <p className="auth-subtitle">We will send you a 6-digit code to verify your identity.</p>
+          <h1 className="auth-title">{t('forgotPassword.headerTitle')}</h1>
+          <p className="auth-subtitle">{t('forgotPassword.headerSubtitle')}</p>
         </div>
         
         {/* Progress steps for code verification method */}
@@ -287,15 +287,15 @@ const ForgotPasswordPage = () => {
           <div className="steps-progress">
             <div className={`step ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`}>
               <div className="step-circle">1</div>
-              <div className="step-label">Email</div>
+              <div className="step-label">{t('forgotPassword.stepEmail')}</div>
             </div>
             <div className={`step ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
               <div className="step-circle">2</div>
-              <div className="step-label">Verify</div>
+              <div className="step-label">{t('forgotPassword.stepVerify')}</div>
             </div>
             <div className={`step ${currentStep >= 3 ? 'active' : ''} ${currentStep > 3 ? 'completed' : ''}`}>
               <div className="step-circle">3</div>
-              <div className="step-label">Reset</div>
+              <div className="step-label">{t('forgotPassword.stepReset')}</div>
             </div>
           </div>
         </div>
@@ -308,8 +308,8 @@ const ForgotPasswordPage = () => {
         {/* Login link */}
         <div className="auth-link">
           <p>
-            Remember your password?{' '}
-            <Link to="/login">Back to login</Link>
+            {t('forgotPassword.rememberPassword')}{' '}
+            <Link to="/login">{t('forgotPassword.backToLoginLink')}</Link>
           </p>
         </div>
       </div>

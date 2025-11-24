@@ -167,8 +167,8 @@ const RegisterPage = () => {
             </div>
             <p className="account-type-info">
               {formData.userType === 'dietitian'
-                ? 'As a dietitian, you can create meal plans, analyze recipes, and provide nutritional advice.'
-                : 'Personal accounts let you create meal plans, save recipes, and manage your diet.'}
+                ? t('registerPageDietitianInfo')
+                : t('registerPagePersonalInfo')}
             </p>
           </div>
 
@@ -181,7 +181,7 @@ const RegisterPage = () => {
               value={formData.username}
               onChange={handleChange}
               className={errors.username ? 'input-error' : ''}
-              placeholder="johndoe"
+              placeholder={t('registerPagePlaceholderUsername')}
             />
             {errors.username && <p className="text-error">{errors.username}</p>}
           </div>
@@ -195,7 +195,7 @@ const RegisterPage = () => {
               value={formData.email}
               onChange={handleChange}
               className={errors.email ? 'input-error' : ''}
-              placeholder="you@example.com"
+              placeholder={t('registerPagePlaceholderEmail')}
             />
             {errors.email && <p className="text-error">{errors.email}</p>}
           </div>
@@ -255,7 +255,7 @@ const RegisterPage = () => {
               onChange={handleChange}
             />
             <label htmlFor="acceptTerms">
-              I accept the{' '}
+              {t("IAcceptThe")}{' '}
               <button 
                 type="button" 
                 className="terms-link" 
@@ -264,7 +264,7 @@ const RegisterPage = () => {
                   setShowTermsModal(true);
                 }}
               >
-                Fithub Terms and Conditions
+                {t('terms.title')}
               </button>
             </label>
           </div>
@@ -273,7 +273,7 @@ const RegisterPage = () => {
           <Modal 
             isOpen={showTermsModal} 
             onClose={() => setShowTermsModal(false)}
-            title="Fithub Terms & Conditions"
+            title={t('terms.title')}
           >
             <TermsContent />
             <div className="text-center mt-6">
@@ -283,20 +283,20 @@ const RegisterPage = () => {
                   setFormData(prev => ({ ...prev, acceptTerms: true }));
                 }}
               >
-                Accept Terms
+                {t('acceptTermsButton')}
               </Button>
               <Button 
                 className="ml-4" 
                 variant="secondary" 
                 onClick={() => setShowTermsModal(false)}
               >
-                Close
+                {t('closeButton')}
               </Button>
             </div>
           </Modal>
 
           <Button type="submit" className="auth-submit" disabled={isLoading}>
-            {isLoading ? 'Registering...' : 'Create Account'}
+            {isLoading ? t('registerPageRegistering') : t('registerPageCreateAccount')}
           </Button>
         </form>
 

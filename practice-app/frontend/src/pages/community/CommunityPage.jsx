@@ -512,7 +512,11 @@ const CommunityPage = () => {
             />
             <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="forum-select">
               <option value="">{t("communityPageAllTags")}</option>
-              {availableTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+              {availableTags.map(tag => {
+                const tagKey = tag.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+                const label = t(`createPost.tags.${tagKey}`, { defaultValue: tag });
+                return <option key={tag} value={tag}>{label}</option>;
+              })}
             </select>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="forum-select">
               <option value="recent">{t("communityPageMostRecent")}</option>
@@ -577,7 +581,11 @@ const CommunityPage = () => {
                     <h2>{post.title}</h2>
                     <p>{post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content}</p>
                     <div className="forum-tags">
-                      {post.tags.map((tag, idx) => <span key={idx}>#{tag}</span>)}
+                      {post.tags.map((tag, idx) => {
+                        const tagKey = tag.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+                        const label = t(`createPost.tags.${tagKey}`, { defaultValue: tag });
+                        return <span key={idx}>#{label}</span>;
+                      })}
                     </div>
                     <div className="forum-actions">
                       <div className="vote-buttons">

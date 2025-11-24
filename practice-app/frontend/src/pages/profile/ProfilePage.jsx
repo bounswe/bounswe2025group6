@@ -638,7 +638,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                 >
                   <p className="comment-on">{t('profilePageCommentOn')} <strong>{comment.postTitle}</strong></p>
                   <p className="comment-content">{comment.content}</p>
-                  <span className="comment-date">{formatDate(comment.created_at, userProfile.preferredDateFormat || 'DD/MM/YYYY')}</span>
+                  <span className="comment-date">{formatDate(comment.created_at, userProfile.preferredDateFormat || 'DD/MM/YYYY', t)}</span>
                 </div>
               ))
             )}
