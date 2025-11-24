@@ -433,7 +433,7 @@ def get_user_recipe_count(request, user_id):
     try:
         recipe_count = Recipe.objects.filter(creator_id=user_id, deleted_on=None).count()
         badge = None
-        if recipe_count >=20:
+        if recipe_count >=10:
             badge = "Experienced Home Cook"
         elif recipe_count >=5:
             badge = "Home Cook"
