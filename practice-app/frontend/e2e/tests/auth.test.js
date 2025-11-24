@@ -35,9 +35,13 @@ describe("Authentication Tests", () => {
         testConfig.testData.validUser.password
       );
 
-      // Wait for dashboard to appear
+      // Wait for dashboard to appear with proper timeout
       const isDashboardLoaded = await dashboardPage.isDashboardDisplayed();
       expect(isDashboardLoaded).toBe(true);
+
+      // Verify we're on the dashboard URL
+      const currentUrl = await driver.getCurrentUrl();
+      expect(currentUrl).toContain("/dashboard");
     });
 
     test("should show error with invalid credentials", async () => {
@@ -47,8 +51,16 @@ describe("Authentication Tests", () => {
         testConfig.testData.invalidUser.password
       );
 
+      // Wait for error message to appear (login is async)
+      await driver.sleep(2000);
+
       const errorMessage = await loginPage.getErrorMessage();
       expect(errorMessage).not.toBeNull();
+      expect(errorMessage.length).toBeGreaterThan(0);
+
+      // Verify we're still on the login page
+      const currentUrl = await driver.getCurrentUrl();
+      expect(currentUrl).toContain("/login");
     });
 
     test("should have forgot password link", async () => {
@@ -58,7 +70,7 @@ describe("Authentication Tests", () => {
         // Verify navigation to forgot password page
         const url = await driver.getCurrentUrl();
         expect(url).toContain("forgot");
-      } catch (e) {
+      } catch {
         console.log("Forgot password link not found or not working");
       }
     });
@@ -70,7 +82,7 @@ describe("Authentication Tests", () => {
         // Verify navigation to register page
         const url = await driver.getCurrentUrl();
         expect(url).toContain("register");
-      } catch (e) {
+      } catch {
         console.log("Register link not found or not working");
       }
     });
@@ -84,8 +96,13 @@ describe("Authentication Tests", () => {
         testConfig.testData.validUser.password
       );
 
+      // Wait for dashboard to fully load
       const isLoaded = await dashboardPage.isLoaded();
       expect(isLoaded).toBe(true);
+
+      // Verify URL
+      const currentUrl = await driver.getCurrentUrl();
+      expect(currentUrl).toContain("/dashboard");
     });
 
     test("should display welcome message on dashboard", async () => {
@@ -94,6 +111,9 @@ describe("Authentication Tests", () => {
         testConfig.testData.validUser.email,
         testConfig.testData.validUser.password
       );
+
+      // Wait for dashboard to load first
+      await dashboardPage.isDashboardDisplayed();
 
       const welcomeMessage = await dashboardPage.getWelcomeMessage();
       expect(welcomeMessage).not.toBeNull();
@@ -107,8 +127,12 @@ describe("Authentication Tests", () => {
         testConfig.testData.validUser.password
       );
 
+      // Wait for dashboard to load first
+      await dashboardPage.isDashboardDisplayed();
+
       const subtitle = await dashboardPage.getDashboardSubtitle();
       expect(subtitle).not.toBeNull();
+      expect(subtitle.length).toBeGreaterThan(0);
     });
 
     test("should display dashboard cards", async () => {
@@ -117,6 +141,9 @@ describe("Authentication Tests", () => {
         testConfig.testData.validUser.email,
         testConfig.testData.validUser.password
       );
+
+      // Wait for dashboard to load first
+      await dashboardPage.isDashboardDisplayed();
 
       const cardCount = await dashboardPage.getCardCount();
       expect(cardCount).toBeGreaterThanOrEqual(4);
@@ -129,8 +156,15 @@ describe("Authentication Tests", () => {
         testConfig.testData.validUser.password
       );
 
+      // Wait for dashboard to load first
+      await dashboardPage.isDashboardDisplayed();
+
       const cardTitles = await dashboardPage.getCardTitles();
       expect(cardTitles.length).toBeGreaterThan(0);
+      // Verify titles are not empty
+      cardTitles.forEach((title) => {
+        expect(title.length).toBeGreaterThan(0);
+      });
     });
   });
 });
