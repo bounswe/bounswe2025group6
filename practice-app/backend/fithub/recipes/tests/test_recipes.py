@@ -59,7 +59,7 @@ class RecipeModelTests(TestCase):
             name="Lettuce",
             category="vegetables",
             allergens=[],
-            dietary_info=["raw"],
+            dietary_info=["vegan", "raw"],
             base_unit="pcs",
             base_quantity=Decimal("1.0"),
             calories=Decimal("5.0"),
@@ -474,7 +474,7 @@ class RecipeModelTests(TestCase):
 
     def test_check_dietary_info(self):
         """Test check_dietary_info method."""
-        recipe = Recipe.objects.create(
+        recipe_1 = Recipe.objects.create(
             name="Test Recipe",
             steps=["Step 1"],
             prep_time=10,
@@ -484,21 +484,53 @@ class RecipeModelTests(TestCase):
         )
         
         RecipeIngredient.objects.create(
-            recipe=recipe,
+            recipe=recipe_1,
             ingredient=self.ingredient_1,
             quantity=Decimal("100.0"),
             unit="g"
         )
+
         RecipeIngredient.objects.create(
-            recipe=recipe,
+            recipe=recipe_1,
+            ingredient=self.ingredient_3,
+            quantity=Decimal("2.0"),
+            unit="pcs"
+        )
+
+        recipe_2 = Recipe.objects.create(
+            name="Test Recipe 2",
+            steps=["Step 1"],
+            prep_time=10,
+            cook_time=10,
+            meal_type="lunch",
+            creator=self.user
+        )
+        
+        RecipeIngredient.objects.create(
+            recipe=recipe_2,
+            ingredient=self.ingredient_1,
+            quantity=Decimal("100.0"),
+            unit="g"
+        )
+
+        RecipeIngredient.objects.create(
+            recipe=recipe_2,
             ingredient=self.ingredient_2,
             quantity=Decimal("100.0"),
             unit="g"
         )
         
-        dietary_info = recipe.check_dietary_info()
-        self.assertIn("vegan", dietary_info)
-        self.assertIn("vegetarian", dietary_info)
+        dietary_info_1 = recipe_1.check_dietary_info()
+
+        # All ingredients are vegan, and second ingredient has "raw".
+        self.assertIn("vegan", dietary_info_1)
+        self.assertIn("raw", dietary_info_1)
+
+        dietary_info_2 = recipe_2.check_dietary_info()
+        
+        # There is a non-vegan ingredient, but it is vegetarian.
+        self.assertNotIn("vegan", dietary_info_2)
+        self.assertIn("vegetarian", dietary_info_2)
 
     def test_check_dietary_info_empty(self):
         """Test check_dietary_info with no dietary info."""
