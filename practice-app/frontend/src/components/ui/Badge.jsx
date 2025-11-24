@@ -1,5 +1,6 @@
 // src/components/ui/Badge.jsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import '../../styles/Badge.css';
 
 /**
@@ -9,6 +10,8 @@ import '../../styles/Badge.css';
  * @param {string} usertype - User's type (e.g., 'dietitian')
  */
 const Badge = ({ badge, size = 'small', usertype }) => {
+  const { t } = useTranslation();
+  
   // If user is a dietitian, show black star
   if (usertype === 'dietitian') {
     const fontSizeMap = {
@@ -23,7 +26,7 @@ const Badge = ({ badge, size = 'small', usertype }) => {
           color: '#000000',
           fontSize: fontSizeMap[size] || fontSizeMap.small
         }}
-        title="Dietitian"
+        title={t('badge.dietitian')}
       >
         ★
       </span>
@@ -37,7 +40,7 @@ const Badge = ({ badge, size = 'small', usertype }) => {
       large: '2rem'
     };
     const badgeColor = usertype === 'dietitian' ? '#000000' : '#48bb78';
-    const badgeTitle = usertype === 'dietitian' ? 'Dietitian' : '';
+    const badgeTitle = usertype === 'dietitian' ? t('badge.dietitian') : t('badge.cook');
     return (
       <span 
         className={`user-badge user-badge-${size}`}
@@ -59,12 +62,12 @@ const Badge = ({ badge, size = 'small', usertype }) => {
     'Home Cook': {
       icon: '★',
       color: '#4299e1', // Mavi yıldız
-      label: 'Home Cook'
+      label: t('badge.homeCook')
     },
     'Experienced Home Cook': {
       icon: '★',
       color: '#9f7aea', // Mor yıldız
-      label: 'Experienced Home Cook'
+      label: t('badge.experiencedCook')
     }
   };
 
@@ -98,12 +101,25 @@ const Badge = ({ badge, size = 'small', usertype }) => {
  * Get badge label for a given badge
  * @param {string} badge - User's badge (null, "Home Cook", "Experienced Home Cook")
  * @param {string} usertype - User's type (e.g., 'dietitian')
+ * @param {Function} t - Translation function from useTranslation
  * @returns {string} Badge label
  */
-export const getBadgeLabel = (badge, usertype) => {
-  if (usertype === 'dietitian') return 'Dietitian';
-  if (!badge) return 'Beginner';
-  return badge.toString().trim();
+export const getBadgeLabel = (badge, usertype, t) => {
+  if (!t) {
+    // Fallback if translation function is not provided
+    if (usertype === 'dietitian') return 'Dietitian';
+    if (!badge) return 'Cook';
+    return badge.toString().trim();
+  }
+  
+  if (usertype === 'dietitian') return t('badge.dietitian');
+  if (!badge) return t('badge.cook');
+  
+  const normalizedBadge = badge.toString().trim();
+  if (normalizedBadge === 'Home Cook') return t('badge.homeCook');
+  if (normalizedBadge === 'Experienced Home Cook') return t('badge.experiencedCook');
+  
+  return normalizedBadge;
 };
 
 /**

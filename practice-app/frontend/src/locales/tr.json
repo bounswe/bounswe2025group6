@@ -676,6 +676,7 @@
   "otherUserProfileNoFollowers": "Henüz takipçi yok",
   "otherUserProfileNoFollowing": "Henüz kimseyi takip etmiyorsunuz",
   "otherUserProfileFollow": "Takip Et",
+  "otherUserProfileFollowing": "Takip Edilenler",
   "otherUserProfileFollowingState": "Takip Ediliyor",
   "otherUserProfileLoading": "Yükleniyor...",
   "otherUserProfileUserNotFound": "Kullanıcı bulunamadı",
@@ -685,6 +686,12 @@
   "otherUserProfileFollowers": "Takipçiler",
   "otherUserProfileFollowingList": "Takip Edilen",
   "otherUserProfileCommentOn": "Açık:",
-  "otherUserProfilePleaseLogin": "Kullanıcıları takip etmek için giriş yapınız"
+  "otherUserProfilePleaseLogin": "Kullanıcıları takip etmek için giriş yapınız",
+  "badge": {
+    "cook": "Aşçı",
+    "homeCook": "Ev Aşçısı",
+    "experiencedCook": "Deneyimli Ev Aşçısı",
+    "dietitian": "Diyetisyen"
+  }
 }
 
