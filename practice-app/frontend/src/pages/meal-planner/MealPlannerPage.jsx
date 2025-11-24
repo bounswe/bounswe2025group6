@@ -58,8 +58,13 @@ const MealPlannerPage = () => {
   useEffect(() => {
     document.title = t('mealPlannerTitle');
 
-
-    const savedState = localStorage.getItem('mealPlannerState');
+    let savedState = null;
+    try {
+      savedState = localStorage.getItem('mealPlannerState');
+    } catch (error) {
+      console.error('Error reading from localStorage:', error);
+      // Continue without saved state
+    }
 
     if (savedState) {
       try {
