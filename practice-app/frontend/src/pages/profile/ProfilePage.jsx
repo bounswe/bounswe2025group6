@@ -481,7 +481,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                 className="profile-badge-label"
               style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
               >
-              {getBadgeLabel(userBadge, userProfile.usertype)}
+              {getBadgeLabel(userBadge, userProfile.usertype, t)}
               </p>
             <p className="profile-email">{userProfile.email}</p>
             <div className="profile-stats">
@@ -545,7 +545,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
       {/* Tab Content */}
       <div className="profile-tab-content">
         {activeTab === 'recipes' && (
-          <div className="recipes-grid">
+          <div className={`recipes-grid ${myRecipes.length === 0 ? 'empty-state' : ''}`}>
             {myRecipes.length === 0 ? (
               <p className="empty-message">{t('profilePageNoRecipesCreated')}</p>
             ) : (
@@ -557,7 +557,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         )}
 
         {activeTab === 'bookmarks' && (
-          <div className="recipes-grid">
+          <div className={`recipes-grid ${bookmarkedRecipes.length === 0 ? 'empty-state' : ''}`}>
             {bookmarkedRecipes.length === 0 ? (
               <p className="empty-message">{t('profilePageNoRecipesBookmarked')}</p>
             ) : (
@@ -569,7 +569,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         )}
 
         {activeTab === 'shopping-lists' && (
-          <div className="shopping-lists-container">
+          <div className={`shopping-lists-container ${shoppingListHistory.length === 0 ? 'empty-state' : ''}`}>
             {shoppingListHistory.length === 0 ? (
               <p className="empty-message">{t('profilePageNoShoppingLists')}</p>
             ) : (
@@ -606,7 +606,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         )}
 
         {activeTab === 'posts' && (
-          <div className="posts-container">
+          <div className={`posts-container ${myPosts.length === 0 ? 'empty-state' : ''}`}>
             {myPosts.length === 0 ? (
               <p className="empty-message">{t('profilePageNoPosts')}</p>
             ) : (
@@ -626,7 +626,7 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
         )}
 
         {activeTab === 'comments' && (
-          <div className="comments-container">
+          <div className={`comments-container ${myComments.length === 0 ? 'empty-state' : ''}`}>
             {myComments.length === 0 ? (
               <p className="empty-message">{t('profilePageNoComments')}</p>
             ) : (

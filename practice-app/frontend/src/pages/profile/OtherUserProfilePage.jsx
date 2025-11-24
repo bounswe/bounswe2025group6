@@ -318,7 +318,7 @@ const OtherUserProfilePage = () => {
               className="other-profile-badge-label"
               style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
             >
-              {getBadgeLabel(userBadge, userProfile.usertype)}
+              {getBadgeLabel(userBadge, userProfile.usertype, t)}
             </p>
             <div className="other-profile-stats">
               <div className="other-stat-item" onClick={() => setShowFollowersPopup(true)}>
