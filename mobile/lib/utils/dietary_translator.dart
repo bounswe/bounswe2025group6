@@ -37,6 +37,17 @@ String translateDietaryInfo(BuildContext context, String backendDietaryInfo) {
     'paleo': loc.dietaryPaleo,
     'pescatarian': loc.dietaryPescatarian,
 
+    // Additional dietary info tags
+    'ketofriendy': loc.dietaryKetoFriendly,
+    'omega3': loc.dietaryOmega3,
+    'healthyfat': loc.dietaryHealthyFat,
+    'soybased': loc.dietarySoyBased,
+    'potassiumrich': loc.dietaryPotassiumRich,
+    'wholegrain': loc.dietaryWholeGrain,
+    'leanprotein': loc.dietaryLeanProtein,
+    'highfiber': loc.dietaryHighFiber,
+    'probiotic': loc.dietaryProbiotic,
+
     // Fallback for unrecognized tags - just capitalize the first letter
   };
 
