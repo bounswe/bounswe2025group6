@@ -87,3 +87,8 @@ docker_restart.md
 # Certificates and keys
 
 *.pem
+
+
+# Application packages
+
+*.apk

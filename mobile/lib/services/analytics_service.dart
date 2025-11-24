@@ -6,7 +6,7 @@ import '../models/analytics_model.dart';
 
 class AnalyticsService {
   // Keep consistent with other services (see profile_service.dart) and include trailing segment for analytics
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  static const String baseUrl = 'https://fithubmp.xyz:8000';
   String? token;
 
   AnalyticsService({this.token});
