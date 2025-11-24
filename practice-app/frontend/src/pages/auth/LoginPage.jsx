@@ -1,11 +1,11 @@
 // src/pages/auth/LoginPage.jsx
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../components/ui/Toast';
-import Button from '../../components/ui/Button';
-import '../../styles/AuthPages.css';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../components/ui/Toast";
+import Button from "../../components/ui/Button";
+import "../../styles/AuthPages.css";
 import { useTranslation } from "react-i18next";
 
 const LoginPage = () => {
@@ -14,20 +14,22 @@ const LoginPage = () => {
   const location = useLocation();
   const { login, isLoading } = useAuth();
   const toast = useToast();
-  const redirectPath = location.state?.from?.pathname || '/dashboard';
+  const redirectPath = location.state?.from?.pathname || "/dashboard";
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
+    email: "",
+    password: "",
+    rememberMe: false,
   });
 
   const [errors, setErrors] = useState({});
- console.log("Deneme")
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
@@ -93,7 +95,9 @@ const LoginPage = () => {
           <div>
             <div className="flex-between">
               <label htmlFor="password">{t("registerPagePassword")}</label>
-              <Link to="/forgot-password" className="form-link">{t("loginPageForgotPassword")}?</Link>
+              <Link to="/forgot-password" className="form-link">
+                {t("loginPageForgotPassword")}?
+              </Link>
             </div>
             <input
               type="password"
@@ -124,10 +128,11 @@ const LoginPage = () => {
         </form>
 
         <div className="auth-link">
-          <p>{t("loginPageDontHaveAccount")}? <Link to="/register">{t("homePageSignUp")}</Link></p>
+          <p>
+            {t("loginPageDontHaveAccount")}?{" "}
+            <Link to="/register">{t("homePageSignUp")}</Link>
+          </p>
         </div>
-
-
       </div>
     </div>
   );

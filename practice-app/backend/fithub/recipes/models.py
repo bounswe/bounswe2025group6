@@ -155,6 +155,7 @@ class Recipe(TimestampedModel):
         # Round all values to 2 decimals for output
         return {k: v.quantize(Decimal("0.01")) for k, v in total_nutrition.items()}
     
+    
 
     # Will dynamically return alergens, if updated anything no problem
     def check_allergens(self):
@@ -166,11 +167,29 @@ class Recipe(TimestampedModel):
 
     # Will dynamically return dietary info, if updated anything no problem
     def check_dietary_info(self):
-        return list(set(
-            info
-            for ri in self.recipe_ingredients.all()
-            for info in ri.ingredient.dietary_info
-        ))
+
+        excluded = ["vegan", "gluten-free"]
+        included = []
+
+        for ri in self.recipe_ingredients.all():
+
+            for info in ri.ingredient.dietary_info:
+
+                if info not in included:
+                    included.append(info)
+
+        for ri in self.recipe_ingredients.all():
+
+            if excluded == []: break
+            for e in excluded:
+
+                if e not in ri.ingredient.dietary_info:
+                    
+                    if e in included:
+                        included.remove(e)
+                    excluded.remove(e)
+
+        return included
 
 
     #added to update relevant rating types after users provide ratings
