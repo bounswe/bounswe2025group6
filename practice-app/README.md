@@ -2,9 +2,9 @@
 
 ## Current server information
 
-- Server address: http://95.179.161.59:5173
+- Server address: https://fithubmp.xyz/
 
-- API address: http://95.179.161.59:8000
+- API address: https://fithubmp.xyz:8000
 
 ## Requirements
 

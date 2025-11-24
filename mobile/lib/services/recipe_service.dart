@@ -7,7 +7,7 @@ import '../models/paginated_recipes.dart';
 import 'storage_service.dart';
 
 class RecipeService {
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  static const String baseUrl = 'https://fithubmp.xyz:8000';
   String? token;
 
   RecipeService({this.token});
