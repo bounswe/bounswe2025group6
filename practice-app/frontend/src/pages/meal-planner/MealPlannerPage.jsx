@@ -362,7 +362,7 @@ const MealPlannerPage = () => {
                     {t('mealPlannerPrevButton')}
                   </button>
                   <span className="pagination-info">
-                    {t('mealPlannerPageInfo')} {currentPage} {t('mealPlannerOf')} {totalPages}
+                    {currentPage}/{totalPages}
                   </span>
                   <button
                     className="pagination-button"
