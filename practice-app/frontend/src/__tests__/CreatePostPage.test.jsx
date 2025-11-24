@@ -38,7 +38,26 @@ jest.mock('react-i18next', () => ({
         createPostPageSuccess: 'Post created successfully!',
         createPostPageFailedWithError: `Failed to create post: ${options?.error || 'Unknown error'}`,
         createPostPageFailedGeneric: 'Failed to create post. Please try again.',
+        'createPost.tags.budget': 'Budget',
+        'createPost.tags.mealprep': 'Meal Prep',
+        'createPost.tags.family': 'Family',
+        'createPost.tags.nowaste': 'No Waste',
+        'createPost.tags.sustainability': 'Sustainability',
+        'createPost.tags.tips': 'Tips',
+        'createPost.tags.glutenfree': 'Gluten Free',
+        'createPost.tags.vegan': 'Vegan',
+        'createPost.tags.vegetarian': 'Vegetarian',
+        'createPost.tags.quick': 'Quick',
+        'createPost.tags.healthy': 'Healthy',
+        'createPost.tags.student': 'Student',
+        'createPost.tags.nutrition': 'Nutrition',
+        'createPost.tags.healthyeating': 'Healthy Eating',
+        'createPost.tags.snacks': 'Snacks',
       };
+      // Handle tag translations with defaultValue fallback
+      if (key.startsWith('createPost.tags.')) {
+        return translations[key] || (options?.defaultValue || key);
+      }
       return translations[key] || key;
     },
   }),
@@ -100,7 +119,7 @@ describe('CreatePostPage', () => {
       expect(screen.getByText('Tags (select up to 5)')).toBeInTheDocument();
     });
 
-    test('renders all available tags as buttons', () => {
+    test('renders all available tags as buttons', async () => {
       renderCreatePostPage();
 
       const expectedTags = [
@@ -109,8 +128,10 @@ describe('CreatePostPage', () => {
         'Healthy', 'Student', 'Nutrition', 'Healthy Eating', 'Snacks'
       ];
 
-      expectedTags.forEach(tag => {
-        expect(screen.getByText(tag)).toBeInTheDocument();
+      await waitFor(() => {
+        expectedTags.forEach(tag => {
+          expect(screen.getByText(tag)).toBeInTheDocument();
+        });
       });
     });
 

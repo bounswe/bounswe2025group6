@@ -71,6 +71,16 @@ jest.mock('react-i18next', () => ({
         registerPageLogin: 'Go to Login',
         registerPageAlreadyAccount: 'Already have an account',
         homePageLogin: 'Login',
+        registerPagePlaceholderUsername: 'Enter your username',
+        registerPagePlaceholderEmail: 'Enter your email',
+        registerPageDietitianInfo: 'Dietitian account information',
+        registerPagePersonalInfo: 'Personal account information',
+        'terms.title': 'Fithub Terms and Conditions',
+        acceptTermsButton: 'Accept Terms',
+        closeButton: 'Close',
+        IAcceptThe: 'I accept the',
+        registerPageRegistering: 'Registering...',
+        registerPageCreateAccount: 'Create Account',
       };
       return translations[key] || key;
     },
@@ -127,10 +137,12 @@ describe('RegisterPage', () => {
   };
 
   describe('Form Rendering', () => {
-    test('renders registration form with all required elements', () => {
+    test('renders registration form with all required elements', async () => {
       renderRegisterPage();
 
-      expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
+      });
       expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
@@ -397,7 +409,7 @@ describe('RegisterPage', () => {
   });
 
   describe('Loading State', () => {
-    test('disables submit button and shows loading text when isLoading is true', () => {
+    test('disables submit button and shows loading text when isLoading is true', async () => {
       useAuth.mockReturnValue({
         register: mockRegister,
         isLoading: true,
@@ -405,9 +417,11 @@ describe('RegisterPage', () => {
 
       renderRegisterPage();
 
-      const submitButton = screen.getByRole('button', { name: /registering.../i });
-      expect(submitButton).toBeDisabled();
-      expect(screen.getByText('Registering...')).toBeInTheDocument();
+      await waitFor(() => {
+        const submitButton = screen.getByRole('button', { name: /registering.../i });
+        expect(submitButton).toBeDisabled();
+        expect(screen.getByText('Registering...')).toBeInTheDocument();
+      });
     });
   });
 });

@@ -23,6 +23,57 @@ jest.mock('../services/authService', () => ({
 jest.mock('../contexts/AuthContext');
 jest.mock('../components/ui/Toast');
 
+// Mock i18n
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key, options) => {
+      const translations = {
+        'forgotPassword.emailRequired': 'Email is required',
+        'forgotPassword.emailInvalid': 'Please enter a valid email address',
+        'forgotPassword.verificationSentToast': 'Verification code sent successfully',
+        'forgotPassword.verificationSentFailed': 'Failed to send verification code',
+        'forgotPassword.emailLabel': 'Email Address',
+        'forgotPassword.emailPlaceholder': 'Enter your email address',
+        'forgotPassword.sending': 'Sending...',
+        'forgotPassword.sendVerification': 'Send Verification Code',
+        'forgotPassword.codeRequired': 'Verification code is required',
+        'forgotPassword.codeInvalid': 'Verification code must be 6 digits',
+        'forgotPassword.codeVerifiedToast': 'Code verified successfully',
+        'forgotPassword.codeVerifyFailed': 'Failed to verify code',
+        'forgotPassword.codeLabel': '6-Digit Verification Code',
+        'forgotPassword.codePlaceholder': 'Enter 6-digit code',
+        'forgotPassword.codeHelper': `We sent a verification code to ${options?.email || 'your email'}`,
+        'forgotPassword.verifying': 'Verifying...',
+        'forgotPassword.verifyCode': 'Verify Code',
+        'forgotPassword.backToEmail': 'Back to Email',
+        'forgotPassword.newPasswordRequired': 'New password is required',
+        'forgotPassword.passwordTooShort': 'Password must be at least 8 characters',
+        'forgotPassword.passwordsDoNotMatch': 'Passwords do not match',
+        'forgotPassword.newPasswordLabel': 'New Password',
+        'forgotPassword.passwordPlaceholder': 'Enter your new password',
+        'forgotPassword.passwordRequirement': 'Password must be at least 8 characters',
+        'forgotPassword.confirmPasswordLabel': 'Confirm Password',
+        'forgotPassword.resetting': 'Resetting...',
+        'forgotPassword.resetButton': 'Reset Password',
+        'forgotPassword.successTitle': 'Password Reset Successful',
+        'forgotPassword.successBody': 'Your password has been reset successfully. You can now log in with your new password.',
+        'forgotPassword.goToLogin': 'Go to Login',
+        'forgotPassword.pageTitle': 'Forgot Password',
+        'forgotPassword.headerTitle': 'Reset Your Password',
+        'forgotPassword.headerSubtitle': 'Enter your email to receive a verification code',
+        'forgotPassword.stepEmail': 'Email',
+        'forgotPassword.stepVerify': 'Verify',
+        'forgotPassword.stepReset': 'Reset',
+        'forgotPassword.rememberPassword': 'Remember your password?',
+        'forgotPassword.backToLoginLink': 'Back to login',
+        'forgotPassword.successMessage': 'Password reset successful',
+        'forgotPassword.resetFailed': 'Failed to reset password',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 describe('ForgotPasswordPage', () => {
   const mockRequestResetCode = jest.fn();
   const mockVerifyResetCode = jest.fn();
@@ -54,10 +105,12 @@ describe('ForgotPasswordPage', () => {
   };
 
   describe('Step 1: Email Input', () => {
-    test('renders email input form', () => {
+    test('renders email input form', async () => {
       renderForgotPasswordPage();
 
-      expect(screen.getByRole('heading', { name: /reset your password/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /reset your password/i })).toBeInTheDocument();
+      });
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /send verification code/i })).toBeInTheDocument();
     });
@@ -289,7 +342,7 @@ describe('ForgotPasswordPage', () => {
   });
 
   describe('Loading State', () => {
-    test('disables button and shows loading text when isLoading is true', () => {
+    test('disables button and shows loading text when isLoading is true', async () => {
       useAuth.mockReturnValue({
         requestResetCode: mockRequestResetCode,
         verifyResetCode: mockVerifyResetCode,
@@ -299,8 +352,10 @@ describe('ForgotPasswordPage', () => {
 
       renderForgotPasswordPage();
 
-      const submitButton = screen.getByRole('button', { name: /sending.../i });
-      expect(submitButton).toBeDisabled();
+      await waitFor(() => {
+        const submitButton = screen.getByRole('button', { name: /sending.../i });
+        expect(submitButton).toBeDisabled();
+      });
     });
   });
 });
