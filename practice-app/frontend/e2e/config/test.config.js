@@ -32,6 +32,23 @@ module.exports = {
       email: "invalid@example.com",
       password: "wrongpassword",
     },
+    newUser: {
+      username: "testuser",
+      email: "testuser@example.com",
+      password: "Test12345",
+      confirmPassword: "Test12345",
+    },
+    adminUser: {
+      email: "admin@example.com",
+      password: "Admin12345",
+    },
+    testPost: {
+      title: "Test Post Title",
+      content: "This is a test post content for e2e testing.",
+    },
+    testComment: {
+      content: "This is a test comment.",
+    },
   },
 
   // Test reporter settings
