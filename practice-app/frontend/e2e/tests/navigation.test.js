@@ -39,7 +39,9 @@ describe("Navigation Tests", () => {
     test("should navigate to dashboard from menu", async () => {
       const dashboardLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Dashboard")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Dashboard")]'
+        ),
         10000
       );
       await dashboardLink.click();
@@ -51,7 +53,9 @@ describe("Navigation Tests", () => {
     test("should navigate to recipes from menu", async () => {
       const recipesLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Recipes")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Recipes")]'
+        ),
         10000
       );
       await recipesLink.click();
@@ -63,7 +67,9 @@ describe("Navigation Tests", () => {
     test("should navigate to meal planner from menu", async () => {
       const mealPlannerLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Meal Planner")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Meal Planner")]'
+        ),
         10000
       );
       await mealPlannerLink.click();
@@ -75,7 +81,9 @@ describe("Navigation Tests", () => {
     test("should navigate to shopping list from menu", async () => {
       const shoppingListLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Shopping List")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Shopping List")]'
+        ),
         10000
       );
       await shoppingListLink.click();
@@ -87,7 +95,9 @@ describe("Navigation Tests", () => {
     test("should navigate to ingredients from menu", async () => {
       const ingredientsLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Ingredients")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Ingredients")]'
+        ),
         10000
       );
       await ingredientsLink.click();
@@ -99,7 +109,9 @@ describe("Navigation Tests", () => {
     test("should navigate to community from menu", async () => {
       const communityLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Community")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Community")]'
+        ),
         10000
       );
       await communityLink.click();
@@ -111,7 +123,9 @@ describe("Navigation Tests", () => {
     test("should navigate to profile from menu", async () => {
       const profileLink = await waitForElement(
         driver,
-        By.xpath('//a[contains(@class, "layout-nav-link") and contains(text(), "Profile")]'),
+        By.xpath(
+          '//a[contains(@class, "layout-nav-link") and contains(text(), "Profile")]'
+        ),
         10000
       );
       await profileLink.click();
@@ -132,11 +146,7 @@ describe("Navigation Tests", () => {
     });
 
     test("should navigate to dashboard when logo is clicked", async () => {
-      const logo = await waitForElement(
-        driver,
-        By.css(".layout-logo"),
-        10000
-      );
+      const logo = await waitForElement(driver, By.css(".layout-logo"), 10000);
       await logo.click();
       await driver.sleep(1000);
       const url = await driver.getCurrentUrl();
@@ -296,4 +306,3 @@ describe("Navigation Tests", () => {
 if (require.main === module) {
   describe.run?.();
 }
-
