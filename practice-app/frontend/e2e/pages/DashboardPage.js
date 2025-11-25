@@ -18,6 +18,13 @@ class DashboardPage {
   dashboardCardTitle = By.css(".dashboard-card-title");
   dashboardCardIcon = By.css(".dashboard-card-icon");
   greenButton = By.css(".green-button");
+  analyticsCardGrid = By.css(".analytics-card-grid");
+  analyticsCard = By.css(".analytics-card");
+  analyticsValue = By.css(".analytics-value span");
+  analyticsLabel = By.css(".analytics-value small");
+  analyticsIcon = By.css(".analytics-icon");
+  adminCard = By.css(".admin-card");
+  adminButton = By.css(".admin-button");
 
   // Actions
   async navigateTo() {
@@ -153,6 +160,129 @@ class DashboardPage {
 
   async isLoaded() {
     return await this.isDashboardDisplayed();
+  }
+
+  async getAnalyticsCardCount() {
+    try {
+      await waitForElement(this.driver, this.analyticsCardGrid, 15000);
+      await this.driver.sleep(1000);
+      const cards = await this.driver.findElements(this.analyticsCard);
+      return cards.length;
+    } catch {
+      return 0;
+    }
+  }
+
+  async getAnalyticsValues() {
+    try {
+      await waitForElement(this.driver, this.analyticsCardGrid, 15000);
+      await this.driver.sleep(1000);
+      const values = await this.driver.findElements(this.analyticsValue);
+      const valueTexts = [];
+      for (const value of values) {
+        const text = await value.getText();
+        valueTexts.push(text.trim());
+      }
+      return valueTexts;
+    } catch {
+      return [];
+    }
+  }
+
+  async getAnalyticsLabels() {
+    try {
+      await waitForElement(this.driver, this.analyticsCardGrid, 15000);
+      await this.driver.sleep(1000);
+      const labels = await this.driver.findElements(this.analyticsLabel);
+      const labelTexts = [];
+      for (const label of labels) {
+        const text = await label.getText();
+        labelTexts.push(text.trim());
+      }
+      return labelTexts;
+    } catch {
+      return [];
+    }
+  }
+
+  async clickMealPlannerCard() {
+    try {
+      const cards = await this.driver.findElements(this.dashboardCard);
+      if (cards.length > 0) {
+        const buttons = await cards[0].findElements(this.greenButton);
+        if (buttons.length > 0) {
+          await buttons[0].click();
+          await this.driver.sleep(1000);
+        }
+      }
+    } catch {
+      throw new Error("Unable to click meal planner card");
+    }
+  }
+
+  async clickRecipesCard() {
+    try {
+      const cards = await this.driver.findElements(this.dashboardCard);
+      if (cards.length > 1) {
+        const buttons = await cards[1].findElements(this.greenButton);
+        if (buttons.length > 0) {
+          await buttons[0].click();
+          await this.driver.sleep(1000);
+        }
+      }
+    } catch {
+      throw new Error("Unable to click recipes card");
+    }
+  }
+
+  async clickShoppingListCard() {
+    try {
+      const cards = await this.driver.findElements(this.dashboardCard);
+      if (cards.length > 2) {
+        const buttons = await cards[2].findElements(this.greenButton);
+        if (buttons.length > 0) {
+          await buttons[0].click();
+          await this.driver.sleep(1000);
+        }
+      }
+    } catch {
+      throw new Error("Unable to click shopping list card");
+    }
+  }
+
+  async clickCommunityCard() {
+    try {
+      const cards = await this.driver.findElements(this.dashboardCard);
+      if (cards.length > 3) {
+        const buttons = await cards[3].findElements(this.greenButton);
+        if (buttons.length > 0) {
+          await buttons[0].click();
+          await this.driver.sleep(1000);
+        }
+      }
+    } catch {
+      throw new Error("Unable to click community card");
+    }
+  }
+
+  async hasAdminCard() {
+    try {
+      await waitForElement(this.driver, this.adminCard, 5000);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async clickAdminCard() {
+    try {
+      const adminCard = await waitForElement(this.driver, this.adminCard, 5000);
+      const button = await adminCard.findElement(this.adminButton);
+      await button.click();
+      await this.driver.sleep(1000);
+    } catch {
+      throw new Error("Unable to click admin card");
+    }
   }
 }
 

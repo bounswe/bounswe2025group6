@@ -122,6 +122,30 @@ class LoginPage {
       return false;
     }
   }
+
+  async logout() {
+    try {
+      // Logout button is in the MainLayout header
+      const logoutButton = await waitForElement(
+        this.driver,
+        By.css(".layout-logout, button.green-button"),
+        10000
+      );
+      await logoutButton.click();
+      // Wait for navigation to login page
+      await this.driver.wait(
+        async () => {
+          const url = await this.driver.getCurrentUrl();
+          return url.includes("/login");
+        },
+        10000,
+        "Did not navigate to login page after logout"
+      );
+    } catch (error) {
+      console.error("Logout failed:", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = LoginPage;
