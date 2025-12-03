@@ -5,6 +5,7 @@ import { useCurrency } from '../../contexts/CurrencyContext';
 import { translateIngredient } from '../../utils/ingredientTranslations';
 import '../../styles/IngredientDetailPage.css';
 import { useTranslation } from "react-i18next";
+import { getNutritionIcon } from '../../utils/nutritionIcons';
 
 const IngredientDetailPage = () => {
   const { t, i18n } = useTranslation();
@@ -180,74 +181,88 @@ const IngredientDetailPage = () => {
                 <div className="nutrition-cards">
                   <>
                     {/* Calories */}
-                    {nutritionData.calories !== null && nutritionData.calories !== undefined && (
-                      <div className="nutrition-card calories">
-                        <div className="nutrition-icon">🔥</div>
-                        <div className="nutrition-info">
-                          <span className="nutrition-value">
-                            {typeof nutritionData.calories === 'number' 
-                              ? nutritionData.calories.toFixed(0) 
-                              : nutritionData.calories}
-                          </span>
-                          <span className="nutrition-label">{t('nutritionCalories')}</span>
-                          <span className="nutrition-unit">kcal</span>
+                    {nutritionData.calories !== null && nutritionData.calories !== undefined && (() => {
+                      const caloriesValue = typeof nutritionData.calories === 'number' 
+                        ? nutritionData.calories 
+                        : parseFloat(nutritionData.calories) || 0;
+                      const { icon, sizeClass } = getNutritionIcon('calories', caloriesValue);
+                      return (
+                        <div className="nutrition-card calories">
+                          <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {caloriesValue.toFixed(0)}
+                            </span>
+                            <span className="nutrition-label">{t('nutritionCalories')}</span>
+                            <span className="nutrition-unit">kcal</span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                     
                     {/* Protein */}
-                    {nutritionData.protein !== null && nutritionData.protein !== undefined && (
-                      <div className="nutrition-card protein">
-                        <div className="nutrition-icon">💪</div>
-                        <div className="nutrition-info">
-                          <span className="nutrition-value">
-                            {typeof nutritionData.protein === 'number' 
-                              ? nutritionData.protein.toFixed(1) 
-                              : nutritionData.protein}
-                          </span>
-                          <span className="nutrition-label">{t('nutritionProtein')}</span>
-                          <span className="nutrition-unit">g</span>
+                    {nutritionData.protein !== null && nutritionData.protein !== undefined && (() => {
+                      const proteinValue = typeof nutritionData.protein === 'number' 
+                        ? nutritionData.protein 
+                        : parseFloat(nutritionData.protein) || 0;
+                      const { icon, sizeClass } = getNutritionIcon('protein', proteinValue);
+                      return (
+                        <div className="nutrition-card protein">
+                          <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {proteinValue.toFixed(1)}
+                            </span>
+                            <span className="nutrition-label">{t('nutritionProtein')}</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                     
                     {/* Fat */}
-                    {nutritionData.fat !== null && nutritionData.fat !== undefined && (
-                      <div className="nutrition-card fat">
-                        <div className="nutrition-icon">🧈</div>
-                        <div className="nutrition-info">
-                          <span className="nutrition-value">
-                            {typeof nutritionData.fat === 'number' 
-                              ? nutritionData.fat.toFixed(1) 
-                              : nutritionData.fat}
-                          </span>
-                          <span className="nutrition-label">{t('nutritionFat')}</span>
-                          <span className="nutrition-unit">g</span>
+                    {nutritionData.fat !== null && nutritionData.fat !== undefined && (() => {
+                      const fatValue = typeof nutritionData.fat === 'number' 
+                        ? nutritionData.fat 
+                        : parseFloat(nutritionData.fat) || 0;
+                      const { icon, sizeClass } = getNutritionIcon('fat', fatValue);
+                      return (
+                        <div className="nutrition-card fat">
+                          <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {fatValue.toFixed(1)}
+                            </span>
+                            <span className="nutrition-label">{t('nutritionFat')}</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                     
                     {/* Carbohydrates - support both 'carbohydrates' and 'carbs' */}
-                    {(nutritionData.carbohydrates !== null && nutritionData.carbohydrates !== undefined) || 
-                     (nutritionData.carbs !== null && nutritionData.carbs !== undefined) ? (
-                      <div className="nutrition-card carbs">
-                        <div className="nutrition-icon">🌾</div>
-                        <div className="nutrition-info">
-                          <span className="nutrition-value">
-                            {(() => {
-                              const carbsValue = nutritionData.carbohydrates !== null && nutritionData.carbohydrates !== undefined 
-                                ? nutritionData.carbohydrates 
-                                : nutritionData.carbs;
-                              return typeof carbsValue === 'number' 
-                                ? carbsValue.toFixed(1) 
-                                : carbsValue;
-                            })()}
-                          </span>
-                          <span className="nutrition-label">{t('nutritionCarbs')}</span>
-                          <span className="nutrition-unit">g</span>
+                    {((nutritionData.carbohydrates !== null && nutritionData.carbohydrates !== undefined) || 
+                     (nutritionData.carbs !== null && nutritionData.carbs !== undefined)) && (() => {
+                      const carbsValueRaw = nutritionData.carbohydrates !== null && nutritionData.carbohydrates !== undefined 
+                        ? nutritionData.carbohydrates 
+                        : nutritionData.carbs;
+                      const carbsValue = typeof carbsValueRaw === 'number' 
+                        ? carbsValueRaw 
+                        : parseFloat(carbsValueRaw) || 0;
+                      const { icon, sizeClass } = getNutritionIcon('carbs', carbsValue);
+                      return (
+                        <div className="nutrition-card carbs">
+                          <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                          <div className="nutrition-info">
+                            <span className="nutrition-value">
+                              {carbsValue.toFixed(1)}
+                            </span>
+                            <span className="nutrition-label">{t('nutritionCarbs')}</span>
+                            <span className="nutrition-unit">g</span>
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
+                      );
+                    })()}
                   </>
                 </div>
                 

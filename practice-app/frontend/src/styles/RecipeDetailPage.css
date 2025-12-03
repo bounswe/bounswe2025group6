@@ -605,6 +605,36 @@
 .nutrition-icon {
   font-size: 1rem;
   margin-bottom: 6px;
+  transition: transform 0.2s ease;
+}
+
+/* Dynamic nutrition icon sizes with pulse animation for medium and high */
+.nutrition-icon-small {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  /* No animation for small values */
+}
+
+.nutrition-icon-medium {
+  font-size: 1.5rem;
+  opacity: 0.9;
+  animation: nutritionPulse 2s ease-in-out infinite;
+}
+
+.nutrition-icon-high {
+  font-size: 1.8rem;
+  opacity: 1;
+  animation: nutritionPulse 2s ease-in-out infinite;
+}
+
+/* Pulse animation - scales from small to medium/high size */
+@keyframes nutritionPulse {
+  0%, 100% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .nutrition-info {
