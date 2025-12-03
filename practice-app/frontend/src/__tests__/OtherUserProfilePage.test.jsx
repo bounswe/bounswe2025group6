@@ -122,7 +122,7 @@ describe('OtherUserProfilePage', () => {
 
     useParams.mockReturnValue({ userId: '2' });
 
-    userService.getUserById.mockResolvedValue(mockTargetUser);
+    userService.getUserById.mockResolvedValue({ ...mockTargetUser, profilePhoto: null });
     userService.getUserRecipeCount.mockResolvedValue({ badge: 'Home Chef' });
 
     recipeService.getRecipesByCreator.mockResolvedValue(mockRecipes);
@@ -852,6 +852,48 @@ describe('OtherUserProfilePage', () => {
       });
 
       consoleError.mockRestore();
+    });
+  });
+
+  describe('Profile Photo Display', () => {
+    test('displays profile photo when available', async () => {
+      const userWithPhoto = {
+        ...mockTargetUser,
+        profilePhoto: 'data:image/png;base64,test123'
+      };
+      userService.getUserById.mockResolvedValue(userWithPhoto);
+
+      renderOtherUserProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('targetuser')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const avatar = document.querySelector('.other-profile-avatar img');
+        expect(avatar).toBeInTheDocument();
+        expect(avatar).toHaveAttribute('src', 'data:image/png;base64,test123');
+      });
+    });
+
+    test('displays placeholder when no profile photo', async () => {
+      const userWithoutPhoto = {
+        ...mockTargetUser,
+        profilePhoto: null
+      };
+      userService.getUserById.mockResolvedValue(userWithoutPhoto);
+
+      renderOtherUserProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('targetuser')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const placeholder = document.querySelector('.other-profile-avatar-placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder).toHaveTextContent('t'); // First letter of username
+      });
     });
   });
 });

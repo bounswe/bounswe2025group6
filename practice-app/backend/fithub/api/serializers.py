@@ -184,6 +184,19 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Rating must be between 0.0 and 5.0.")
         return value
 
+    def validate_profilePhoto(self, value):
+        # Allow data URLs (data:image/...) for base64 encoded images
+        # Also allow regular URLs or null
+        if value is None or value == '':
+            return value
+        if isinstance(value, str):
+            # Accept data URLs (base64 encoded images)
+            if value.startswith('data:image/'):
+                return value
+            # Also accept regular URLs
+            return value
+        return value
+
 #UNDER CONSTRUCTION
 class RecipeRatingSerializer(serializers.ModelSerializer):
     recipe_id = serializers.PrimaryKeyRelatedField(

@@ -121,6 +121,85 @@ const userService = {
       return { user_id: userId, recipe_count: 0, badge: null };
     }
   },
+
+  // Upload profile photo (convert to base64 data URL and update)
+  // Note: Backend expects URLField, but we send data URL which may not be accepted
+  // If backend rejects it, we need a proper image upload endpoint
+  uploadProfilePhoto: async (userId, imageFile) => {
+    try {
+      // Convert file to base64 data URL
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            // reader.result is in data URL format (data:image/jpeg;base64,...)
+            const dataUrl = reader.result;
+            // Try to update user profile with data URL
+            // Backend URLField may not accept data URLs, but we try anyway
+            const response = await api.patch(`/api/users/${userId}/`, {
+              profilePhoto: dataUrl
+            });
+            resolve(response.data);
+          } catch (error) {
+            console.error("Error in uploadProfilePhoto:", error);
+            // Provide better error message
+            if (error.response?.status === 400) {
+              const errorMsg = error.response?.data?.profilePhoto?.[0] || 
+                              error.response?.data?.error ||
+                              'Backend does not accept this image format. Please contact support.';
+              error.message = errorMsg;
+            }
+            reject(error);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageFile);
+      });
+    } catch (error) {
+      console.error("Error uploading profile photo:", error);
+      throw error;
+    }
+  },
+
+  // Delete profile photo (set to null)
+  deleteProfilePhoto: async (userId) => {
+    try {
+      const response = await api.patch(`/api/users/${userId}/`, {
+        profilePhoto: null
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting profile photo:", error);
+      throw error;
+    }
+  },
+
+  // Update username
+  updateUsername: async (userId, newUsername) => {
+    try {
+      const response = await api.patch(`/api/users/${userId}/`, {
+        username: newUsername
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating username:", error);
+      throw error;
+    }
+  },
+
+  // Check if username is available
+  checkUsernameAvailability: async (username) => {
+    try {
+      // Get all users and check if username exists
+      const response = await api.get(`/api/users/`);
+      const users = response.data.results || [];
+      const usernameExists = users.some(user => user.username.toLowerCase() === username.toLowerCase());
+      return !usernameExists;
+    } catch (error) {
+      console.error("Error checking username availability:", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;

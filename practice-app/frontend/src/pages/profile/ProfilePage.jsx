@@ -1,5 +1,5 @@
 // src/pages/profile/ProfilePage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../services/authService";
 import userService from "../../services/userService";
@@ -15,11 +15,14 @@ import "../../styles/ProfilePage.css";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { shareContent } from "../../utils/shareUtils";
+import { useToast } from "../../components/ui/Toast";
+import ImageUploader from "../../components/ui/ImageUploader";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { setCurrency } = useCurrency();
+  const toast = useToast();
 
   // Get current language for ingredient translation
   const currentLanguage = i18n.language.startsWith('tr') ? 'tr' : 'en';
@@ -44,6 +47,17 @@ const ProfilePage = () => {
   const [accessibilityNeeds, setAccessibilityNeeds] = useState('none');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  
+  // Profile photo and username state
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [isChangingUsername, setIsChangingUsername] = useState(false);
+  const [showUsernameConfirm, setShowUsernameConfirm] = useState(false);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
+  const fileInputRef = useRef(null);
   
   // Common nationalities list
   const commonNationalities = [
@@ -329,6 +343,103 @@ const ProfilePage = () => {
     }
   };
 
+  // Profile photo handlers
+  const handlePhotoUpload = async (file) => {
+    if (!userProfile || !userProfile.id || !file) return;
+    
+    setIsUploadingPhoto(true);
+    try {
+      const updatedUser = await userService.uploadProfilePhoto(userProfile.id, file);
+      setUserProfile(updatedUser);
+      setPhotoPreview(null);
+      setSelectedPhotoFile(null);
+      toast.success(t('profilePagePhotoUploadSuccess') || 'Profile photo updated successfully');
+    } catch (error) {
+      console.error('Error uploading profile photo:', error);
+      const errorMessage = error.response?.data?.profilePhoto?.[0] || 
+                          error.response?.data?.error ||
+                          t('profilePagePhotoUploadError') || 
+                          'Failed to upload profile photo';
+      toast.error(errorMessage);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handlePhotoDelete = async () => {
+    if (!userProfile || !userProfile.id) return;
+    
+    if (!window.confirm(t('profilePagePhotoDeleteConfirm') || 'Are you sure you want to delete your profile photo?')) {
+      return;
+    }
+    
+    setIsDeletingPhoto(true);
+    try {
+      const updatedUser = await userService.deleteProfilePhoto(userProfile.id);
+      setUserProfile(updatedUser);
+      toast.success(t('profilePagePhotoDeleteSuccess') || 'Profile photo deleted successfully');
+    } catch (error) {
+      console.error('Error deleting profile photo:', error);
+      toast.error(t('profilePagePhotoDeleteError') || 'Failed to delete profile photo');
+    } finally {
+      setIsDeletingPhoto(false);
+    }
+  };
+
+  // Username change handlers
+  const handleUsernameChange = async () => {
+    if (!userProfile || !userProfile.id) return;
+    
+    const trimmedUsername = newUsername.trim();
+    if (!trimmedUsername) {
+      toast.error(t('profilePageUsernameEmpty') || 'Username cannot be empty');
+      return;
+    }
+    
+    if (trimmedUsername === userProfile.username) {
+      toast.info(t('profilePageUsernameSame') || 'This is already your username');
+      setNewUsername('');
+      return;
+    }
+    
+    // Check availability
+    try {
+      const isAvailable = await userService.checkUsernameAvailability(trimmedUsername);
+      if (!isAvailable) {
+        toast.error(t('profilePageUsernameTaken') || 'This username is already taken');
+        return;
+      }
+      
+      // Show confirmation dialog
+      setShowUsernameConfirm(true);
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      toast.error(t('profilePageUsernameCheckError') || 'Error checking username availability');
+    }
+  };
+
+  const confirmUsernameChange = async () => {
+    if (!userProfile || !userProfile.id) return;
+    
+    setIsChangingUsername(true);
+    try {
+      const updatedUser = await userService.updateUsername(userProfile.id, newUsername.trim());
+      setUserProfile(updatedUser);
+      setNewUsername('');
+      setShowUsernameConfirm(false);
+      toast.success(t('profilePageUsernameChangeSuccess') || 'Username changed successfully');
+    } catch (error) {
+      console.error('Error changing username:', error);
+      const errorMessage = error.response?.data?.username?.[0] || 
+                          error.response?.data?.error ||
+                          t('profilePageUsernameChangeError') || 
+                          'Failed to change username';
+      toast.error(errorMessage);
+    } finally {
+      setIsChangingUsername(false);
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsSavingSettings(true);
     try {
@@ -452,12 +563,78 @@ ${(list.ingredients || []).map(ing => {
       <div className="profile-header">
         <div className="profile-header-content">
           <div className="profile-info">
-          <div className="profile-avatar">
+          <div className="profile-avatar" onClick={() => setShowPhotoMenu(true)}>
             {userProfile.profilePhoto ? (
               <img src={userProfile.profilePhoto} alt={userProfile.username} />
             ) : (
               <div className="profile-avatar-placeholder">{userProfile.username?.[0]?.toUpperCase() || 'U'}</div>
             )}
+            <div className="profile-avatar-overlay">
+              {userProfile.profilePhoto ? (
+                <>
+                  <button 
+                    className="profile-avatar-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    title={t('profilePageChangePhoto') || 'Change photo'}
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    className="profile-avatar-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePhotoDelete();
+                    }}
+                    disabled={isDeletingPhoto}
+                    title={t('profilePageDeletePhoto') || 'Delete photo'}
+                  >
+                    {isDeletingPhoto ? '⏳' : '🗑️'}
+                  </button>
+                </>
+              ) : (
+                <button 
+                  className="profile-avatar-action-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  title={t('profilePageUploadPhoto') || 'Upload photo'}
+                >
+                  📷
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              id="photo-upload-input"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!file.type.match('image.*')) {
+                  toast.error(t('profilePagePhotoInvalid') || 'Please select an image file');
+                  return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error(t('profilePagePhotoTooLarge') || 'Image must be less than 5MB');
+                  return;
+                }
+                
+                setSelectedPhotoFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  setPhotoPreview(reader.result);
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
           </div>
             <h1 className="profile-username">
               <span className="profile-username-wrapper">
@@ -640,6 +817,52 @@ ${(list.ingredients || []).map(ing => {
             <h2 className="settings-title">{t('profilePageSettingsTitle')}</h2>
             
             <div className="settings-form">
+              {/* Username Change Section */}
+              <div className="settings-group">
+                <label className="settings-label">{t('profilePageChangeUsername') || 'Change Username'}</label>
+                <div className="username-change-container">
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder={userProfile.username || t('profilePageCurrentUsername') || 'Current username'}
+                    disabled={isChangingUsername}
+                  />
+                  <button
+                    className="username-change-btn"
+                    onClick={handleUsernameChange}
+                    disabled={isChangingUsername || !newUsername.trim() || newUsername.trim() === userProfile.username}
+                  >
+                    {isChangingUsername ? t('profilePageChanging') || 'Changing...' : t('profilePageChange') || 'Change'}
+                  </button>
+                </div>
+                {showUsernameConfirm && (
+                  <div className="username-confirm-dialog">
+                    <p>{t('profilePageUsernameConfirmMessage') || `Are you sure you want to change your username to "${newUsername.trim()}"?`}</p>
+                    <div className="username-confirm-actions">
+                      <button
+                        className="username-confirm-btn"
+                        onClick={confirmUsernameChange}
+                        disabled={isChangingUsername}
+                      >
+                        {isChangingUsername ? t('profilePageChanging') || 'Changing...' : t('profilePageConfirm') || 'Confirm'}
+                      </button>
+                      <button
+                        className="username-cancel-btn"
+                        onClick={() => {
+                          setShowUsernameConfirm(false);
+                          setNewUsername('');
+                        }}
+                        disabled={isChangingUsername}
+                      >
+                        {t('profilePageCancel') || 'Cancel'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="settings-group">
                 <label className="settings-label">{t('profilePageCurrency')}</label>
                 <select 
@@ -740,6 +963,55 @@ ${(list.ingredients || []).map(ing => {
           </div>
         )}
       </div>
+
+      {/* Photo Preview/Upload Modal */}
+      {photoPreview && (
+        <div className="photo-preview-overlay" onClick={() => {
+          setPhotoPreview(null);
+          setSelectedPhotoFile(null);
+        }}>
+          <div className="photo-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="photo-preview-header">
+              <h3>{t('profilePagePhotoPreview') || 'Photo Preview'}</h3>
+              <button 
+                className="photo-preview-close"
+                onClick={() => {
+                  setPhotoPreview(null);
+                  setSelectedPhotoFile(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="photo-preview-content">
+              <img src={photoPreview} alt="Preview" />
+            </div>
+            <div className="photo-preview-actions">
+              <button
+                className="photo-preview-confirm"
+                onClick={() => {
+                  if (selectedPhotoFile) {
+                    handlePhotoUpload(selectedPhotoFile);
+                  }
+                }}
+                disabled={isUploadingPhoto}
+              >
+                {isUploadingPhoto ? (t('profilePageUploading') || 'Uploading...') : (t('profilePageConfirm') || 'Confirm')}
+              </button>
+              <button
+                className="photo-preview-cancel"
+                onClick={() => {
+                  setPhotoPreview(null);
+                  setSelectedPhotoFile(null);
+                }}
+                disabled={isUploadingPhoto}
+              >
+                {t('profilePageCancel') || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Followers Popup */}
       {showFollowersPopup && (

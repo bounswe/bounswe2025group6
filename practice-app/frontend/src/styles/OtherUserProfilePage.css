@@ -30,12 +30,16 @@
   border-radius: 50%;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  aspect-ratio: 1;
 }
 
 .other-profile-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .other-profile-avatar-placeholder {
@@ -48,6 +52,7 @@
   color: white;
   font-size: 3rem;
   font-weight: bold;
+  border-radius: 50%;
 }
 
 .other-profile-info {

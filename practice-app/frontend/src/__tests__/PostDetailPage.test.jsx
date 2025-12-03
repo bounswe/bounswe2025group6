@@ -145,6 +145,7 @@ describe('PostDetailPage', () => {
     userService.getUserById.mockResolvedValue({
       id: 1,
       username: 'testuser',
+      profilePhoto: null,
     });
     userService.getUserRecipeCount.mockResolvedValue({
       badge: 'Novice Cook',
@@ -729,6 +730,82 @@ describe('PostDetailPage', () => {
         expect(screen.getByText('Previous')).toBeInTheDocument();
         expect(screen.getByText('Next')).toBeInTheDocument();
         expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Author Profile Photo', () => {
+    test('displays author profile photo for post when available', async () => {
+      const authorWithPhoto = {
+        id: 1,
+        username: 'testuser',
+        profilePhoto: 'data:image/png;base64,test123'
+      };
+      userService.getUserById.mockResolvedValue(authorWithPhoto);
+
+      renderPostDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Post Title')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const authorAvatar = document.querySelector('.author-avatar');
+        expect(authorAvatar).toBeInTheDocument();
+        expect(authorAvatar).toHaveAttribute('src', 'data:image/png;base64,test123');
+      });
+    });
+
+    test('displays placeholder when author has no profile photo', async () => {
+      const authorWithoutPhoto = {
+        id: 1,
+        username: 'testuser',
+        profilePhoto: null
+      };
+      userService.getUserById.mockResolvedValue(authorWithoutPhoto);
+
+      renderPostDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Post Title')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const placeholder = document.querySelector('.author-avatar-placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder).toHaveTextContent('t'); // First letter of username
+      });
+    });
+
+    test('displays author profile photo for comments when available', async () => {
+      const commentAuthorWithPhoto = {
+        id: 2,
+        username: 'commentauthor',
+        profilePhoto: 'data:image/png;base64,commentphoto'
+      };
+      
+      userService.getUserById.mockImplementation((id) => {
+        if (id === 1) {
+          return Promise.resolve({ id: 1, username: 'testuser', profilePhoto: null });
+        }
+        if (id === 2) {
+          return Promise.resolve(commentAuthorWithPhoto);
+        }
+        return Promise.resolve({ id, username: 'user', profilePhoto: null });
+      });
+
+      renderPostDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('This is a test comment')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const commentAvatars = document.querySelectorAll('.author-avatar');
+        const commentAvatar = Array.from(commentAvatars).find(avatar => 
+          avatar.getAttribute('src') === 'data:image/png;base64,commentphoto'
+        );
+        expect(commentAvatar).toBeInTheDocument();
       });
     });
   });

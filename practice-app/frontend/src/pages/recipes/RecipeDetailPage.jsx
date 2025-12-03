@@ -23,6 +23,7 @@ const RecipeDetailPage = () => {
   const { id } = useParams();  const [recipe, setRecipe] = useState(null);
   const [creatorName, setCreatorName] = useState('');
   const [creatorId, setCreatorId] = useState(null);
+  const [creatorPhoto, setCreatorPhoto] = useState(null);
   const [error, setError] = useState(null);
   const [isPageReady, setIsPageReady] = useState(false);
   const [recipeId, setRecipeId] = useState('');
@@ -301,11 +302,20 @@ const RecipeDetailPage = () => {
           const nutrition = calculateTotalNutrition(recipeData);
           setTotalNutrition(nutrition);
           
-          // Fetch creator name and ID
+          // Fetch creator name, ID, and photo
           if (recipeData.creator_id) {
             setCreatorId(recipeData.creator_id);
             const name = await getUsername(recipeData.creator_id);
             setCreatorName(name);
+            // Fetch creator profile for photo
+            try {
+              const creatorProfile = await userService.getUserById(recipeData.creator_id);
+              if (creatorProfile && creatorProfile.profilePhoto) {
+                setCreatorPhoto(creatorProfile.profilePhoto);
+              }
+            } catch (error) {
+              console.error('Error fetching creator profile:', error);
+            }
           }
           
           // First check if recipe has an uploaded image
@@ -454,24 +464,43 @@ const RecipeDetailPage = () => {
         {/* Creator information positioned at top right */}
         <div className="creator-info-top-right">
           <div className="creator-info-content">
-            <p className="creator-name">
-              {t("recipeDetailPageCreatedBy")}:{' '}
-              {creatorId ? (
-                <span
-                  className="creator-link"
-                  onClick={() => navigate(`/profile/${creatorId}`)}
-                >
-                  {creatorName || t("recipeDetailPageLoading")}
-                </span>
+            <div className="creator-avatar-name">
+              {creatorPhoto ? (
+                <img 
+                  src={creatorPhoto} 
+                  alt={creatorName} 
+                  className="creator-avatar"
+                  onClick={() => creatorId && navigate(`/profile/${creatorId}`)}
+                />
               ) : (
-                <span>{creatorName || t("recipeDetailPageLoading")}</span>
+                <div 
+                  className="creator-avatar-placeholder"
+                  onClick={() => creatorId && navigate(`/profile/${creatorId}`)}
+                >
+                  {creatorName?.[0]?.toUpperCase() || 'U'}
+                </div>
               )}
-            </p>
-            {recipe.created_at && (
-              <p className="creator-date">
-                {formatDate(recipe.created_at, userDateFormat)}
-              </p>
-            )}
+              <div className="creator-text-info">
+                <p className="creator-name">
+                  {t("recipeDetailPageCreatedBy")}:{' '}
+                  {creatorId ? (
+                    <span
+                      className="creator-link"
+                      onClick={() => navigate(`/profile/${creatorId}`)}
+                    >
+                      {creatorName || t("recipeDetailPageLoading")}
+                    </span>
+                  ) : (
+                    <span>{creatorName || t("recipeDetailPageLoading")}</span>
+                  )}
+                </p>
+                {recipe.created_at && (
+                  <p className="creator-date">
+                    {formatDate(recipe.created_at, userDateFormat)}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

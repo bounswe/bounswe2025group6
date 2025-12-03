@@ -86,7 +86,7 @@ class RegisteredUser(AbstractUser, TimestampedModel):
     )
 
      
-    profilePhoto = models.URLField(blank=True, null=True)
+    profilePhoto = models.TextField(blank=True, null=True)  # Supports data URLs (base64 encoded images) - using TextField for MySQL compatibility
     foodAllergies = models.JSONField(default=list, blank=True)
     
     notificationPreferences = models.JSONField(
