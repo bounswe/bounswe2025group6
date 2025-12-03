@@ -171,6 +171,94 @@ const RecipeDetailPage = () => {
     }
   };
 
+  // Handle share recipe
+  const handleShare = async () => {
+    if (!recipe) return;
+
+    const recipeUrl = `${window.location.origin}/recipes/${id}`;
+    
+    // Format recipe details for sharing
+    let shareText = `${recipe.name}\n\n`;
+    
+    if (recipe.ingredients && recipe.ingredients.length > 0) {
+      shareText += `${t("recipeDetailPageIngredients")}:\n`;
+      recipe.ingredients.forEach((item, index) => {
+        const ingredientName = translateIngredient(item.ingredient.name, currentLanguage);
+        shareText += `- ${formatQuantity(item.quantity)} ${item.unit} ${ingredientName}\n`;
+      });
+      shareText += '\n';
+    }
+    
+    if (recipe.steps && recipe.steps.length > 0) {
+      shareText += `${t("recipeDetailPageInstructions")}:\n`;
+      recipe.steps.forEach((step, index) => {
+        shareText += `${index + 1}. ${step}\n`;
+      });
+      shareText += '\n';
+    }
+    
+    shareText += `${t("recipeDetailPageShareLink")}: ${recipeUrl}`;
+
+    const shareData = {
+      title: recipe.name,
+      text: shareText,
+      url: recipeUrl,
+    };
+
+    try {
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        // Check if canShare is available and use it, otherwise try to share directly
+        if (navigator.canShare) {
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            return;
+          }
+        } else {
+          // canShare not available, try to share directly
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (shareError) {
+            // If share fails, fall through to clipboard
+            if (shareError.name === 'AbortError') {
+              // User cancelled, don't show error
+              return;
+            }
+          }
+        }
+      }
+      
+      // Fallback: Copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText);
+        alert(t("recipeDetailPageShareCopied"));
+      } else {
+        // Last resort: Show text in alert for user to copy manually
+        alert(`${t("recipeDetailPageShareLink")}:\n${recipeUrl}`);
+      }
+    } catch (error) {
+      // User cancelled or error occurred
+      if (error.name === 'AbortError') {
+        // User cancelled sharing, do nothing
+        return;
+      }
+      
+      // Try clipboard as fallback
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText);
+          alert(t("recipeDetailPageShareCopied"));
+        } else {
+          alert(`${t("recipeDetailPageShareLink")}:\n${recipeUrl}`);
+        }
+      } catch (clipboardError) {
+        console.error('Error sharing recipe:', error);
+        alert(t("recipeDetailPageShareError"));
+      }
+    }
+  };
+
   // Check if recipe is bookmarked
   useEffect(() => {
     const checkBookmarkStatus = async () => {
@@ -386,10 +474,34 @@ const RecipeDetailPage = () => {
           </div>
         </div>
 
-        {/* Bookmark and Report buttons positioned at bottom */}
-        {authUser && (
-          <div className="recipe-actions-bottom">
-            {/* Bookmark button - left side */}
+        {/* Bookmark, Share and Report buttons positioned at bottom */}
+        <div className="recipe-actions-bottom">
+          {/* Share button - always visible */}
+          <button
+            className="recipe-share-button"
+            onClick={handleShare}
+            title={t("recipeDetailPageShareRecipe")}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#48bb78"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+          </button>
+
+          {/* Bookmark button - only show if user is logged in */}
+          {authUser && (
             <button
               className={`recipe-bookmark-button ${isBookmarked ? 'bookmarked' : ''}`}
               onClick={handleBookmarkToggle}
@@ -409,15 +521,15 @@ const RecipeDetailPage = () => {
                 <path d="M6 2v20l6-4 6 4V2H6z" />
               </svg>
             </button>
+          )}
 
-            {/* Report button - right side, only show if not owner */}
-            {currentUser && currentUser.id !== recipe.creator_id && (
-              <div className="recipe-report-button-wrapper">
+          {/* Report button - right side, only show if user is logged in and not owner */}
+          {authUser && currentUser && currentUser.id !== recipe.creator_id && (
+            <div className="recipe-report-button-wrapper">
               <ReportButton targetType="recipe" targetId={id} />
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
         
       </div>
       

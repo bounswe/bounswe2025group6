@@ -370,6 +370,35 @@
   stroke: white;
 }
 
+.recipe-share-button {
+  background: white;
+  border: 2px solid #48bb78;
+  border-radius: 8px;
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-share-button:hover {
+  background: #48bb78;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.recipe-share-button:hover svg {
+  stroke: white;
+}
+
+.recipe-share-button svg {
+  transition: all 0.2s ease;
+}
+
 .recipe-report-button-wrapper {
   display: flex;
   align-items: center;

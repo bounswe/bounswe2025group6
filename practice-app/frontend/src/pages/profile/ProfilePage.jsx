@@ -14,6 +14,7 @@ import { formatDate } from "../../utils/dateFormatter";
 import "../../styles/ProfilePage.css";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../contexts/CurrencyContext";
+import { shareContent } from "../../utils/shareUtils";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -63,7 +64,6 @@ const ProfilePage = () => {
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
   const [showShoppingListPopup, setShowShoppingListPopup] = useState(false);
   const [selectedShoppingList, setSelectedShoppingList] = useState(null);
-  const [copied, setCopied] = useState(false);
 
   // Load user profile
   useEffect(() => {
@@ -395,55 +395,43 @@ const ProfilePage = () => {
     }
   };
 
-  const copyShoppingListToClipboard = async (list) => {
-    try {
-      const text = `
+  const handleShareShoppingList = async (list) => {
+    let text = `
 Shopping List - ${formatDate(list.date, userProfile.preferredDateFormat || 'DD/MM/YYYY')}
 
 Recipes:
-${list.recipeNames.join(', ')}
+${(list.recipeNames || []).join(', ')}
 
 Ingredients:
-${list.ingredients.map(ing => {
+${(list.ingredients || []).map(ing => {
       const translatedName = translateIngredient(ing.name, currentLanguage);
       return `- ${translatedName}: ${ing.quantity}${ing.unit || ''}`;
-    }).join('\n')}
+    }).join('\n')}`;
 
-Total Cost: ${list.currency}${list.totalCost.toFixed(2)}
-Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best.totalCost ? market : best).marketName}
-      `.trim();
-
-      // Try modern clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-          const successful = document.execCommand('copy');
-          if (successful) {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }
-        } catch (err) {
-          console.error('Fallback copy failed:', err);
-        } finally {
-          document.body.removeChild(textArea);
-        }
-      }
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
+    // Add total cost if available
+    if (list.totalCost !== null && list.totalCost !== undefined) {
+      text += `\n\nTotal Cost: ${list.currency || ''}${list.totalCost.toFixed(2)}`;
     }
+
+    // Add best market if available
+    if (list.marketCosts && list.marketCosts.length > 0) {
+      const bestMarket = list.marketCosts.reduce((best, market) => {
+        const bestCost = best.totalCost || 0;
+        const marketCost = market.totalCost || 0;
+        return marketCost < bestCost ? market : best;
+      });
+      if (bestMarket && bestMarket.marketName) {
+        text += `\nBest Market: ${bestMarket.marketName}`;
+      }
+    }
+
+    text = text.trim();
+
+    await shareContent({
+      title: t('shoppingListPageTitle'),
+      text: text,
+      url: window.location.href
+    }, t);
   };
 
   if (isLoading) {
@@ -578,9 +566,11 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                   <div key={list.id} className="shopping-list-card">
                     <div className="shopping-list-header">
                       <h3>{formatDate(list.date, userProfile.preferredDateFormat || 'DD/MM/YYYY', t)}</h3>
-                      <span className="shopping-list-cost">{list.currency}{list.totalCost.toFixed(2)}</span>
+                      <span className="shopping-list-cost">
+                        {list.currency || ''}{list.totalCost !== null && list.totalCost !== undefined ? list.totalCost.toFixed(2) : '0.00'}
+                      </span>
                     </div>
-                    <p className="shopping-list-recipes">{list.recipeNames.join(', ')}</p>
+                    <p className="shopping-list-recipes">{(list.recipeNames || []).join(', ')}</p>
                     <div className="shopping-list-actions">
                 <button
                         className="view-btn"
@@ -901,16 +891,47 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     )}
                   </div>
                   <div className="total-section">
-                    <h3>{t('profilePageTotalCost')} {selectedShoppingList.currency || 'USD'}{(selectedShoppingList.totalCost || 0).toFixed(2)}</h3>
+                    <h3>
+                      {t('profilePageTotalCost')} {selectedShoppingList.currency || 'USD'}
+                      {selectedShoppingList.totalCost !== null && selectedShoppingList.totalCost !== undefined 
+                        ? selectedShoppingList.totalCost.toFixed(2) 
+                        : '0.00'}
+                    </h3>
                     {selectedShoppingList.marketCosts && selectedShoppingList.marketCosts.length > 0 && (
-                      <p>{t('profilePageBestMarket')} {selectedShoppingList.marketCosts.reduce((best, market) => market.totalCost < best.totalCost ? market : best).marketName}</p>
+                      <p>
+                        {t('profilePageBestMarket')}{' '}
+                        {selectedShoppingList.marketCosts
+                          .filter(market => market.totalCost !== null && market.totalCost !== undefined)
+                          .reduce((best, market) => {
+                            const bestCost = best?.totalCost ?? Infinity;
+                            const marketCost = market.totalCost ?? Infinity;
+                            return marketCost < bestCost ? market : best;
+                          }, null)?.marketName || 'N/A'}
+                      </p>
                     )}
                   </div>
                   <button
-                    className="copy-btn"
-                    onClick={() => copyShoppingListToClipboard(selectedShoppingList)}
+                    className="copy-btn share-btn"
+                    onClick={() => handleShareShoppingList(selectedShoppingList)}
                   >
-                    {copied ? t('profilePageCopied') : t('profilePageCopy')}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ marginRight: '6px', verticalAlign: 'middle' }}
+                    >
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    {t('shareShoppingList')}
                   </button>
                 </div>
               )}

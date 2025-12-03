@@ -13,6 +13,7 @@ import { getCurrentUser } from '../../services/authService';
 import '../../styles/PostDetailPage.css';
 import ReportButton from '../../components/report/ReportButton';
 import { useTranslation } from "react-i18next";
+import { shareContent } from '../../utils/shareUtils';
 
 const PostDetailPage = () => {
   const { t } = useTranslation();
@@ -708,6 +709,23 @@ const PostDetailPage = () => {
     }
   };
 
+  const handleSharePost = async () => {
+    const postUrl = `${window.location.origin}/community/post/${id}`;
+    const tagsText = post.tags && post.tags.length > 0 
+      ? `\n${t('createPostPageTags')}: ${post.tags.map(tag => {
+          const tagKey = tag.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+          return t(`createPost.tags.${tagKey}`, { defaultValue: tag });
+        }).join(', ')}`
+      : '';
+    const text = `${post.title}\n\n${post.content}${tagsText}`;
+
+    await shareContent({
+      title: post.title,
+      text: text,
+      url: postUrl
+    }, t);
+  };
+
   if (isLoading) {
     return <div className="post-detail-loading">{t("editPostPageisLoading")}...</div>;
   }
@@ -800,12 +818,36 @@ const PostDetailPage = () => {
             </div>
             <div className="post-stats" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>👁️ {post.view_count} {t("Views")}</span>
-              {/* Report button positioned at right of views */}
-              {currentUser && post.author !== currentUser.id && (
-                <div style={{ marginLeft: '16px' }}>
-                  <ReportButton targetType="post" targetId={id} />
-                </div>
-              )}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  className="post-share-button"
+                  onClick={handleSharePost}
+                  title={t('sharePost')}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#48bb78"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+                {/* Report button positioned at right of views */}
+                {currentUser && post.author !== currentUser.id && (
+                  <div>
+                    <ReportButton targetType="post" targetId={id} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Card.Body>

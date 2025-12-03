@@ -71,6 +71,11 @@ jest.mock('react-i18next', () => ({
         profilePageBestMarket: 'Best Market:',
         profilePageCopied: 'Copied!',
         profilePageCopy: 'Copy to Clipboard',
+        shareShoppingList: 'Share Shopping List',
+        shareLink: 'View at',
+        shareCopied: 'Link copied to clipboard!',
+        shareError: 'Failed to share. Please try again.',
+        shoppingListPageTitle: 'Shopping List',
       };
       return translations[key] || key;
     },
@@ -655,6 +660,140 @@ describe('ProfilePage', () => {
 
     test.skip('navigates to user profile when user in popup is clicked', async () => {
       // This test is skipped due to timeout issues
+    });
+  });
+
+  describe('Shopping List Share Functionality', () => {
+    beforeEach(() => {
+      // Mock Web Share API
+      global.navigator.share = jest.fn();
+      global.navigator.canShare = jest.fn(() => true);
+    });
+
+    test('shares shopping list from history using Web Share API', async () => {
+      global.navigator.share.mockResolvedValue();
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'shoppingListHistory') {
+          return JSON.stringify(mockShoppingListHistory);
+        }
+        return null;
+      });
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Shopping Lists')).toBeInTheDocument();
+      });
+
+      const shoppingTab = screen.getByText('Shopping Lists');
+      fireEvent.click(shoppingTab);
+
+      await waitFor(() => {
+        expect(screen.getByText('View')).toBeInTheDocument();
+      });
+
+      const viewButton = screen.getAllByText('View')[0];
+      fireEvent.click(viewButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Shopping List',
+            text: expect.stringContaining('Recipe 1'),
+            url: expect.stringContaining(window.location.href)
+          })
+        );
+      });
+    });
+
+    test('falls back to clipboard when Web Share API is not available', async () => {
+      delete global.navigator.share;
+      // Use the existing mockClipboard from beforeEach setup
+      // It's already configured in the test setup
+
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'shoppingListHistory') {
+          return JSON.stringify(mockShoppingListHistory);
+        }
+        return null;
+      });
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Shopping Lists')).toBeInTheDocument();
+      });
+
+      const shoppingTab = screen.getByText('Shopping Lists');
+      fireEvent.click(shoppingTab);
+
+      await waitFor(() => {
+        expect(screen.getByText('View')).toBeInTheDocument();
+      });
+
+      const viewButton = screen.getAllByText('View')[0];
+      fireEvent.click(viewButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(mockClipboard.writeText).toHaveBeenCalled();
+      });
+    });
+
+    test('handles null totalCost in shopping list share', async () => {
+      global.navigator.share.mockResolvedValue();
+      const listWithNullCost = {
+        ...mockShoppingListHistory[0],
+        totalCost: null,
+        marketCosts: []
+      };
+
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'shoppingListHistory') {
+          return JSON.stringify([listWithNullCost]);
+        }
+        return null;
+      });
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Shopping Lists')).toBeInTheDocument();
+      });
+
+      const shoppingTab = screen.getByText('Shopping Lists');
+      fireEvent.click(shoppingTab);
+
+      await waitFor(() => {
+        expect(screen.getByText('View')).toBeInTheDocument();
+      });
+
+      const viewButton = screen.getAllByText('View')[0];
+      fireEvent.click(viewButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalled();
+      });
     });
   });
 

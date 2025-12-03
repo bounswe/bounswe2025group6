@@ -273,6 +273,39 @@
   gap: 0.5rem;
 }
 
+/* Post Share Button */
+.post-share-button {
+  background: white;
+  border: 2px solid #48bb78;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(72, 187, 120, 0.1);
+}
+
+.post-share-button:hover {
+  background: #48bb78;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.post-share-button:hover svg {
+  stroke: white;
+}
+
+.post-share-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(72, 187, 120, 0.2);
+}
+
+.post-share-button svg {
+  transition: all 0.3s ease;
+}
+
 /* Comments Section */
 .comments-section {
   margin-top: 2rem;

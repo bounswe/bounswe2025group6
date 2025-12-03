@@ -40,6 +40,13 @@ jest.mock('react-i18next', () => ({
         postDetailPageDisabledComments: 'Comments are disabled for this post.',
         previous: 'Previous',
         next: 'Next',
+        sharePost: 'Share Post',
+        createPostPageTags: 'Tags',
+        'createPost.tags.budget': 'Budget',
+        'createPost.tags.tips': 'Tips',
+        shareLink: 'View at',
+        shareCopied: 'Link copied to clipboard!',
+        shareError: 'Failed to share. Please try again.',
       };
       return translations[key] || key;
     },
@@ -453,6 +460,125 @@ describe('PostDetailPage', () => {
 
       expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this post?');
       expect(forumService.deletePost).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Share Functionality', () => {
+    beforeEach(() => {
+      // Mock Web Share API
+      global.navigator.share = jest.fn();
+      global.navigator.canShare = jest.fn(() => true);
+    });
+
+    test('renders share button for post', async () => {
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+    });
+
+    test('shares post using Web Share API when available', async () => {
+      global.navigator.share.mockResolvedValue();
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByTitle('Share Post');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Test Post Title',
+            text: expect.stringContaining('This is test post content'),
+            url: expect.stringContaining('/community/post/1')
+          })
+        );
+      });
+    });
+
+    test('falls back to clipboard when Web Share API is not available', async () => {
+      delete global.navigator.share;
+      const mockClipboard = {
+        writeText: jest.fn(() => Promise.resolve()),
+      };
+      Object.defineProperty(navigator, 'clipboard', { 
+        value: mockClipboard,
+        writable: true,
+        configurable: true
+      });
+
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByTitle('Share Post');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(mockClipboard.writeText).toHaveBeenCalled();
+      });
+    });
+
+    test('includes post tags in share text', async () => {
+      global.navigator.share.mockResolvedValue();
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByTitle('Share Post');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalledWith(
+          expect.objectContaining({
+            text: expect.stringContaining('Tags: Budget, Tips')
+          })
+        );
+      });
     });
   });
 
