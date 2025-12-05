@@ -18,6 +18,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import RegisteredUser, RecipeRating, HealthRating
 from recipes.models import Recipe  # Import from recipes app
 from rest_framework import serializers
@@ -31,6 +32,30 @@ from .serializers import (UserRegistrationSerializer, LoginSerializer, RequestPa
                            VerifyPasswordResetCodeSerializer, ResetPasswordSerializer,PasswordResetToken, RegisteredUserSerializer, RecipeRatingSerializer)
 
 User = get_user_model()
+
+# Lightweight serializers only for Swagger docs to avoid nested param errors
+class UserProfileCreateSwaggerSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    usertype = serializers.ChoiceField(choices=RegisteredUser.USER_TYPES, required=False)
+    profilePhoto = serializers.ImageField(required=False, allow_null=True)
+    language = serializers.ChoiceField(choices=RegisteredUser.LANGUAGES, required=False)
+    preferredDateFormat = serializers.ChoiceField(choices=RegisteredUser.DATE_FORMATS, required=False)
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    nationality = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    preferredCurrency = serializers.ChoiceField(choices=RegisteredUser.CURRENCY_CHOICES, required=False)
+    accessibilityNeeds = serializers.ChoiceField(choices=RegisteredUser.ACCESIBILITY_CHOICES, required=False)
+    foodAllergies = serializers.ListField(child=serializers.CharField(), required=False)
+    notificationPreferences = serializers.JSONField(required=False)
+    profileVisibility = serializers.ChoiceField(choices=RegisteredUser.PROFILE_VISIBILITY_CHOICES, required=False)
+    typeOfCook = serializers.ChoiceField(choices=RegisteredUser.COOK_TYPE_CHOICES, required=False, allow_null=True)
+    certification_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+
+class UserProfileUpdateSwaggerSerializer(UserProfileCreateSwaggerSerializer):
+    username = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    password = serializers.CharField(required=False)
 
 def index(request):
     return HttpResponse("Home page! Work in progress...")
@@ -143,6 +168,7 @@ send_mail(
 @swagger_auto_schema(
     method='post',
     tags = ["Password Reset via Email Link Workflow"],
+    consumes=['application/json'],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -181,6 +207,7 @@ def forgot_password(request):
 @swagger_auto_schema(
     method='post',
     tags = ["Password Reset via Email Link Workflow"],
+    consumes=['application/json'],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -442,9 +469,16 @@ def get_user_id_by_email(request):
         )
 
 class RegisteredUserViewSet(viewsets.ModelViewSet):
+    parser_classes = [MultiPartParser, FormParser]
     queryset = RegisteredUser.objects.all()
     serializer_class = RegisteredUserSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
+    
+    def get_serializer_class(self):
+        # Use registration serializer for create to include password + image upload
+        if self.action == 'create':
+            return UserRegistrationSerializer
+        return RegisteredUserSerializer
     
     @swagger_auto_schema(tags=["User Profile"])
     def list(self, request, *args, **kwargs):
@@ -454,15 +488,24 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=["User Profile"])
+    @swagger_auto_schema(
+        tags=["User Profile"],
+        request_body=UserProfileCreateSwaggerSerializer()
+    )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=["User Profile"])
+    @swagger_auto_schema(
+        tags=["User Profile"],
+        request_body=UserProfileUpdateSwaggerSerializer()
+    )
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=["User Profile"])
+    @swagger_auto_schema(
+        tags=["User Profile"],
+        request_body=UserProfileUpdateSwaggerSerializer()
+    )
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -490,6 +533,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
                 )
             }
         ),
+        consumes=['application/json'],
         responses={
             200: openapi.Response(
                 description="Successfully followed/unfollowed",
@@ -672,6 +716,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
                 description="Unauthorized - user not authenticated"
             )
         },
+        consumes=['application/json'],
         security=[{"Bearer": []}]
     )
     @action(detail=False, methods=['post'])
@@ -757,6 +802,7 @@ class RegisteredUserViewSet(viewsets.ModelViewSet):
                 description="Unauthorized - user not authenticated"
             )
         },
+        consumes=['application/json'],
         security=[{"Bearer": []}]
     )
     @action(detail=False, methods=['post'])
