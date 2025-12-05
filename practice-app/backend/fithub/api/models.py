@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.utils.timezone import now
 import uuid
 from django.core.validators import MinValueValidator, MaxValueValidator
+from cloudinary.models import CloudinaryField
 from jsonschema import ValidationError
 from recipes.models import Recipe  # Import from the recipes app
 from core.models import TimestampedModel  # New import path
@@ -85,8 +86,8 @@ class RegisteredUser(AbstractUser, TimestampedModel):
         default=USER,
     )
 
-     
-    profilePhoto = models.URLField(blank=True, null=True)
+    # profile photo stored on Cloudinary
+    profilePhoto = CloudinaryField('profile_photo', blank=True, null=True)
     foodAllergies = models.JSONField(default=list, blank=True)
     
     notificationPreferences = models.JSONField(
