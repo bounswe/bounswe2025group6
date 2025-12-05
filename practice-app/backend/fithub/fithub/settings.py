@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'ingredients', # Ingredients app
     'recipes',  # Recipes app
     'forum',    # Forum app
+    'qa',       # Q/A app
     'wikidata',    # Wikidata app
     'reports',   # Reports app
     'analytics',

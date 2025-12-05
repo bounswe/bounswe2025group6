@@ -51,6 +51,7 @@ urlpatterns = [
     path('ingredients/', include('ingredients.urls')),
     path('recipes/', include('recipes.urls')),
     path('forum/', include('forum.urls')),
+    path('qa/', include('qa.urls')),
     path('reports/', include('reports.urls')),
     path('analytics/', include('analytics.urls')),
 
