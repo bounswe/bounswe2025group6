@@ -892,7 +892,8 @@ describe('OtherUserProfilePage', () => {
       await waitFor(() => {
         const placeholder = document.querySelector('.other-profile-avatar-placeholder');
         expect(placeholder).toBeInTheDocument();
-        expect(placeholder).toHaveTextContent('t'); // First letter of username
+        // Username is "targetuser", first letter uppercase is "T"
+        expect(placeholder).toHaveTextContent('T');
       });
     });
   });

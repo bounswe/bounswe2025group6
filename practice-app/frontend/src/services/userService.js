@@ -150,10 +150,15 @@ const userService = {
   },
 
   // Delete profile photo (set to null)
+  // Backend now supports both JSON and FormData, so we can use JSON for deletion
   deleteProfilePhoto: async (userId) => {
     try {
       const response = await api.patch(`/api/users/${userId}/`, {
         profilePhoto: null
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       return response.data;
     } catch (error) {
