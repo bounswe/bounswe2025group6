@@ -122,41 +122,29 @@ const userService = {
     }
   },
 
-  // Upload profile photo (convert to base64 data URL and update)
-  // Note: Backend expects URLField, but we send data URL which may not be accepted
-  // If backend rejects it, we need a proper image upload endpoint
+  // Upload profile photo using FormData for Cloudinary upload
   uploadProfilePhoto: async (userId, imageFile) => {
     try {
-      // Convert file to base64 data URL
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          try {
-            // reader.result is in data URL format (data:image/jpeg;base64,...)
-            const dataUrl = reader.result;
-            // Try to update user profile with data URL
-            // Backend URLField may not accept data URLs, but we try anyway
-            const response = await api.patch(`/api/users/${userId}/`, {
-              profilePhoto: dataUrl
-            });
-            resolve(response.data);
-          } catch (error) {
-            console.error("Error in uploadProfilePhoto:", error);
-            // Provide better error message
-            if (error.response?.status === 400) {
-              const errorMsg = error.response?.data?.profilePhoto?.[0] || 
-                              error.response?.data?.error ||
-                              'Backend does not accept this image format. Please contact support.';
-              error.message = errorMsg;
-            }
-            reject(error);
-          }
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(imageFile);
+      // Create FormData to send file as multipart/form-data
+      const formData = new FormData();
+      formData.append('profilePhoto', imageFile);
+      
+      // Use patch with FormData (axios will set Content-Type to multipart/form-data)
+      const response = await api.patch(`/api/users/${userId}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+      return response.data;
     } catch (error) {
       console.error("Error uploading profile photo:", error);
+      // Provide better error message
+      if (error.response?.status === 400) {
+        const errorMsg = error.response?.data?.profilePhoto?.[0] || 
+                        error.response?.data?.error ||
+                        'Failed to upload profile photo. Please try again.';
+        error.message = errorMsg;
+      }
       throw error;
     }
   },

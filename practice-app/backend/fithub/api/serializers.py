@@ -18,12 +18,16 @@ class DietitianSerializer(serializers.ModelSerializer):
         fields = ['certification_url']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    profilePhoto = serializers.ImageField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True)
     dietitian = DietitianSerializer(write_only=True, required=False)
 
     class Meta:
         model = RegisteredUser
-        fields = ['username', 'email', 'password', 'usertype', 'dietitian']
+        fields = ['username', 'email', 'password', 'usertype', 'dietitian', 'profilePhoto']
+        extra_kwargs = {
+            'profilePhoto': {'required': False, 'allow_null': True},
+        }
 
     def validate(self, attrs):
         usertype = attrs.get('usertype')
@@ -165,6 +169,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class RegisteredUserSerializer(serializers.ModelSerializer):
+    profilePhoto = serializers.ImageField(required=False, allow_null=True)
     class Meta:
         model = RegisteredUser
         fields = [
@@ -177,24 +182,13 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'password': {'write_only': True},  # Hide password in responses
+            'username': {'required': False},
+            'email': {'required': False},
         }
 
     def validate_avgRecipeRating(self, value):
         if value < 0.0 or value > 5.0:
             raise serializers.ValidationError("Rating must be between 0.0 and 5.0.")
-        return value
-
-    def validate_profilePhoto(self, value):
-        # Allow data URLs (data:image/...) for base64 encoded images
-        # Also allow regular URLs or null
-        if value is None or value == '':
-            return value
-        if isinstance(value, str):
-            # Accept data URLs (base64 encoded images)
-            if value.startswith('data:image/'):
-                return value
-            # Also accept regular URLs
-            return value
         return value
 
 #UNDER CONSTRUCTION
