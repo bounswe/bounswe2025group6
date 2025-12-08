@@ -18,12 +18,16 @@ class DietitianSerializer(serializers.ModelSerializer):
         fields = ['certification_url']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    profilePhoto = serializers.ImageField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True)
     dietitian = DietitianSerializer(write_only=True, required=False)
 
     class Meta:
         model = RegisteredUser
-        fields = ['username', 'email', 'password', 'usertype', 'dietitian']
+        fields = ['username', 'email', 'password', 'usertype', 'dietitian', 'profilePhoto']
+        extra_kwargs = {
+            'profilePhoto': {'required': False, 'allow_null': True},
+        }
 
     def validate(self, attrs):
         usertype = attrs.get('usertype')
@@ -165,6 +169,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class RegisteredUserSerializer(serializers.ModelSerializer):
+    profilePhoto = serializers.ImageField(required=False, allow_null=True)
     class Meta:
         model = RegisteredUser
         fields = [
@@ -177,6 +182,8 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'password': {'write_only': True},  # Hide password in responses
+            'username': {'required': False},
+            'email': {'required': False},
         }
 
     def validate_avgRecipeRating(self, value):

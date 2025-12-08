@@ -125,6 +125,7 @@ describe('CommunityPage', () => {
     userService.getUserById.mockResolvedValue({
       id: 1,
       username: 'testuser',
+      profilePhoto: null,
     });
     userService.getUserRecipeCount.mockResolvedValue({
       badge: 'Novice Cook',
@@ -505,6 +506,50 @@ describe('CommunityPage', () => {
         expect(screen.getByText('No posts found')).toBeInTheDocument();
         expect(screen.getByText('Try adjusting your filters')).toBeInTheDocument();
         expect(screen.getByText('Clear Filters')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Author Profile Photo', () => {
+    test('displays author profile photo when available', async () => {
+      const authorWithPhoto = {
+        id: 1,
+        username: 'testuser',
+        profilePhoto: 'data:image/png;base64,test123'
+      };
+      userService.getUserById.mockResolvedValue(authorWithPhoto);
+
+      renderCommunityPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Post 1')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const authorAvatar = document.querySelector('.author-avatar');
+        expect(authorAvatar).toBeInTheDocument();
+        expect(authorAvatar).toHaveAttribute('src', 'data:image/png;base64,test123');
+      });
+    });
+
+    test('displays placeholder when author has no profile photo', async () => {
+      const authorWithoutPhoto = {
+        id: 1,
+        username: 'testuser',
+        profilePhoto: null
+      };
+      userService.getUserById.mockResolvedValue(authorWithoutPhoto);
+
+      renderCommunityPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Post 1')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const placeholder = document.querySelector('.author-avatar-placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder).toHaveTextContent('t'); // First letter of username
       });
     });
   });

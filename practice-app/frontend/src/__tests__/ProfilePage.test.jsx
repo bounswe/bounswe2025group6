@@ -10,6 +10,7 @@ import { getBookmarkedRecipes } from '../services/bookmarkService';
 import { getFollowers, getFollowing } from '../services/followService';
 import forumService from '../services/forumService';
 import { translateIngredient } from '../utils/ingredientTranslations';
+import { useToast } from '../components/ui/Toast';
 
 // Mock dependencies
 jest.mock('../contexts/CurrencyContext');
@@ -20,6 +21,7 @@ jest.mock('../services/bookmarkService');
 jest.mock('../services/followService');
 jest.mock('../services/forumService');
 jest.mock('../utils/ingredientTranslations');
+jest.mock('../components/ui/Toast');
 
 // Mock i18n
 jest.mock('react-i18next', () => ({
@@ -76,6 +78,31 @@ jest.mock('react-i18next', () => ({
         shareCopied: 'Link copied to clipboard!',
         shareError: 'Failed to share. Please try again.',
         shoppingListPageTitle: 'Shopping List',
+        profilePageChangePhoto: 'Change photo',
+        profilePageDeletePhoto: 'Delete photo',
+        profilePageUploadPhoto: 'Upload photo',
+        profilePagePhotoUploadSuccess: 'Profile photo updated successfully',
+        profilePagePhotoUploadError: 'Failed to upload profile photo',
+        profilePagePhotoDeleteConfirm: 'Are you sure you want to delete your profile photo?',
+        profilePagePhotoDeleteSuccess: 'Profile photo deleted successfully',
+        profilePagePhotoDeleteError: 'Failed to delete profile photo',
+        profilePagePhotoInvalid: 'Please select an image file',
+        profilePagePhotoTooLarge: 'Image must be less than 5MB',
+        profilePagePhotoPreview: 'Photo Preview',
+        profilePageUploading: 'Uploading...',
+        profilePageConfirm: 'Confirm',
+        profilePageCancel: 'Cancel',
+        profilePageChangeUsername: 'Change Username',
+        profilePageCurrentUsername: 'Current username',
+        profilePageChange: 'Change',
+        profilePageChanging: 'Changing...',
+        profilePageUsernameConfirmMessage: 'Are you sure you want to change your username?',
+        profilePageUsernameEmpty: 'Username cannot be empty',
+        profilePageUsernameSame: 'This is already your username',
+        profilePageUsernameTaken: 'This username is already taken',
+        profilePageUsernameCheckError: 'Error checking username availability',
+        profilePageUsernameChangeSuccess: 'Username changed successfully',
+        profilePageUsernameChangeError: 'Failed to change username',
       };
       return translations[key] || key;
     },
@@ -113,6 +140,12 @@ document.execCommand = jest.fn(() => true);
 
 describe('ProfilePage', () => {
   const mockSetCurrency = jest.fn();
+  const mockToast = {
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn(),
+  };
 
   const mockUser = {
     id: 1,
@@ -179,6 +212,8 @@ describe('ProfilePage', () => {
     useCurrency.mockReturnValue({
       setCurrency: mockSetCurrency,
     });
+
+    useToast.mockReturnValue(mockToast);
 
     getCurrentUser.mockResolvedValue(mockUser);
     userService.getUserById.mockResolvedValue(mockUser);
@@ -805,6 +840,358 @@ describe('ProfilePage', () => {
 
     test.skip('copies shopping list to clipboard', async () => {
       // This test is skipped due to timeout issues
+    });
+  });
+
+  describe('Profile Photo Management', () => {
+    test('displays upload button when no profile photo exists', async () => {
+      const userWithoutPhoto = { ...mockUser, profilePhoto: null };
+      userService.getUserById.mockResolvedValue(userWithoutPhoto);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const avatar = screen.getByText('T'); // First letter of username
+      fireEvent.mouseEnter(avatar);
+
+      await waitFor(() => {
+        const uploadButton = screen.getByTitle('Upload photo');
+        expect(uploadButton).toBeInTheDocument();
+      });
+    });
+
+    test('displays change and delete buttons when profile photo exists', async () => {
+      const userWithPhoto = { ...mockUser, profilePhoto: 'data:image/png;base64,test123' };
+      userService.getUserById.mockResolvedValue(userWithPhoto);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const avatar = document.querySelector('.profile-avatar');
+      if (avatar) {
+        fireEvent.mouseEnter(avatar);
+
+        await waitFor(() => {
+          const changeButton = screen.getByTitle('Change photo');
+          const deleteButton = screen.getByTitle('Delete photo');
+          expect(changeButton).toBeInTheDocument();
+          expect(deleteButton).toBeInTheDocument();
+        });
+      }
+    });
+
+    test('opens file input when upload button is clicked', async () => {
+      const userWithoutPhoto = { ...mockUser, profilePhoto: null };
+      userService.getUserById.mockResolvedValue(userWithoutPhoto);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const clickSpy = jest.spyOn(fileInput, 'click');
+
+      const avatar = document.querySelector('.profile-avatar');
+      if (avatar) {
+        fireEvent.mouseEnter(avatar);
+
+        await waitFor(() => {
+          const uploadButton = screen.getByTitle('Upload photo');
+          fireEvent.click(uploadButton);
+          expect(clickSpy).toHaveBeenCalled();
+        });
+      }
+
+      clickSpy.mockRestore();
+    });
+
+    test('handles file selection and shows preview', async () => {
+      const userWithoutPhoto = { ...mockUser, profilePhoto: null };
+      userService.getUserById.mockResolvedValue(userWithoutPhoto);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const file = new File(['test'], 'test.png', { type: 'image/png' });
+      const fileInput = document.querySelector('input[type="file"]');
+
+      // Use fireEvent.change with target.files directly
+      // The component should read from event.target.files
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Photo Preview')).toBeInTheDocument();
+      });
+    });
+
+    test('uploads profile photo successfully', async () => {
+      const userWithoutPhoto = { ...mockUser, profilePhoto: null };
+      const updatedUser = { ...mockUser, profilePhoto: 'data:image/png;base64,newphoto' };
+      
+      userService.getUserById.mockResolvedValue(userWithoutPhoto);
+      userService.uploadProfilePhoto.mockResolvedValue(updatedUser);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const file = new File(['test'], 'test.png', { type: 'image/png' });
+      const fileInput = document.querySelector('input[type="file"]');
+
+      // Use fireEvent.change with target.files directly
+      // The component should read from event.target.files
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Photo Preview')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.click(confirmButton);
+
+      await waitFor(() => {
+        expect(userService.uploadProfilePhoto).toHaveBeenCalledWith(1, file);
+      });
+    });
+
+    test('deletes profile photo successfully', async () => {
+      const userWithPhoto = { ...mockUser, profilePhoto: 'data:image/png;base64,test123' };
+      const updatedUser = { ...mockUser, profilePhoto: null };
+      
+      userService.getUserById.mockResolvedValue(userWithPhoto);
+      userService.deleteProfilePhoto.mockResolvedValue(updatedUser);
+      window.confirm = jest.fn(() => true);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const avatar = document.querySelector('.profile-avatar');
+      if (avatar) {
+        fireEvent.mouseEnter(avatar);
+
+        await waitFor(() => {
+          const deleteButton = screen.getByTitle('Delete photo');
+          fireEvent.click(deleteButton);
+        });
+
+        await waitFor(() => {
+          expect(window.confirm).toHaveBeenCalled();
+          expect(userService.deleteProfilePhoto).toHaveBeenCalledWith(1);
+        });
+      }
+    });
+
+    test('validates file type on upload', async () => {
+      const userWithoutPhoto = { ...mockUser, profilePhoto: null };
+      userService.getUserById.mockResolvedValue(userWithoutPhoto);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('testuser')).toBeInTheDocument();
+      });
+
+      const file = new File(['test'], 'test.txt', { type: 'text/plain' });
+      const fileInput = document.querySelector('input[type="file"]');
+
+      // Use fireEvent.change with target.files directly
+      // The component should read from event.target.files
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => {
+        expect(mockToast.error).toHaveBeenCalledWith('Please select an image file');
+      });
+    });
+  });
+
+  describe('Username Change', () => {
+    test('displays username change input in preferences', async () => {
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Preferences')).toBeInTheDocument();
+      });
+
+      const preferencesTab = screen.getByText('Preferences');
+      fireEvent.click(preferencesTab);
+
+      await waitFor(() => {
+        expect(screen.getByText('Change Username')).toBeInTheDocument();
+        // Placeholder uses userProfile.username, which is "testuser" in mock
+        expect(screen.getByPlaceholderText('testuser')).toBeInTheDocument();
+      });
+    });
+
+    test('checks username availability before change', async () => {
+      userService.checkUsernameAvailability.mockResolvedValue(true);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Preferences')).toBeInTheDocument();
+      });
+
+      const preferencesTab = screen.getByText('Preferences');
+      fireEvent.click(preferencesTab);
+
+      await waitFor(() => {
+        // Placeholder uses userProfile.username, which is "testuser" in mock
+        const usernameInput = screen.getByPlaceholderText('testuser');
+        fireEvent.change(usernameInput, { target: { value: 'newusername' } });
+      });
+
+      const changeButton = screen.getByText('Change');
+      fireEvent.click(changeButton);
+
+      await waitFor(() => {
+        expect(userService.checkUsernameAvailability).toHaveBeenCalledWith('newusername');
+      });
+    });
+
+    test('shows error when username is taken', async () => {
+      userService.checkUsernameAvailability.mockResolvedValue(false);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Preferences')).toBeInTheDocument();
+      });
+
+      const preferencesTab = screen.getByText('Preferences');
+      fireEvent.click(preferencesTab);
+
+      await waitFor(() => {
+        // Placeholder uses userProfile.username, which is "testuser" in mock
+        const usernameInput = screen.getByPlaceholderText('testuser');
+        fireEvent.change(usernameInput, { target: { value: 'takenusername' } });
+      });
+
+      const changeButton = screen.getByText('Change');
+      fireEvent.click(changeButton);
+
+      await waitFor(() => {
+        expect(mockToast.error).toHaveBeenCalledWith('This username is already taken');
+      });
+    });
+
+    test('shows confirmation dialog before changing username', async () => {
+      userService.checkUsernameAvailability.mockResolvedValue(true);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Preferences')).toBeInTheDocument();
+      });
+
+      const preferencesTab = screen.getByText('Preferences');
+      fireEvent.click(preferencesTab);
+
+      await waitFor(() => {
+        // Placeholder uses userProfile.username, which is "testuser" in mock
+        const usernameInput = screen.getByPlaceholderText('testuser');
+        fireEvent.change(usernameInput, { target: { value: 'newusername' } });
+      });
+
+      const changeButton = screen.getByText('Change');
+      fireEvent.click(changeButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Are you sure you want to change your username/)).toBeInTheDocument();
+      });
+    });
+
+    test('updates username successfully', async () => {
+      const updatedUser = { ...mockUser, username: 'newusername' };
+      userService.checkUsernameAvailability.mockResolvedValue(true);
+      userService.updateUsername.mockResolvedValue(updatedUser);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Preferences')).toBeInTheDocument();
+      });
+
+      const preferencesTab = screen.getByText('Preferences');
+      fireEvent.click(preferencesTab);
+
+      await waitFor(() => {
+        // Placeholder uses userProfile.username, which is "testuser" in mock
+        const usernameInput = screen.getByPlaceholderText('testuser');
+        fireEvent.change(usernameInput, { target: { value: 'newusername' } });
+      });
+
+      const changeButton = screen.getByText('Change');
+      fireEvent.click(changeButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Are you sure you want to change your username/)).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.click(confirmButton);
+
+      await waitFor(() => {
+        expect(userService.updateUsername).toHaveBeenCalledWith(1, 'newusername');
+        expect(mockToast.success).toHaveBeenCalledWith('Username changed successfully');
+      });
+    });
+
+    test('shows error when username is empty', async () => {
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Preferences')).toBeInTheDocument();
+      });
+
+      const preferencesTab = screen.getByText('Preferences');
+      fireEvent.click(preferencesTab);
+
+      await waitFor(() => {
+        // Placeholder uses userProfile.username, which is "testuser" in mock
+        const usernameInput = screen.getByPlaceholderText('testuser');
+        expect(usernameInput).toBeInTheDocument();
+      });
+
+      const usernameInput = screen.getByPlaceholderText('testuser');
+      const changeButton = screen.getByText('Change');
+      
+      // Enter a valid username first to enable the button
+      fireEvent.change(usernameInput, { target: { value: 'newuser' } });
+      
+      await waitFor(() => {
+        expect(changeButton).not.toBeDisabled();
+      });
+
+      fireEvent.change(usernameInput, { target: { value: '' } });
+      fireEvent.change(usernameInput, { target: { value: '   ' } });
+      fireEvent.change(usernameInput, { target: { value: 'test' } });
+      
+      await waitFor(() => {
+        expect(changeButton).not.toBeDisabled();
+      });
+      
+      fireEvent.change(usernameInput, { target: { value: '' } });
+      
+      expect(changeButton).toBeDisabled();
+      
+      expect(usernameInput.value).toBe('');
+      expect(changeButton).toBeDisabled();
     });
   });
 

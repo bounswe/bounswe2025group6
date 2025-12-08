@@ -5,7 +5,7 @@ import { useToast } from '../ui/Toast';
 import Button from '../ui/Button';
 import '../../styles/ImageUploader.css';
 
-const ImageUploader = ({ currentImage, onImageUpload }) => {
+const ImageUploader = ({ currentImage, onImageUpload, showToast = true }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -16,12 +16,12 @@ const ImageUploader = ({ currentImage, onImageUpload }) => {
     if (!file) return;
 
     if (!file.type.match('image.*')) {
-      toast.error('Please select an image file');
+      if (toast) toast.error('Please select an image file');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      if (toast) toast.error('Image must be less than 5MB');
       return;
     }
 
@@ -42,10 +42,10 @@ const ImageUploader = ({ currentImage, onImageUpload }) => {
       await onImageUpload(selectedFile, preview);
       setSelectedFile(null);
       setPreview(null);
-      toast.success('Profile picture updated successfully');
+      if (toast) toast.success('Profile picture updated successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload image');
+      if (toast) toast.error('Failed to upload image');
     } finally {
       setIsUploading(false);
     }

@@ -753,17 +753,40 @@ const PostDetailPage = () => {
           <div className="post-header">
             <div className="post-meta">
               <div className="post-author">
-                {t("postDetailPagePostedBy")}{" "}
-                <span 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/profile/${post.author}`);
-                  }}
-                  className="author-link"
-                >
-                  {getUserName(post.author)}
-                  <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
-                </span>
+                {userMap[post.author]?.profilePhoto ? (
+                  <img 
+                    src={userMap[post.author].profilePhoto} 
+                    alt={getUserName(post.author)}
+                    className="author-avatar"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author}`);
+                    }}
+                  />
+                ) : (
+                  <div 
+                    className="author-avatar-placeholder"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author}`);
+                    }}
+                  >
+                    {getUserName(post.author)?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+                <div className="author-info">
+                  {t("postDetailPagePostedBy")}{" "}
+                  <span 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author}`);
+                    }}
+                    className="author-link"
+                  >
+                    {getUserName(post.author)}
+                    <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
+                  </span>
+                </div>
               </div>
               <div className="post-timestamp">{formatDateDisplay(post.created_at)}</div>
             </div>
@@ -898,17 +921,40 @@ const PostDetailPage = () => {
                       <div className="comment-header">
                         <div className="comment-meta">
                           <div className="comment-author">
-                            {t("postDetailPageCommentBy")}{" "}
-                            <span 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/profile/${comment.author}`);
-                              }}
-                              className="author-link"
-                            >
-                              {getUserName(comment.author)}
-                              <Badge badge={userMap[comment.author]?.badge} size="small" usertype={userMap[comment.author]?.usertype} />
-                            </span>
+                            {userMap[comment.author]?.profilePhoto ? (
+                              <img 
+                                src={userMap[comment.author].profilePhoto} 
+                                alt={getUserName(comment.author)}
+                                className="author-avatar"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${comment.author}`);
+                                }}
+                              />
+                            ) : (
+                              <div 
+                                className="author-avatar-placeholder"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${comment.author}`);
+                                }}
+                              >
+                                {getUserName(comment.author)?.[0]?.toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            <div className="author-info">
+                              {t("postDetailPageCommentBy")}{" "}
+                              <span 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${comment.author}`);
+                                }}
+                                className="author-link"
+                              >
+                                {getUserName(comment.author)}
+                                <Badge badge={userMap[comment.author]?.badge} size="small" usertype={userMap[comment.author]?.usertype} />
+                              </span>
+                            </div>
                           </div>
                           <div className="comment-time">
                             {formatDateDisplay(comment.created_at)}

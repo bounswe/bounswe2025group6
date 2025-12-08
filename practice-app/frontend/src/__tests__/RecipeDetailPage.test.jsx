@@ -111,7 +111,11 @@ describe('RecipeDetailPage', () => {
     useCurrency.mockReturnValue({ currency: 'USD' });
     getRecipeById.mockResolvedValue(mockRecipe);
     getWikidataImage.mockResolvedValue(null);
-    userService.getUserById.mockResolvedValue({ preferredDateFormat: 'DD/MM/YYYY' });
+    userService.getUserById.mockResolvedValue({ 
+      preferredDateFormat: 'DD/MM/YYYY',
+      username: 'Test User',
+      profilePhoto: null
+    });
     userService.getUsername.mockResolvedValue('Test User');
     getBookmarkedRecipes.mockResolvedValue([]);
     getCurrentUser.mockResolvedValue(mockCurrentUser);
@@ -293,6 +297,73 @@ describe('RecipeDetailPage', () => {
       await waitFor(() => {
         // Should fallback to clipboard
         expect(mockClipboard.writeText).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Creator Profile Photo', () => {
+    test('displays creator profile photo when available', async () => {
+      const creatorWithPhoto = {
+        id: 1,
+        username: 'Test Creator',
+        profilePhoto: 'data:image/png;base64,test123'
+      };
+      userService.getUserById.mockResolvedValue(creatorWithPhoto);
+
+      renderRecipeDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Recipe')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const creatorAvatar = document.querySelector('.creator-avatar');
+        expect(creatorAvatar).toBeInTheDocument();
+        expect(creatorAvatar).toHaveAttribute('src', 'data:image/png;base64,test123');
+      });
+    });
+
+    test('displays placeholder when creator has no profile photo', async () => {
+      const creatorWithoutPhoto = {
+        id: 1,
+        username: 'Test Creator',
+        profilePhoto: null
+      };
+      userService.getUserById.mockResolvedValue(creatorWithoutPhoto);
+
+      renderRecipeDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Recipe')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const placeholder = document.querySelector('.creator-avatar-placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder).toHaveTextContent('T'); // First letter of username
+      });
+    });
+
+    test('navigates to creator profile when avatar is clicked', async () => {
+      const creatorWithPhoto = {
+        id: 1,
+        username: 'Test Creator',
+        profilePhoto: 'data:image/png;base64,test123'
+      };
+      userService.getUserById.mockResolvedValue(creatorWithPhoto);
+
+      renderRecipeDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Recipe')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const creatorAvatar = document.querySelector('.creator-avatar');
+        if (creatorAvatar) {
+          fireEvent.click(creatorAvatar);
+          expect(mockNavigate).toHaveBeenCalledWith('/profile/1');
+        }
       });
     });
   });

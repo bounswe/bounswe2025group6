@@ -564,17 +564,40 @@ const CommunityPage = () => {
                   <div className="forum-post-content">
                     <div className="forum-post-header">
                       <span className="post-author-wrapper">
-                        {t('communityPagePostedBy')}{" "}
-                        <span 
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent post detail navigation
-                            navigate(`/profile/${post.author}`);
-                          }}
-                          className="author-link"
-                        >
-                          {getUserName(post.author)}
-                          <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
-                        </span>
+                        {userMap[post.author]?.profilePhoto ? (
+                          <img 
+                            src={userMap[post.author].profilePhoto} 
+                            alt={getUserName(post.author)}
+                            className="author-avatar"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/profile/${post.author}`);
+                            }}
+                          />
+                        ) : (
+                          <div 
+                            className="author-avatar-placeholder"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/profile/${post.author}`);
+                            }}
+                          >
+                            {getUserName(post.author)?.[0]?.toUpperCase() || 'U'}
+                          </div>
+                        )}
+                        <div className="author-info">
+                          {t('communityPagePostedBy')}{" "}
+                          <span 
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent post detail navigation
+                              navigate(`/profile/${post.author}`);
+                            }}
+                            className="author-link"
+                          >
+                            {getUserName(post.author)}
+                            <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
+                          </span>
+                        </div>
                       </span>
                       <span>{formatDateDisplay(post.created_at)}</span>
                     </div>
