@@ -13,6 +13,7 @@ import { getCurrentUser } from '../../services/authService';
 import '../../styles/PostDetailPage.css';
 import ReportButton from '../../components/report/ReportButton';
 import { useTranslation } from "react-i18next";
+import { shareContent } from '../../utils/shareUtils';
 
 const PostDetailPage = () => {
   const { t } = useTranslation();
@@ -708,6 +709,23 @@ const PostDetailPage = () => {
     }
   };
 
+  const handleSharePost = async () => {
+    const postUrl = `${window.location.origin}/community/post/${id}`;
+    const tagsText = post.tags && post.tags.length > 0 
+      ? `\n${t('createPostPageTags')}: ${post.tags.map(tag => {
+          const tagKey = tag.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+          return t(`createPost.tags.${tagKey}`, { defaultValue: tag });
+        }).join(', ')}`
+      : '';
+    const text = `${post.title}\n\n${post.content}${tagsText}`;
+
+    await shareContent({
+      title: post.title,
+      text: text,
+      url: postUrl
+    }, t);
+  };
+
   if (isLoading) {
     return <div className="post-detail-loading">{t("editPostPageisLoading")}...</div>;
   }
@@ -735,17 +753,40 @@ const PostDetailPage = () => {
           <div className="post-header">
             <div className="post-meta">
               <div className="post-author">
-                {t("postDetailPagePostedBy")}{" "}
-                <span 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/profile/${post.author}`);
-                  }}
-                  className="author-link"
-                >
-                  {getUserName(post.author)}
-                  <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
-                </span>
+                {userMap[post.author]?.profilePhoto ? (
+                  <img 
+                    src={userMap[post.author].profilePhoto} 
+                    alt={getUserName(post.author)}
+                    className="author-avatar"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author}`);
+                    }}
+                  />
+                ) : (
+                  <div 
+                    className="author-avatar-placeholder"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author}`);
+                    }}
+                  >
+                    {getUserName(post.author)?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+                <div className="author-info">
+                  {t("postDetailPagePostedBy")}{" "}
+                  <span 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author}`);
+                    }}
+                    className="author-link"
+                  >
+                    {getUserName(post.author)}
+                    <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
+                  </span>
+                </div>
               </div>
               <div className="post-timestamp">{formatDateDisplay(post.created_at)}</div>
             </div>
@@ -800,12 +841,36 @@ const PostDetailPage = () => {
             </div>
             <div className="post-stats" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>👁️ {post.view_count} {t("Views")}</span>
-              {/* Report button positioned at right of views */}
-              {currentUser && post.author !== currentUser.id && (
-                <div style={{ marginLeft: '16px' }}>
-                  <ReportButton targetType="post" targetId={id} />
-                </div>
-              )}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  className="post-share-button"
+                  onClick={handleSharePost}
+                  title={t('sharePost')}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#48bb78"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+                {/* Report button positioned at right of views */}
+                {currentUser && post.author !== currentUser.id && (
+                  <div>
+                    <ReportButton targetType="post" targetId={id} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Card.Body>
@@ -856,17 +921,40 @@ const PostDetailPage = () => {
                       <div className="comment-header">
                         <div className="comment-meta">
                           <div className="comment-author">
-                            {t("postDetailPageCommentBy")}{" "}
-                            <span 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/profile/${comment.author}`);
-                              }}
-                              className="author-link"
-                            >
-                              {getUserName(comment.author)}
-                              <Badge badge={userMap[comment.author]?.badge} size="small" usertype={userMap[comment.author]?.usertype} />
-                            </span>
+                            {userMap[comment.author]?.profilePhoto ? (
+                              <img 
+                                src={userMap[comment.author].profilePhoto} 
+                                alt={getUserName(comment.author)}
+                                className="author-avatar"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${comment.author}`);
+                                }}
+                              />
+                            ) : (
+                              <div 
+                                className="author-avatar-placeholder"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${comment.author}`);
+                                }}
+                              >
+                                {getUserName(comment.author)?.[0]?.toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            <div className="author-info">
+                              {t("postDetailPageCommentBy")}{" "}
+                              <span 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${comment.author}`);
+                                }}
+                                className="author-link"
+                              >
+                                {getUserName(comment.author)}
+                                <Badge badge={userMap[comment.author]?.badge} size="small" usertype={userMap[comment.author]?.usertype} />
+                              </span>
+                            </div>
                           </div>
                           <div className="comment-time">
                             {formatDateDisplay(comment.created_at)}

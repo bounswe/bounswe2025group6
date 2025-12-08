@@ -1,5 +1,5 @@
 // src/pages/profile/ProfilePage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../services/authService";
 import userService from "../../services/userService";
@@ -14,11 +14,15 @@ import { formatDate } from "../../utils/dateFormatter";
 import "../../styles/ProfilePage.css";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "../../contexts/CurrencyContext";
+import { shareContent } from "../../utils/shareUtils";
+import { useToast } from "../../components/ui/Toast";
+import ImageUploader from "../../components/ui/ImageUploader";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { setCurrency } = useCurrency();
+  const toast = useToast();
 
   // Get current language for ingredient translation
   const currentLanguage = i18n.language.startsWith('tr') ? 'tr' : 'en';
@@ -44,6 +48,17 @@ const ProfilePage = () => {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   
+  // Profile photo and username state
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [isChangingUsername, setIsChangingUsername] = useState(false);
+  const [showUsernameConfirm, setShowUsernameConfirm] = useState(false);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
+  const fileInputRef = useRef(null);
+  
   // Common nationalities list
   const commonNationalities = [
     'American',
@@ -63,7 +78,6 @@ const ProfilePage = () => {
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
   const [showShoppingListPopup, setShowShoppingListPopup] = useState(false);
   const [selectedShoppingList, setSelectedShoppingList] = useState(null);
-  const [copied, setCopied] = useState(false);
 
   // Load user profile
   useEffect(() => {
@@ -329,6 +343,103 @@ const ProfilePage = () => {
     }
   };
 
+  // Profile photo handlers
+  const handlePhotoUpload = async (file) => {
+    if (!userProfile || !userProfile.id || !file) return;
+    
+    setIsUploadingPhoto(true);
+    try {
+      const updatedUser = await userService.uploadProfilePhoto(userProfile.id, file);
+      setUserProfile(updatedUser);
+      setPhotoPreview(null);
+      setSelectedPhotoFile(null);
+      toast.success(t('profilePagePhotoUploadSuccess') || 'Profile photo updated successfully');
+    } catch (error) {
+      console.error('Error uploading profile photo:', error);
+      const errorMessage = error.response?.data?.profilePhoto?.[0] || 
+                          error.response?.data?.error ||
+                          t('profilePagePhotoUploadError') || 
+                          'Failed to upload profile photo';
+      toast.error(errorMessage);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handlePhotoDelete = async () => {
+    if (!userProfile || !userProfile.id) return;
+    
+    if (!window.confirm(t('profilePagePhotoDeleteConfirm') || 'Are you sure you want to delete your profile photo?')) {
+      return;
+    }
+    
+    setIsDeletingPhoto(true);
+    try {
+      const updatedUser = await userService.deleteProfilePhoto(userProfile.id);
+      setUserProfile(updatedUser);
+      toast.success(t('profilePagePhotoDeleteSuccess') || 'Profile photo deleted successfully');
+    } catch (error) {
+      console.error('Error deleting profile photo:', error);
+      toast.error(t('profilePagePhotoDeleteError') || 'Failed to delete profile photo');
+    } finally {
+      setIsDeletingPhoto(false);
+    }
+  };
+
+  // Username change handlers
+  const handleUsernameChange = async () => {
+    if (!userProfile || !userProfile.id) return;
+    
+    const trimmedUsername = newUsername.trim();
+    if (!trimmedUsername) {
+      toast.error(t('profilePageUsernameEmpty') || 'Username cannot be empty');
+      return;
+    }
+    
+    if (trimmedUsername === userProfile.username) {
+      toast.info(t('profilePageUsernameSame') || 'This is already your username');
+      setNewUsername('');
+      return;
+    }
+    
+    // Check availability
+    try {
+      const isAvailable = await userService.checkUsernameAvailability(trimmedUsername);
+      if (!isAvailable) {
+        toast.error(t('profilePageUsernameTaken') || 'This username is already taken');
+        return;
+      }
+      
+      // Show confirmation dialog
+      setShowUsernameConfirm(true);
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      toast.error(t('profilePageUsernameCheckError') || 'Error checking username availability');
+    }
+  };
+
+  const confirmUsernameChange = async () => {
+    if (!userProfile || !userProfile.id) return;
+    
+    setIsChangingUsername(true);
+    try {
+      const updatedUser = await userService.updateUsername(userProfile.id, newUsername.trim());
+      setUserProfile(updatedUser);
+      setNewUsername('');
+      setShowUsernameConfirm(false);
+      toast.success(t('profilePageUsernameChangeSuccess') || 'Username changed successfully');
+    } catch (error) {
+      console.error('Error changing username:', error);
+      const errorMessage = error.response?.data?.username?.[0] || 
+                          error.response?.data?.error ||
+                          t('profilePageUsernameChangeError') || 
+                          'Failed to change username';
+      toast.error(errorMessage);
+    } finally {
+      setIsChangingUsername(false);
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsSavingSettings(true);
     try {
@@ -395,55 +506,43 @@ const ProfilePage = () => {
     }
   };
 
-  const copyShoppingListToClipboard = async (list) => {
-    try {
-      const text = `
+  const handleShareShoppingList = async (list) => {
+    let text = `
 Shopping List - ${formatDate(list.date, userProfile.preferredDateFormat || 'DD/MM/YYYY')}
 
 Recipes:
-${list.recipeNames.join(', ')}
+${(list.recipeNames || []).join(', ')}
 
 Ingredients:
-${list.ingredients.map(ing => {
+${(list.ingredients || []).map(ing => {
       const translatedName = translateIngredient(ing.name, currentLanguage);
       return `- ${translatedName}: ${ing.quantity}${ing.unit || ''}`;
-    }).join('\n')}
+    }).join('\n')}`;
 
-Total Cost: ${list.currency}${list.totalCost.toFixed(2)}
-Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best.totalCost ? market : best).marketName}
-      `.trim();
-
-      // Try modern clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-          const successful = document.execCommand('copy');
-          if (successful) {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }
-        } catch (err) {
-          console.error('Fallback copy failed:', err);
-        } finally {
-          document.body.removeChild(textArea);
-        }
-      }
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
+    // Add total cost if available
+    if (list.totalCost !== null && list.totalCost !== undefined) {
+      text += `\n\nTotal Cost: ${list.currency || ''}${list.totalCost.toFixed(2)}`;
     }
+
+    // Add best market if available
+    if (list.marketCosts && list.marketCosts.length > 0) {
+      const bestMarket = list.marketCosts.reduce((best, market) => {
+        const bestCost = best.totalCost || 0;
+        const marketCost = market.totalCost || 0;
+        return marketCost < bestCost ? market : best;
+      });
+      if (bestMarket && bestMarket.marketName) {
+        text += `\nBest Market: ${bestMarket.marketName}`;
+      }
+    }
+
+    text = text.trim();
+
+    await shareContent({
+      title: t('shoppingListPageTitle'),
+      text: text,
+      url: window.location.href
+    }, t);
   };
 
   if (isLoading) {
@@ -464,12 +563,78 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
       <div className="profile-header">
         <div className="profile-header-content">
           <div className="profile-info">
-          <div className="profile-avatar">
+          <div className="profile-avatar" onClick={() => setShowPhotoMenu(true)}>
             {userProfile.profilePhoto ? (
               <img src={userProfile.profilePhoto} alt={userProfile.username} />
             ) : (
               <div className="profile-avatar-placeholder">{userProfile.username?.[0]?.toUpperCase() || 'U'}</div>
             )}
+            <div className="profile-avatar-overlay">
+              {userProfile.profilePhoto ? (
+                <>
+                  <button 
+                    className="profile-avatar-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    title={t('profilePageChangePhoto') || 'Change photo'}
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    className="profile-avatar-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePhotoDelete();
+                    }}
+                    disabled={isDeletingPhoto}
+                    title={t('profilePageDeletePhoto') || 'Delete photo'}
+                  >
+                    {isDeletingPhoto ? '⏳' : '🗑️'}
+                  </button>
+                </>
+              ) : (
+                <button 
+                  className="profile-avatar-action-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  title={t('profilePageUploadPhoto') || 'Upload photo'}
+                >
+                  📷
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              id="photo-upload-input"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!file.type.match('image.*')) {
+                  toast.error(t('profilePagePhotoInvalid') || 'Please select an image file');
+                  return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error(t('profilePagePhotoTooLarge') || 'Image must be less than 5MB');
+                  return;
+                }
+                
+                setSelectedPhotoFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  setPhotoPreview(reader.result);
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
           </div>
             <h1 className="profile-username">
               <span className="profile-username-wrapper">
@@ -578,9 +743,11 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                   <div key={list.id} className="shopping-list-card">
                     <div className="shopping-list-header">
                       <h3>{formatDate(list.date, userProfile.preferredDateFormat || 'DD/MM/YYYY', t)}</h3>
-                      <span className="shopping-list-cost">{list.currency}{list.totalCost.toFixed(2)}</span>
+                      <span className="shopping-list-cost">
+                        {list.currency || ''}{list.totalCost !== null && list.totalCost !== undefined ? list.totalCost.toFixed(2) : '0.00'}
+                      </span>
                     </div>
-                    <p className="shopping-list-recipes">{list.recipeNames.join(', ')}</p>
+                    <p className="shopping-list-recipes">{(list.recipeNames || []).join(', ')}</p>
                     <div className="shopping-list-actions">
                 <button
                         className="view-btn"
@@ -650,6 +817,52 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
             <h2 className="settings-title">{t('profilePageSettingsTitle')}</h2>
             
             <div className="settings-form">
+              {/* Username Change Section */}
+              <div className="settings-group">
+                <label className="settings-label">{t('profilePageChangeUsername') || 'Change Username'}</label>
+                <div className="username-change-container">
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder={userProfile.username || t('profilePageCurrentUsername') || 'Current username'}
+                    disabled={isChangingUsername}
+                  />
+                  <button
+                    className="username-change-btn"
+                    onClick={handleUsernameChange}
+                    disabled={isChangingUsername || !newUsername.trim() || newUsername.trim() === userProfile.username}
+                  >
+                    {isChangingUsername ? t('profilePageChanging') || 'Changing...' : t('profilePageChange') || 'Change'}
+                  </button>
+                </div>
+                {showUsernameConfirm && (
+                  <div className="username-confirm-dialog">
+                    <p>{t('profilePageUsernameConfirmMessage') || `Are you sure you want to change your username to "${newUsername.trim()}"?`}</p>
+                    <div className="username-confirm-actions">
+                      <button
+                        className="username-confirm-btn"
+                        onClick={confirmUsernameChange}
+                        disabled={isChangingUsername}
+                      >
+                        {isChangingUsername ? t('profilePageChanging') || 'Changing...' : t('profilePageConfirm') || 'Confirm'}
+                      </button>
+                      <button
+                        className="username-cancel-btn"
+                        onClick={() => {
+                          setShowUsernameConfirm(false);
+                          setNewUsername('');
+                        }}
+                        disabled={isChangingUsername}
+                      >
+                        {t('profilePageCancel') || 'Cancel'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="settings-group">
                 <label className="settings-label">{t('profilePageCurrency')}</label>
                 <select 
@@ -750,6 +963,55 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
           </div>
         )}
       </div>
+
+      {/* Photo Preview/Upload Modal */}
+      {photoPreview && (
+        <div className="photo-preview-overlay" onClick={() => {
+          setPhotoPreview(null);
+          setSelectedPhotoFile(null);
+        }}>
+          <div className="photo-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="photo-preview-header">
+              <h3>{t('profilePagePhotoPreview') || 'Photo Preview'}</h3>
+              <button 
+                className="photo-preview-close"
+                onClick={() => {
+                  setPhotoPreview(null);
+                  setSelectedPhotoFile(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="photo-preview-content">
+              <img src={photoPreview} alt="Preview" />
+            </div>
+            <div className="photo-preview-actions">
+              <button
+                className="photo-preview-confirm"
+                onClick={() => {
+                  if (selectedPhotoFile) {
+                    handlePhotoUpload(selectedPhotoFile);
+                  }
+                }}
+                disabled={isUploadingPhoto}
+              >
+                {isUploadingPhoto ? (t('profilePageUploading') || 'Uploading...') : (t('profilePageConfirm') || 'Confirm')}
+              </button>
+              <button
+                className="photo-preview-cancel"
+                onClick={() => {
+                  setPhotoPreview(null);
+                  setSelectedPhotoFile(null);
+                }}
+                disabled={isUploadingPhoto}
+              >
+                {t('profilePageCancel') || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Followers Popup */}
       {showFollowersPopup && (
@@ -901,16 +1163,47 @@ Best Market: ${list.marketCosts.reduce((best, market) => market.totalCost < best
                     )}
                   </div>
                   <div className="total-section">
-                    <h3>{t('profilePageTotalCost')} {selectedShoppingList.currency || 'USD'}{(selectedShoppingList.totalCost || 0).toFixed(2)}</h3>
+                    <h3>
+                      {t('profilePageTotalCost')} {selectedShoppingList.currency || 'USD'}
+                      {selectedShoppingList.totalCost !== null && selectedShoppingList.totalCost !== undefined 
+                        ? selectedShoppingList.totalCost.toFixed(2) 
+                        : '0.00'}
+                    </h3>
                     {selectedShoppingList.marketCosts && selectedShoppingList.marketCosts.length > 0 && (
-                      <p>{t('profilePageBestMarket')} {selectedShoppingList.marketCosts.reduce((best, market) => market.totalCost < best.totalCost ? market : best).marketName}</p>
+                      <p>
+                        {t('profilePageBestMarket')}{' '}
+                        {selectedShoppingList.marketCosts
+                          .filter(market => market.totalCost !== null && market.totalCost !== undefined)
+                          .reduce((best, market) => {
+                            const bestCost = best?.totalCost ?? Infinity;
+                            const marketCost = market.totalCost ?? Infinity;
+                            return marketCost < bestCost ? market : best;
+                          }, null)?.marketName || 'N/A'}
+                      </p>
                     )}
                   </div>
                   <button
-                    className="copy-btn"
-                    onClick={() => copyShoppingListToClipboard(selectedShoppingList)}
+                    className="copy-btn share-btn"
+                    onClick={() => handleShareShoppingList(selectedShoppingList)}
                   >
-                    {copied ? t('profilePageCopied') : t('profilePageCopy')}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ marginRight: '6px', verticalAlign: 'middle' }}
+                    >
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    {t('shareShoppingList')}
                   </button>
                 </div>
               )}

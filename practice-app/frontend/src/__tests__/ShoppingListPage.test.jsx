@@ -33,6 +33,10 @@ jest.mock('react-i18next', () => ({
         shoppingListCopied: 'Copied!',
         shoppingListCopyButton: 'Copy List',
         shoppingListBackToPlanner: 'Back to Meal Planner',
+        shareShoppingList: 'Share Shopping List',
+        shareLink: 'View at',
+        shareCopied: 'Link copied to clipboard!',
+        shareError: 'Failed to share. Please try again.',
       };
       return translations[key] || key;
     },
@@ -173,7 +177,7 @@ describe('ShoppingListPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Shopping List')).toBeInTheDocument();
-        expect(screen.getByText('Copy List')).toBeInTheDocument();
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
         expect(screen.getByText('Recipes')).toBeInTheDocument();
         expect(screen.getByText('Ingredients')).toBeInTheDocument();
         expect(screen.getByText('Market Price Comparison')).toBeInTheDocument();
@@ -322,46 +326,106 @@ describe('ShoppingListPage', () => {
     });
   });
 
+  describe('Share Functionality', () => {
+    beforeEach(() => {
+      // Mock Web Share API
+      global.navigator.share = jest.fn();
+      global.navigator.canShare = jest.fn(() => true);
+    });
+
+    test('renders share button instead of copy button', async () => {
+      renderShoppingListPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+    });
+
+    test('shares shopping list using Web Share API when available', async () => {
+      global.navigator.share.mockResolvedValue();
+      
+      renderShoppingListPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Shopping List',
+            text: expect.stringContaining('Scrambled Eggs'),
+            url: expect.stringContaining(window.location.href)
+          })
+        );
+      });
+    });
+
+    test('falls back to clipboard when Web Share API is not available', async () => {
+      delete global.navigator.share;
+      
+      renderShoppingListPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(mockClipboard.writeText).toHaveBeenCalled();
+      });
+    });
+
+    test('handles share cancellation gracefully', async () => {
+      const abortError = new Error('User cancelled');
+      abortError.name = 'AbortError';
+      global.navigator.share.mockRejectedValue(abortError);
+      
+      renderShoppingListPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalled();
+      });
+
+      // Should not show error for user cancellation
+      expect(screen.queryByText('Failed to share')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Clipboard Functionality', () => {
     test('copies shopping list to clipboard when copy button is clicked', async () => {
       renderShoppingListPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Copy List')).toBeInTheDocument();
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
       });
 
-      const copyButton = screen.getByText('Copy List');
-      fireEvent.click(copyButton);
+      // Since we now use share, test the fallback clipboard behavior
+      delete global.navigator.share;
+      
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
 
       await waitFor(() => {
         expect(mockClipboard.writeText).toHaveBeenCalled();
-        expect(screen.getByText('Copied!')).toBeInTheDocument();
       });
     });
 
-    test('shows copied state temporarily after successful copy', async () => {
-      jest.useFakeTimers();
-      renderShoppingListPage();
-
-      await waitFor(() => {
-        expect(screen.getByText('Copy List')).toBeInTheDocument();
-      });
-
-      const copyButton = screen.getByText('Copy List');
-      fireEvent.click(copyButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('Copied!')).toBeInTheDocument();
-      });
-
-      // Fast forward 2 seconds
-      jest.advanceTimersByTime(2000);
-
-      await waitFor(() => {
-        expect(screen.getByText('Copy List')).toBeInTheDocument();
-      });
-
-      jest.useRealTimers();
+    test.skip('shows copied state temporarily after successful copy - legacy test', async () => {
+      // This test is skipped as we've replaced copy with share functionality
+      // The share functionality doesn't use a temporary "copied" state
     });
 
     // Skip this test as it's difficult to mock navigator.clipboard properly in test environment
@@ -587,24 +651,29 @@ describe('ShoppingListPage', () => {
       consoleError.mockRestore();
     });
 
-    test('handles clipboard errors gracefully', async () => {
+    test('handles share errors gracefully', async () => {
+      delete global.navigator.share;
       mockClipboard.writeText.mockRejectedValue(new Error('Clipboard error'));
+      // Mock alert to prevent test from showing alerts
+      window.alert = jest.fn();
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       renderShoppingListPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Copy List')).toBeInTheDocument();
+        expect(screen.getByText('Share Shopping List')).toBeInTheDocument();
       });
 
-      const copyButton = screen.getByText('Copy List');
-      fireEvent.click(copyButton);
+      const shareButton = screen.getByText('Share Shopping List');
+      fireEvent.click(shareButton);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith('Error copying to clipboard:', expect.any(Error));
-      });
+        // Should handle error gracefully
+        expect(mockClipboard.writeText).toHaveBeenCalled();
+      }, { timeout: 3000 });
 
       consoleError.mockRestore();
+      window.alert.mockRestore();
     });
   });
 

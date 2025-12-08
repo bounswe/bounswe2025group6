@@ -121,6 +121,78 @@ const userService = {
       return { user_id: userId, recipe_count: 0, badge: null };
     }
   },
+
+  // Upload profile photo using FormData for Cloudinary upload
+  uploadProfilePhoto: async (userId, imageFile) => {
+    try {
+      // Create FormData to send file as multipart/form-data
+      const formData = new FormData();
+      formData.append('profilePhoto', imageFile);
+      
+      // Use patch with FormData (axios will set Content-Type to multipart/form-data)
+      const response = await api.patch(`/api/users/${userId}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading profile photo:", error);
+      // Provide better error message
+      if (error.response?.status === 400) {
+        const errorMsg = error.response?.data?.profilePhoto?.[0] || 
+                        error.response?.data?.error ||
+                        'Failed to upload profile photo. Please try again.';
+        error.message = errorMsg;
+      }
+      throw error;
+    }
+  },
+
+  // Delete profile photo (set to null)
+  // Backend now supports both JSON and FormData, so we can use JSON for deletion
+  deleteProfilePhoto: async (userId) => {
+    try {
+      const response = await api.patch(`/api/users/${userId}/`, {
+        profilePhoto: null
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting profile photo:", error);
+      throw error;
+    }
+  },
+
+  // Update username
+  updateUsername: async (userId, newUsername) => {
+    try {
+      const response = await api.patch(`/api/users/${userId}/`, {
+        username: newUsername
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating username:", error);
+      throw error;
+    }
+  },
+
+  // Check if username is available
+  checkUsernameAvailability: async (username) => {
+    try {
+      // Get all users and check if username exists
+      const response = await api.get(`/api/users/`);
+      const users = response.data.results || [];
+      const usernameExists = users.some(user => user.username.toLowerCase() === username.toLowerCase());
+      return !usernameExists;
+    } catch (error) {
+      console.error("Error checking username availability:", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;
