@@ -727,6 +727,10 @@
     "cook": "Cook",
     "homeCook": "Home Cook",
     "experiencedCook": "Experienced Home Cook",
-    "dietitian": "Dietitian"
+    "dietitian": "Dietitian",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "expert": "Expert",
+    "professional": "Professional"
   }
 }

@@ -22,7 +22,6 @@ const OtherUserProfilePage = () => {
   // State
   const [activeTab, setActiveTab] = useState("recipes");
   const [userProfile, setUserProfile] = useState(null);
-  const [userBadge, setUserBadge] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
   const [followers, setFollowers] = useState([]);
@@ -52,10 +51,6 @@ const OtherUserProfilePage = () => {
 
         const userData = await userService.getUserById(userId);
         setUserProfile(userData);
-        
-        // Fetch user badge
-        const badgeData = await userService.getUserRecipeCount(userId);
-        setUserBadge(badgeData.badge);
 
         // Load all user data in parallel
         await Promise.all([
@@ -312,13 +307,13 @@ const OtherUserProfilePage = () => {
           <div className="other-profile-info">
             <h1 className="other-profile-username">
               {userProfile.username}
-              <Badge badge={userBadge} size="large" usertype={userProfile.usertype} />
+              <Badge badge={userProfile.typeofcook} size="large" usertype={userProfile.usertype} />
             </h1>
             <p 
               className="other-profile-badge-label"
-              style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
+              style={{ color: getBadgeColor(userProfile.typeofcook, userProfile.usertype) }}
             >
-              {getBadgeLabel(userBadge, userProfile.usertype, t)}
+              {getBadgeLabel(userProfile.typeofcook, userProfile.usertype, t)}
             </p>
             <div className="other-profile-stats">
               <div className="other-stat-item" onClick={() => setShowFollowersPopup(true)}>
@@ -474,15 +469,15 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeofcook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
               )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Following Popup */}
       {showFollowingPopup && (
@@ -533,7 +528,7 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeofcook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
