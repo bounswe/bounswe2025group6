@@ -18,7 +18,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import RegisteredUser, RecipeRating, HealthRating
 from recipes.models import Recipe  # Import from recipes app
 from rest_framework import serializers
@@ -469,7 +469,7 @@ def get_user_id_by_email(request):
         )
 
 class RegisteredUserViewSet(viewsets.ModelViewSet):
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     queryset = RegisteredUser.objects.all()
     serializer_class = RegisteredUserSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust as needed
@@ -1096,4 +1096,5 @@ class HealthRatingViewSet(viewsets.ModelViewSet):
         responses={204: None}
     )
     def destroy(self, request, *args, **kwargs):
+
         return super().destroy(request, *args, **kwargs)
