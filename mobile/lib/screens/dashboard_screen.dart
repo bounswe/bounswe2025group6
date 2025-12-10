@@ -198,6 +198,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                     },
                   ),
+                  _buildDashboardCard(
+                    icon: Icons.question_answer,
+                    title: 'Q&A',
+                    color: Colors.teal,
+                    onTap: () async {
+                      await Navigator.pushNamed(context, '/qa');
+                      _bumpRefresh();
+                    },
+                  ),
                 ],
               ),
             ],
