@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 from .views import register_user, forgot_password, password_reset, verify_email, login_view, logout_view, RequestResetCodeView, VerifyResetCodeView, ResetPasswordView
 from .views import RegisteredUserViewSet, RecipeRatingViewSet, HealthRatingViewSet, get_user_id_by_email
 from .views import get_user_recipe_ids, get_user_comment_ids, get_user_post_ids
+from .views import get_user_question_ids, get_user_answer_ids
 
 # Initialize the router
 router = DefaultRouter()
@@ -28,5 +29,7 @@ urlpatterns = [
     path('users/<int:user_id>/recipe-ids/', get_user_recipe_ids, name='get-user-recipe-ids'),
     path('users/<int:user_id>/comment-ids/', get_user_comment_ids, name='get-user-comment-ids'),
     path('users/<int:user_id>/post-ids/', get_user_post_ids, name='get-user-post-ids'),
+    path('users/<int:user_id>/question-ids/', get_user_question_ids, name='get-user-question-ids'),
+    path('users/<int:user_id>/answer-ids/', get_user_answer_ids, name='get-user-answer-ids'),
     path('', include(router.urls)),
 ]

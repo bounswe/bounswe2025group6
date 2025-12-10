@@ -3,6 +3,8 @@ Test cases for fast user IDs endpoints:
 - get_user_recipe_ids
 - get_user_comment_ids  
 - get_user_post_ids
+- get_user_question_ids
+- get_user_answer_ids
 """
 from django.test import TestCase
 from django.urls import reverse
@@ -13,6 +15,7 @@ from django.utils import timezone
 from api.models import RegisteredUser
 from recipes.models import Recipe
 from forum.models import ForumPost, ForumPostComment
+from qa.models import Question, Answer
 
 
 class UserRecipeIdsEndpointTests(APITestCase):
@@ -379,4 +382,203 @@ class UserIdsEndpointsIntegrationTests(APITestCase):
         self.assertEqual(post_response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(post_response.data['post_ids']), 1)
         self.assertIn(self.post.id, post_response.data['post_ids'])
+
+
+class UserQuestionIdsEndpointTests(APITestCase):
+    """Test cases for GET /api/users/{user_id}/question-ids/"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.user1 = RegisteredUser.objects.create_user(
+            username='user1',
+            email='user1@test.com',
+            password='testpass123'
+        )
+        self.user2 = RegisteredUser.objects.create_user(
+            username='user2',
+            email='user2@test.com',
+            password='testpass123'
+        )
+        
+        # Create questions for user1
+        self.question1 = Question.objects.create(
+            title='Question 1',
+            content='Content 1',
+            author=self.user1
+        )
+        self.question2 = Question.objects.create(
+            title='Question 2',
+            content='Content 2',
+            author=self.user1
+        )
+        
+        # Create question for user2
+        self.question3 = Question.objects.create(
+            title='Question 3',
+            content='Content 3',
+            author=self.user2
+        )
+        
+        # Create soft-deleted question for user1 (should not be included)
+        self.deleted_question = Question.objects.create(
+            title='Deleted Question',
+            content='Deleted content',
+            author=self.user1,
+            deleted_on=timezone.now()
+        )
+    
+    def test_get_user_question_ids_success(self):
+        """Test successfully retrieving question IDs for a user"""
+        url = reverse('get-user-question-ids', kwargs={'user_id': self.user1.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('question_ids', response.data)
+        self.assertIsInstance(response.data['question_ids'], list)
+        self.assertEqual(len(response.data['question_ids']), 2)
+        self.assertIn(self.question1.id, response.data['question_ids'])
+        self.assertIn(self.question2.id, response.data['question_ids'])
+        self.assertNotIn(self.deleted_question.id, response.data['question_ids'])
+    
+    def test_get_user_question_ids_empty(self):
+        """Test retrieving question IDs for a user with no questions"""
+        new_user = RegisteredUser.objects.create_user(
+            username='newuser',
+            email='newuser@test.com',
+            password='testpass123'
+        )
+        url = reverse('get-user-question-ids', kwargs={'user_id': new_user.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('question_ids', response.data)
+        self.assertEqual(response.data['question_ids'], [])
+    
+    def test_get_user_question_ids_user_not_found(self):
+        """Test retrieving question IDs for non-existent user"""
+        url = reverse('get-user-question-ids', kwargs={'user_id': 99999})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'User not found')
+    
+    def test_get_user_question_ids_excludes_other_users_questions(self):
+        """Test that only the specified user's questions are returned"""
+        url = reverse('get-user-question-ids', kwargs={'user_id': self.user1.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn(self.question3.id, response.data['question_ids'])
+    
+    def test_get_user_question_ids_excludes_soft_deleted(self):
+        """Test that soft-deleted questions are not included"""
+        url = reverse('get-user-question-ids', kwargs={'user_id': self.user1.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn(self.deleted_question.id, response.data['question_ids'])
+
+
+class UserAnswerIdsEndpointTests(APITestCase):
+    """Test cases for GET /api/users/{user_id}/answer-ids/"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.user1 = RegisteredUser.objects.create_user(
+            username='user1',
+            email='user1@test.com',
+            password='testpass123'
+        )
+        self.user2 = RegisteredUser.objects.create_user(
+            username='user2',
+            email='user2@test.com',
+            password='testpass123'
+        )
+        
+        # Create a question for answers
+        self.question = Question.objects.create(
+            title='Test Question',
+            content='Test content',
+            author=self.user1
+        )
+        
+        # Create answers for user1
+        self.answer1 = Answer.objects.create(
+            post=self.question,
+            author=self.user1,
+            content='Answer 1 by user1'
+        )
+        self.answer2 = Answer.objects.create(
+            post=self.question,
+            author=self.user1,
+            content='Answer 2 by user1'
+        )
+        
+        # Create answer for user2
+        self.answer3 = Answer.objects.create(
+            post=self.question,
+            author=self.user2,
+            content='Answer by user2'
+        )
+        
+        # Create soft-deleted answer for user1 (should not be included)
+        self.deleted_answer = Answer.objects.create(
+            post=self.question,
+            author=self.user1,
+            content='Deleted answer',
+            deleted_on=timezone.now()
+        )
+    
+    def test_get_user_answer_ids_success(self):
+        """Test successfully retrieving answer IDs for a user"""
+        url = reverse('get-user-answer-ids', kwargs={'user_id': self.user1.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('answer_ids', response.data)
+        self.assertIsInstance(response.data['answer_ids'], list)
+        self.assertEqual(len(response.data['answer_ids']), 2)
+        self.assertIn(self.answer1.id, response.data['answer_ids'])
+        self.assertIn(self.answer2.id, response.data['answer_ids'])
+        self.assertNotIn(self.deleted_answer.id, response.data['answer_ids'])
+    
+    def test_get_user_answer_ids_empty(self):
+        """Test retrieving answer IDs for a user with no answers"""
+        new_user = RegisteredUser.objects.create_user(
+            username='newuser',
+            email='newuser@test.com',
+            password='testpass123'
+        )
+        url = reverse('get-user-answer-ids', kwargs={'user_id': new_user.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('answer_ids', response.data)
+        self.assertEqual(response.data['answer_ids'], [])
+    
+    def test_get_user_answer_ids_user_not_found(self):
+        """Test retrieving answer IDs for non-existent user"""
+        url = reverse('get-user-answer-ids', kwargs={'user_id': 99999})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'User not found')
+    
+    def test_get_user_answer_ids_excludes_other_users_answers(self):
+        """Test that only the specified user's answers are returned"""
+        url = reverse('get-user-answer-ids', kwargs={'user_id': self.user1.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn(self.answer3.id, response.data['answer_ids'])
+    
+    def test_get_user_answer_ids_excludes_soft_deleted(self):
+        """Test that soft-deleted answers are not included"""
+        url = reverse('get-user-answer-ids', kwargs={'user_id': self.user1.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn(self.deleted_answer.id, response.data['answer_ids'])
 
