@@ -21,6 +21,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import RegisteredUser, RecipeRating, HealthRating
 from recipes.models import Recipe  # Import from recipes app
+from forum.models import ForumPost, ForumPostComment  # Import for posts and comments
+from qa.models import Question, Answer  # Import for questions and answers
 from rest_framework import serializers
 import copy
 from django.db import transaction
@@ -467,6 +469,301 @@ def get_user_id_by_email(request):
             {"error": "User not found"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get recipe IDs created by a specific user",
+    manual_parameters=[
+        openapi.Parameter(
+            name='user_id',
+            in_=openapi.IN_PATH,
+            description="User ID",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="List of recipe IDs",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'recipe_ids': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_INTEGER),
+                        description='List of recipe IDs'
+                    )
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+@api_view(['GET'])
+def get_user_recipe_ids(request, user_id):
+    """
+    Fast endpoint to get all recipe IDs created by a specific user.
+    Returns only IDs (not full recipe objects) for optimal performance.
+    """
+    try:
+        user = RegisteredUser.objects.get(pk=user_id)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Fast query: only get IDs, filter out soft-deleted recipes
+    recipe_ids = list(Recipe.objects.filter(
+        creator_id=user_id,
+        deleted_on__isnull=True
+    ).values_list('id', flat=True))
+    
+    return Response({"recipe_ids": recipe_ids}, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get comment IDs created by a specific user",
+    manual_parameters=[
+        openapi.Parameter(
+            name='user_id',
+            in_=openapi.IN_PATH,
+            description="User ID",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="List of comment IDs",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'comment_ids': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_INTEGER),
+                        description='List of comment IDs'
+                    )
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+@api_view(['GET'])
+def get_user_comment_ids(request, user_id):
+    """
+    Fast endpoint to get all comment IDs created by a specific user.
+    Returns only IDs (not full comment objects) for optimal performance.
+    """
+    try:
+        user = RegisteredUser.objects.get(pk=user_id)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Fast query: only get IDs, filter out soft-deleted comments
+    comment_ids = list(ForumPostComment.objects.filter(
+        author_id=user_id,
+        deleted_on__isnull=True
+    ).values_list('id', flat=True))
+    
+    return Response({"comment_ids": comment_ids}, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get post IDs created by a specific user",
+    manual_parameters=[
+        openapi.Parameter(
+            name='user_id',
+            in_=openapi.IN_PATH,
+            description="User ID",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="List of post IDs",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'post_ids': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_INTEGER),
+                        description='List of post IDs'
+                    )
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+@api_view(['GET'])
+def get_user_post_ids(request, user_id):
+    """
+    Fast endpoint to get all post IDs created by a specific user.
+    Returns only IDs (not full post objects) for optimal performance.
+    """
+    try:
+        user = RegisteredUser.objects.get(pk=user_id)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Fast query: only get IDs, filter out soft-deleted posts
+    post_ids = list(ForumPost.objects.filter(
+        author_id=user_id,
+        deleted_on__isnull=True
+    ).values_list('id', flat=True))
+    
+    return Response({"post_ids": post_ids}, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get question IDs created by a specific user",
+    manual_parameters=[
+        openapi.Parameter(
+            name='user_id',
+            in_=openapi.IN_PATH,
+            description="User ID",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="List of question IDs",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'question_ids': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_INTEGER),
+                        description='List of question IDs'
+                    )
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+@api_view(['GET'])
+def get_user_question_ids(request, user_id):
+    """
+    Fast endpoint to get all question IDs created by a specific user.
+    Returns only IDs (not full question objects) for optimal performance.
+    """
+    try:
+        user = RegisteredUser.objects.get(pk=user_id)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Fast query: only get IDs, filter out soft-deleted questions
+    question_ids = list(Question.objects.filter(
+        author_id=user_id,
+        deleted_on__isnull=True
+    ).values_list('id', flat=True))
+    
+    return Response({"question_ids": question_ids}, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get answer IDs created by a specific user",
+    manual_parameters=[
+        openapi.Parameter(
+            name='user_id',
+            in_=openapi.IN_PATH,
+            description="User ID",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="List of answer IDs",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'answer_ids': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_INTEGER),
+                        description='List of answer IDs'
+                    )
+                }
+            )
+        ),
+        404: openapi.Response(
+            description="User not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        )
+    }
+)
+@api_view(['GET'])
+def get_user_answer_ids(request, user_id):
+    """
+    Fast endpoint to get all answer IDs created by a specific user.
+    Returns only IDs (not full answer objects) for optimal performance.
+    """
+    try:
+        user = RegisteredUser.objects.get(pk=user_id)
+    except RegisteredUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Fast query: only get IDs, filter out soft-deleted answers
+    answer_ids = list(Answer.objects.filter(
+        author_id=user_id,
+        deleted_on__isnull=True
+    ).values_list('id', flat=True))
+    
+    return Response({"answer_ids": answer_ids}, status=status.HTTP_200_OK)
 
 class RegisteredUserViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]

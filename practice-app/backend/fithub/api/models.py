@@ -116,12 +116,12 @@ class RegisteredUser(AbstractUser, TimestampedModel):
     
     COOK_TYPE_CHOICES = [
         ('beginner', 'Beginner'),
-        ('intermediate', 'Intermediate'),
-        ('expert', 'Expert'),
+        ('home_cook', 'Home Cook'),
+        ('experienced_home_cook', 'Experienced Home Cook'),
         ('professional', 'Professional'),
     ]
     typeOfCook = models.CharField(
-        max_length=15,
+        max_length=25,
         choices=COOK_TYPE_CHOICES,
         blank=True,
         null=True,
