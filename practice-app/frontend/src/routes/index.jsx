@@ -1,48 +1,50 @@
 // src/routes/index.jsx
 
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import AuthLayout from '../layouts/AuthLayout';
-import MainLayout from '../layouts/MainLayout';
-import ProtectedRoute from '../components/auth/ProtectedRoute';
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import AuthLayout from "../layouts/AuthLayout";
+import MainLayout from "../layouts/MainLayout";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 // Auth pages
-import LoginPage from '../pages/auth/LoginPage';
-import RegisterPage from '../pages/auth/RegisterPage';
-import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
-import EmailVerificationPage from '../pages/auth/EmailVerificationPage';
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+import EmailVerificationPage from "../pages/auth/EmailVerificationPage";
 
 // Public pages
-import HomePage from '../pages/HomePage';
+import HomePage from "../pages/HomePage";
 import reportService from "../services/reportService";
 
 // Protected pages
-import DashboardPage from '../pages/DashboardPage';
+import DashboardPage from "../pages/DashboardPage";
 
-import MealPlannerPage from '../pages/meal-planner/MealPlannerPage';
-import ShoppingListPage from '../pages/shopping/ShoppingListPage';
-import RecipeDiscoveryPage from '../pages/recipes/RecipeDiscoveryPage';
-import RecipeDetailPage from '../pages/recipes/RecipeDetailPage';
-import UploadRecipePage from '../pages/recipes/UploadRecipePage';
-import ProfilePage from '../pages/profile/ProfilePage';
-import OtherUserProfilePage from '../pages/profile/OtherUserProfilePage';
+import MealPlannerPage from "../pages/meal-planner/MealPlannerPage";
+import ShoppingListPage from "../pages/shopping/ShoppingListPage";
+import RecipeDiscoveryPage from "../pages/recipes/RecipeDiscoveryPage";
+import RecipeDetailPage from "../pages/recipes/RecipeDetailPage";
+import UploadRecipePage from "../pages/recipes/UploadRecipePage";
+import ProfilePage from "../pages/profile/ProfilePage";
+import OtherUserProfilePage from "../pages/profile/OtherUserProfilePage";
 
-import CommunityPage from '../pages/community/CommunityPage';
-import PostDetailPage from '../pages/community/PostDetailPage';
-import CreatePostPage from '../pages/community/CreatePostPage';
-import UserProfilePage from '../pages/community/UserProfilePage';
-import EditPostPage from '../pages/community/EditPostPage';
+import CommunityPage from "../pages/community/CommunityPage";
+import PostDetailPage from "../pages/community/PostDetailPage";
+import CreatePostPage from "../pages/community/CreatePostPage";
+import UserProfilePage from "../pages/community/UserProfilePage";
+import EditPostPage from "../pages/community/EditPostPage";
 
-import IngredientsPage from '../pages/ingredients/IngredientsPage'
-import IngredientDetailPage from '../pages/ingredients/IngredientDetailPage';
-import RecipeEditPage from '../pages/recipes/RecipeEditPage';
+import IngredientsPage from "../pages/ingredients/IngredientsPage";
+import IngredientDetailPage from "../pages/ingredients/IngredientDetailPage";
+import RecipeEditPage from "../pages/recipes/RecipeEditPage";
+
+import ActivityStreamPage from "../pages/activity-stream/ActivityStreamPage";
 
 // Admin pages
-import AdminReportsPage from '../pages/admin/AdminReportsPage';
-import AdminLogin from '../pages/admin/AdminLogin'; // Fixed import path
+import AdminReportsPage from "../pages/admin/AdminReportsPage";
+import AdminLogin from "../pages/admin/AdminLogin"; // Fixed import path
 
-import '../styles/index.css';
+import "../styles/index.css";
 
 const AdminRoute = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -52,10 +54,10 @@ const AdminRoute = ({ children }) => {
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const token = localStorage.getItem('fithub_access_token');
+        const token = localStorage.getItem("fithub_access_token");
         if (!token) {
           setIsAdmin(false);
-          setError('Please log in first');
+          setError("Please log in first");
           setIsLoading(false);
           return;
         }
@@ -64,11 +66,11 @@ const AdminRoute = ({ children }) => {
         setIsAdmin(adminStatus.is_admin);
       } catch (error) {
         setIsAdmin(false);
-        
+
         if (error.response?.status === 401) {
-          setError('Authentication required. Please log in.');
+          setError("Authentication required. Please log in.");
         } else {
-          setError('Access denied. Admin privileges required.');
+          setError("Access denied. Admin privileges required.");
         }
       } finally {
         setIsLoading(false);
@@ -80,13 +82,15 @@ const AdminRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '50vh',
-        fontSize: '1.1rem'
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "50vh",
+          fontSize: "1.1rem",
+        }}
+      >
         Checking admin access...
       </div>
     );
@@ -94,37 +98,48 @@ const AdminRoute = ({ children }) => {
 
   if (!isAdmin) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '50vh',
-        textAlign: 'center',
-        padding: '2rem'
-      }}>
-        <h2 style={{ color: '#dc2626', marginBottom: '1rem' }}>Access Denied</h2>
-        <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-          {error || 'You need admin privileges to access this page.'}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "50vh",
+          textAlign: "center",
+          padding: "2rem",
+        }}
+      >
+        <h2 style={{ color: "#dc2626", marginBottom: "1rem" }}>
+          Access Denied
+        </h2>
+        <p style={{ color: "#6b7280", marginBottom: "2rem" }}>
+          {error || "You need admin privileges to access this page."}
         </p>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <a 
-            href="/admin/login" 
-            style={{ 
-              color: '#dc2626', 
-              textDecoration: 'underline',
-              fontSize: '1rem',
-              fontWeight: 'bold'
+        <div
+          style={{
+            display: "flex",
+            gap: "1rem",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <a
+            href="/admin/login"
+            style={{
+              color: "#dc2626",
+              textDecoration: "underline",
+              fontSize: "1rem",
+              fontWeight: "bold",
             }}
           >
             Admin Login
           </a>
-          <a 
-            href="/dashboard" 
-            style={{ 
-              color: '#3b82f6', 
-              textDecoration: 'underline',
-              fontSize: '1rem'
+          <a
+            href="/dashboard"
+            style={{
+              color: "#3b82f6",
+              textDecoration: "underline",
+              fontSize: "1rem",
             }}
           >
             Return to Dashboard
@@ -144,7 +159,7 @@ const AdminProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('fithub_access_token');
+      const token = localStorage.getItem("fithub_access_token");
       setIsAuthenticated(!!token);
       setIsLoading(false);
     };
@@ -168,7 +183,7 @@ const AppRoutes = () => {
     <Routes>
       {/* Public home page */}
       <Route path="/" element={<HomePage />} />
-      
+
       {/* Admin Login Route - Standalone, no layout */}
       <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -178,130 +193,141 @@ const AppRoutes = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
+        <Route
+          path="/verify-email/:token"
+          element={<EmailVerificationPage />}
+        />
       </Route>
-      
+
       {/* Protected routes with MainLayout */}
       <Route element={<MainLayout />}>
         {/* Dashboard */}
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <DashboardPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Admin Reports - Special handling for admin authentication */}
-        <Route 
-          path="/admin-reports" 
+        <Route
+          path="/admin-reports"
           element={
             <AdminProtectedRoute>
               <AdminRoute>
                 <AdminReportsPage />
               </AdminRoute>
             </AdminProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Meal Planner */}
-        <Route 
-          path="/meal-planner" 
+        <Route
+          path="/meal-planner"
           element={
             <ProtectedRoute>
               <MealPlannerPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Shopping List */}
-        <Route 
-          path="/shopping-list" 
+        <Route
+          path="/shopping-list"
           element={
             <ProtectedRoute>
               <ShoppingListPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Recipes */}
         <Route path="/recipes" element={<RecipeDiscoveryPage />} />
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/recipes/:id/edit" element={<RecipeEditPage />} />
-        
-        <Route 
-          path="/uploadRecipe" 
+
+        <Route
+          path="/uploadRecipe"
           element={
             <ProtectedRoute>
               <UploadRecipePage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Profile */}
-        <Route 
-          path="/profile" 
+        <Route
+          path="/profile"
           element={
             <ProtectedRoute>
               <ProfilePage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Other User Profile */}
-        <Route 
-          path="/profile/:userId" 
+        <Route
+          path="/profile/:userId"
           element={
             <ProtectedRoute>
               <OtherUserProfilePage />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/community" 
+        <Route
+          path="/community"
           element={
             <ProtectedRoute>
               <CommunityPage />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/community/post/:id" 
+        <Route
+          path="/community/post/:id"
           element={
             <ProtectedRoute>
               <PostDetailPage />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/community/create" 
+        <Route
+          path="/community/create"
           element={
             <ProtectedRoute>
               <CreatePostPage />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/community/edit/:id" 
+        <Route
+          path="/community/edit/:id"
           element={
             <ProtectedRoute>
               <EditPostPage />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/community/profile/:id" 
+        <Route
+          path="/community/profile/:id"
           element={
             <ProtectedRoute>
               <UserProfilePage />
             </ProtectedRoute>
-          } 
+          }
+        />
+        <Route
+          path="/activity-stream"
+          element={
+            <ProtectedRoute>
+              <ActivityStreamPage />
+            </ProtectedRoute>
+          }
         />
         <Route path="/ingredients" element={<IngredientsPage />} />
         <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
@@ -309,7 +335,6 @@ const AppRoutes = () => {
 
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
-
     </Routes>
   );
 };

@@ -10,6 +10,7 @@ import userService from "../services/userService";
 import reportService from "../services/reportService"; // Add this import
 import analyticsService from "../services/analyticsService";
 import { useTranslation } from "react-i18next";
+import ActivityStreamWidget from "../components/activity-stream/ActivityStreamWidget";
 
 const ANALYTICS_PULSE = [
   {
@@ -17,36 +18,36 @@ const ANALYTICS_PULSE = [
     labelKey: "analytics_users_label",
     sublabelKey: "analytics_users_sublabel",
     icon: "👥",
-    accent: "community"
+    accent: "community",
   },
   {
     key: "recipes_count",
     labelKey: "analytics_recipes_label",
     sublabelKey: "analytics_recipes_sublabel",
     icon: "🍲",
-    accent: "recipes"
+    accent: "recipes",
   },
   {
     key: "ingredients_count",
     labelKey: "analytics_ingredients_label",
     sublabelKey: "analytics_ingredients_sublabel",
     icon: "🥬",
-    accent: "ingredients"
+    accent: "ingredients",
   },
   {
     key: "posts_count",
     labelKey: "analytics_posts_label",
     sublabelKey: "analytics_posts_sublabel",
     icon: "📣",
-    accent: "community"
+    accent: "community",
   },
   {
     key: "comments_count",
     labelKey: "analytics_comments_label",
     sublabelKey: "analytics_comments_sublabel",
     icon: "💬",
-    accent: "comments"
-  }
+    accent: "comments",
+  },
 ];
 
 const DashboardPage = () => {
@@ -96,12 +97,17 @@ const DashboardPage = () => {
           setAnalytics(analyticsData);
           setAnalyticsError(null);
         } catch (analyticsError) {
-          console.error("Error fetching analytics - Full error:", analyticsError);
+          console.error(
+            "Error fetching analytics - Full error:",
+            analyticsError
+          );
           console.error("Error message:", analyticsError.message);
           console.error("Error response:", analyticsError.response);
           console.error("Error config:", analyticsError.config);
           setAnalytics(null);
-          setAnalyticsError(analyticsError.response?.data?.detail || analyticsError.message);
+          setAnalyticsError(
+            analyticsError.response?.data?.detail || analyticsError.message
+          );
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -121,11 +127,10 @@ const DashboardPage = () => {
         ...metric,
         label: t(metric.labelKey),
         sublabel: t(metric.sublabelKey),
-        value
+        value,
       };
     });
   }, [analytics, t]);
-
 
   if (!currentUser || isCheckingAdmin) {
     return <div>{t("loading")}</div>;
@@ -171,6 +176,11 @@ const DashboardPage = () => {
             </>
           )}
         </section>
+      </div>
+
+      {/* Activity Stream Widget */}
+      <div className="dashboard-activity-widget">
+        <ActivityStreamWidget />
       </div>
 
       <div className="dashboard-cards">
