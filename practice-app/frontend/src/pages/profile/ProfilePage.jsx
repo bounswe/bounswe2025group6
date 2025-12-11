@@ -634,14 +634,14 @@ ${(list.ingredients || []).map(ing => {
             <h1 className="profile-username">
               <span className="profile-username-wrapper">
                 <span className="profile-username-text">{userProfile.username}</span>
-                <Badge badge={userProfile.typeofcook} size="large" usertype={userProfile.usertype} />
+                <Badge badge={userProfile.typeOfCook} size="large" usertype={userProfile.usertype} />
               </span>
             </h1>
               <p 
                 className="profile-badge-label"
-              style={{ color: getBadgeColor(userProfile.typeofcook, userProfile.usertype) }}
+              style={{ color: getBadgeColor(userProfile.typeOfCook, userProfile.usertype) }}
               >
-              {getBadgeLabel(userProfile.typeofcook, userProfile.usertype, t)}
+              {getBadgeLabel(userProfile.typeOfCook, userProfile.usertype, t)}
               </p>
             <p className="profile-email">{userProfile.email}</p>
             <div className="profile-stats">
@@ -1058,7 +1058,7 @@ ${(list.ingredients || []).map(ing => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.typeofcook} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
@@ -1118,7 +1118,7 @@ ${(list.ingredients || []).map(ing => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.typeofcook} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
               </div>
                 ))

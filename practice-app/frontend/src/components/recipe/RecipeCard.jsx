@@ -83,8 +83,8 @@ const RecipeCard = ({ recipe }) => {
           const userData = await userService.getUserById(recipe.creator_id);
           setCreatorName(userData.username || 'Unknown');
           setCreatorUsertype(userData.usertype || null);
-          // Set badge from typeofcook
-          setCreatorBadge(userData.typeofcook || null);
+          // Set badge from typeOfCook
+          setCreatorBadge(userData.typeOfCook || null);
         } catch (error) {
           console.error('Error fetching creator data:', error);
           setCreatorName('Unknown');

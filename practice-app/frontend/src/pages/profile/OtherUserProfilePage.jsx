@@ -307,13 +307,13 @@ const OtherUserProfilePage = () => {
           <div className="other-profile-info">
             <h1 className="other-profile-username">
               {userProfile.username}
-              <Badge badge={userProfile.typeofcook} size="large" usertype={userProfile.usertype} />
+              <Badge badge={userProfile.typeOfCook} size="large" usertype={userProfile.usertype} />
             </h1>
             <p 
               className="other-profile-badge-label"
-              style={{ color: getBadgeColor(userProfile.typeofcook, userProfile.usertype) }}
+              style={{ color: getBadgeColor(userProfile.typeOfCook, userProfile.usertype) }}
             >
-              {getBadgeLabel(userProfile.typeofcook, userProfile.usertype, t)}
+              {getBadgeLabel(userProfile.typeOfCook, userProfile.usertype, t)}
             </p>
             <div className="other-profile-stats">
               <div className="other-stat-item" onClick={() => setShowFollowersPopup(true)}>
@@ -469,15 +469,15 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.typeofcook} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
               )}
-              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Following Popup */}
       {showFollowingPopup && (
@@ -528,7 +528,7 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.typeofcook} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))

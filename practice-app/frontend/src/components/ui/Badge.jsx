@@ -79,6 +79,17 @@ const Badge = ({ badge, size = 'small', usertype }) => {
       color: '#f6ad55', // Orange
       label: t('badge.professional') || 'Professional'
     },
+    // New underscore format from backend
+    'home_cook': {
+      icon: '★',
+      color: '#4299e1', // Blue
+      label: t('badge.homeCook') || 'Home Cook'
+    },
+    'experienced_home_cook': {
+      icon: '★',
+      color: '#9f7aea', // Purple
+      label: t('badge.experiencedCook') || 'Experienced Home Cook'
+    },
     // Legacy badge values (for backward compatibility)
     'home cook': {
       icon: '★',
@@ -143,6 +154,8 @@ export const getBadgeLabel = (badge, usertype, t) => {
     'intermediate': t('badge.intermediate') || 'Intermediate',
     'expert': t('badge.expert') || 'Expert',
     'professional': t('badge.professional') || 'Professional',
+    'home_cook': t('badge.homeCook') || 'Home Cook',
+    'experienced_home_cook': t('badge.experiencedCook') || 'Experienced Home Cook',
     'home cook': t('badge.homeCook') || 'Home Cook',
     'experienced home cook': t('badge.experiencedCook') || 'Experienced Home Cook'
   };
@@ -167,6 +180,8 @@ export const getBadgeColor = (badge, usertype) => {
     'intermediate': '#4299e1',  // Blue
     'expert': '#9f7aea',        // Purple
     'professional': '#f6ad55',  // Orange
+    'home_cook': '#4299e1',     // Blue
+    'experienced_home_cook': '#9f7aea', // Purple
     'home cook': '#4299e1',     // Blue (legacy)
     'experienced home cook': '#9f7aea' // Purple (legacy)
   };

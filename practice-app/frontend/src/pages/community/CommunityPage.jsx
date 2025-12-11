@@ -194,7 +194,7 @@ const CommunityPage = () => {
                 id,
                 userData: {
                   ...user,
-                  typeofcook: user.typeofcook || null,
+                  typeOfCook: user.typeOfCook || null,
                   usertype: user.usertype || null
                 }
               };
@@ -207,14 +207,14 @@ const CommunityPage = () => {
                   userData: { 
                     id: id, 
                     username: username && username !== 'Unknown' ? username : `User ${id}`, 
-                    typeofcook: null, 
+                    typeOfCook: null, 
                     usertype: null 
                   }
                 };
               } catch (error) {
                 return {
                   id,
-                  userData: { id: id, username: `User ${id}`, typeofcook: null, usertype: null }
+                  userData: { id: id, username: `User ${id}`, typeOfCook: null, usertype: null }
                 };
               }
             }
@@ -593,7 +593,7 @@ const CommunityPage = () => {
                             className="author-link"
                           >
                             {getUserName(post.author)}
-                            <Badge badge={userMap[post.author]?.typeofcook} size="small" usertype={userMap[post.author]?.usertype} />
+                            <Badge badge={userMap[post.author]?.typeOfCook} size="small" usertype={userMap[post.author]?.usertype} />
                           </span>
                         </div>
                       </span>
