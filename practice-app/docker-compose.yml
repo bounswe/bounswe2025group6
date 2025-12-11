@@ -26,7 +26,7 @@ services:
   backend:
     build: ./backend/fithub
     container_name: myproject-django
-    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata reports && python manage.py migrate && exec python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     depends_on:
@@ -44,7 +44,7 @@ services:
   backend_https:
     build: ./backend/fithub
     container_name: myproject-django-https
-    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata reports && python manage.py migrate && exec python manage.py runserver_plus --cert-file ${HTTPS_CERT} --key-file ${HTTPS_KEY} 0.0.0.0:8000"
+    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec python manage.py runserver_plus --cert-file ${HTTPS_CERT} --key-file ${HTTPS_KEY} 0.0.0.0:8000"
     volumes:
       - .:/code
     depends_on:

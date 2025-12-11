@@ -9,6 +9,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from recipes.models import Recipe  # Import from recipes app
 from .models import RegisteredUser, RecipeRating, HealthRating, Dietitian
+from forum.models import ForumPost, ForumPostComment
+from qa.models import Question, Answer
 
 User = get_user_model()
 
@@ -268,3 +270,23 @@ class HealthRatingSerializer(serializers.ModelSerializer):
         instance.comment = validated_data.get('comment', instance.comment)
         instance.save()
         return instance
+
+
+class ActivityStreamSerializer(serializers.Serializer):
+    """
+    Serializer for activity stream items.
+    Represents various activities from followed users.
+    """
+    activity_type = serializers.CharField()
+    activity_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+    user_username = serializers.CharField()
+    user_profile_photo = serializers.URLField(required=False, allow_null=True)
+    timestamp = serializers.DateTimeField()
+    title = serializers.CharField(required=False, allow_blank=True)
+    content = serializers.CharField(required=False, allow_blank=True)
+    target_id = serializers.IntegerField(required=False, allow_null=True)
+    target_title = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    
+    # Additional metadata based on activity type
+    metadata = serializers.DictField(required=False, allow_null=True)

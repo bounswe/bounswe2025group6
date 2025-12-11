@@ -70,10 +70,19 @@ def track_recipe_deleted_on(sender, instance, **kwargs):
         # New recipe, no old value
         set_old_deleted_on(None, None)
 
+def get_type_of_cook_from_recipe_count(recipe_count):
+    """Determine typeOfCook based on recipeCount"""
+    if recipe_count >= 10:
+        return 'experienced_home_cook'  # Experienced Home Cook
+    elif recipe_count >= 5:
+        return 'home_cook'  # Home Cook
+    else:
+        return 'beginner'
+
 # Signal to update recipeCount when a recipe is created or soft-deleted
 @receiver(post_save, sender=Recipe)
 def update_recipe_count(sender, instance, created, **kwargs):
-    """Update the creator's recipeCount when a recipe is created or soft-deleted"""
+    """Update the creator's recipeCount and typeOfCook when a recipe is created or soft-deleted"""
     from api.models import RegisteredUser
     
     creator = instance.creator
@@ -85,8 +94,15 @@ def update_recipe_count(sender, instance, created, **kwargs):
     if created:
         # New recipe created - increment count if not soft-deleted
         if instance.deleted_on is None:
+            # Update recipeCount and get the new value
             RegisteredUser.objects.filter(pk=creator.pk).update(
                 recipeCount=models.F('recipeCount') + 1
+            )
+            # Refresh to get updated recipeCount, then update typeOfCook
+            creator.refresh_from_db()
+            new_type_of_cook = get_type_of_cook_from_recipe_count(creator.recipeCount)
+            RegisteredUser.objects.filter(pk=creator.pk).update(
+                typeOfCook=new_type_of_cook
             )
     else:
         # Existing recipe updated
@@ -98,10 +114,22 @@ def update_recipe_count(sender, instance, created, **kwargs):
                 RegisteredUser.objects.filter(pk=creator.pk).update(
                     recipeCount=models.F('recipeCount') - 1
                 )
+                # Update typeOfCook based on new recipeCount
+                creator.refresh_from_db()
+                new_type_of_cook = get_type_of_cook_from_recipe_count(creator.recipeCount)
+                RegisteredUser.objects.filter(pk=creator.pk).update(
+                    typeOfCook=new_type_of_cook
+                )
         elif old_deleted_on is not None and instance.deleted_on is None:
             # Recipe was restored from soft-delete - increment count
             RegisteredUser.objects.filter(pk=creator.pk).update(
                 recipeCount=models.F('recipeCount') + 1
+            )
+            # Refresh to get updated recipeCount, then update typeOfCook
+            creator.refresh_from_db()
+            new_type_of_cook = get_type_of_cook_from_recipe_count(creator.recipeCount)
+            RegisteredUser.objects.filter(pk=creator.pk).update(
+                typeOfCook=new_type_of_cook
             )
     
     # Clean up thread-local storage
