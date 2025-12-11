@@ -9,13 +9,12 @@ from django.conf import settings
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.hashers import make_password
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
-from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -764,6 +763,272 @@ def get_user_answer_ids(request, user_id):
     ).values_list('id', flat=True))
     
     return Response({"answer_ids": answer_ids}, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description="Get activity stream from all followed users",
+    manual_parameters=[
+        openapi.Parameter(
+            name='page',
+            in_=openapi.IN_QUERY,
+            description="Page number for pagination",
+            type=openapi.TYPE_INTEGER,
+            required=False
+        ),
+        openapi.Parameter(
+            name='page_size',
+            in_=openapi.IN_QUERY,
+            description="Number of items per page (default: 20, max: 100)",
+            type=openapi.TYPE_INTEGER,
+            required=False
+        ),
+        openapi.Parameter(
+            name='activity_type',
+            in_=openapi.IN_QUERY,
+            description="Filter by activity type: recipe, post, comment, question, answer",
+            type=openapi.TYPE_STRING,
+            enum=['recipe', 'post', 'comment', 'question', 'answer'],
+            required=False
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description="Activity stream from followed users",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'page': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'page_size': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'total': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'results': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'activity_type': openapi.Schema(type=openapi.TYPE_STRING),
+                                'activity_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                'user_username': openapi.Schema(type=openapi.TYPE_STRING),
+                                'user_profile_photo': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_URI),
+                                'timestamp': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+                                'title': openapi.Schema(type=openapi.TYPE_STRING),
+                                'content': openapi.Schema(type=openapi.TYPE_STRING),
+                                'target_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                'target_title': openapi.Schema(type=openapi.TYPE_STRING),
+                                'metadata': openapi.Schema(type=openapi.TYPE_OBJECT),
+                            }
+                        )
+                    )
+                }
+            )
+        ),
+        401: openapi.Response(description="Unauthorized - authentication required")
+    },
+    security=[{"Bearer": []}],
+    tags=['Activity Stream']
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def activity_stream(request):
+    """
+    Get activity stream showing all activities from users that the authenticated user follows.
+    
+    Activities include:
+    - Recipe creation
+    - Forum post creation
+    - Forum post comments
+    - Question creation
+    - Answer creation
+    
+    Activities are sorted by timestamp (most recent first) and paginated.
+    """
+    from utils.pagination import StandardPagination
+    from .serializers import ActivityStreamSerializer
+    
+    user = request.user
+    
+    # Get list of followed user IDs
+    followed_user_ids = user.followedUsers.values_list('id', flat=True)
+    
+    if not followed_user_ids:
+        # Return empty result if not following anyone
+        paginator = StandardPagination()
+        page_size = paginator.get_page_size(request)
+        return Response({
+            'page': 1,
+            'page_size': page_size,
+            'total': 0,
+            'results': [],
+        })
+    
+    # Get activity type filter if provided
+    activity_type_filter = request.query_params.get('activity_type')
+    
+    activities = []
+    
+    # 1. Recipe creations
+    if not activity_type_filter or activity_type_filter == 'recipe':
+        recipes = Recipe.objects.filter(
+            creator_id__in=followed_user_ids,
+            deleted_on__isnull=True
+        ).select_related('creator').order_by('-created_at')
+        
+        for recipe in recipes:
+            activities.append({
+                'activity_type': 'recipe',
+                'activity_id': recipe.id,
+                'user_id': recipe.creator.id,
+                'user_username': recipe.creator.username,
+                'user_profile_photo': recipe.creator.profilePhoto.url if recipe.creator.profilePhoto else None,
+                'timestamp': recipe.created_at,
+                'title': recipe.name,
+                'content': f"Created recipe: {recipe.name}",
+                'target_id': recipe.id,
+                'target_title': recipe.name,
+                'metadata': {
+                    'meal_type': recipe.meal_type,
+                    'prep_time': recipe.prep_time,
+                    'cook_time': recipe.cook_time,
+                }
+            })
+    
+    # 2. Forum post creations
+    if not activity_type_filter or activity_type_filter == 'post':
+        posts = ForumPost.objects.filter(
+            author_id__in=followed_user_ids,
+            deleted_on__isnull=True
+        ).select_related('author').order_by('-created_at')
+        
+        for post in posts:
+            activities.append({
+                'activity_type': 'post',
+                'activity_id': post.id,
+                'user_id': post.author.id,
+                'user_username': post.author.username,
+                'user_profile_photo': post.author.profilePhoto.url if post.author.profilePhoto else None,
+                'timestamp': post.created_at,
+                'title': post.title,
+                'content': post.content[:200] if post.content else '',  # Truncate for preview
+                'target_id': post.id,
+                'target_title': post.title,
+                'metadata': {
+                    'tags': post.tags,
+                    'upvote_count': post.upvote_count,
+                    'downvote_count': post.downvote_count,
+                }
+            })
+    
+    # 3. Forum post comments
+    if not activity_type_filter or activity_type_filter == 'comment':
+        comments = ForumPostComment.objects.filter(
+            author_id__in=followed_user_ids,
+            deleted_on__isnull=True
+        ).select_related('author', 'post').order_by('-created_at')
+        
+        for comment in comments:
+            activities.append({
+                'activity_type': 'comment',
+                'activity_id': comment.id,
+                'user_id': comment.author.id,
+                'user_username': comment.author.username,
+                'user_profile_photo': comment.author.profilePhoto.url if comment.author.profilePhoto else None,
+                'timestamp': comment.created_at,
+                'title': f"Commented on: {comment.post.title}",
+                'content': comment.content[:200] if comment.content else '',
+                'target_id': comment.post.id,
+                'target_title': comment.post.title,
+                'metadata': {
+                    'post_id': comment.post.id,
+                    'level': comment.level,
+                    'upvote_count': comment.upvote_count,
+                }
+            })
+    
+    # 4. Question creations
+    if not activity_type_filter or activity_type_filter == 'question':
+        questions = Question.objects.filter(
+            author_id__in=followed_user_ids,
+            deleted_on__isnull=True
+        ).select_related('author').order_by('-created_at')
+        
+        for question in questions:
+            activities.append({
+                'activity_type': 'question',
+                'activity_id': question.id,
+                'user_id': question.author.id,
+                'user_username': question.author.username,
+                'user_profile_photo': question.author.profilePhoto.url if question.author.profilePhoto else None,
+                'timestamp': question.created_at,
+                'title': question.title,
+                'content': question.content[:200] if question.content else '',
+                'target_id': question.id,
+                'target_title': question.title,
+                'metadata': {
+                    'tags': question.tags,
+                    'upvote_count': question.upvote_count,
+                    'downvote_count': question.downvote_count,
+                }
+            })
+    
+    # 5. Answer creations
+    if not activity_type_filter or activity_type_filter == 'answer':
+        answers = Answer.objects.filter(
+            author_id__in=followed_user_ids,
+            deleted_on__isnull=True
+        ).select_related('author', 'post').order_by('-created_at')
+        
+        for answer in answers:
+            activities.append({
+                'activity_type': 'answer',
+                'activity_id': answer.id,
+                'user_id': answer.author.id,
+                'user_username': answer.author.username,
+                'user_profile_photo': answer.author.profilePhoto.url if answer.author.profilePhoto else None,
+                'timestamp': answer.created_at,
+                'title': f"Answered: {answer.post.title}",
+                'content': answer.content[:200] if answer.content else '',
+                'target_id': answer.post.id,
+                'target_title': answer.post.title,
+                'metadata': {
+                    'question_id': answer.post.id,
+                    'level': answer.level,
+                    'upvote_count': answer.upvote_count,
+                }
+            })
+    
+    # Sort all activities by timestamp (most recent first)
+    activities.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    # Paginate results manually (since activities is a list, not a queryset)
+    paginator = StandardPagination()
+    
+    # Get pagination parameters
+    page_size = paginator.get_page_size(request)
+    page_number = request.query_params.get('page', 1)
+    
+    try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1
+    
+    # Calculate pagination
+    total = len(activities)
+    start_index = (page_number - 1) * page_size
+    end_index = start_index + page_size
+    paginated_activities = activities[start_index:end_index]
+    
+    # Serialize the results
+    serializer = ActivityStreamSerializer(paginated_activities, many=True)
+    
+    # Return paginated response
+    return Response({
+        'page': page_number,
+        'page_size': page_size,
+        'total': total,
+        'results': serializer.data,
+    })
+
 
 class RegisteredUserViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
