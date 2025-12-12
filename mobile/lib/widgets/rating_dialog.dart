@@ -92,16 +92,18 @@ class _RatingDialogState extends State<RatingDialog> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Delete Rating'),
+            title: Text(AppLocalizations.of(context)!.deleteRatingTitle),
             content: Text(
               _isDietitian && _existingHealthRatingId != null
-                  ? 'Are you sure you want to delete your ratings? This will delete both your recipe rating and health rating.'
-                  : 'Are you sure you want to delete your rating? This action cannot be undone.',
+                  ? AppLocalizations.of(
+                    context,
+                  )!.deleteRatingConfirmationDietitian
+                  : AppLocalizations.of(context)!.deleteRatingConfirmation,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context)!.cancel),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
@@ -109,7 +111,7 @@ class _RatingDialogState extends State<RatingDialog> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Delete'),
+                child: Text(AppLocalizations.of(context)!.delete),
               ),
             ],
           ),
@@ -143,10 +145,10 @@ class _RatingDialogState extends State<RatingDialog> {
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Rating deleted successfully!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.ratingDeletedSuccess),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
 
@@ -184,7 +186,7 @@ class _RatingDialogState extends State<RatingDialog> {
 
     if (!hasRecipeRating && !hasHealthRating && widget.existingRating == null) {
       setState(() {
-        _errorMessage = 'Please provide at least one rating';
+        _errorMessage = AppLocalizations.of(context)!.provideOneRating;
       });
       return;
     }
@@ -242,8 +244,8 @@ class _RatingDialogState extends State<RatingDialog> {
           SnackBar(
             content: Text(
               widget.existingRating != null
-                  ? 'Rating updated successfully!'
-                  : 'Rating submitted successfully!',
+                  ? AppLocalizations.of(context)!.ratingUpdatedSuccess
+                  : AppLocalizations.of(context)!.ratingSubmittedSuccess,
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
@@ -270,7 +272,7 @@ class _RatingDialogState extends State<RatingDialog> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'An unexpected error occurred. Please try again.';
+          _errorMessage = AppLocalizations.of(context)!.unexpectedError;
           _isLoading = false;
         });
       }
@@ -332,7 +334,7 @@ class _RatingDialogState extends State<RatingDialog> {
                     label:
                         _tasteRating != null
                             ? _tasteRating!.toStringAsFixed(1)
-                            : 'Not set',
+                            : AppLocalizations.of(context)!.notSet,
                     activeColor: AppTheme.primaryGreen,
                     onChanged: (value) {
                       setState(() {
@@ -347,7 +349,7 @@ class _RatingDialogState extends State<RatingDialog> {
                   child: Text(
                     _tasteRating != null
                         ? _tasteRating!.toStringAsFixed(1)
-                        : 'N/A',
+                        : AppLocalizations.of(context)!.notAvailableAbbr,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 16,
@@ -406,7 +408,7 @@ class _RatingDialogState extends State<RatingDialog> {
                     label:
                         _difficultyRating != null
                             ? _difficultyRating!.toStringAsFixed(1)
-                            : 'Not set',
+                            : AppLocalizations.of(context)!.notSet,
                     activeColor: Colors.orange.shade700,
                     onChanged: (value) {
                       setState(() {
@@ -421,7 +423,7 @@ class _RatingDialogState extends State<RatingDialog> {
                   child: Text(
                     _difficultyRating != null
                         ? _difficultyRating!.toStringAsFixed(1)
-                        : 'N/A',
+                        : AppLocalizations.of(context)!.notAvailableAbbr,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 16,
@@ -468,7 +470,7 @@ class _RatingDialogState extends State<RatingDialog> {
             if (_isDietitian) ...[
               const Divider(height: 32),
               Text(
-                '${AppLocalizations.of(context)!.healthRating} (Dietitian Only)',
+                '${AppLocalizations.of(context)!.healthRating} ${AppLocalizations.of(context)!.dietitianOnly}',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -483,7 +485,7 @@ class _RatingDialogState extends State<RatingDialog> {
                       label:
                           _healthRating != null
                               ? _healthRating!.toStringAsFixed(1)
-                              : 'Not set',
+                              : AppLocalizations.of(context)!.notSet,
                       activeColor: Colors.green.shade700,
                       onChanged: (value) {
                         setState(() {
@@ -498,7 +500,7 @@ class _RatingDialogState extends State<RatingDialog> {
                     child: Text(
                       _healthRating != null
                           ? _healthRating!.toStringAsFixed(1)
-                          : 'N/A',
+                          : AppLocalizations.of(context)!.notAvailableAbbr,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 16,
