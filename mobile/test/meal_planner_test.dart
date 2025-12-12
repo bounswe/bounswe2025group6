@@ -76,6 +76,24 @@ void main() {
       expect(allergens, containsAll(['Dairy', 'Wheat', 'Nuts']));
       expect(allergens.length, 3);
     });
+
+    test('Should collect dietary info from recipes', () {
+      final breakfast = _createTestRecipeWithDietaryInfo('Oatmeal', 3.0, dietaryInfo: ['vegan', 'gluten-free']);
+      final lunch = _createTestRecipeWithDietaryInfo('Salad', 5.0, dietaryInfo: ['vegan', 'high-protein']);
+      
+      final mealPlan = DailyMealPlan(
+        date: DateTime.now(),
+        breakfast: breakfast,
+        lunch: lunch,
+      );
+
+      final allDietaryInfo = <String>{};
+      for (var recipe in mealPlan.getAllRecipes()) {
+        allDietaryInfo.addAll(recipe.dietaryInfo);
+      }
+      
+      expect(allDietaryInfo, containsAll(['vegan', 'gluten-free', 'high-protein']));
+    });
   });
 
   group('ShoppingList Tests', () {
@@ -187,6 +205,113 @@ void main() {
     });
   });
 
+  group('Allergen and Dietary Filter Tests', () {
+    test('Should correctly identify recipes with allergens', () {
+      final veganRecipe = _createTestRecipeWithDietaryInfo('Vegan Bowl', 8.0, allergens: [], dietaryInfo: ['vegan']);
+      final dairyRecipe = _createTestRecipeWithDietaryInfo('Cheese Pizza', 10.0, allergens: ['dairy'], dietaryInfo: []);
+      final nutsRecipe = _createTestRecipeWithDietaryInfo('Almond Cookies', 6.0, allergens: ['nuts'], dietaryInfo: []);
+      
+      expect(veganRecipe.allergens.isEmpty, true);
+      expect(dairyRecipe.allergens.contains('dairy'), true);
+      expect(nutsRecipe.allergens.contains('nuts'), true);
+    });
+
+    test('Should correctly identify recipes with dietary tags', () {
+      final veganRecipe = _createTestRecipeWithDietaryInfo('Vegan Bowl', 8.0, dietaryInfo: ['vegan', 'gluten-free']);
+      final highProteinRecipe = _createTestRecipeWithDietaryInfo('Chicken Breast', 12.0, dietaryInfo: ['high-protein']);
+      final ketoRecipe = _createTestRecipeWithDietaryInfo('Keto Salad', 9.0, dietaryInfo: ['keto-friendly', 'low-carb']);
+      
+      expect(veganRecipe.dietaryInfo, containsAll(['vegan', 'gluten-free']));
+      expect(highProteinRecipe.dietaryInfo.contains('high-protein'), true);
+      expect(ketoRecipe.dietaryInfo, containsAll(['keto-friendly', 'low-carb']));
+    });
+
+    test('Should support multiple allergen exclusions', () {
+      final recipes = [
+        _createTestRecipeWithDietaryInfo('Safe Recipe', 5.0, allergens: [], dietaryInfo: ['vegan']),
+        _createTestRecipeWithDietaryInfo('Dairy Recipe', 7.0, allergens: ['dairy'], dietaryInfo: []),
+        _createTestRecipeWithDietaryInfo('Nut Recipe', 6.0, allergens: ['nuts'], dietaryInfo: []),
+        _createTestRecipeWithDietaryInfo('Egg Recipe', 4.0, allergens: ['egg'], dietaryInfo: []),
+      ];
+      
+      // Simulate filtering out dairy and nuts
+      final excludedAllergens = {'dairy', 'nuts'};
+      final filteredRecipes = recipes.where((recipe) {
+        return !recipe.allergens.any((allergen) => excludedAllergens.contains(allergen));
+      }).toList();
+      
+      expect(filteredRecipes.length, 2);
+      expect(filteredRecipes.any((r) => r.name == 'Safe Recipe'), true);
+      expect(filteredRecipes.any((r) => r.name == 'Egg Recipe'), true);
+      expect(filteredRecipes.any((r) => r.name == 'Dairy Recipe'), false);
+      expect(filteredRecipes.any((r) => r.name == 'Nut Recipe'), false);
+    });
+
+    test('Should support multiple dietary preferences', () {
+      final recipes = [
+        _createTestRecipeWithDietaryInfo('Vegan Meal', 8.0, dietaryInfo: ['vegan', 'gluten-free']),
+        _createTestRecipeWithDietaryInfo('Protein Meal', 12.0, dietaryInfo: ['high-protein']),
+        _createTestRecipeWithDietaryInfo('Keto Meal', 10.0, dietaryInfo: ['keto-friendly', 'low-carb']),
+        _createTestRecipeWithDietaryInfo('Regular Meal', 6.0, dietaryInfo: []),
+      ];
+      
+      // Simulate filtering for vegan recipes
+      final requiredTags = {'vegan'};
+      final filteredRecipes = recipes.where((recipe) {
+        return requiredTags.every((tag) => recipe.dietaryInfo.contains(tag));
+      }).toList();
+      
+      expect(filteredRecipes.length, 1);
+      expect(filteredRecipes.first.name, 'Vegan Meal');
+    });
+
+    test('Should handle empty allergen list correctly', () {
+      final recipe = _createTestRecipeWithDietaryInfo('Safe Recipe', 5.0, allergens: [], dietaryInfo: ['vegan']);
+      
+      expect(recipe.allergens.isEmpty, true);
+      expect(recipe.allergens.length, 0);
+    });
+
+    test('Should handle empty dietary info list correctly', () {
+      final recipe = _createTestRecipeWithDietaryInfo('Regular Recipe', 5.0, allergens: ['dairy'], dietaryInfo: []);
+      
+      expect(recipe.dietaryInfo.isEmpty, true);
+      expect(recipe.dietaryInfo.length, 0);
+    });
+
+    test('Should support strict dietary tags (vegan, gluten-free)', () {
+      final strictVeganRecipe = _createTestRecipeWithDietaryInfo('Strict Vegan', 8.0, dietaryInfo: ['vegan', 'gluten-free']);
+      final partialVeganRecipe = _createTestRecipeWithDietaryInfo('Partial Vegan', 7.0, dietaryInfo: ['vegan', 'high-protein']);
+      
+      // Strict tags require ALL ingredients to have the tag
+      // This is validated on backend, but we verify the tags are present
+      expect(strictVeganRecipe.dietaryInfo.contains('vegan'), true);
+      expect(strictVeganRecipe.dietaryInfo.contains('gluten-free'), true);
+      expect(partialVeganRecipe.dietaryInfo.contains('vegan'), true);
+    });
+
+    test('Should combine allergen exclusion and dietary preferences', () {
+      final recipes = [
+        _createTestRecipeWithDietaryInfo('Vegan No Nuts', 8.0, allergens: [], dietaryInfo: ['vegan']),
+        _createTestRecipeWithDietaryInfo('Vegan With Nuts', 9.0, allergens: ['nuts'], dietaryInfo: ['vegan']),
+        _createTestRecipeWithDietaryInfo('Non-Vegan No Nuts', 7.0, allergens: [], dietaryInfo: ['high-protein']),
+      ];
+      
+      // Filter: must be vegan AND must not contain nuts
+      final excludedAllergens = {'nuts'};
+      final requiredTags = {'vegan'};
+      
+      final filteredRecipes = recipes.where((recipe) {
+        final hasNoExcludedAllergens = !recipe.allergens.any((a) => excludedAllergens.contains(a));
+        final hasRequiredTags = requiredTags.every((tag) => recipe.dietaryInfo.contains(tag));
+        return hasNoExcludedAllergens && hasRequiredTags;
+      }).toList();
+      
+      expect(filteredRecipes.length, 1);
+      expect(filteredRecipes.first.name, 'Vegan No Nuts');
+    });
+  });
+
   group('ShoppingListItem Tests', () {
     test('Should create item with correct properties', () {
       final item = ShoppingListItem(
@@ -263,6 +388,34 @@ Recipe _createTestRecipe(String name, double? cost, {List<String>? allergens}) {
     totalRatings: 0,
     allergens: allergens ?? [],
     dietaryInfo: [],
+  );
+}
+
+Recipe _createTestRecipeWithDietaryInfo(String name, double? cost, {List<String>? dietaryInfo, List<String>? allergens}) {
+  return Recipe(
+    id: name.hashCode,
+    name: name,
+    steps: ['Step 1'],
+    prepTime: 10,
+    cookTime: 20,
+    mealType: 'breakfast',
+    creatorId: 1,
+    ingredients: [],
+    costPerServing: cost,
+    likeCount: 0,
+    commentCount: 0,
+    difficultyRatingCount: 0,
+    tasteRatingCount: 0,
+    healthRatingCount: 0,
+    isApproved: true,
+    isFeatured: false,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    totalTime: 30,
+    totalUserRatings: 0,
+    totalRatings: 0,
+    allergens: allergens ?? [],
+    dietaryInfo: dietaryInfo ?? [],
   );
 }
 

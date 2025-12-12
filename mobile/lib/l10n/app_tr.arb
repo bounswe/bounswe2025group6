@@ -1029,5 +1029,33 @@
     "bread": "Ekmek",
     "flour": "Un",
     "pasta": "Makarna",
-    "water": "Su"
+    "water": "Su",
+
+    "@_ALLERGEN_AND_DIETARY_FILTERS": {},
+    "excludeAllergensFilter": "Alerjenleri Hariç Tut",
+    "dietaryPreferencesFilter": "Diyet Tercihleri",
+    "dietaryFilterInfo": "* işaretli etiketler TÜM malzemelerin eşleşmesini gerektirir. Diğerleri EN AZ BİR malzeme gerektirir.",
+    "strictDietaryTagInfo": "TÜM malzemelerin bu etikete sahip olmasını gerektirir",
+
+    "@_ALLERGENS": {},
+    "allergenNuts": "Fındık/Fıstık",
+    "allergenDairy": "Süt Ürünleri",
+    "allergenEgg": "Yumurta",
+    "allergenFish": "Balık",
+    "allergenGluten": "Gluten",
+    "allergenProbiotic": "Probiyotik",
+
+    "@_DIETARY_TAGS": {},
+    "dietaryVegan": "Vegan",
+    "dietaryGlutenFree": "Glutensiz",
+    "dietaryHighProtein": "Yüksek Protein",
+    "dietaryKetoFriendly": "Keto Uyumlu",
+    "dietaryHealthyFat": "Sağlıklı Yağ",
+    "dietaryOmega3": "Omega-3",
+    "dietaryPotassiumRich": "Potasyum Zengini",
+    "dietaryLowCarb": "Düşük Karbonhidrat",
+    "dietaryWholeGrain": "Tam Tahıl",
+    "dietarySoyBased": "Soya Bazlı",
+    "dietaryLeanProtein": "Yağsız Protein",
+    "dietaryHighFiber": "Yüksek Lif"
 }

@@ -1160,5 +1160,33 @@
   "bread": "Bread",
   "flour": "Flour",
   "pasta": "Pasta",
-  "water": "Water"
+  "water": "Water",
+
+  "@_ALLERGEN_AND_DIETARY_FILTERS": {},
+  "excludeAllergensFilter": "Exclude Allergens",
+  "dietaryPreferencesFilter": "Dietary Preferences",
+  "dietaryFilterInfo": "Tags with * require ALL ingredients to match. Others need AT LEAST ONE ingredient.",
+  "strictDietaryTagInfo": "Requires ALL ingredients to have this tag",
+
+  "@_ALLERGENS": {},
+  "allergenNuts": "Nuts",
+  "allergenDairy": "Dairy",
+  "allergenEgg": "Egg",
+  "allergenFish": "Fish",
+  "allergenGluten": "Gluten",
+  "allergenProbiotic": "Probiotic",
+
+  "@_DIETARY_TAGS": {},
+  "dietaryVegan": "Vegan",
+  "dietaryGlutenFree": "Gluten-Free",
+  "dietaryHighProtein": "High Protein",
+  "dietaryKetoFriendly": "Keto-Friendly",
+  "dietaryHealthyFat": "Healthy Fat",
+  "dietaryOmega3": "Omega-3",
+  "dietaryPotassiumRich": "Potassium-Rich",
+  "dietaryLowCarb": "Low Carb",
+  "dietaryWholeGrain": "Whole Grain",
+  "dietarySoyBased": "Soy-Based",
+  "dietaryLeanProtein": "Lean Protein",
+  "dietaryHighFiber": "High Fiber"
 }
