@@ -556,10 +556,15 @@ ${(list.ingredients || []).map(ing => {
                   return;
                 }
                 
+                // Close the photo popup first, then show preview
+                setShowPhotoPopup(false);
                 setSelectedPhotoFile(file);
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                  setPhotoPreview(reader.result);
+                  // Small delay to ensure popup closes before preview opens
+                  setTimeout(() => {
+                    setPhotoPreview(reader.result);
+                  }, 100);
                 };
                 reader.readAsDataURL(file);
               }}
@@ -1183,7 +1188,7 @@ ${(list.ingredients || []).map(ing => {
                 className="profile-photo-popup-edit-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowPhotoPopup(false);
+                  // Don't close popup immediately, let file selection close it
                   fileInputRef.current?.click();
                 }}
               >
