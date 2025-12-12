@@ -16,7 +16,7 @@ class ProfileServiceException implements Exception {
 }
 
 class ProfileService {
-  static const String baseUrl = 'https://fithubmp.xyz:8000';
+  static const String baseUrl = 'http://10.0.2.2:8000';
   String? token;
   final Map<int, Map<String, dynamic>> _badgeCache = {};
 
@@ -278,7 +278,7 @@ class ProfileService {
     }
   }
 
-  /// Fetches user's recipe count and badge from API
+  /// Fetches user's badge from user profile (typeOfCook field)
   /// Returns: {'recipe_count': int?, 'badge': String?}
   Future<Map<String, dynamic>?> getRecipeCountBadge(int userId) async {
     // Check cache first
@@ -286,51 +286,20 @@ class ProfileService {
       return _badgeCache[userId];
     }
 
-    token = await StorageService.getJwtAccessToken();
-    if (token == null) {
-      return null;
-    }
-
-    final url = '$baseUrl/recipes/user/$userId/recipe-count/';
-
     try {
-      var response = await http.get(Uri.parse(url), headers: headers);
+      final profile = await getUserProfileById(userId);
 
-      if (response.statusCode == 401) {
-        final refreshSuccess = await _refreshToken();
-        if (!refreshSuccess) {
-          return null;
-        }
+      // Get badge from typeOfCook field and normalize it
+      final finalBadge = normalizeBadgeFromApi(
+        profile.typeOfCook,
+        userType: profile.userType,
+      );
 
-        response = await http.get(Uri.parse(url), headers: headers);
-      }
+      final result = {'recipe_count': profile.recipeCount, 'badge': finalBadge};
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final recipeCount = data['recipe_count'] as int?;
-        final apiBadge = data['badge'] as String?;
-
-        // Check user type via profile endpoint to give priority to Dietitian
-        String? finalBadge = apiBadge;
-        try {
-          final profile = await getUserProfileById(userId);
-          finalBadge = normalizeBadgeFromApi(
-            apiBadge,
-            userType: profile.userType,
-          );
-        } catch (_) {
-          // If profile fetch fails, fall back to API badge (no-op)
-          finalBadge = normalizeBadgeFromApi(apiBadge);
-        }
-
-        final result = {'recipe_count': recipeCount, 'badge': finalBadge};
-
-        // Cache the result
-        _badgeCache[userId] = result;
-        return result;
-      }
-
-      return null;
+      // Cache the result
+      _badgeCache[userId] = result;
+      return result;
     } catch (e) {
       return null;
     }

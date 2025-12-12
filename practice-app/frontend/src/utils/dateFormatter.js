@@ -34,11 +34,19 @@ export const formatDate = (dateString, preferredFormat = 'DD/MM/YYYY', t = null)
       return t ? t('timeJustNow') : 'just now';
     }
     if (diffMinutes < 60) {
-      const minuteText = t ? t('timeMinutesAgo', { count: diffMinutes }) : `${diffMinutes}${diffMinutes === 1 ? ' minute' : ' minutes'} ago`;
-      return minuteText;
+      if (t) {
+        // Use pluralization with i18next
+        const key = diffMinutes === 1 ? 'timeMinutesAgo_one' : 'timeMinutesAgo_other';
+        return t(key, { count: diffMinutes, defaultValue: `${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago` });
+      }
+      return `${diffMinutes}${diffMinutes === 1 ? ' minute' : ' minutes'} ago`;
     }
-    const hourText = t ? t('timeHoursAgo', { count: diffHours }) : `${diffHours}${diffHours === 1 ? ' hour' : ' hours'} ago`;
-    return hourText;
+    if (t) {
+      // Use pluralization with i18next
+      const key = diffHours === 1 ? 'timeHoursAgo_one' : 'timeHoursAgo_other';
+      return t(key, { count: diffHours, defaultValue: `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago` });
+    }
+    return `${diffHours}${diffHours === 1 ? ' hour' : ' hours'} ago`;
   }
   
   // Otherwise, format according to user preference

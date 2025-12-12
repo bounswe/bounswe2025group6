@@ -23,7 +23,9 @@ const REPORT_STATUSES = {
 const CONTENT_TYPES = {
   'forumpost': 'Forum Post',
   'recipe': 'Recipe',
-  'forumpostcomment': 'Comment'
+  'forumpostcomment': 'Comment',
+  'question': 'Q&A Question',
+  'answer': 'Q&A Answer'
 };
 
 const AdminReportsPage = () => {

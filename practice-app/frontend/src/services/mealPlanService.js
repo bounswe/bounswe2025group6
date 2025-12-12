@@ -131,6 +131,12 @@ export const fetchMealPlanRecipes = async (filters = {}) => {
       params.exclude_allergens = filters.excludeAllergens.join(',');
     }
     
+    // Dietary info filter
+    // Backend expects comma-separated string (e.g., 'vegan,vegetarian')
+    if (filters.dietInfo && Array.isArray(filters.dietInfo) && filters.dietInfo.length > 0) {
+      params.diet_info = filters.dietInfo.join(',');
+    }
+    
     // Pagination (integer -> string for query params)
     const page = parseNumber(filters.page);
     if (page !== null) params.page = String(Math.floor(page));

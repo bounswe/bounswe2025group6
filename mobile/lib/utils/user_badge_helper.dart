@@ -15,38 +15,46 @@ class BadgeStyle {
   });
 }
 
-/// Normalize badge values from API response to the allowed set.
-/// Expected API behavior:
-/// - recipe_count >= 20 -> 'Experienced Home Cook'
-/// - recipe_count >= 5  -> 'Home Cook'
-/// - otherwise -> 'Cook'
+/// Normalize badge values from user profile's typeOfCook field.
+///
+/// Expected API behavior (from /api/users/{id}/ endpoint):
+/// - typeOfCook: null -> 'Cook' (basic cook)
+/// - typeOfCook: 'home_cook' -> 'Home Cook'
+/// - typeOfCook: 'experienced_home_cook' -> 'Experienced Home Cook'
+/// - usertype: 'dietitian' -> 'Dietitian' (takes priority)
 ///
 /// Allowed normalized values produced by this helper:
-/// - 'Dietitian' (takes priority when userType == 'dietitian')
-/// - 'Experienced Home Cook'
-/// - 'Home Cook'
-/// - 'Cook'
+/// - 'dietitian' (takes priority when userType == 'dietitian')
+/// - 'experienced_home_cook'
+/// - 'home_cook'
+/// - 'cook'
 ///
 /// Dietitian user type always takes priority when provided via userType.
-/// Returns a normalized badge key (one of: 'dietitian', 'experienced_home_cook',
-/// 'home_cook', 'cook'). These keys are used internally for styling and
-/// localization. Callers should pass the returned key to `getBadgeStyle`
+/// Returns a normalized badge key. These keys are used internally for styling
+/// and localization. Callers should pass the returned key to `getBadgeStyle`
 /// and the `BadgeWidget` will localize the displayed label.
-String normalizeBadgeFromApi(String? apiBadge, {String? userType}) {
+String normalizeBadgeFromApi(String? typeOfCook, {String? userType}) {
   // Dietitian priority -> return key
   if (userType?.toLowerCase() == 'dietitian') return 'dietitian';
 
-  final raw = (apiBadge ?? '').toLowerCase();
+  // Handle null typeOfCook (basic cook)
+  if (typeOfCook == null || typeOfCook.isEmpty) {
+    return 'cook';
+  }
 
-  if (raw.contains('experienced') || raw.contains('experienced home')) {
+  final raw = typeOfCook.toLowerCase();
+
+  // Check for experienced_home_cook (exact match or contains)
+  if (raw == 'experienced_home_cook' || raw.contains('experienced')) {
     return 'experienced_home_cook';
   }
 
-  if (raw.contains('home') || raw.contains('home cook')) {
+  // Check for home_cook (exact match or contains)
+  if (raw == 'home_cook' || raw.contains('home')) {
     return 'home_cook';
   }
 
-  // Default fallback
+  // Default fallback for any other value
   return 'cook';
 }
 

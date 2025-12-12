@@ -1,7 +1,69 @@
 // recipeService.js - Enhanced recipe service aligned with Django backend
 import axios from 'axios';
+import { recipeCache } from '../utils/cache';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Create axios instance for request deduplication
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+// Request deduplication
+const pendingRequests = new Map();
+
+function generateRequestKey(config) {
+  const { method, url, params, data } = config;
+  const paramsStr = params ? JSON.stringify(params) : '';
+  const dataStr = data ? JSON.stringify(data) : '';
+  return `${method}:${url}:${paramsStr}:${dataStr}`;
+}
+
+// Add request deduplication interceptor
+api.interceptors.request.use(
+  (config) => {
+    const requestKey = generateRequestKey(config);
+    
+    // Check if there's already a pending request with the same key
+    if (pendingRequests.has(requestKey)) {
+      // Cancel this request
+      config.cancelToken = new axios.CancelToken(cancel => {
+        cancel('Duplicate request cancelled');
+      });
+      return config;
+    }
+    
+    // Add auth token
+    const token = localStorage.getItem('fithub_access_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Store request key
+    config._requestKey = requestKey;
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to clean up pending requests
+api.interceptors.response.use(
+  (response) => {
+    if (response.config._requestKey) {
+      pendingRequests.delete(response.config._requestKey);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.config && error.config._requestKey && !axios.isCancel(error)) {
+      pendingRequests.delete(error.config._requestKey);
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Cache for storing image URLs to prevent duplicate API calls
 const imageCache = new Map();
@@ -40,9 +102,8 @@ export const getWikidataImage = async (name) => {
   
   try {
     const token = localStorage.getItem('fithub_access_token');
-    const response = await axios.get(`${API_BASE_URL}/ingredients/wikidata/image/`, {
+    const response = await api.get(`/ingredients/wikidata/image/`, {
       params: { name },
-      headers: getAuthHeaders(),
     });
 
     const imageUrl = response.data.image_url;
@@ -74,9 +135,12 @@ export const getRecipeById = async (id) => {
       throw new Error('Recipe ID is required');
     }
 
-    const response = await axios.get(`${API_BASE_URL}/recipes/${id}/`, {
-      headers: getAuthHeaders(),
-    });
+    // Check cache first
+    if (recipeCache.has('recipe', id)) {
+      return recipeCache.get('recipe', id);
+    }
+
+    const response = await api.get(`/recipes/${id}/`);
 
     const recipe = handleApiResponse(response);
     
@@ -89,6 +153,8 @@ export const getRecipeById = async (id) => {
       }, 0);
     }
 
+    // Cache the result
+    recipeCache.set('recipe', recipe, 10 * 60 * 1000, id); // Cache for 10 minutes
     return recipe;
   } catch (error) {
     console.error('Error fetching recipe:', error);
@@ -111,9 +177,8 @@ export const fetchRecipes = async (page = 1, pageSize = 10, filters = {}) => {
       ...filters
     };
 
-    const response = await axios.get(`${API_BASE_URL}/recipes/`, {
+    const response = await api.get(`/recipes/`, {
       params,
-      headers: getAuthHeaders(),
     });
 
     return handleApiResponse(response);
@@ -139,9 +204,14 @@ export const getRecipesByMealPlanner = async (filters = {}) => {
       delete params.excludeAllergens; // Remove camelCase version
     }
     
-    const response = await axios.get(`${API_BASE_URL}/recipes/meal_planner/`, {
+    // Backend expects diet_info as comma-separated string (e.g., 'vegan,vegetarian')
+    if (params.dietInfo && Array.isArray(params.dietInfo) && params.dietInfo.length > 0) {
+      params.diet_info = params.dietInfo.join(',');
+      delete params.dietInfo; // Remove camelCase version
+    }
+    
+    const response = await api.get(`/recipes/meal_planner/`, {
       params,
-      headers: getAuthHeaders(),
     });
 
     const result = handleApiResponse(response);
@@ -505,7 +575,7 @@ export const sortRecipes = (recipes, sortBy, sortOrder = 'asc') => {
  */
 export const getUserRecipeCount = async (userId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/recipes/user/${userId}/recipe-count/`);
+    const response = await api.get(`/recipes/user/${userId}/recipe-count/`);
     return handleApiResponse(response);
   } catch (error) {
     console.error('Error fetching user recipe count:', error);
@@ -619,13 +689,12 @@ export const getRecipesByCreator = async (creatorId) => {
     const pageSize = 100; // Fetch 100 per page to minimize requests
     
     while (true) {
-    const response = await axios.get(`${API_BASE_URL}/recipes/`, {
+    const response = await api.get(`/recipes/`, {
       params: {
           creator_id: creatorId,
           page: page,
           page_size: pageSize
       },
-      headers: getAuthHeaders()
     });
       
       const data = response.data;
