@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
+import '../models/health_rating.dart';
 import '../models/report.dart';
 import '../services/recipe_service.dart';
 import '../services/profile_service.dart';
 import '../services/storage_service.dart';
 import '../services/rating_service.dart';
+import '../services/health_rating_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/report_button.dart';
 import '../widgets/rating_display.dart';
@@ -34,6 +36,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
   final ProfileService _profileService = ProfileService();
   final RatingService _ratingService = RatingService();
+  final HealthRatingService _healthRatingService = HealthRatingService();
   late Future<Recipe> _recipeFuture;
   Recipe? _currentRecipe; // Store the loaded recipe for report button
   bool _isBookmarked = false;
@@ -41,6 +44,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   String? _creatorUsername;
   bool _isLoadingUsername = false;
   RecipeRating? _userRating; // Store user's rating for this recipe
+  HealthRating? _userHealthRating; // Store user's health rating for this recipe
 
   @override
   void initState() {
@@ -67,9 +71,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Future<void> _loadUserRating() async {
     try {
       final rating = await _ratingService.getUserRating(widget.recipeId);
+
+      // Also check for health rating if user is dietitian
+      HealthRating? healthRating;
+      try {
+        final profile = await _profileService.getUserProfile();
+        if (profile.userType.toLowerCase() == 'dietitian') {
+          healthRating = await _healthRatingService.getHealthRatingForRecipe(
+            widget.recipeId,
+          );
+        }
+      } catch (e) {
+        // Ignore profile/health rating errors
+      }
+
       if (mounted) {
         setState(() {
           _userRating = rating;
+          _userHealthRating = healthRating;
         });
       }
     } catch (e) {
@@ -694,6 +713,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       child: RatingDisplay(
                         recipe: recipe,
                         userRating: _userRating,
+                        userHealthRating: _userHealthRating,
                         onRatingChanged: _refreshRecipe,
                       ),
                     ),
