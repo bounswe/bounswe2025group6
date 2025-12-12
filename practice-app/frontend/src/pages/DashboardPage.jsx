@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import "../styles/DashboardPage.css";
 import { getCurrentUser } from "../services/authService";
@@ -50,6 +49,43 @@ const ANALYTICS_PULSE = [
   },
 ];
 
+const DASHBOARD_ACTIONS = [
+  {
+    key: "plan",
+    titleKey: "dashboardCardOneTitle",
+    contentKey: "dashboardCardOneContent",
+    buttonKey: "dashboardCardOneButton",
+    icon: "🍽️",
+    to: "/meal-planner",
+    accent: "plan",
+  },
+  {
+    key: "discover",
+    titleKey: "dashboardCardTwoTitle",
+    contentKey: "dashboardCardTwoContent",
+    buttonKey: "dashboardCardTwoButton",
+    icon: "📖",
+    to: "/recipes",
+    accent: "recipes",
+  },
+  {
+    key: "shopping",
+    titleKey: "dashboardCardThreeTitle",
+    contentKey: "dashboardCardThreeContent",
+    icon: "🛒",
+    to: "/shopping-list",
+    accent: "shopping",
+  },
+  {
+    key: "community",
+    titleKey: "dashboardCardFourTitle",
+    contentKey: "dashboardCardFourContent",
+    icon: "💬",
+    to: "/community",
+    accent: "community",
+  },
+];
+
 const DashboardPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [username, setUsername] = useState("User");
@@ -71,6 +107,7 @@ const DashboardPage = () => {
       const adminCheck = await reportService.checkAdminStatus();
       return adminCheck.is_admin === true;
     } catch (error) {
+      console.error("Error checking admin status:", error);
       return false;
     }
   };
@@ -137,159 +174,90 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="dashboard-container dashboard-cards">
-      <div className="dashboard-header">
-        <div className="dashboard-intro">
-          <h1 className="dashboard-title">
-            {getWelcomeMessage()}, {username}!
-          </h1>
-          <p className="dashboard-subtitle">{t("dashbboardSubtitle")}</p>
-        </div>
+    <div className="dashboard-container">
+      {/* Greetings Section */}
+      <div className="dashboard-greetings">
+        <h1 className="greetings-title">
+          {getWelcomeMessage()}, {username}!
+        </h1>
+        <p className="greetings-subtitle">{t("dashbboardSubtitle")}</p>
+      </div>
+
+      {/* Analytics and Activity Stream Side by Side */}
+      <div className="dashboard-main-content">
         <section className="dashboard-analytics">
           {analyticsError ? (
-            <p style={{ color: "red" }}>
+            <div className="analytics-error">
               Error loading analytics: {analyticsError}
-            </p>
+            </div>
           ) : (
-            <>
-              <div className="analytics-card-grid">
-                {highlightCards.map((card) => (
-                  <article
-                    key={card.key}
-                    className={`analytics-card variant-${card.accent}`}
-                  >
-                    <div className="analytics-card-header">
-                      <span className="analytics-icon">{card.icon}</span>
-                      <div className="analytics-value">
-                        <span>
-                          {card.value !== undefined && card.value !== null
-                            ? card.value
-                            : "—"}
-                        </span>
-                        <small>{card.label}</small>
-                      </div>
+            <div className="analytics-card-grid">
+              {highlightCards.map((card) => (
+                <article
+                  key={card.key}
+                  className={`analytics-tile accent-${card.accent}`}
+                >
+                  <div className="analytics-tile-header">
+                    <span className="analytics-icon">{card.icon}</span>
+                    <span className="analytics-chip">{card.label}</span>
+                  </div>
+                  <div className="analytics-tile-body">
+                    <div className="analytics-metric">
+                      {card.value !== undefined && card.value !== null
+                        ? card.value
+                        : "—"}
                     </div>
                     <p className="analytics-sublabel">{card.sublabel}</p>
-                  </article>
-                ))}
-              </div>
-            </>
+                  </div>
+                </article>
+              ))}
+            </div>
           )}
         </section>
+
+        {/* Activity Stream Widget */}
+        <div className="dashboard-activity-widget">
+          <ActivityStreamWidget />
+        </div>
       </div>
 
-      {/* Activity Stream Widget */}
-      <div className="dashboard-activity-widget">
-        <ActivityStreamWidget />
-      </div>
+      {/* Quick Paths Section */}
+      <section className="dashboard-actions">
+        <div className="actions-grid">
+          {DASHBOARD_ACTIONS.map((action) => (
+            <article
+              key={action.key}
+              className={`action-card accent-${action.accent}`}
+            >
+              <div className="action-card-top">
+                <span className="action-icon">{action.icon}</span>
+                <span className="action-chip">{t(action.titleKey)}</span>
+              </div>
+              <p className="action-desc">{t(action.contentKey)}</p>
+              <Link to={action.to} className="action-link">
+                <Button className="action-button">
+                  {action.buttonKey ? t(action.buttonKey) : t(action.titleKey)}
+                </Button>
+              </Link>
+            </article>
+          ))}
 
-      <div className="dashboard-cards">
-        <Card className="dashboard-card">
-          <Card.Body className="dashboard-card-body">
-            <div className="dashboard-card-icon">🍽️</div>
-            <h2 className="dashboard-card-title">
-              {t("dashboardCardOneTitle")}
-            </h2>
-            <p className="dashboard-card-content">
-              {t("dashboardCardOneContent")}
-            </p>
-            <Link to="/meal-planner" className="mt-auto">
-              <Button className="green-button">
-                {t("dashboardCardOneButton")}
-              </Button>
-            </Link>
-          </Card.Body>
-        </Card>
-
-        <Card className="dashboard-card">
-          <Card.Body className="dashboard-card-body">
-            <div className="dashboard-card-icon">📖</div>
-            <h2 className="dashboard-card-title">
-              {t("dashboardCardTwoTitle")}
-            </h2>
-            <p className="dashboard-card-content">
-              {t("dashboardCardTwoContent")}
-            </p>
-            <Link to="/recipes" className="mt-auto">
-              <Button className="green-button">
-                {t("dashboardCardTwoButton")}
-              </Button>
-            </Link>
-          </Card.Body>
-        </Card>
-
-        <Card className="dashboard-card">
-          <Card.Body className="dashboard-card-body">
-            <div className="dashboard-card-icon">🛒</div>
-            <h2 className="dashboard-card-title">
-              {t("dashboardCardThreeTitle")}
-            </h2>
-            <p className="dashboard-card-content">
-              {t("dashboardCardThreeContent")}
-            </p>
-            <Link to="/shopping-list" className="mt-auto">
-              <Button className="green-button">
-                {t("dashboardCardThreeTitle")}
-              </Button>
-            </Link>
-          </Card.Body>
-        </Card>
-
-        <Card className="dashboard-card">
-          <Card.Body className="dashboard-card-body">
-            <div className="dashboard-card-icon">💬</div>
-            <h2 className="dashboard-card-title">
-              {t("dashboardCardFourTitle")}
-            </h2>
-            <p className="dashboard-card-content">
-              {t("dashboardCardFourContent")}
-            </p>
-            <Link to="/community" className="mt-auto">
-              <Button className="green-button">
-                {t("dashboardCardFourTitle")}
-              </Button>
-            </Link>
-          </Card.Body>
-        </Card>
-
-        {/* Admin Reports Card - Only visible to admins */}
-        {isAdmin && (
-          <Card className="dashboard-card admin-card">
-            <Card.Body className="dashboard-card-body">
-              <div className="dashboard-card-icon">⚙️</div>
-              <h2 className="dashboard-card-title">Admin Reports</h2>
-              <p className="dashboard-card-content">
+          {isAdmin && (
+            <article className="action-card accent-admin">
+              <div className="action-card-top">
+                <span className="action-icon">⚙️</span>
+                <span className="action-chip">Admin</span>
+              </div>
+              <p className="action-desc">
                 Manage user reports and moderate content.
               </p>
-              <Link to="/admin-reports" className="mt-auto">
-                <Button className="admin-button">Manage Reports</Button>
+              <Link to="/admin-reports" className="action-link">
+                <Button className="action-button danger">Manage Reports</Button>
               </Link>
-            </Card.Body>
-          </Card>
-        )}
-      </div>
-
-      <style>{`
-        .admin-card {
-          border: 2px solid #dc2626 !important;
-          background: linear-gradient(to bottom, #fef2f2, #fecaca) !important;
-        }
-        
-        .admin-button {
-          background-color: #dc2626 !important;
-          color: white;
-          border: none;
-          padding: 0.5rem 1rem;
-          border-radius: 0.25rem;
-          transition: all 0.2s ease;
-        }
-        
-        .admin-button:hover {
-          background-color: #b91c1c !important;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);
-        }
-      `}</style>
+            </article>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
