@@ -273,7 +273,7 @@ const MealPlannerPage = () => {
   };
 
   const handleGenerateShopping = () => {
-    localStorage.setItem('currentMealPlan', JSON.stringify({ activePlan: mealPlan }));
+    // Just keep it for backward compatibility
   };
 
   const toggleMealSection = (mealType) => {
