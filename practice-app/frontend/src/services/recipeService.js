@@ -204,6 +204,12 @@ export const getRecipesByMealPlanner = async (filters = {}) => {
       delete params.excludeAllergens; // Remove camelCase version
     }
     
+    // Backend expects diet_info as comma-separated string (e.g., 'vegan,vegetarian')
+    if (params.dietInfo && Array.isArray(params.dietInfo) && params.dietInfo.length > 0) {
+      params.diet_info = params.dietInfo.join(',');
+      delete params.dietInfo; // Remove camelCase version
+    }
+    
     const response = await api.get(`/recipes/meal_planner/`, {
       params,
     });
