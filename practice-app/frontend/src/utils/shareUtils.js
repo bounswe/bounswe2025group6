@@ -11,8 +11,16 @@ export const shareContent = async (shareData, t) => {
   const sharePayload = {
     title: title || '',
     text: text || '',
-    url: url || window.location.href,
   };
+  
+  // Only add url if it's explicitly provided (not null)
+  if (url !== null && url !== undefined) {
+    sharePayload.url = url;
+  } else if (url === undefined) {
+    // If url is not provided at all, use current location
+    sharePayload.url = window.location.href;
+  }
+  // If url is null, don't add it to sharePayload
 
   try {
     // Check if Web Share API is supported
@@ -39,7 +47,7 @@ export const shareContent = async (shareData, t) => {
     }
     
     // Fallback: Copy to clipboard
-    const shareText = url ? `${text}\n\n${t('shareLink')}: ${url}` : text;
+    const shareText = (url !== null && url !== undefined) ? `${text}\n\n${t('shareLink')}: ${url}` : text;
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(shareText);
@@ -57,7 +65,7 @@ export const shareContent = async (shareData, t) => {
     
     // Try clipboard as fallback
     try {
-      const shareText = url ? `${text}\n\n${t('shareLink')}: ${url}` : text;
+      const shareText = (url !== null && url !== undefined) ? `${text}\n\n${t('shareLink')}: ${url}` : text;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareText);
         alert(t('shareCopied'));
