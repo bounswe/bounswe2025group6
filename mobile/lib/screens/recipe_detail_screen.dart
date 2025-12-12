@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
 import '../models/report.dart';
@@ -160,6 +161,90 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
+  Future<void> _shareRecipe(Recipe recipe) async {
+    try {
+      final localizations = AppLocalizations.of(context)!;
+      
+      // Build the recipe URL
+      final recipeUrl = 'https://fithubmp.xyz/recipes/${recipe.id}';
+      
+      // Build the shareable text
+      final buffer = StringBuffer();
+      
+      // Recipe name and URL at the top
+      buffer.writeln(recipe.name);
+      buffer.writeln('');
+      buffer.writeln(recipeUrl);
+      buffer.writeln('');
+      
+      // Ingredients section
+      buffer.writeln('${localizations.ingredientsTitle.toUpperCase()}:');
+      buffer.writeln('');
+      
+      if (recipe.ingredients.isNotEmpty) {
+        for (var ingredient in recipe.ingredients) {
+          final translatedName = translateIngredient(
+            context,
+            ingredient.ingredient.name,
+          );
+          final translatedUnit = translateUnit(context, ingredient.unit);
+          buffer.writeln(
+            '- ${ingredient.quantity} $translatedUnit $translatedName',
+          );
+        }
+      } else {
+        buffer.writeln('- ${localizations.noIngredients}');
+      }
+      
+      buffer.writeln('');
+      
+      // Instructions section
+      buffer.writeln('${localizations.instructionsLabel.toUpperCase()}:');
+      buffer.writeln('');
+      
+      if (recipe.steps.isNotEmpty) {
+        for (var i = 0; i < recipe.steps.length; i++) {
+          buffer.writeln('${i + 1}. ${recipe.steps[i]}');
+        }
+      } else {
+        buffer.writeln('${localizations.noStepsProvided}');
+      }
+      
+      buffer.writeln('');
+      
+      // Footer with link
+      buffer.writeln('${localizations.viewRecipeAt}: $recipeUrl');
+      
+      // Share the text
+      await Share.share(
+        buffer.toString(),
+        subject: recipe.name,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizations.recipeShared),
+            backgroundColor: AppTheme.successColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToShareRecipe,
+            ),
+            backgroundColor: AppTheme.errorColor,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,12 +252,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
         actions: [
-          if (_currentRecipe != null)
+          if (_currentRecipe != null) ...[
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () => _shareRecipe(_currentRecipe!),
+              tooltip: AppLocalizations.of(context)!.shareRecipe,
+            ),
             ReportButton(
               contentType: ReportContentType.recipe,
               objectId: widget.recipeId,
               contentPreview: _currentRecipe!.name,
             ),
+          ],
         ],
       ),
       floatingActionButton: FloatingActionButton(
