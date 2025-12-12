@@ -55,9 +55,6 @@ const MealPlanSummary = ({
       portion: selectedPortion 
     }));
     setShowPortionModal(false);
-    if (onGenerateShopping) {
-      onGenerateShopping();
-    }
     navigate('/shopping-list');
   };
 
