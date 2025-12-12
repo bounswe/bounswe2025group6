@@ -34,6 +34,12 @@ import CreatePostPage from '../pages/community/CreatePostPage';
 import UserProfilePage from '../pages/community/UserProfilePage';
 import EditPostPage from '../pages/community/EditPostPage';
 
+// Q&A pages
+import QAPage from '../pages/qa/QAPage';
+import QuestionDetailPage from '../pages/qa/QuestionDetailPage';
+import CreateQuestionPage from '../pages/qa/CreateQuestionPage';
+import EditQuestionPage from '../pages/qa/EditQuestionPage';
+
 import IngredientsPage from '../pages/ingredients/IngredientsPage'
 import IngredientDetailPage from '../pages/ingredients/IngredientDetailPage';
 import RecipeEditPage from '../pages/recipes/RecipeEditPage';
@@ -259,6 +265,7 @@ const AppRoutes = () => {
           } 
         />
 
+        {/* Community Routes */}
         <Route 
           path="/community" 
           element={
@@ -303,6 +310,45 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
+
+        {/* Q&A Routes */}
+        <Route 
+          path="/qa" 
+          element={
+            <ProtectedRoute>
+              <QAPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/qa/question/:id" 
+          element={
+            <ProtectedRoute>
+              <QuestionDetailPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/qa/create-question" 
+          element={
+            <ProtectedRoute>
+              <CreateQuestionPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/qa/edit-question/:id" 
+          element={
+            <ProtectedRoute>
+              <EditQuestionPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Ingredients */}
         <Route path="/ingredients" element={<IngredientsPage />} />
         <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
       </Route>

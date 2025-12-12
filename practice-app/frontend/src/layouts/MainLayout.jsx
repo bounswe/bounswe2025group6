@@ -72,6 +72,7 @@ const MainLayout = () => {
     { path: "/shopping-list", label: t("shoppingList") },
     { path: "/ingredients", label: t("ingredients") },
     { path: "/community", label: t("community") },
+    { path: "/qa", label: t("qa", "Q&A") }, 
     { path: "/profile", label: t("profile") },
   ];
 
