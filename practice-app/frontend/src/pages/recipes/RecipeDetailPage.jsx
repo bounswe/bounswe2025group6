@@ -13,14 +13,16 @@ import RatingStars from '../../components/recipe/RatingStars';
 import { formatDate } from '../../utils/dateFormatter';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
-import { getCurrentUser } from '../../services/authService';
+import { getCurrentUser, isAuthenticated } from '../../services/authService';
 import ReportButton from '../../components/report/ReportButton';
 import InteractiveRatingStars from '../../components/recipe/InteractiveRatingStars';
 import InteractiveHealthRating from '../../components/recipe/InteractiveHealthRating';
 import { useTranslation } from "react-i18next";
+import { createLoginUrl } from "../../utils/authUtils";
 
 const RecipeDetailPage = () => {
-  const { id } = useParams();  const [recipe, setRecipe] = useState(null);
+  const { id } = useParams();
+  const [recipe, setRecipe] = useState(null);
   const [creatorName, setCreatorName] = useState('');
   const [creatorId, setCreatorId] = useState(null);
   const [creatorPhoto, setCreatorPhoto] = useState(null);
@@ -143,7 +145,9 @@ const RecipeDetailPage = () => {
   // Handle bookmark toggle
   const handleBookmarkToggle = async () => {
     if (!authUser || !authUser.id) {
-      alert('Please login to bookmark recipes');
+      // Redirect to login with current recipe page as next parameter
+      const currentPath = `/recipes/${id}`;
+      navigate(createLoginUrl(currentPath));
       return;
     }
 
@@ -337,17 +341,13 @@ const RecipeDetailPage = () => {
           setError('Recipe not found');
         }
       } catch (err) {
+        // For errors, show error message
         console.error('Error loading recipe:', err);
-        if (err.message && err.message.includes('Authentication required')) {
-          setError('Please log in to view recipes');
-        } else if (err.response && err.response.status === 401) {
-          setError('Your session has expired. Please log in again.');
-        } else if (err.response && err.response.status === 404) {
+        if (err.response?.status === 404) {
           setError('Recipe not found');
         } else {
-          setError('Failed to load recipe. Please try again.');w
+          setError('Failed to load recipe. Please try again.');
         }
-      } finally {
         setIsPageReady(true);
       }
     };
@@ -373,11 +373,12 @@ const RecipeDetailPage = () => {
             const userData = await userService.getUserById(user.id);
             setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
           } catch (error) {
-            console.error('Error loading user date format:', error);
+            // Silently fail for unauthenticated users
+            console.log('User not authenticated, using default date format');
           }
         }
       } catch (error) {
-        console.error('Error fetching current user:', error);
+        // Silently handle unauthenticated users - don't show errors
         setCurrentUser(null);
       }
     };

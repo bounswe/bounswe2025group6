@@ -39,8 +39,8 @@ export const AuthProvider = ({ children }) => {
           setUserType(user.userType);
         }
       } catch (err) {
-        console.error("Error loading user:", err);
-        setError("Failed to load user data");
+        // Silently handle unauthenticated users - don't show errors
+        setCurrentUser(null);
       } finally {
         setIsLoading(false);
       }

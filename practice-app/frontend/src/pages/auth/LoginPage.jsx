@@ -7,6 +7,7 @@ import { useToast } from "../../components/ui/Toast";
 import Button from "../../components/ui/Button";
 import "../../styles/AuthPages.css";
 import { useTranslation } from "react-i18next";
+import { getRedirectPath } from "../../utils/authUtils";
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -14,7 +15,7 @@ const LoginPage = () => {
   const location = useLocation();
   const { login, isLoading } = useAuth();
   const toast = useToast();
-  const redirectPath = location.state?.from?.pathname || "/dashboard";
+  const redirectPath = getRedirectPath(location, "/dashboard");
 
   const [formData, setFormData] = useState({
     email: "",
