@@ -649,24 +649,24 @@ const CommunityPage = () => {
 
           {/* Pagination */}
           {pagination.total > pagination.page_size && (
-            <div className="forum-pagination">
-              <button 
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
-                className="pagination-button"
-              >
-                {t("previous")}
-              </button>
-              <span className="pagination-info">
-                {t("communityPagePageOf", { page: pagination.page, total: Math.ceil(pagination.total / pagination.page_size) })}
-              </span>
-              <button 
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page >= Math.ceil(pagination.total / pagination.page_size)}
-                className="pagination-button"
-              >
-                {t("next")}
-              </button>
+            <div className="controls-container">
+              <div className="pagination-group">
+                <button 
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                  className="pagination-button"
+                >
+                  {t("previous")}
+                </button>
+                <span className="page-number">{pagination.page}</span>
+                <button 
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= Math.ceil(pagination.total / pagination.page_size)}
+                  className="pagination-button"
+                >
+                  {t("next")}
+                </button>
+              </div>
             </div>
           )}
         </div>

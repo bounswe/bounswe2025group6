@@ -1,6 +1,6 @@
 // src/pages/qa/QuestionDetailPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
@@ -19,6 +19,7 @@ const QuestionDetailPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser } = useAuth();
   const toast = useToast();
 
@@ -60,7 +61,7 @@ const QuestionDetailPage = () => {
           setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
         }
       } catch (error) {
-        console.error('Error loading user date format:', error);
+        // Error loading user date format
       }
     };
     loadUserDateFormat();
@@ -72,12 +73,46 @@ const QuestionDetailPage = () => {
       const questionData = await qaService.getQuestionById(id);
       setQuestion(questionData);
 
-      // Load author data
-      const authorData = await getUsername(questionData.author);
-      setUserMap(prev => ({
-        ...prev,
-        [questionData.author]: authorData
-      }));
+      // Load author data with full user details
+      try {
+        const userData = await userService.getUserById(questionData.author);
+        setUserMap(prev => ({
+          ...prev,
+          [questionData.author]: {
+            ...userData,
+            username: userData.username || 'Unknown User',
+            profilePhoto: userData.profilePhoto || null,
+            typeOfCook: userData.typeOfCook || null,
+            usertype: userData.usertype || null
+          }
+        }));
+      } catch (error) {
+        // Error loading question author data, fallback to username only
+        try {
+          const username = await getUsername(questionData.author);
+          setUserMap(prev => ({
+            ...prev,
+            [questionData.author]: {
+              id: questionData.author,
+              username: username || 'Unknown User',
+              profilePhoto: null,
+              typeOfCook: null,
+              usertype: null
+            }
+          }));
+        } catch (err) {
+          setUserMap(prev => ({
+            ...prev,
+            [questionData.author]: {
+              id: questionData.author,
+              username: 'Unknown User',
+              profilePhoto: null,
+              typeOfCook: null,
+              usertype: null
+            }
+          }));
+        }
+      }
 
       // Load user vote status if authenticated
       if (currentUser) {
@@ -85,7 +120,6 @@ const QuestionDetailPage = () => {
           const voteStatus = await qaService.checkQuestionVoteStatus(id);
           setUserQuestionVote(voteStatus);
         } catch (error) {
-          console.error('Error checking question vote status:', error);
           setUserQuestionVote({ hasVoted: false, voteType: null });
         }
       }
@@ -93,7 +127,6 @@ const QuestionDetailPage = () => {
       setIsLoading(false);
       loadAnswers();
     } catch (error) {
-      console.error('Error loading question:', error);
       setIsLoading(false);
       toast.error(t('questionDetailPageErrorLoading', 'Error loading question'));
     }
@@ -118,21 +151,53 @@ const QuestionDetailPage = () => {
       // Collect unique author IDs
       const authorIds = [...new Set(answersData.map(a => a.author).filter(aid => aid))];
       
-      // Load author data for answers
+      // Load author data for answers with full user details
       const authorPromises = authorIds.map(async (authorId) => {
         try {
-          const username = await getUsername(authorId);
-          return { id: authorId, username };
+          const userData = await userService.getUserById(authorId);
+          return {
+            id: authorId,
+            userData: {
+              ...userData,
+              username: userData.username || 'Unknown User',
+              profilePhoto: userData.profilePhoto || null,
+              typeOfCook: userData.typeOfCook || null,
+              usertype: userData.usertype || null
+            }
+          };
         } catch (error) {
-          console.error(`Error loading username for user ${authorId}:`, error);
-          return { id: authorId, username: 'Unknown User' };
+          // Error loading user data, try to get at least username
+          try {
+            const username = await getUsername(authorId);
+            return {
+              id: authorId,
+              userData: {
+                id: authorId,
+                username: username || 'Unknown User',
+                profilePhoto: null,
+                typeOfCook: null,
+                usertype: null
+              }
+            };
+          } catch (err) {
+            return {
+              id: authorId,
+              userData: {
+                id: authorId,
+                username: 'Unknown User',
+                profilePhoto: null,
+                typeOfCook: null,
+                usertype: null
+              }
+            };
+          }
         }
       });
       
       const authors = await Promise.all(authorPromises);
       const authorMap = {};
       authors.forEach(author => {
-        authorMap[author.id] = author.username;
+        authorMap[author.id] = author.userData;
       });
       
       setUserMap(prev => ({...prev, ...authorMap}));
@@ -144,7 +209,6 @@ const QuestionDetailPage = () => {
             const voteStatus = await qaService.checkAnswerVoteStatus(answer.id);
             return { answerId: answer.id, voteType: voteStatus.voteType };
           } catch (error) {
-            console.error(`Error checking vote status for answer ${answer.id}:`, error);
             return { answerId: answer.id, voteType: null };
           }
         });
@@ -162,7 +226,6 @@ const QuestionDetailPage = () => {
       setAnswers(answersData);
       setIsLoadingAnswers(false);
     } catch (error) {
-      console.error('Error loading answers:', error);
       setIsLoadingAnswers(false);
       toast.error(t('questionDetailPageErrorLoadingAnswers', 'Error loading answers'));
     }
@@ -187,19 +250,30 @@ const QuestionDetailPage = () => {
           [voteType === 'up' ? 'upvote_count' : 'downvote_count']: 
             Math.max(0, prev[voteType === 'up' ? 'upvote_count' : 'downvote_count'] - 1)
         }));
-      } else {
-        // If user had different vote, remove it first
-        if (userQuestionVote.hasVoted) {
+      } else if (userQuestionVote.hasVoted) {
+        // If user had different vote, delete old vote and create new one
+        const oldVoteType = userQuestionVote.voteType;
+        try {
           await qaService.deleteVoteQuestion(id);
-          // Update count for previous vote
-          setQuestion(prev => ({
-            ...prev,
-            [userQuestionVote.voteType === 'up' ? 'upvote_count' : 'downvote_count']: 
-              Math.max(0, prev[userQuestionVote.voteType === 'up' ? 'upvote_count' : 'downvote_count'] - 1)
-          }));
+        } catch (deleteError) {
+          // If delete fails, still try to create new vote (might already be deleted)
+          // This handles race conditions where vote was already deleted
         }
+        await qaService.voteQuestion(id, voteType);
+        setUserQuestionVote({ hasVoted: true, voteType: voteType });
         
-        // Add new vote
+        // Update question vote count in state
+        setQuestion(prev => ({
+          ...prev,
+          // Decrement old vote
+          [oldVoteType === 'up' ? 'upvote_count' : 'downvote_count']: 
+            Math.max(0, prev[oldVoteType === 'up' ? 'upvote_count' : 'downvote_count'] - 1),
+          // Increment new vote
+          [voteType === 'up' ? 'upvote_count' : 'downvote_count']: 
+            prev[voteType === 'up' ? 'upvote_count' : 'downvote_count'] + 1
+        }));
+      } else {
+        // No existing vote, create new one
         await qaService.voteQuestion(id, voteType);
         setUserQuestionVote({ hasVoted: true, voteType: voteType });
         
@@ -211,7 +285,6 @@ const QuestionDetailPage = () => {
         }));
       }
     } catch (error) {
-      console.error('Error voting on question:', error);
       if (error.response?.status === 400) {
         toast.error(t('questionDetailPageAlreadyVoted', 'You have already voted on this question'));
       } else {
@@ -251,24 +324,35 @@ const QuestionDetailPage = () => {
           }
           return answer;
         }));
-      } else {
-        // If user had different vote, remove it first
-        if (currentVote) {
+      } else if (currentVote) {
+        // If user had different vote, delete old vote and create new one
+        const oldVoteType = currentVote;
+        try {
           await qaService.deleteVoteAnswer(answerId);
-          // Update count for previous vote
-          setAnswers(prev => prev.map(answer => {
-            if (answer.id === answerId) {
-              return {
-                ...answer,
-                [currentVote === 'up' ? 'upvote_count' : 'downvote_count']: 
-                  Math.max(0, answer[currentVote === 'up' ? 'upvote_count' : 'downvote_count'] - 1)
-              };
-            }
-            return answer;
-          }));
+        } catch (deleteError) {
+          // If delete fails, still try to create new vote (might already be deleted)
+          // This handles race conditions where vote was already deleted
         }
+        await qaService.voteAnswer(answerId, voteType);
+        setUserAnswerVotes(prev => ({ ...prev, [answerId]: voteType }));
         
-        // Add new vote
+        // Update answer vote count in state
+        setAnswers(prev => prev.map(answer => {
+          if (answer.id === answerId) {
+            return {
+              ...answer,
+              // Decrement old vote
+              [oldVoteType === 'up' ? 'upvote_count' : 'downvote_count']: 
+                Math.max(0, answer[oldVoteType === 'up' ? 'upvote_count' : 'downvote_count'] - 1),
+              // Increment new vote
+              [voteType === 'up' ? 'upvote_count' : 'downvote_count']: 
+                answer[voteType === 'up' ? 'upvote_count' : 'downvote_count'] + 1
+            };
+          }
+          return answer;
+        }));
+      } else {
+        // No existing vote, create new one
         await qaService.voteAnswer(answerId, voteType);
         setUserAnswerVotes(prev => ({ ...prev, [answerId]: voteType }));
         
@@ -285,7 +369,6 @@ const QuestionDetailPage = () => {
         }));
       }
     } catch (error) {
-      console.error('Error voting on answer:', error);
       if (error.response?.status === 400) {
         toast.error(t('questionDetailPageAnswerAlreadyVoted', 'You have already voted on this answer'));
       } else {
@@ -303,7 +386,8 @@ const QuestionDetailPage = () => {
     }
 
     // Check if user is a dietitian
-    if (currentUser.usertype !== 'DIETITIAN') {
+    const userType = currentUser.userType || currentUser.usertype || '';
+    if (userType.toLowerCase() !== 'dietitian') {
       toast.error(t('questionDetailPageOnlyDietitians', 'Only verified dietitians can answer questions'));
       return;
     }
@@ -323,11 +407,45 @@ const QuestionDetailPage = () => {
       const response = await qaService.createAnswer(id, newAnswer.trim());
       
       // Add new answer to the list and load its author data
-      const authorData = await getUsername(response.author);
-      setUserMap(prev => ({
-        ...prev,
-        [response.author]: authorData
-      }));
+      try {
+        const userData = await userService.getUserById(response.author);
+        setUserMap(prev => ({
+          ...prev,
+          [response.author]: {
+            ...userData,
+            username: userData.username || 'Unknown User',
+            profilePhoto: userData.profilePhoto || null,
+            typeOfCook: userData.typeOfCook || null,
+            usertype: userData.usertype || null
+          }
+        }));
+      } catch (error) {
+        // Error loading answer author data, fallback to username only
+        try {
+          const username = await getUsername(response.author);
+          setUserMap(prev => ({
+            ...prev,
+            [response.author]: {
+              id: response.author,
+              username: username || 'Unknown User',
+              profilePhoto: null,
+              typeOfCook: null,
+              usertype: null
+            }
+          }));
+        } catch (err) {
+          setUserMap(prev => ({
+            ...prev,
+            [response.author]: {
+              id: response.author,
+              username: 'Unknown User',
+              profilePhoto: null,
+              typeOfCook: null,
+              usertype: null
+            }
+          }));
+        }
+      }
       
       setAnswers(prev => [response, ...prev]);
       setNewAnswer('');
@@ -341,7 +459,6 @@ const QuestionDetailPage = () => {
         }
       }, 100);
     } catch (error) {
-      console.error('Error submitting answer:', error);
       if (error.response?.status === 403) {
         toast.error(t('questionDetailPageOnlyDietitians', 'Only verified dietitians can answer questions'));
       } else if (error.response?.data?.detail) {
@@ -399,19 +516,46 @@ const QuestionDetailPage = () => {
   }
 
   // Check if current user is a dietitian
-  const isDietitian = currentUser && currentUser.usertype === 'DIETITIAN';
+  const userType = currentUser?.userType || currentUser?.usertype || '';
+  const isDietitian = currentUser && userType.toLowerCase() === 'dietitian';
 
   return (
     <div className="question-detail-container">
+      {/* Back to Q&A Button */}
+      <div className="back-to-qa">
+        <Button
+          variant="outline"
+          onClick={() => {
+            // Preserve filters from URL if coming from Q&A page
+            const searchParams = new URLSearchParams(location.search);
+            const from = searchParams.get('from');
+            if (from === 'qa') {
+              // Extract filter params from URL
+              const filterParams = new URLSearchParams();
+              if (searchParams.get('search')) filterParams.set('search', searchParams.get('search'));
+              if (searchParams.get('tag')) filterParams.set('tag', searchParams.get('tag'));
+              if (searchParams.get('sort')) filterParams.set('sort', searchParams.get('sort'));
+              const queryString = filterParams.toString();
+              navigate(`/qa${queryString ? `?${queryString}` : ''}`);
+            } else {
+              navigate('/qa');
+            }
+          }}
+          className="back-button"
+        >
+          ← {t('questionDetailPageBackToQA', 'Back to Q&A')}
+        </Button>
+      </div>
+
       {/* Question Section */}
       <Card className="question-detail-card">
         <div className="question-detail-header">
           <div className="question-author-wrapper">
             <div className="author-info">
-              {question.author_profile_image ? (
+              {userMap[question.author]?.profilePhoto || question.author_profile_image ? (
                 <img 
-                  src={question.author_profile_image} 
-                  alt={userMap[question.author] || 'User'}
+                  src={userMap[question.author]?.profilePhoto || question.author_profile_image} 
+                  alt={userMap[question.author]?.username || 'User'}
                   className="author-avatar"
                   onClick={(e) => goToUserProfile(question.author, e)}
                 />
@@ -420,7 +564,7 @@ const QuestionDetailPage = () => {
                   className="author-avatar-placeholder"
                   onClick={(e) => goToUserProfile(question.author, e)}
                 >
-                  {(userMap[question.author] || 'U')[0].toUpperCase()}
+                  {(userMap[question.author]?.username || 'U')[0].toUpperCase()}
                 </div>
               )}
               <div>
@@ -428,15 +572,15 @@ const QuestionDetailPage = () => {
                   className="author-link"
                   onClick={(e) => goToUserProfile(question.author, e)}
                 >
-                  {userMap[question.author] || t('questionDetailPageUnknownUser', 'Unknown User')}
+                  {userMap[question.author]?.username || t('questionDetailPageUnknownUser', 'Unknown User')}
+                  <Badge 
+                    badge={userMap[question.author]?.typeOfCook} 
+                    size="small" 
+                    usertype={userMap[question.author]?.usertype} 
+                  />
                 </span>
                 <div className="question-meta">
-                  {formatDate(question.created_at, userDateFormat)}
-                  {question.updated_at !== question.created_at && (
-                    <span className="edited-indicator">
-                      {t('questionDetailPageEdited', '(edited)')}
-                    </span>
-                  )}
+                  {formatDate(question.created_at, userDateFormat, t)}
                 </div>
               </div>
             </div>
@@ -470,9 +614,9 @@ const QuestionDetailPage = () => {
           {question.tags && question.tags.length > 0 && (
             <div className="question-tags">
               {question.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary">
+                <span key={index}>
                   {t(`tag${tag.replace(/\s+/g, '')}`, tag)}
-                </Badge>
+                </span>
               ))}
             </div>
           )}
@@ -480,14 +624,16 @@ const QuestionDetailPage = () => {
           <div className="question-stats-section">
             <div className="vote-section">
               <button
-                className={`vote-button ${userQuestionVote.voteType === 'up' ? 'voted' : ''}`}
+                className={`vote-button ${userQuestionVote.voteType === 'up' ? 'voted-up' : ''}`}
+                data-vote-type="up"
                 onClick={() => handleQuestionVote('up')}
                 disabled={isVoting}
               >
                 👍 {question.upvote_count || 0}
               </button>
               <button
-                className={`vote-button ${userQuestionVote.voteType === 'down' ? 'voted' : ''}`}
+                className={`vote-button ${userQuestionVote.voteType === 'down' ? 'voted-down' : ''}`}
+                data-vote-type="down"
                 onClick={() => handleQuestionVote('down')}
                 disabled={isVoting}
               >
@@ -496,65 +642,61 @@ const QuestionDetailPage = () => {
             </div>
 
             <div className="question-stats">
-              <span>{answers.length} {t('questionDetailPageAnswers', 'answers')}</span>
-              <span>{question.view_count || 0} {t('questionDetailPageViews', 'views')}</span>
+              <span>
+                {answers.length} {answers.length === 1 
+                  ? t('questionDetailPageAnswer', 'answer') 
+                  : t('questionDetailPageAnswers', 'answers')}
+              </span>
+              <span>
+                {question.view_count || 0} {(question.view_count || 0) === 1
+                  ? t('questionDetailPageView', 'view')
+                  : t('questionDetailPageViews', 'views')}
+              </span>
             </div>
           </div>
         </div>
       </Card>
 
       {/* Answer Form - Only for dietitians */}
-      {question.is_commentable && (
+      {question.is_commentable && isDietitian && (
         <Card className="answer-form-card">
           <h3 className="answer-form-title">
             {t('questionDetailPageYourAnswer', 'Your Answer')}
           </h3>
           
-          {!currentUser ? (
-            <div className="answer-form-login">
-              <p>{t('questionDetailPageLoginToAnswerDesc', 'Please login to provide an answer')}</p>
-              <Button onClick={() => navigate('/login')}>
-                {t('questionDetailPageLogin', 'Login')}
+          <form onSubmit={handleAnswerSubmit} className="answer-form">
+            <div className="dietitian-badge-indicator">
+              <Badge 
+                badge={null} 
+                size="small" 
+                usertype="dietitian"
+              />
+              <span className="dietitian-label">
+                {t('questionDetailPageVerifiedDietitian', 'Verified Dietitian')}
+              </span>
+            </div>
+            <textarea
+              value={newAnswer}
+              onChange={(e) => setNewAnswer(e.target.value)}
+              placeholder={t('questionDetailPageAnswerPlaceholder', 'Provide a professional, helpful answer to this nutrition question...')}
+              className="answer-textarea"
+              rows={6}
+              minLength={20}
+              required
+            />
+            <div className="answer-form-actions">
+              <div className="answer-form-hint">
+                {t('questionDetailPageAnswerHint', 'Minimum 20 characters. Provide professional nutrition advice.')}
+              </div>
+              <Button
+                type="submit"
+                disabled={isSubmittingAnswer || !newAnswer.trim() || newAnswer.trim().length < 20}
+                className="submit-answer-button"
+              >
+                {isSubmittingAnswer ? t('questionDetailPageSubmittingAnswer', 'Submitting...') : t('questionDetailPageSubmitAnswer', 'Submit Answer')}
               </Button>
             </div>
-          ) : !isDietitian ? (
-            <div className="answer-form-restriction">
-              <p>{t('questionDetailPageDietitianOnly', 'Only verified dietitians can provide answers to ensure professional, reliable nutrition advice.')}</p>
-              <div className="dietitian-verification-info">
-                <h4>{t('questionDetailPageBecomeVerified', 'Become a Verified Dietitian')}</h4>
-                <p>{t('questionDetailPageVerificationProcess', 'To provide answers, you need to register as a dietitian with proper certification and get verified by our admin team.')}</p>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleAnswerSubmit} className="answer-form">
-              <div className="dietitian-badge-indicator">
-                <Badge className="dietitian-badge">
-                  {t('questionDetailPageVerifiedDietitian', 'Verified Dietitian')}
-                </Badge>
-              </div>
-              <textarea
-                value={newAnswer}
-                onChange={(e) => setNewAnswer(e.target.value)}
-                placeholder={t('questionDetailPageAnswerPlaceholder', 'Provide a professional, helpful answer to this nutrition question...')}
-                className="answer-textarea"
-                rows={6}
-                minLength={20}
-                required
-              />
-              <div className="answer-form-actions">
-                <div className="answer-form-hint">
-                  {t('questionDetailPageAnswerHint', 'Minimum 20 characters. Provide professional nutrition advice.')}
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmittingAnswer || !newAnswer.trim() || newAnswer.trim().length < 20}
-                  className="submit-answer-button"
-                >
-                  {isSubmittingAnswer ? t('questionDetailPageSubmittingAnswer', 'Submitting...') : t('questionDetailPageSubmitAnswer', 'Submit Answer')}
-                </Button>
-              </div>
-            </form>
-          )}
+          </form>
         </Card>
       )}
 
@@ -598,10 +740,10 @@ const QuestionDetailPage = () => {
                 <div className="answer-header">
                   <div className="answer-author-wrapper">
                     <div className="author-info">
-                      {answer.author_profile_image ? (
+                      {userMap[answer.author]?.profilePhoto || answer.author_profile_image ? (
                         <img 
-                          src={answer.author_profile_image} 
-                          alt={userMap[answer.author] || 'Dietitian'}
+                          src={userMap[answer.author]?.profilePhoto || answer.author_profile_image} 
+                          alt={userMap[answer.author]?.username || 'Dietitian'}
                           className="author-avatar"
                           onClick={(e) => goToUserProfile(answer.author, e)}
                         />
@@ -610,7 +752,7 @@ const QuestionDetailPage = () => {
                           className="author-avatar-placeholder"
                           onClick={(e) => goToUserProfile(answer.author, e)}
                         >
-                          {(userMap[answer.author] || 'D')[0].toUpperCase()}
+                          {(userMap[answer.author]?.username || 'D')[0].toUpperCase()}
                         </div>
                       )}
                       <div>
@@ -619,19 +761,16 @@ const QuestionDetailPage = () => {
                             className="author-link"
                             onClick={(e) => goToUserProfile(answer.author, e)}
                           >
-                            {userMap[answer.author] || t('questionDetailPageUnknownUser', 'Unknown User')}
+                            {userMap[answer.author]?.username || t('questionDetailPageUnknownUser', 'Unknown User')}
+                            <Badge 
+                              badge={userMap[answer.author]?.typeOfCook} 
+                              size="small" 
+                              usertype={userMap[answer.author]?.usertype} 
+                            />
                           </span>
-                          <Badge className="dietitian-badge">
-                            {t('questionDetailPageVerifiedDietitian', 'Verified Dietitian')}
-                          </Badge>
                         </div>
                         <div className="answer-meta">
-                          {formatDate(answer.created_at, userDateFormat)}
-                          {answer.updated_at !== answer.created_at && (
-                            <span className="edited-indicator">
-                              {t('questionDetailPageEdited', '(edited)')}
-                            </span>
-                          )}
+                          {formatDate(answer.created_at, userDateFormat, t)}
                         </div>
                       </div>
                     </div>
@@ -655,13 +794,15 @@ const QuestionDetailPage = () => {
                   <div className="answer-actions">
                     <div className="vote-section">
                       <button
-                        className={`vote-button ${userAnswerVotes[answer.id] === 'up' ? 'voted' : ''}`}
+                        className={`vote-button ${userAnswerVotes[answer.id] === 'up' ? 'voted-up' : ''}`}
+                        data-vote-type="up"
                         onClick={() => handleAnswerVote(answer.id, 'up')}
                       >
                         👍 {answer.upvote_count || 0}
                       </button>
                       <button
-                        className={`vote-button ${userAnswerVotes[answer.id] === 'down' ? 'voted' : ''}`}
+                        className={`vote-button ${userAnswerVotes[answer.id] === 'down' ? 'voted-down' : ''}`}
+                        data-vote-type="down"
                         onClick={() => handleAnswerVote(answer.id, 'down')}
                       >
                         👎 {answer.downvote_count || 0}
@@ -703,17 +844,6 @@ const QuestionDetailPage = () => {
             </Button>
           </div>
         )}
-      </div>
-
-      {/* Back to Q&A Button */}
-      <div className="back-to-qa">
-        <Button
-          variant="outline"
-          onClick={() => navigate('/qa')}
-          className="back-button"
-        >
-          ← {t('questionDetailPageBackToQA', 'Back to Q&A')}
-        </Button>
       </div>
     </div>
   );

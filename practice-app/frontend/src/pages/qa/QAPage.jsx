@@ -1,6 +1,6 @@
 // src/pages/qa/QAPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 const QAPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentUser } = useAuth();
   const toast = useToast();
 
@@ -26,15 +27,16 @@ const QAPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
-    page_size: 10,
+    page_size: 2,
     total: 0
   });
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedTag, setSelectedTag] = useState(searchParams.get('tag') || '');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'recent');
   const [userMap, setUserMap] = useState({});
   const [userVotes, setUserVotes] = useState({}); // { questionId: 'up' | 'down' }
   const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
+  const [isModerationExpanded, setIsModerationExpanded] = useState(false);
 
   // Available tags from API documentation
   const availableTags = [
@@ -54,7 +56,7 @@ const QAPage = () => {
           setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
         }
       } catch (error) {
-        console.error('Error loading user date format:', error);
+        // Error loading user date format
       }
     };
     loadUserDateFormat();
@@ -62,6 +64,13 @@ const QAPage = () => {
 
   // Apply filters when the Apply Filters button is clicked
   const applyFilters = () => {
+    // Update URL with current filters
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (selectedTag) params.set('tag', selectedTag);
+    if (sortBy && sortBy !== 'recent') params.set('sort', sortBy);
+    setSearchParams(params);
+    
     const filtered = questions.filter(question => {
       const matchSearch = searchTerm 
         ? question.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -86,13 +95,34 @@ const QAPage = () => {
     setSearchTerm('');
     setSelectedTag('');
     setSortBy('recent');
+    setSearchParams({}); // Clear URL params
     setFilteredQuestions(questions); // Reset to original questions
   };
 
   // Initialize filtered questions when questions are loaded
   useEffect(() => {
-    setFilteredQuestions(questions);
-  }, [questions]);
+    if (questions.length > 0) {
+      // Apply filters from URL on initial load
+      const filtered = questions.filter(question => {
+        const matchSearch = searchTerm 
+          ? question.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            question.content.toLowerCase().includes(searchTerm.toLowerCase()) 
+          : true;
+        const matchTag = selectedTag ? question.tags.includes(selectedTag) : true;
+        return matchSearch && matchTag;
+      }).sort((a, b) => {
+        switch (sortBy) {
+          case 'recent': return new Date(b.created_at) - new Date(a.created_at);
+          case 'popular': return b.upvote_count - a.upvote_count;
+          case 'answers': return (b.answers_count || 0) - (a.answers_count || 0);
+          default: return new Date(b.created_at) - new Date(a.created_at);
+        }
+      });
+      setFilteredQuestions(filtered);
+    } else {
+      setFilteredQuestions(questions);
+    }
+  }, [questions, searchTerm, selectedTag, sortBy]);
 
   const loadQuestions = async () => {
     setIsLoading(true);
@@ -103,7 +133,7 @@ const QAPage = () => {
       // Update pagination info
       setPagination(prev => ({
         ...prev,
-        total: response.count
+        total: response.count || response.total || 0
       }));
 
       const questionsData = response.results || response;
@@ -111,21 +141,53 @@ const QAPage = () => {
       // Collect unique author IDs
       const authorIds = [...new Set(questionsData.map(q => q.author).filter(id => id))];
       
-      // Load author data
+      // Load author data with full user details
       const authorPromises = authorIds.map(async (authorId) => {
         try {
-          const username = await getUsername(authorId);
-          return { id: authorId, username };
+          const userData = await userService.getUserById(authorId);
+          return {
+            id: authorId,
+            userData: {
+              ...userData,
+              username: userData.username || 'Unknown User',
+              profilePhoto: userData.profilePhoto || null,
+              typeOfCook: userData.typeOfCook || null,
+              usertype: userData.usertype || null
+            }
+          };
         } catch (error) {
-          console.error(`Error loading username for user ${authorId}:`, error);
-          return { id: authorId, username: 'Unknown User' };
+          // Error loading user data, try to get at least username
+          try {
+            const username = await getUsername(authorId);
+            return {
+              id: authorId,
+              userData: {
+                id: authorId,
+                username: username || 'Unknown User',
+                profilePhoto: null,
+                typeOfCook: null,
+                usertype: null
+              }
+            };
+          } catch (err) {
+            return {
+              id: authorId,
+              userData: {
+                id: authorId,
+                username: 'Unknown User',
+                profilePhoto: null,
+                typeOfCook: null,
+                usertype: null
+              }
+            };
+          }
         }
       });
       
       const authors = await Promise.all(authorPromises);
       const authorMap = {};
       authors.forEach(author => {
-        authorMap[author.id] = author.username;
+        authorMap[author.id] = author.userData;
       });
       
       setUserMap(prev => ({...prev, ...authorMap}));
@@ -137,7 +199,6 @@ const QAPage = () => {
             const voteStatus = await qaService.checkQuestionVoteStatus(question.id);
             return { questionId: question.id, voteType: voteStatus.voteType };
           } catch (error) {
-            console.error(`Error checking vote status for question ${question.id}:`, error);
             return { questionId: question.id, voteType: null };
           }
         });
@@ -155,7 +216,6 @@ const QAPage = () => {
       setQuestions(questionsData);
       setIsLoading(false);
     } catch (err) {
-      console.error('Error loading questions:', err);
       setError('Failed to load questions. Please try again later.');
       setIsLoading(false);
       toast.error('Failed to load questions');
@@ -192,24 +252,35 @@ const QAPage = () => {
           }
           return question;
         }));
-      } else {
-        // If user had different vote, remove it first
-        if (currentVote) {
+      } else if (currentVote) {
+        // If user had different vote, delete old vote and create new one
+        const oldVoteType = currentVote;
+        try {
           await qaService.deleteVoteQuestion(questionId);
-          // Update count for previous vote
-          setQuestions(prev => prev.map(question => {
-            if (question.id === questionId) {
-              return {
-                ...question,
-                [currentVote === 'up' ? 'upvote_count' : 'downvote_count']: 
-                  Math.max(0, question[currentVote === 'up' ? 'upvote_count' : 'downvote_count'] - 1)
-              };
-            }
-            return question;
-          }));
+        } catch (deleteError) {
+          // If delete fails, still try to create new vote (might already be deleted)
+          // This handles race conditions where vote was already deleted
         }
+        await qaService.voteQuestion(questionId, voteType);
+        setUserVotes(prev => ({ ...prev, [questionId]: voteType }));
         
-        // Add new vote
+        // Update question vote count in state
+        setQuestions(prev => prev.map(question => {
+          if (question.id === questionId) {
+            return {
+              ...question,
+              // Decrement old vote
+              [oldVoteType === 'up' ? 'upvote_count' : 'downvote_count']: 
+                Math.max(0, question[oldVoteType === 'up' ? 'upvote_count' : 'downvote_count'] - 1),
+              // Increment new vote
+              [voteType === 'up' ? 'upvote_count' : 'downvote_count']: 
+                question[voteType === 'up' ? 'upvote_count' : 'downvote_count'] + 1
+            };
+          }
+          return question;
+        }));
+      } else {
+        // No existing vote, create new one
         await qaService.voteQuestion(questionId, voteType);
         setUserVotes(prev => ({ ...prev, [questionId]: voteType }));
         
@@ -226,7 +297,6 @@ const QAPage = () => {
         }));
       }
     } catch (error) {
-      console.error('Error voting:', error);
       if (error.response?.status === 400) {
         toast.error('You have already voted on this question');
       } else {
@@ -250,7 +320,13 @@ const QAPage = () => {
         event.target.closest('.author-link')) {
       return;
     }
-    navigate(`/qa/question/${questionId}`);
+    // Build URL with current filters
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (selectedTag) params.set('tag', selectedTag);
+    if (sortBy && sortBy !== 'recent') params.set('sort', sortBy);
+    const queryString = params.toString();
+    navigate(`/qa/question/${questionId}${queryString ? `?from=qa&${queryString}` : '?from=qa'}`);
   };
 
   const goToUserProfile = (authorId, event) => {
@@ -303,25 +379,35 @@ const QAPage = () => {
 
       {/* Moderation Rules Section */}
       <Card className="qa-moderation-rules">
-        <h2>{t('qaModerationRulesTitle', 'Community Guidelines & Moderation Rules')}</h2>
-        <div className="qa-moderation-content">
-          <div className="qa-rule">
-            <h3>{t('qaRuleVerifiedDietitiansTitle', '✅ Verified Dietitians Only')}</h3>
-            <p>{t('qaRuleVerifiedDietitiansDesc', 'Only verified dietitians with appropriate certifications can provide answers to ensure professional, reliable nutrition advice.')}</p>
-          </div>
-          <div className="qa-rule">
-            <h3>{t('qaRuleModerationTitle', '🛡️ Content Moderation')}</h3>
-            <p>{t('qaRuleModerationDesc', 'All questions and answers are subject to moderation. Content that violates our community guidelines will be removed. Users can report inappropriate content for review.')}</p>
-          </div>
-          <div className="qa-rule">
-            <h3>{t('qaRuleFairnessTitle', '⚖️ Fair & Non-Discriminatory')}</h3>
-            <p>{t('qaRuleFairnessDesc', 'Our moderation is based on clear, transparent guidelines ensuring fair treatment of all users regardless of background, dietary preferences, or health conditions.')}</p>
-          </div>
-          <div className="qa-rule">
-            <h3>{t('qaRuleLanguageTitle', '🌍 Multilingual Support')}</h3>
-            <p>{t('qaRuleLanguageDesc', 'Questions and answers are available in multiple languages with proper localization to ensure accessible nutrition information for all users.')}</p>
-          </div>
+        <div className="qa-moderation-header">
+          <Button
+            onClick={() => setIsModerationExpanded(!isModerationExpanded)}
+            variant="outline"
+            className="qa-moderation-toggle"
+          >
+            {isModerationExpanded ? '▼' : '▶'} {t('qaModerationRulesTitle', 'Moderation Rules')}
+          </Button>
         </div>
+        {isModerationExpanded && (
+          <div className="qa-moderation-content">
+            <div className="qa-rule">
+              <h3>{t('qaRuleVerifiedDietitiansTitle', '✅ Verified Dietitians Only')}</h3>
+              <p>{t('qaRuleVerifiedDietitiansDesc', 'Only verified dietitians with appropriate certifications can provide answers to ensure professional, reliable nutrition advice.')}</p>
+            </div>
+            <div className="qa-rule">
+              <h3>{t('qaRuleModerationTitle', '🛡️ Content Moderation')}</h3>
+              <p>{t('qaRuleModerationDesc', 'All questions and answers are subject to moderation. Content that violates our community guidelines will be removed. Users can report inappropriate content for review.')}</p>
+            </div>
+            <div className="qa-rule">
+              <h3>{t('qaRuleFairnessTitle', '⚖️ Fair & Non-Discriminatory')}</h3>
+              <p>{t('qaRuleFairnessDesc', 'Our moderation is based on clear, transparent guidelines ensuring fair treatment of all users regardless of background, dietary preferences, or health conditions.')}</p>
+            </div>
+            <div className="qa-rule">
+              <h3>{t('qaRuleLanguageTitle', '🌍 Multilingual Support')}</h3>
+              <p>{t('qaRuleLanguageDesc', 'Questions and answers are available in multiple languages with proper localization to ensure accessible nutrition information for all users.')}</p>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Filters Section */}
@@ -397,10 +483,10 @@ const QAPage = () => {
                   <div className="qa-question-header">
                     <div className="question-author-wrapper">
                       <div className="author-info">
-                        {question.author_profile_image ? (
+                        {userMap[question.author]?.profilePhoto || question.author_profile_image ? (
                           <img 
-                            src={question.author_profile_image} 
-                            alt={userMap[question.author] || 'User'}
+                            src={userMap[question.author]?.profilePhoto || question.author_profile_image} 
+                            alt={userMap[question.author]?.username || 'User'}
                             className="author-avatar"
                             onClick={(e) => goToUserProfile(question.author, e)}
                           />
@@ -409,19 +495,24 @@ const QAPage = () => {
                             className="author-avatar-placeholder"
                             onClick={(e) => goToUserProfile(question.author, e)}
                           >
-                            {(userMap[question.author] || 'U')[0].toUpperCase()}
+                            {(userMap[question.author]?.username || 'U')[0].toUpperCase()}
                           </div>
                         )}
                         <span 
                           className="author-link"
                           onClick={(e) => goToUserProfile(question.author, e)}
                         >
-                          {userMap[question.author] || t('qaPageUnknownUser', 'Unknown User')}
+                          {userMap[question.author]?.username || t('qaPageUnknownUser', 'Unknown User')}
+                          <Badge 
+                            badge={userMap[question.author]?.typeOfCook} 
+                            size="small" 
+                            usertype={userMap[question.author]?.usertype} 
+                          />
                         </span>
                       </div>
                     </div>
                     <div className="question-date">
-                      {formatDate(question.created_at, userDateFormat)}
+                      {formatDate(question.created_at, userDateFormat, t)}
                     </div>
                   </div>
 
@@ -443,7 +534,8 @@ const QAPage = () => {
                   <div className="qa-actions">
                     <div className="vote-buttons">
                       <button
-                        className={`vote-button ${userVotes[question.id] === 'up' ? 'voted' : ''}`}
+                        className={`vote-button ${userVotes[question.id] === 'up' ? 'voted-up' : ''}`}
+                        data-vote-type="up"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleVote(question.id, 'up');
@@ -452,7 +544,8 @@ const QAPage = () => {
                         👍 {question.upvote_count || 0}
                       </button>
                       <button
-                        className={`vote-button ${userVotes[question.id] === 'down' ? 'voted' : ''}`}
+                        className={`vote-button ${userVotes[question.id] === 'down' ? 'voted-down' : ''}`}
+                        data-vote-type="down"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleVote(question.id, 'down');
@@ -463,8 +556,16 @@ const QAPage = () => {
                     </div>
 
                     <div className="question-stats">
-                      <span>{question.answers_count || 0} {t('qaPageAnswers', 'answers')}</span>
-                      <span>{question.view_count || 0} {t('qaPageViews', 'views')}</span>
+                      <span>
+                        {question.answers_count || 0} {(question.answers_count || 0) === 1
+                          ? t('qaPageAnswer', 'answer')
+                          : t('qaPageAnswers', 'answers')}
+                      </span>
+                      <span>
+                        {question.view_count || 0} {(question.view_count || 0) === 1
+                          ? t('qaPageView', 'view')
+                          : t('qaPageViews', 'views')}
+                      </span>
                     </div>
 
                     <div className="question-report">
@@ -484,32 +585,43 @@ const QAPage = () => {
       </div>
 
       {/* Pagination */}
-      {filteredQuestions.length > 0 && (
-        <div className="qa-pagination">
-          <Button
-            onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-            disabled={pagination.page === 1}
-            className="pagination-button"
-          >
-            {t('qaPagePrevious', 'Previous')}
-          </Button>
-          
-          <span className="pagination-info">
-            {t('qaPagePaginationInfo', 'Page {{current}} of {{total}}', {
-              current: pagination.page,
-              total: Math.ceil(pagination.total / pagination.page_size)
-            })}
-          </span>
-          
-          <Button
-            onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-            disabled={pagination.page >= Math.ceil(pagination.total / pagination.page_size)}
-            className="pagination-button"
-          >
-            {t('qaPageNext', 'Next')}
-          </Button>
-        </div>
-      )}
+      {filteredQuestions.length > 0 && (() => {
+        const total = pagination.total || 0;
+        const pageSize = pagination.page_size || 10;
+        const totalPages = total > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1;
+        const currentPage = pagination.page || 1;
+        const hasNextPage = currentPage < totalPages;
+        const hasPreviousPage = currentPage > 1;
+        
+        // Format: "1" if only 1 page, "1/3" if multiple pages
+        const pageInfo = totalPages === 1 
+          ? `${currentPage}` 
+          : `${currentPage} / ${totalPages}`;
+        
+        return (
+          <div className="qa-pagination">
+            <Button
+              onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+              disabled={!hasPreviousPage}
+              className="pagination-button"
+            >
+              {t('qaPagePrevious', 'Previous')}
+            </Button>
+            
+            <span className="pagination-info">
+              {pageInfo}
+            </span>
+            
+            <Button
+              onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+              disabled={!hasNextPage}
+              className="pagination-button"
+            >
+              {t('qaPageNext', 'Next')}
+            </Button>
+          </div>
+        );
+      })()}
     </div>
   );
 };
