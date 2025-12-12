@@ -7,11 +7,13 @@ import '../l10n/app_localizations.dart';
 class TotalNutritionWidget extends StatelessWidget {
   final Map<String, dynamic>? recipeNutritions;
   final String? title;
+  final String? subtitle;
 
   const TotalNutritionWidget({
     Key? key,
     required this.recipeNutritions,
     this.title,
+    this.subtitle,
   }) : super(key: key);
 
   @override
@@ -55,12 +57,28 @@ class TotalNutritionWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      title ?? AppLocalizations.of(context)!.nutritionFacts,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryGreen,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title ?? AppLocalizations.of(context)!.nutritionFacts,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.textSecondary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
