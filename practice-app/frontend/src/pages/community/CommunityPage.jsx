@@ -1,5 +1,5 @@
 // src/pages/community/CommunityPage.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
@@ -43,198 +43,22 @@ const CommunityPage = () => {
     'Healthy', 'Student', 'Nutrition', 'Healthy Eating', 'Snacks'
   ];
 
-  // Function to fetch user details and store them in userMap
-  const fetchUserDetails = useCallback(async (userIds) => {
-    try {
-      setUserMap(prevMap => {
-        const newUserMap = { ...prevMap };
-        
-        // Fetch only users that aren't already in our map (cache is handled in getUserById)
-        const idsToFetch = userIds.filter(id => !newUserMap[id]);
-        
-        if (idsToFetch.length > 0) {
-          // Fetch user details in parallel (cache is handled in getUserById)
-          Promise.all(
-            idsToFetch.map(async (userId) => {
-              try {
-                const userData = await userService.getUserById(userId);
-                return {
-                  id: userId,
-                  user: userData
-                };
-              } catch (error) {
-                console.error(`Error fetching user ${userId}:`, error);
-                return { id: userId, user: null };
-              }
-            })
-          ).then(userResults => {
-            // Process users and update map
-            const processedMap = { ...prevMap };
-            userResults.forEach(({ id, user }) => {
-              if (user) {
-                processedMap[id] = {
-                  ...user,
-                  typeOfCook: user.typeOfCook || null,
-                  usertype: user.usertype || null
-                };
-              }
-            });
-            setUserMap(processedMap);
-          });
-        }
-        
-        return prevMap; // Return immediately, update will happen async
-      });
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-    }
-  }, []);
-
-  // Load vote status for all visible posts
-  const loadUserVotes = useCallback(async (postsList) => {
-    if (!currentUser || !postsList.length) return;
-    
-    // Fetch votes in parallel
-    const votePromises = postsList.map(async (post) => {
-      try {
-        const voteStatus = await forumService.checkPostVoteStatus(post.id);
-        return {
-          postId: post.id,
-          voteType: voteStatus.hasVoted ? voteStatus.voteType : null
-        };
-      } catch (error) {
-        console.error(`Error checking vote for post ${post.id}:`, error);
-        return { postId: post.id, voteType: null };
-      }
-    });
-    
-    const voteResults = await Promise.all(votePromises);
-    
-    // Update votes state
-    setUserVotes(prevVotes => {
-      const newVotes = { ...prevVotes };
-      voteResults.forEach(({ postId, voteType }) => {
-        if (voteType) {
-          newVotes[postId] = voteType;
-        }
-      });
-      return newVotes;
-    });
-  }, [currentUser]);
-
-  // Use ref to store the latest loadPosts function to avoid dependency issues
-  const loadPostsRef = useRef(null);
-  const isInitialMount = useRef(true);
-
-  const loadPosts = useCallback(async (page, pageSize, skipPaginationUpdate = false) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log("Fetching posts with page:", page, "page_size:", pageSize);
-      const data = await forumService.getPosts(page, pageSize);
-      console.log("Response data:", data);
-      
-      // Set the posts
-      setPosts(data.results || []);
-      setFilteredPosts(data.results || []); // Initialize filtered posts too
-      
-      // Only update pagination if not skipping (to avoid infinite loop on initial load)
-      if (!skipPaginationUpdate) {
-        setPagination(prev => {
-          const newPage = data.page || page;
-          const newPageSize = data.page_size || pageSize;
-          const newTotal = data.total || prev.total;
-          
-          // Only update if values actually changed
-          if (newPage !== prev.page || newPageSize !== prev.page_size || newTotal !== prev.total) {
-            return {
-              page: newPage,
-              page_size: newPageSize,
-              total: newTotal
-            };
-          }
-          return prev;
-        });
-      } else {
-        // On initial load, only update total count
-        setPagination(prev => ({
-          ...prev,
-          total: data.total || prev.total
-        }));
-      }
-      
-      // Get unique author IDs to fetch their details
-      const authorIds = [...new Set((data.results || []).map(post => post.author))];
-      fetchUserDetails(authorIds);
-      
-      // Load user votes for the current posts
-      if (currentUser) {
-        await loadUserVotes(data.results || []);
-      }
-      
-    } catch (error) {
-      console.error('Error loading posts:', error);
-      setError(t('communityPageFailedToLoad'));
-      toast.error(t('communityPageFailedToLoad'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentUser, t, toast, fetchUserDetails, loadUserVotes]);
-
-  // Keep ref updated with latest loadPosts function
   useEffect(() => {
-    loadPostsRef.current = loadPosts;
-  }, [loadPosts]);
-
-  // Load posts on mount
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadData = async () => {
-      // Use default values on mount (page 1, page_size 10)
-      // Skip pagination update to avoid triggering the second useEffect
-      if (loadPostsRef.current) {
-        await loadPostsRef.current(1, 10, true);
-      }
-      
-      if (!isMounted) return;
-      
-      // Load user's preferred date format
+    loadPosts();
+    // Load user's preferred date format
+    const loadUserDateFormat = async () => {
       try {
         const user = await getCurrentUser();
-        if (user && user.id && isMounted) {
+        if (user && user.id) {
           const userData = await userService.getUserById(user.id);
-          if (isMounted) {
-            setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
-          }
+          setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
         }
       } catch (error) {
-        if (isMounted) {
-          console.error('Error loading user date format:', error);
-        }
+        console.error('Error loading user date format:', error);
       }
     };
-    
-    loadData();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Only run on mount
-
-  // Separate effect for pagination changes - use ref to avoid dependency loop
-  useEffect(() => {
-    // Skip on initial mount (first useEffect handles that)
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    
-    if (loadPostsRef.current) {
-      loadPostsRef.current(pagination.page, pagination.page_size);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, pagination.page_size]); // Only reload when page or page_size changes
+    loadUserDateFormat();
+  }, [pagination.page]);
 
   // Apply filters when the Apply Filters button is clicked
   const applyFilters = () => {
@@ -269,6 +93,147 @@ const CommunityPage = () => {
   useEffect(() => {
     setFilteredPosts(posts);
   }, [posts]);
+
+  const loadPosts = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log("Fetching posts with page:", pagination.page, "page_size:", pagination.page_size);
+      const data = await forumService.getPosts(pagination.page, pagination.page_size);
+      console.log("Response data:", data);
+      
+      // Set the posts
+      setPosts(data.results || []);
+      setFilteredPosts(data.results || []); // Initialize filtered posts too
+      
+      // Only update total, don't update page/page_size to avoid infinite loop
+      // page and page_size are controlled by user actions via handlePageChange
+      setPagination(prev => ({
+        ...prev,
+        total: data.total || prev.total
+      }));
+      
+      // Get unique author IDs to fetch their details
+      const authorIds = [...new Set((data.results || []).map(post => post.author))];
+      fetchUserDetails(authorIds);
+      
+      // Load user votes for the current posts
+      if (currentUser) {
+        await loadUserVotes(data.results || []);
+      }
+      
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      setError(t('communityPageFailedToLoad'));
+      toast.error(t('communityPageFailedToLoad'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load vote status for all visible posts
+  const loadUserVotes = async (postsList) => {
+    if (!currentUser || !postsList.length) return;
+    
+    const newVotes = { ...userVotes };
+    
+    for (const post of postsList) {
+      try {
+        const voteStatus = await forumService.checkPostVoteStatus(post.id);
+        if (voteStatus.hasVoted) {
+          newVotes[post.id] = voteStatus.voteType;
+        }
+      } catch (error) {
+        console.error(`Error checking vote for post ${post.id}:`, error);
+      }
+    }
+    
+    setUserVotes(newVotes);
+  };
+
+  // Function to fetch user details and store them in userMap
+  const fetchUserDetails = async (userIds) => {
+    try {
+      const newUserMap = { ...userMap };
+      
+      // Fetch only users that aren't already in our map
+      const idsToFetch = userIds.filter(id => !newUserMap[id]);
+      
+      if (idsToFetch.length > 0) {
+        // Fetch user details in parallel
+        const userPromises = idsToFetch.map(async (userId) => {
+          try {
+            const userData = await userService.getUserById(userId);
+            return {
+              id: userId,
+              user: userData
+            };
+          } catch (error) {
+            console.error(`Error fetching user ${userId}:`, error);
+            return { id: userId, user: null };
+          }
+        });
+        
+        const userResults = await Promise.all(userPromises);
+        
+        // Process users and fetch missing usernames
+        const processedUsers = await Promise.all(
+          userResults.map(async ({ id, user }) => {
+            if (user) {
+              // If user exists but username is missing, try to fetch it separately
+              if (!user.username || !user.username.trim()) {
+                try {
+                  const username = await getUsername(id);
+                  if (username && username !== 'Unknown') {
+                    user.username = username;
+                  }
+                } catch (error) {
+                  console.error(`Error fetching username for user ${id}:`, error);
+                }
+              }
+              
+              return {
+                id,
+                userData: {
+                  ...user,
+                  typeOfCook: user.typeOfCook || null,
+                  usertype: user.usertype || null
+                }
+              };
+            } else {
+              // Try to fetch username even if user fetch failed
+              try {
+                const username = await getUsername(id);
+                return {
+                  id,
+                  userData: { 
+                    id: id, 
+                    username: username && username !== 'Unknown' ? username : `User ${id}`, 
+                    typeOfCook: null, 
+                    usertype: null 
+                  }
+                };
+              } catch (error) {
+                return {
+                  id,
+                  userData: { id: id, username: `User ${id}`, typeOfCook: null, usertype: null }
+                };
+              }
+            }
+          })
+        );
+        
+        // Update userMap with processed users
+        processedUsers.forEach(({ id, userData }) => {
+          newUserMap[id] = userData;
+        });
+        
+        setUserMap(newUserMap);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
 
   // Function to get user's name/username from userMap
   const getUserName = (userId) => {
@@ -442,9 +407,7 @@ const CommunityPage = () => {
       }
     } catch (error) {
       // Revert optimistic updates
-      if (loadPostsRef.current) {
-        loadPostsRef.current(pagination.page, pagination.page_size);
-      }
+      loadPosts();
       console.error('Error voting on post:', error);
       toast.error(t('communityPageFailedToVote'));
     }
@@ -505,9 +468,7 @@ const CommunityPage = () => {
       }
       
       // Revert optimistic updates on error
-      if (loadPostsRef.current) {
-        loadPostsRef.current(pagination.page, pagination.page_size);
-      }
+      loadPosts();
     }
   };
 
@@ -587,7 +548,7 @@ const CommunityPage = () => {
           <Card.Body>
             <h2>{t("communityPageErrorLoading")}</h2>
             <p>{error}</p>
-            <Button onClick={() => loadPostsRef.current?.(pagination.page, pagination.page_size)}>{t("TryAgain")}</Button>
+            <Button onClick={loadPosts}>{t("TryAgain")}</Button>
           </Card.Body>
         </Card>
       )}
@@ -717,7 +678,7 @@ const CommunityPage = () => {
             <h2>{t("communityPageForumEmpty")}</h2>
             <p>{searchTerm || selectedTag ? t('communityPageTryAdjusting') : t('communityPageFirstDiscussion')}</p>
             {(searchTerm || selectedTag) && <Button onClick={resetFilters}>{t("ClearFilters")}</Button>}
-            <Button onClick={() => loadPostsRef.current?.(pagination.page, pagination.page_size)} className="edit-button">{t("Refresh")}</Button>
+            <Button onClick={loadPosts} className="edit-button">{t("Refresh")}</Button>
           </Card.Body>
         </Card>
       )}
