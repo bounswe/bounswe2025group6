@@ -243,7 +243,7 @@ const ShoppingListPage = () => {
     await shareContent({
       title: t('shoppingListPageTitle'),
       text: text,
-      url: window.location.href
+      url: null
     }, t);
   };
 
