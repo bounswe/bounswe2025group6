@@ -1,6 +1,5 @@
 // src/services/followService.js
 import axios from 'axios';
-import userService from './userService';
 
 // Create an axios instance with auth
 const api = axios.create({
@@ -85,20 +84,12 @@ export const getFollowers = async (userId) => {
             });
             
             if (isFollowing) {
-              // Fetch badge for this user
-              let badge = null;
-              try {
-                const badgeData = await userService.getUserRecipeCount(user.id);
-                badge = badgeData.badge;
-              } catch (error) {
-                console.error(`Error fetching badge for user ${user.id}:`, error);
-              }
-              
+              // Get typeOfCook from user data already fetched
               followers.push({
                 id: user.id,
                 username: user.username,
                 profilePhoto: user.profilePhoto,
-                badge: badge,
+                typeOfCook: user.typeOfCook || null,
                 usertype: user.usertype || null
               });
             }
@@ -127,7 +118,7 @@ export const getFollowers = async (userId) => {
 /**
  * Get user's following list
  * @param {number|string} userId - User ID (required)
- * @returns {Promise} Array of followed users with full details (id, username, profilePhoto, typeOfCook)
+ * @returns {Promise} Array of followed users with full details (id, username, profilePhoto, typeOfCook, usertype)
  */
 export const getFollowing = async (userId) => {
   try {
@@ -149,27 +140,18 @@ export const getFollowing = async (userId) => {
         const id = typeof userIdOrId === 'object' ? userIdOrId.id : userIdOrId;
         const userResponse = await api.get(`/api/users/${id}/`);
         
-        // Fetch badge for this user
-        let badge = null;
-        try {
-          const badgeData = await userService.getUserRecipeCount(id);
-          badge = badgeData.badge;
-        } catch (error) {
-          console.error(`Error fetching badge for user ${id}:`, error);
-        }
-        
         return {
           id: userResponse.data.id,
           username: userResponse.data.username,
           profilePhoto: userResponse.data.profilePhoto,
-          badge: badge,
+          typeOfCook: userResponse.data.typeOfCook || null,
           usertype: userResponse.data.usertype || null
         };
       } catch (error) {
         console.error(`Error fetching user ${userIdOrId}:`, error);
         // Return minimal object if fetch fails
         const id = typeof userIdOrId === 'object' ? userIdOrId.id : userIdOrId;
-        return { id: Number(id), username: `User ${id}`, badge: null, usertype: null };
+        return { id: Number(id), username: `User ${id}`, typeOfCook: null, usertype: null };
       }
     });
     

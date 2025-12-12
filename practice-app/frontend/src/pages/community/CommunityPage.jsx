@@ -158,19 +158,17 @@ const CommunityPage = () => {
       const idsToFetch = userIds.filter(id => !newUserMap[id]);
       
       if (idsToFetch.length > 0) {
-        // Fetch user details and badges in parallel
+        // Fetch user details in parallel
         const userPromises = idsToFetch.map(async (userId) => {
           try {
             const userData = await userService.getUserById(userId);
-            const badgeData = await userService.getUserRecipeCount(userId);
             return {
               id: userId,
-              user: userData,
-              badge: badgeData.badge
+              user: userData
             };
           } catch (error) {
             console.error(`Error fetching user ${userId}:`, error);
-            return { id: userId, user: null, badge: null };
+            return { id: userId, user: null };
           }
         });
         
@@ -178,7 +176,7 @@ const CommunityPage = () => {
         
         // Process users and fetch missing usernames
         const processedUsers = await Promise.all(
-          userResults.map(async ({ id, user, badge }) => {
+          userResults.map(async ({ id, user }) => {
             if (user) {
               // If user exists but username is missing, try to fetch it separately
               if (!user.username || !user.username.trim()) {
@@ -196,7 +194,7 @@ const CommunityPage = () => {
                 id,
                 userData: {
                   ...user,
-                  badge: badge,
+                  typeOfCook: user.typeOfCook || null,
                   usertype: user.usertype || null
                 }
               };
@@ -209,14 +207,14 @@ const CommunityPage = () => {
                   userData: { 
                     id: id, 
                     username: username && username !== 'Unknown' ? username : `User ${id}`, 
-                    badge: null, 
+                    typeOfCook: null, 
                     usertype: null 
                   }
                 };
               } catch (error) {
                 return {
                   id,
-                  userData: { id: id, username: `User ${id}`, badge: null, usertype: null }
+                  userData: { id: id, username: `User ${id}`, typeOfCook: null, usertype: null }
                 };
               }
             }
@@ -595,7 +593,7 @@ const CommunityPage = () => {
                             className="author-link"
                           >
                             {getUserName(post.author)}
-                            <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
+                            <Badge badge={userMap[post.author]?.typeOfCook} size="small" usertype={userMap[post.author]?.usertype} />
                           </span>
                         </div>
                       </span>

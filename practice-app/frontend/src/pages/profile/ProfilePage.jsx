@@ -30,7 +30,6 @@ const ProfilePage = () => {
   // State
   const [activeTab, setActiveTab] = useState("recipes");
   const [userProfile, setUserProfile] = useState(null);
-  const [userBadge, setUserBadge] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [myRecipes, setMyRecipes] = useState([]);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
@@ -93,10 +92,6 @@ const ProfilePage = () => {
 
         const userData = await userService.getUserById(user.id);
         setUserProfile(userData);
-        
-        // Fetch user badge
-        const badgeData = await userService.getUserRecipeCount(user.id);
-        setUserBadge(badgeData.badge);
         
         // Initialize settings form fields
         if (userData.date_of_birth) {
@@ -639,14 +634,14 @@ ${(list.ingredients || []).map(ing => {
             <h1 className="profile-username">
               <span className="profile-username-wrapper">
                 <span className="profile-username-text">{userProfile.username}</span>
-                <Badge badge={userBadge} size="large" usertype={userProfile.usertype} />
+                <Badge badge={userProfile.typeOfCook} size="large" usertype={userProfile.usertype} />
               </span>
             </h1>
               <p 
                 className="profile-badge-label"
-              style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
+              style={{ color: getBadgeColor(userProfile.typeOfCook, userProfile.usertype) }}
               >
-              {getBadgeLabel(userBadge, userProfile.usertype, t)}
+              {getBadgeLabel(userProfile.typeOfCook, userProfile.usertype, t)}
               </p>
             <p className="profile-email">{userProfile.email}</p>
             <div className="profile-stats">
@@ -1063,7 +1058,7 @@ ${(list.ingredients || []).map(ing => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
@@ -1123,7 +1118,7 @@ ${(list.ingredients || []).map(ing => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
               </div>
                 ))
