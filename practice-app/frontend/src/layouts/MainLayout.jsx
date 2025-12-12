@@ -55,13 +55,16 @@ const MainLayout = () => {
     const lang = e.target.value;
     const updatedUser = { ...currentUser, language: lang };
     setCurrentUser(updatedUser);
+    // Only send the language field to backend to avoid validation errors
     userService
-      .updateUserById(currentUser?.id, updatedUser)
+      .updateUserById(currentUser?.id, { language: lang })
       .then(() => {
         i18next.changeLanguage(lang);
       })
       .catch((error) => {
         console.error("Error updating language preference:", error);
+        // Still update the language locally even if backend fails
+        i18next.changeLanguage(lang);
         toast.error(t("failedToUpdateLanguagePreference"));
       });
   };

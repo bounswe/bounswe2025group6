@@ -31,6 +31,7 @@ export const MEAL_PLANNER_DEFAULT_FILTERS = {
   max_health_rating: '',
   has_image: false,
   excludeAllergens: [],
+  dietInfo: [],
 };
 
 const cloneFilterPayload = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
@@ -38,6 +39,7 @@ const cloneFilterPayload = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
   ...payload,
   mealTypes: payload?.mealTypes ? [...payload.mealTypes] : [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
   excludeAllergens: payload?.excludeAllergens ? [...payload.excludeAllergens] : [],
+  dietInfo: payload?.dietInfo ? [...payload.dietInfo] : [],
 });
 
 const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initialFilters }) => {
@@ -91,6 +93,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
     nutrition: false,
     time: false,
     allergens: false,
+    dietary: false,
   });
 
   const toggleSection = (section) => {
@@ -144,6 +147,22 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
     onFilterChange(payload);
   };
 
+  const handleDietInfoToggle = (dietInfo) => {
+    const currentDietInfo = filters.dietInfo || [];
+    const newDietInfo = currentDietInfo.includes(dietInfo)
+      ? currentDietInfo.filter((d) => d !== dietInfo)
+      : [...currentDietInfo, dietInfo];
+    
+    const newFilters = {
+      ...filters,
+      dietInfo: newDietInfo,
+    };
+    
+    const payload = cloneFilterPayload(newFilters);
+    setFilters(payload);
+    onFilterChange(payload);
+  };
+
   const handleApply = () => {
     onApplyFilters(cloneFilterPayload(filters));
   };
@@ -159,6 +178,11 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
   const commonAllergens = [
     'Dairy', 'Egg', 'Nuts', 'Peanuts',
     'Shellfish', 'Fish', 'Wheat', 'Soy', 'Gluten'
+  ];
+
+  const commonDietInfo = [
+    'vegan', 'vegetarian', 'gluten-free', 'dairy-free', 
+    'nut-free', 'keto', 'paleo', 'low-carb', 'high-protein'
   ];
 
   return (
@@ -533,6 +557,37 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     className="filter-input filter-input-small"
                   />
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Dietary Info - Collapsible */}
+        <div className="filter-section collapsible-section dietary-section">
+          <button 
+            className="filter-section-toggle"
+            onClick={() => toggleSection('dietary')}
+          >
+            <span className="filter-label">{t('filtersDietaryInfo')}</span>
+            <span className="toggle-icon">{expandedSections.dietary ? '▼' : '▶'}</span>
+          </button>
+          
+          {expandedSections.dietary && (
+            <div className="collapsible-content">
+              <div className="checkbox-group">
+                {commonDietInfo.map((dietInfo) => {
+                  const labelKey = `dietaryInfo${sanitizeKey(dietInfo)}`;
+                  return (
+                    <label key={dietInfo} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={(filters.dietInfo || []).includes(dietInfo)}
+                        onChange={() => handleDietInfoToggle(dietInfo)}
+                      />
+                      <span>{t(labelKey, { defaultValue: dietInfo })}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}

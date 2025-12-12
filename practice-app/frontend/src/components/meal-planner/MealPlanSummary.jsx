@@ -1,8 +1,9 @@
 // src/components/meal-planner/MealPlanSummary.jsx
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
+import Modal from '../ui/Modal';
 import '../../styles/MealPlanSummary.css';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,9 @@ const MealPlanSummary = ({
 }) => {
   const { currency } = useCurrency();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [showPortionModal, setShowPortionModal] = useState(false);
+  const [selectedPortion, setSelectedPortion] = useState(1);
   const hasSelectedMeals = Object.values(mealPlan).some(meal => meal !== null);
 
   if (!hasSelectedMeals) {
@@ -38,6 +42,24 @@ const MealPlanSummary = ({
   const totalCookTime = Object.values(mealPlan).reduce((total, meal) => {
     return total + (meal ? parseInt(meal.cook_time || 0) : 0);
   }, 0);
+
+  const handleGenerateShoppingClick = (e) => {
+    e.preventDefault();
+    setShowPortionModal(true);
+  };
+
+  const handlePortionConfirm = () => {
+    // Save meal plan and portion to localStorage
+    localStorage.setItem('currentMealPlan', JSON.stringify({ 
+      activePlan: mealPlan,
+      portion: selectedPortion 
+    }));
+    setShowPortionModal(false);
+    if (onGenerateShopping) {
+      onGenerateShopping();
+    }
+    navigate('/shopping-list');
+  };
 
   return (
     <div className="meal-plan-summary">
@@ -182,13 +204,55 @@ const MealPlanSummary = ({
           <button onClick={onClear} className="modern-action-button danger">
             {t('mealPlanSummary.removeAll')}
           </button>
-          <Link to="/shopping-list" className="link-button">
-            <button onClick={onGenerateShopping} className="modern-action-button primary">
-              {t('mealPlanSummary.generateShopping')}
-            </button>
-          </Link>
+          <button onClick={handleGenerateShoppingClick} className="modern-action-button primary">
+            {t('mealPlanSummary.generateShopping')}
+          </button>
         </div>
       </div>
+
+      {/* Portion Selection Modal */}
+      <Modal
+        isOpen={showPortionModal}
+        onClose={() => setShowPortionModal(false)}
+        title={t('mealPlanSummary.portionModalTitle')}
+      >
+        <div className="portion-modal-content">
+          <p className="portion-modal-description">
+            {t('mealPlanSummary.portionModalDescription')}
+          </p>
+          <div className="portion-selector">
+            <label htmlFor="portion-select" className="portion-label">
+              {t('mealPlanSummary.portionLabel')}
+            </label>
+            <select
+              id="portion-select"
+              value={selectedPortion}
+              onChange={(e) => setSelectedPortion(parseInt(e.target.value))}
+              className="portion-select"
+            >
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                <option key={num} value={num}>
+                  {num} {t('mealPlanSummary.portionUnit')}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="portion-modal-actions">
+            <button
+              onClick={() => setShowPortionModal(false)}
+              className="modern-action-button danger"
+            >
+              {t('Cancel')}
+            </button>
+            <button
+              onClick={handlePortionConfirm}
+              className="modern-action-button primary"
+            >
+              {t('mealPlanSummary.portionConfirm')}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
