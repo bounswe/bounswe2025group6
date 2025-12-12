@@ -6,6 +6,7 @@
   padding: 2rem;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* Header Section */
@@ -65,20 +66,46 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.qa-moderation-rules h2 {
-  color: #2d3748;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.qa-moderation-header {
+  margin-bottom: 0;
+}
+
+.qa-moderation-toggle {
+  width: 100%;
+  justify-content: flex-start !important;
+  padding: 0.75rem 1rem !important;
+  background: white !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  color: #2d3748 !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.qa-moderation-toggle:hover {
+  border-color: #48bb78 !important;
+  background: rgba(72, 187, 120, 0.05) !important;
 }
 
 .qa-moderation-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
+  margin-top: 1rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
 }
 
 .qa-rule {
@@ -304,6 +331,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .author-link:hover {
@@ -377,21 +405,42 @@
   justify-content: center;
 }
 
-.vote-button:hover {
-  border-color: #48bb78;
-  background: rgba(72, 187, 120, 0.05);
+.vote-button:hover:not(.voted-up):not(.voted-down) {
   transform: translateY(-1px);
   color: #2d3748;
 }
 
-.vote-button.voted {
+/* Upvote button hover - medium green tone (between normal and voted) */
+.vote-button[data-vote-type="up"]:hover:not(.voted-up) {
+  border-color: #48bb78;
+  background: rgba(72, 187, 120, 0.2);
+}
+
+/* Downvote button hover - medium red tone (between normal and voted) */
+.vote-button[data-vote-type="down"]:hover:not(.voted-down) {
+  border-color: #f56565;
+  background: rgba(245, 101, 101, 0.2);
+}
+
+.vote-button.voted-up {
   background: linear-gradient(135deg, #48bb78, #38a169);
   border-color: #48bb78;
   color: white;
 }
 
-.vote-button.voted:hover {
+.vote-button.voted-up:hover {
   background: linear-gradient(135deg, #38a169, #2d5016);
+  transform: translateY(-1px);
+}
+
+.vote-button.voted-down {
+  background: linear-gradient(135deg, #f56565, #e53e3e);
+  border-color: #f56565;
+  color: white;
+}
+
+.vote-button.voted-down:hover {
+  background: linear-gradient(135deg, #e53e3e, #c53030);
   transform: translateY(-1px);
 }
 

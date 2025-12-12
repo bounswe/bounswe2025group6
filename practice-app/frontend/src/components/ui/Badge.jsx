@@ -12,8 +12,11 @@ import '../../styles/Badge.css';
 const Badge = ({ badge, size = 'small', usertype }) => {
   const { t } = useTranslation();
   
-  // If user is a dietitian, show black star
-  if (usertype === 'dietitian') {
+  // Normalize usertype for comparison
+  const normalizedUsertype = usertype ? usertype.toString().trim().toLowerCase() : '';
+  
+  // If user is a dietitian, show black star (and ignore typeOfCook badge)
+  if (normalizedUsertype === 'dietitian') {
     const fontSizeMap = {
       small: '1.2rem',
       medium: '1.5rem',

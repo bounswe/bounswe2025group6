@@ -18,7 +18,6 @@ const CreateQuestionPage = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    is_commentable: true,
     tags: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,18 +81,15 @@ const CreateQuestionPage = () => {
       const questionData = {
         title: formData.title.trim(),
         content: formData.content.trim(),
-        is_commentable: formData.is_commentable,
+        is_commentable: true, // All questions are commentable by default
         tags: formData.tags
       };
 
-      console.log('Submitting question:', questionData);
       const response = await qaService.createQuestion(questionData);
-      console.log('Question created:', response);
 
       toast.success(t('createQuestionPageSuccess', 'Question asked successfully!'));
       navigate(`/qa/question/${response.id}`);
     } catch (error) {
-      console.error('Error creating question:', error);
       
       if (error.response?.data?.detail) {
         toast.error(error.response.data.detail);
@@ -186,25 +182,6 @@ const CreateQuestionPage = () => {
             </div>
             <div className="form-hint">
               {t('createQuestionPageTagsHint', 'Select relevant tags to help categorize your question')}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <div className="checkbox-group">
-              <input
-                type="checkbox"
-                id="is_commentable"
-                name="is_commentable"
-                checked={formData.is_commentable}
-                onChange={handleChange}
-                className="form-checkbox"
-              />
-              <label htmlFor="is_commentable" className="checkbox-label">
-                {t('createQuestionPageAllowAnswers', 'Allow dietitians to answer this question')}
-              </label>
-            </div>
-            <div className="form-hint">
-              {t('createQuestionPageAllowAnswersHint', 'Uncheck only if you want to share information without seeking answers')}
             </div>
           </div>
 

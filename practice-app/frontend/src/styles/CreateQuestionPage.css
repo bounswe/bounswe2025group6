@@ -1,11 +1,12 @@
 /* src/styles/CreateQuestionPage.css */
 
 .create-question-container {
-  max-width: 800px;
+  width: 1000px;
   margin: 0 auto;
   padding: 2rem;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .create-question-card {
@@ -104,32 +105,38 @@
 }
 
 .tag-button {
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1.25rem;
   border: 2px solid #e2e8f0;
   border-radius: 20px;
-  background: #f8f9fa;
+  background: #ffffff;
   color: #4a5568;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .tag-button:hover {
   border-color: #48bb78;
-  background: rgba(72, 187, 120, 0.1);
+  background: rgba(72, 187, 120, 0.08);
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(72, 187, 120, 0.15);
 }
 
 .tag-button.selected {
-  background: linear-gradient(135deg, #48bb78, #38a169);
-  border-color: #48bb78;
-  color: white;
+  background: linear-gradient(135deg, #48bb78, #38a169) !important;
+  border-color: #48bb78 !important;
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+  transform: translateY(-1px);
 }
 
 .tag-button.selected:hover {
-  background: linear-gradient(135deg, #38a169, #2d5016);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #38a169, #2d5016) !important;
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+  transform: translateY(-2px);
 }
 
 .checkbox-group {
@@ -360,53 +367,51 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .create-question-container {
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-  }
+/* Force light theme - dark mode disabled */
+.create-question-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
 
-  .create-question-card {
-    background: #2d3748;
-    color: #f7fafc;
-  }
+.create-question-card {
+  background: white !important;
+  color: #2d3748 !important;
+}
 
-  .form-label {
-    color: #f7fafc;
-  }
+.form-label {
+  color: #2d3748 !important;
+}
 
-  .form-input,
-  .form-textarea {
-    background: #4a5568;
-    border-color: #718096;
-    color: #f7fafc;
-  }
+.form-input,
+.form-textarea {
+  background: #f8f9fa !important;
+  border-color: #e2e8f0 !important;
+  color: #2d3748 !important;
+}
 
-  .form-input:focus,
-  .form-textarea:focus {
-    background: #4a5568;
-    border-color: #48bb78;
-  }
+.form-input:focus,
+.form-textarea:focus {
+  background: white !important;
+  border-color: #48bb78 !important;
+}
 
-  .tag-button {
-    background: #4a5568;
-    border-color: #718096;
-    color: #f7fafc;
-  }
+.tag-button {
+  background: #f8f9fa !important;
+  border-color: #e2e8f0 !important;
+  color: #4a5568 !important;
+}
 
-  .checkbox-label {
-    color: #f7fafc;
-  }
+.checkbox-label {
+  color: #2d3748 !important;
+}
 
-  .guidelines-card {
-    background: linear-gradient(135deg, #4a5568, #718096);
-  }
+.guidelines-card {
+  background: linear-gradient(135deg, #f7fafc, #edf2f7) !important;
+}
 
-  .guidelines-title {
-    color: #f7fafc;
-  }
+.guidelines-title {
+  color: #2d3748 !important;
+}
 
-  .guidelines-list li {
-    color: #e2e8f0;
-  }
+.guidelines-list li {
+  color: #4a5568 !important;
 }
