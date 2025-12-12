@@ -27,7 +27,7 @@ const QAPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
-    page_size: 2,
+    page_size: 10,
     total: 0
   });
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
