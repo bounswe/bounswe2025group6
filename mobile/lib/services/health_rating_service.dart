@@ -73,8 +73,15 @@ class HealthRatingService {
                 ? responseData
                 : (responseData['results'] as List<dynamic>? ?? []);
 
-        if (ratingsJson.isNotEmpty) {
-          return HealthRating.fromJson(ratingsJson.first);
+        // Filter ratings by recipe_id to ensure we get the correct one
+        final recipeRatings =
+            ratingsJson
+                .map((json) => HealthRating.fromJson(json))
+                .where((rating) => rating.recipeId == recipeId)
+                .toList();
+
+        if (recipeRatings.isNotEmpty) {
+          return recipeRatings.first;
         }
         return null;
       }

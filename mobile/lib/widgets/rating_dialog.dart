@@ -179,9 +179,12 @@ class _RatingDialogState extends State<RatingDialog> {
 
   Future<void> _submitRating() async {
     // Validate that at least one rating is provided
-    if (_tasteRating == null && _difficultyRating == null) {
+    final hasRecipeRating = _tasteRating != null || _difficultyRating != null;
+    final hasHealthRating = _isDietitian && _healthRating != null;
+
+    if (!hasRecipeRating && !hasHealthRating && widget.existingRating == null) {
       setState(() {
-        _errorMessage = 'Please provide at least one rating (taste or difficulty)';
+        _errorMessage = 'Please provide at least one rating';
       });
       return;
     }
@@ -193,21 +196,23 @@ class _RatingDialogState extends State<RatingDialog> {
 
     try {
       // Save recipe rating (taste and difficulty)
-      if (widget.existingRating != null) {
-        // Update existing recipe rating
-        await _ratingService.updateRating(
-          ratingId: widget.existingRating!.id!,
-          recipeId: widget.recipeId,
-          tasteRating: _tasteRating,
-          difficultyRating: _difficultyRating,
-        );
-      } else {
-        // Create new recipe rating
-        await _ratingService.createRating(
-          recipeId: widget.recipeId,
-          tasteRating: _tasteRating,
-          difficultyRating: _difficultyRating,
-        );
+      if (hasRecipeRating || widget.existingRating != null) {
+        if (widget.existingRating != null) {
+          // Update existing recipe rating
+          await _ratingService.updateRating(
+            ratingId: widget.existingRating!.id!,
+            recipeId: widget.recipeId,
+            tasteRating: _tasteRating,
+            difficultyRating: _difficultyRating,
+          );
+        } else if (hasRecipeRating) {
+          // Create new recipe rating
+          await _ratingService.createRating(
+            recipeId: widget.recipeId,
+            tasteRating: _tasteRating,
+            difficultyRating: _difficultyRating,
+          );
+        }
       }
 
       // Save health rating separately (only for dietitians)
@@ -276,9 +281,9 @@ class _RatingDialogState extends State<RatingDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        widget.existingRating != null 
-          ? AppLocalizations.of(context)!.editRating 
-          : AppLocalizations.of(context)!.rateRecipe,
+        widget.existingRating != null
+            ? AppLocalizations.of(context)!.editRating
+            : AppLocalizations.of(context)!.rateRecipe,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
       ),
       content: SingleChildScrollView(
@@ -454,7 +459,9 @@ class _RatingDialogState extends State<RatingDialog> {
                     _difficultyRating = null;
                   });
                 },
-                child: Text(AppLocalizations.of(context)!.clearDifficultyRating),
+                child: Text(
+                  AppLocalizations.of(context)!.clearDifficultyRating,
+                ),
               ),
 
             // Health Rating Section (Only for Dietitians)
@@ -539,7 +546,10 @@ class _RatingDialogState extends State<RatingDialog> {
         if (widget.existingRating != null)
           TextButton(
             onPressed: _isLoading ? null : _deleteRating,
-            child: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: Colors.red)),
+            child: Text(
+              AppLocalizations.of(context)!.delete,
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         const Spacer(),
         TextButton(
@@ -562,7 +572,11 @@ class _RatingDialogState extends State<RatingDialog> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                  : Text(widget.existingRating != null ? AppLocalizations.of(context)!.update : AppLocalizations.of(context)!.rateRecipe),
+                  : Text(
+                    widget.existingRating != null
+                        ? AppLocalizations.of(context)!.update
+                        : AppLocalizations.of(context)!.rateRecipe,
+                  ),
         ),
       ],
     );
