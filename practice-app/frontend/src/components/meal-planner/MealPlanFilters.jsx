@@ -46,14 +46,17 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
   const { t } = useTranslation();
   
   // Normalize allergen tokens to better match locale keys
+  // SQL allergens: dairy, egg, fish, gluten, nuts, probiotic
   const normalizeAllergenToken = (allergen) => {
     if (!allergen || typeof allergen !== 'string') return allergen;
     const s = allergen.toLowerCase().trim();
-    if (s.includes('peanut')) return 'Peanut';
     if (s === 'nuts' || s === 'nut') return 'Nuts';
-    if (s.includes('tree')) return 'TreeNut';
-    if (s === 'wheat') return 'Gluten';
-    // keep common casing for others (Dairy, Egg, Fish, Soy, Shellfish, Gluten)
+    if (s === 'dairy' || s === 'milk') return 'Dairy';
+    if (s === 'egg' || s === 'eggs') return 'Egg';
+    if (s === 'fish') return 'Fish';
+    if (s === 'gluten' || s === 'wheat') return 'Gluten';
+    if (s === 'probiotic') return 'Probiotic';
+    // keep common casing for others
     return allergen;
   };
 
@@ -176,13 +179,13 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
   };
 
   const commonAllergens = [
-    'Dairy', 'Egg', 'Nuts', 'Peanuts',
-    'Shellfish', 'Fish', 'Wheat', 'Soy', 'Gluten'
+    'Dairy', 'Egg', 'Nuts', 'Fish', 'Gluten', 'Probiotic'
   ];
 
   const commonDietInfo = [
-    'vegan', 'vegetarian', 'gluten-free', 'dairy-free', 
-    'nut-free', 'keto', 'paleo', 'low-carb', 'high-protein'
+    'vegan', 'gluten-free', 'high-protein', 'low-carb', 
+    'whole-grain', 'keto-friendly', 'healthy-fat', 'soy-based', 
+    'lean-protein', 'omega-3', 'high-fiber', 'potassium-rich'
   ];
 
   return (
