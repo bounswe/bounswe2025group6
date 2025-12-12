@@ -122,22 +122,46 @@ const CommunityPage = () => {
     });
   }, [currentUser]);
 
-  const loadPosts = useCallback(async () => {
+  // Use ref to store the latest loadPosts function to avoid dependency issues
+  const loadPostsRef = useRef(null);
+  const isInitialMount = useRef(true);
+
+  const loadPosts = useCallback(async (page, pageSize, skipPaginationUpdate = false) => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching posts with page:", pagination.page, "page_size:", pagination.page_size);
-      const data = await forumService.getPosts(pagination.page, pagination.page_size);
+      console.log("Fetching posts with page:", page, "page_size:", pageSize);
+      const data = await forumService.getPosts(page, pageSize);
       console.log("Response data:", data);
       
       // Set the posts
       setPosts(data.results || []);
       setFilteredPosts(data.results || []); // Initialize filtered posts too
-      setPagination({
-        page: data.page || 1,
-        page_size: data.page_size || 10,
-        total: data.total || 0
-      });
+      
+      // Only update pagination if not skipping (to avoid infinite loop on initial load)
+      if (!skipPaginationUpdate) {
+        setPagination(prev => {
+          const newPage = data.page || page;
+          const newPageSize = data.page_size || pageSize;
+          const newTotal = data.total || prev.total;
+          
+          // Only update if values actually changed
+          if (newPage !== prev.page || newPageSize !== prev.page_size || newTotal !== prev.total) {
+            return {
+              page: newPage,
+              page_size: newPageSize,
+              total: newTotal
+            };
+          }
+          return prev;
+        });
+      } else {
+        // On initial load, only update total count
+        setPagination(prev => ({
+          ...prev,
+          total: data.total || prev.total
+        }));
+      }
       
       // Get unique author IDs to fetch their details
       const authorIds = [...new Set((data.results || []).map(post => post.author))];
@@ -155,13 +179,23 @@ const CommunityPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.page, pagination.page_size, currentUser, t, toast, fetchUserDetails, loadUserVotes]);
+  }, [currentUser, t, toast, fetchUserDetails, loadUserVotes]);
 
+  // Keep ref updated with latest loadPosts function
+  useEffect(() => {
+    loadPostsRef.current = loadPosts;
+  }, [loadPosts]);
+
+  // Load posts on mount
   useEffect(() => {
     let isMounted = true;
     
     const loadData = async () => {
-      await loadPosts();
+      // Use default values on mount (page 1, page_size 10)
+      // Skip pagination update to avoid triggering the second useEffect
+      if (loadPostsRef.current) {
+        await loadPostsRef.current(1, 10, true);
+      }
       
       if (!isMounted) return;
       
@@ -186,7 +220,21 @@ const CommunityPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [loadPosts]);
+  }, []); // Only run on mount
+
+  // Separate effect for pagination changes - use ref to avoid dependency loop
+  useEffect(() => {
+    // Skip on initial mount (first useEffect handles that)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    if (loadPostsRef.current) {
+      loadPostsRef.current(pagination.page, pagination.page_size);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, pagination.page_size]); // Only reload when page or page_size changes
 
   // Apply filters when the Apply Filters button is clicked
   const applyFilters = () => {
@@ -394,7 +442,9 @@ const CommunityPage = () => {
       }
     } catch (error) {
       // Revert optimistic updates
-      loadPosts();
+      if (loadPostsRef.current) {
+        loadPostsRef.current(pagination.page, pagination.page_size);
+      }
       console.error('Error voting on post:', error);
       toast.error(t('communityPageFailedToVote'));
     }
@@ -455,7 +505,9 @@ const CommunityPage = () => {
       }
       
       // Revert optimistic updates on error
-      loadPosts();
+      if (loadPostsRef.current) {
+        loadPostsRef.current(pagination.page, pagination.page_size);
+      }
     }
   };
 
@@ -535,7 +587,7 @@ const CommunityPage = () => {
           <Card.Body>
             <h2>{t("communityPageErrorLoading")}</h2>
             <p>{error}</p>
-            <Button onClick={loadPosts}>{t("TryAgain")}</Button>
+            <Button onClick={() => loadPostsRef.current?.(pagination.page, pagination.page_size)}>{t("TryAgain")}</Button>
           </Card.Body>
         </Card>
       )}
@@ -665,7 +717,7 @@ const CommunityPage = () => {
             <h2>{t("communityPageForumEmpty")}</h2>
             <p>{searchTerm || selectedTag ? t('communityPageTryAdjusting') : t('communityPageFirstDiscussion')}</p>
             {(searchTerm || selectedTag) && <Button onClick={resetFilters}>{t("ClearFilters")}</Button>}
-            <Button onClick={loadPosts} className="edit-button">{t("Refresh")}</Button>
+            <Button onClick={() => loadPostsRef.current?.(pagination.page, pagination.page_size)} className="edit-button">{t("Refresh")}</Button>
           </Card.Body>
         </Card>
       )}
