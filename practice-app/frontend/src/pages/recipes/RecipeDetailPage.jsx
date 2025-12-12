@@ -13,7 +13,7 @@ import RatingStars from '../../components/recipe/RatingStars';
 import { formatDate } from '../../utils/dateFormatter';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
-import { getCurrentUser } from '../../services/authService';
+import { getCurrentUser, isAuthenticated } from '../../services/authService';
 import ReportButton from '../../components/report/ReportButton';
 import InteractiveRatingStars from '../../components/recipe/InteractiveRatingStars';
 import InteractiveHealthRating from '../../components/recipe/InteractiveHealthRating';
@@ -341,23 +341,13 @@ const RecipeDetailPage = () => {
           setError('Recipe not found');
         }
       } catch (err) {
+        // For errors, show error message
         console.error('Error loading recipe:', err);
-        if (err.message && err.message.includes('Authentication required')) {
-          // Redirect to login with current recipe page as next parameter
-          const currentPath = `/recipes/${id}`;
-          navigate(createLoginUrl(currentPath));
-          return;
-        } else if (err.response && err.response.status === 401) {
-          // Redirect to login with current recipe page as next parameter
-          const currentPath = `/recipes/${id}`;
-          navigate(createLoginUrl(currentPath));
-          return;
-        } else if (err.response && err.response.status === 404) {
+        if (err.response?.status === 404) {
           setError('Recipe not found');
         } else {
           setError('Failed to load recipe. Please try again.');
         }
-      } finally {
         setIsPageReady(true);
       }
     };
@@ -383,11 +373,12 @@ const RecipeDetailPage = () => {
             const userData = await userService.getUserById(user.id);
             setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
           } catch (error) {
-            console.error('Error loading user date format:', error);
+            // Silently fail for unauthenticated users
+            console.log('User not authenticated, using default date format');
           }
         }
       } catch (error) {
-        console.error('Error fetching current user:', error);
+        // Silently handle unauthenticated users - don't show errors
         setCurrentUser(null);
       }
     };

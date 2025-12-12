@@ -51,8 +51,7 @@ export const CurrencyProvider = ({ children }) => {
           localStorage.setItem("currency", "USD");
         }
       } catch (error) {
-        console.error('Error loading user currency:', error);
-        // Fallback to localStorage or default
+        // Silently handle unauthenticated users - fallback to localStorage or default
         const savedCurrency = localStorage.getItem("currency");
         setCurrency(savedCurrency || "USD");
         if (!savedCurrency) {

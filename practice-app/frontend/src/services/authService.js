@@ -214,7 +214,7 @@ export const getCurrentUser = async () => {
     // No need to parse JWT token for usertype
     return user;
   } catch (error) {
-    console.error("Get current user error:", error);
+    // Silently handle unauthenticated users - don't log errors
     throw error;
   }
 };
