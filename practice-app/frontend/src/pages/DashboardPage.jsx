@@ -157,6 +157,34 @@ const DashboardPage = () => {
     document.title = "Dashboard";
   }, []);
 
+  // Match activity widget height to analytics section
+  useEffect(() => {
+    const matchHeights = () => {
+      const analyticsSection = document.querySelector(".dashboard-analytics");
+      const activityWidget = document.querySelector(
+        ".dashboard-activity-widget"
+      );
+
+      if (analyticsSection && activityWidget) {
+        const analyticsHeight = analyticsSection.offsetHeight;
+        activityWidget.style.maxHeight = `${analyticsHeight}px`;
+      }
+    };
+
+    // Match heights after analytics load
+    if (analytics || analyticsError) {
+      // Small delay to ensure DOM is updated
+      setTimeout(matchHeights, 100);
+    }
+
+    // Also match on window resize
+    window.addEventListener("resize", matchHeights);
+
+    return () => {
+      window.removeEventListener("resize", matchHeights);
+    };
+  }, [analytics, analyticsError]);
+
   const highlightCards = useMemo(() => {
     return ANALYTICS_PULSE.map((metric) => {
       const value = analytics?.[metric.key];

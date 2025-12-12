@@ -15,8 +15,18 @@
 .dashboard-greetings {
   width: calc(100% - 4vw);
   margin: 0 auto;
-  padding: 2rem 0 1.5rem 0;
+  margin-bottom: 2rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
   box-sizing: border-box;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(241, 245, 249, 0.95)
+  );
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .greetings-title {
@@ -95,7 +105,7 @@
   margin: 0 auto 2rem auto;
   padding: 0;
   box-sizing: border-box;
-  align-items: stretch;
+  align-items: start;
 }
 
 .dashboard-main-content > * {
@@ -107,8 +117,6 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 100%;
 }
 
 .intro-text {
@@ -693,6 +701,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
 
 .analytics-header {
@@ -775,7 +784,6 @@
   box-sizing: border-box;
   justify-content: center;
   align-items: start;
-  flex: 1;
 }
 
 .analytics-card {
