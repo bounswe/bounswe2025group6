@@ -33,6 +33,7 @@ const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [myRecipes, setMyRecipes] = useState([]);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState([]);
+  const [creatorMap, setCreatorMap] = useState({}); // Map of creator_id -> creator data
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [myPosts, setMyPosts] = useState([]);
@@ -56,6 +57,7 @@ const ProfilePage = () => {
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
+  const [showPhotoPopup, setShowPhotoPopup] = useState(false);
   const fileInputRef = useRef(null);
   
   // Common nationalities list
@@ -80,17 +82,23 @@ const ProfilePage = () => {
 
   // Load user profile
   useEffect(() => {
+    let isMounted = true;
     document.title = t('profile');
+    
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
         const user = await getCurrentUser();
         if (!user || !user.id) {
-          navigate("/login");
+          if (isMounted) {
+            navigate("/login");
+          }
           return;
         }
 
         const userData = await userService.getUserById(user.id);
+        if (!isMounted) return;
+        
         setUserProfile(userData);
         
         // Initialize settings form fields
@@ -116,35 +124,48 @@ const ProfilePage = () => {
         setAccessibilityNeeds(userData.accessibilityNeeds || 'none');
 
         // Load all user data in parallel
-        await Promise.all([
+        const [recipesResult, bookmarksResult] = await Promise.all([
           loadMyRecipes(user.id),
           loadBookmarks(),
           loadFollowersAndFollowing(),
           loadMyPostsAndComments(user.id),
           loadShoppingListHistory()
         ]);
+        
+        // Load all creators at once after all recipes are loaded
+        const allRecipes = [...(recipesResult || []), ...(bookmarksResult || [])];
+        if (allRecipes.length > 0) {
+          const allCreatorIds = [...new Set(allRecipes.map(r => r.creator_id).filter(Boolean))];
+          await loadCreatorsData(allCreatorIds);
+        }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        if (isMounted) {
+          console.error("Error fetching user data:", error);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchUserData();
-  }, [navigate]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [t]); // Only depend on t, navigate is stable
 
   const loadMyRecipes = async (userId) => {
     try {
-      const allRecipes = await recipeService.getRecipesByCreator(userId);
-      // Filter to ensure only recipes belonging to this user are included
-      const userRecipes = (allRecipes || []).filter(recipe => {
-        const recipeCreatorId = recipe.creator || recipe.creator_id || recipe.created_by;
-        return String(recipeCreatorId) === String(userId);
-      });
-      setMyRecipes(userRecipes);
+      // Use new optimized endpoint - returns array of recipe objects
+      const recipes = await userService.getUserRecipes(userId);
+      setMyRecipes(recipes || []);
+      return recipes || [];
     } catch (error) {
       console.error("Error loading recipes:", error);
       setMyRecipes([]);
+      return [];
     }
   };
 
@@ -171,6 +192,7 @@ const ProfilePage = () => {
       const recipes = await Promise.all(recipePromises);
       const validRecipes = recipes.filter(recipe => recipe !== null);
       setBookmarkedRecipes(validRecipes);
+      return validRecipes;
     } catch (error) {
       console.error("Error loading bookmarks:", error);
       setBookmarkedRecipes([]);
@@ -195,111 +217,19 @@ const ProfilePage = () => {
 
   const loadMyPostsAndComments = async (userId) => {
     try {
-      const userIdNum = Number(userId);
-      
-      // Fetch user's posts - get all pages
-      let allPosts = [];
-      let page = 1;
-      let total = null;
-      const pageSize = 100;
-      
-      while (true) {
-        try {
-          const postsResponse = await forumService.getPosts(page, pageSize);
-        const posts = postsResponse.results || [];
-          
-          if (!posts || posts.length === 0) {
-            break;
-          }
-          
-          allPosts.push(...posts);
-          
-          // Get total from first response
-          if (total === null) {
-            total = postsResponse.total || 0;
-          }
-        
-        // Check if there are more pages
-          const currentTotal = allPosts.length;
-          if (posts.length < pageSize || (total > 0 && currentTotal >= total)) {
-            break;
-          }
-          
-        page++;
-        
-        // Safety limit
-          if (page > 100) break;
-        } catch (error) {
-          // If 404 error, it means no more pages
-          if (error.response?.status === 404) {
-            break;
-          }
-          throw error;
-        }
-      }
-      
-      // Filter user's posts
-      const userPosts = allPosts.filter(post => Number(post.author) === userIdNum);
-      setMyPosts(userPosts);
+      // Use new optimized endpoints - fetch in parallel
+      const [posts, comments] = await Promise.all([
+        userService.getUserPosts(userId),
+        userService.getUserComments(userId)
+      ]);
 
-      // Fetch user's comments from all posts - handle pagination for each post
-      const allComments = [];
-      for (const post of allPosts) {
-        try {
-          let commentPage = 1;
-          let commentTotal = null;
-          const commentPageSize = 100;
-          const postComments = []; // Track comments for this specific post
-          
-          while (true) {
-            try {
-              const commentsResponse = await forumService.getCommentsByPostId(post.id, commentPage, commentPageSize);
-              const comments = commentsResponse.results || [];
-              
-              if (!comments || comments.length === 0) {
-                break;
-              }
-              
-              // Filter user's comments
-          const userComments = comments.filter(comment => Number(comment.author) === userIdNum);
-              const mappedComments = userComments.map(c => ({ ...c, postId: post.id, postTitle: post.title }));
-              postComments.push(...mappedComments);
-              
-              // Get total from first response
-              if (commentTotal === null) {
-                commentTotal = commentsResponse.total || 0;
-              }
-              
-              // Check if there are more pages
-              // If we got fewer comments than pageSize, we're on the last page
-              // Or if we've fetched all comments for this post
-              if (comments.length < commentPageSize || (commentTotal > 0 && postComments.length >= commentTotal)) {
-                break;
-              }
-              
-              commentPage++;
-              
-              // Safety limit
-              if (commentPage > 100) break;
-            } catch (error) {
-              // If 404 error, it means no more pages
-              if (error.response?.status === 404) {
-                break;
-              }
-              throw error;
-            }
-          }
-          
-          // Add this post's comments to the overall list
-          allComments.push(...postComments);
-        } catch (error) {
-          console.error(`Error fetching comments for post ${post.id}:`, error);
-          // Continue with next post
-        }
-      }
-      setMyComments(allComments);
+      // Both functions return arrays directly
+      setMyPosts(posts || []);
+      setMyComments(comments || []);
     } catch (error) {
       console.error("Error loading posts/comments:", error);
+      setMyPosts([]);
+      setMyComments([]);
     }
   };
 
@@ -311,6 +241,48 @@ const ProfilePage = () => {
       console.error("Error loading shopping list history:", error);
       setShoppingListHistory([]);
     }
+  };
+  
+  // Load creator data for multiple creator IDs
+  const loadCreatorsData = async (creatorIds) => {
+    if (!creatorIds || creatorIds.length === 0) return;
+    
+    // Get current state to filter out creators we already have
+    let idsToFetch = [];
+    setCreatorMap(prevMap => {
+      idsToFetch = creatorIds.filter(id => !prevMap[id]);
+      return prevMap; // Don't update yet
+    });
+    
+    if (idsToFetch.length === 0) return; // All creators already loaded
+    
+    // Fetch in parallel (cache is handled in getUserById)
+    const results = await Promise.all(
+      idsToFetch.map(async (creatorId) => {
+        try {
+          const userData = await userService.getUserById(creatorId);
+          return { id: creatorId, data: userData };
+        } catch (error) {
+          console.error(`Error loading creator ${creatorId}:`, error);
+          return { id: creatorId, data: null };
+        }
+      })
+    );
+    
+    // Update state with all results at once
+    setCreatorMap(prevMap => {
+      const newMap = { ...prevMap };
+      results.forEach(({ id, data }) => {
+        if (data && !newMap[id]) { // Double check to avoid duplicates
+          newMap[id] = {
+            username: data.username || 'Unknown',
+            typeOfCook: data.typeOfCook || null,
+            usertype: data.usertype || null
+          };
+        }
+      });
+      return newMap;
+    });
   };
 
   const handleCurrencyChange = async (e) => {
@@ -558,50 +530,12 @@ ${(list.ingredients || []).map(ing => {
       <div className="profile-header">
         <div className="profile-header-content">
           <div className="profile-info">
-          <div className="profile-avatar" onClick={() => setShowPhotoMenu(true)}>
+          <div className="profile-avatar" onClick={() => setShowPhotoPopup(true)}>
             {userProfile.profilePhoto ? (
               <img src={userProfile.profilePhoto} alt={userProfile.username} />
             ) : (
               <div className="profile-avatar-placeholder">{userProfile.username?.[0]?.toUpperCase() || 'U'}</div>
             )}
-            <div className="profile-avatar-overlay">
-              {userProfile.profilePhoto ? (
-                <>
-                  <button 
-                    className="profile-avatar-action-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      fileInputRef.current?.click();
-                    }}
-                    title={t('profilePageChangePhoto') || 'Change photo'}
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    className="profile-avatar-action-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePhotoDelete();
-                    }}
-                    disabled={isDeletingPhoto}
-                    title={t('profilePageDeletePhoto') || 'Delete photo'}
-                  >
-                    {isDeletingPhoto ? '⏳' : '🗑️'}
-                  </button>
-                </>
-              ) : (
-                <button 
-                  className="profile-avatar-action-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current?.click();
-                  }}
-                  title={t('profilePageUploadPhoto') || 'Upload photo'}
-                >
-                  📷
-                </button>
-              )}
-            </div>
             <input
               ref={fileInputRef}
               id="photo-upload-input"
@@ -709,9 +643,18 @@ ${(list.ingredients || []).map(ing => {
             {myRecipes.length === 0 ? (
               <p className="empty-message">{t('profilePageNoRecipesCreated')}</p>
             ) : (
-              myRecipes.map(recipe => (
-                <RecipeCard key={recipe.id} recipe={recipe} />
-              ))
+              myRecipes.map(recipe => {
+                const creator = recipe.creator_id ? creatorMap[recipe.creator_id] : null;
+                return (
+                  <RecipeCard 
+                    key={recipe.id} 
+                    recipe={recipe}
+                    creatorName={creator?.username}
+                    creatorBadge={creator?.typeOfCook}
+                    creatorUsertype={creator?.usertype}
+                  />
+                );
+              })
             )}
           </div>
         )}
@@ -721,9 +664,18 @@ ${(list.ingredients || []).map(ing => {
             {bookmarkedRecipes.length === 0 ? (
               <p className="empty-message">{t('profilePageNoRecipesBookmarked')}</p>
             ) : (
-              bookmarkedRecipes.map(recipe => (
-                <RecipeCard key={recipe.id} recipe={recipe} />
-              ))
+              bookmarkedRecipes.map(recipe => {
+                const creator = recipe.creator_id ? creatorMap[recipe.creator_id] : null;
+                return (
+                  <RecipeCard 
+                    key={recipe.id} 
+                    recipe={recipe}
+                    creatorName={creator?.username}
+                    creatorBadge={creator?.typeOfCook}
+                    creatorUsertype={creator?.usertype}
+                  />
+                );
+              })
             )}
           </div>
         )}
@@ -1201,6 +1153,54 @@ ${(list.ingredients || []).map(ing => {
                     {t('shareShoppingList')}
                   </button>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Photo Popup */}
+      {showPhotoPopup && (
+        <div className="profile-photo-popup-overlay" onClick={() => setShowPhotoPopup(false)}>
+          <div className="profile-photo-popup-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="profile-photo-popup-close"
+              onClick={() => setShowPhotoPopup(false)}
+            >
+              ✕
+            </button>
+            <div className="profile-photo-popup-image-container">
+              {userProfile.profilePhoto ? (
+                <img src={userProfile.profilePhoto} alt={userProfile.username} />
+              ) : (
+                <div className="profile-photo-popup-placeholder">
+                  {userProfile.username?.[0]?.toUpperCase() || 'U'}
+                </div>
+              )}
+            </div>
+            <div className="profile-photo-popup-actions">
+              <button 
+                className="profile-photo-popup-edit-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPhotoPopup(false);
+                  fileInputRef.current?.click();
+                }}
+              >
+                {t('profilePageChangePhoto') || 'Edit Photo'}
+              </button>
+              {userProfile.profilePhoto && (
+                <button 
+                  className="profile-photo-popup-delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPhotoPopup(false);
+                    handlePhotoDelete();
+                  }}
+                  disabled={isDeletingPhoto}
+                >
+                  {isDeletingPhoto ? (t('profilePageDeleting') || 'Deleting...') : (t('profilePageDeletePhoto') || 'Delete Photo')}
+                </button>
               )}
             </div>
           </div>

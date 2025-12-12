@@ -761,6 +761,7 @@
   "qaRuleLanguageTitle": "🌍 Çok Dilli Destek",
   "qaRuleLanguageDesc": "Sorular ve cevaplar, tüm kullanıcılar için erişilebilir beslenme bilgileri sağlamak üzere uygun yerelleştirmeyle birden fazla dilde sunulur.",
   "createQuestionPageTitle": "Soru Sor - FitHub",
+  "questionDetailPageTitle": "Soru Detayları",
   "createQuestionPageHeading": "Beslenme Sorusu Sor",
   "createQuestionPageSubtitle": "Doğrulanmış diyetisyenlerden profesyonel cevaplar alın",
   "createQuestionPageTitleLabel": "Soru Başlığı",

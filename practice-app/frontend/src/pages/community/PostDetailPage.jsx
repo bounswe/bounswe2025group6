@@ -44,24 +44,35 @@ const PostDetailPage = () => {
   const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Scroll to top instantly when component mounts or id changes to prevent flickering
     window.scrollTo({ top: 0, behavior: 'auto' });
     
     loadPostAndVoteStatus();
+    
     // Load user's preferred date format
     const loadUserDateFormat = async () => {
       try {
         const user = await getCurrentUser();
-        if (user && user.id) {
+        if (user && user.id && isMounted) {
           const userData = await userService.getUserById(user.id);
-          setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          if (isMounted) {
+            setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          }
         }
       } catch (error) {
-        console.error('Error loading user date format:', error);
+        if (isMounted) {
+          console.error('Error loading user date format:', error);
+        }
       }
     };
     loadUserDateFormat();
-  }, [id, currentUser]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [id]); // Remove currentUser from dependencies as it's not needed
 
   useEffect(() => {
     if (post && post.is_commentable) {

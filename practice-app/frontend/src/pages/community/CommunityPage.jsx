@@ -1,5 +1,5 @@
 // src/pages/community/CommunityPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
@@ -44,21 +44,35 @@ const CommunityPage = () => {
   ];
 
   useEffect(() => {
-    loadPosts();
-    // Load user's preferred date format
-    const loadUserDateFormat = async () => {
+    let isMounted = true;
+    
+    const loadData = async () => {
+      await loadPosts();
+      
+      if (!isMounted) return;
+      
+      // Load user's preferred date format
       try {
         const user = await getCurrentUser();
-        if (user && user.id) {
+        if (user && user.id && isMounted) {
           const userData = await userService.getUserById(user.id);
-          setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          if (isMounted) {
+            setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          }
         }
       } catch (error) {
-        console.error('Error loading user date format:', error);
+        if (isMounted) {
+          console.error('Error loading user date format:', error);
+        }
       }
     };
-    loadUserDateFormat();
-  }, [pagination.page]);
+    
+    loadData();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [loadPosts]);
 
   // Apply filters when the Apply Filters button is clicked
   const applyFilters = () => {
@@ -94,7 +108,7 @@ const CommunityPage = () => {
     setFilteredPosts(posts);
   }, [posts]);
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -127,111 +141,86 @@ const CommunityPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pagination.page, pagination.page_size, currentUser, t, fetchUserDetails, loadUserVotes]);
 
   // Load vote status for all visible posts
-  const loadUserVotes = async (postsList) => {
+  const loadUserVotes = useCallback(async (postsList) => {
     if (!currentUser || !postsList.length) return;
     
-    const newVotes = { ...userVotes };
-    
-    for (const post of postsList) {
+    // Fetch votes in parallel
+    const votePromises = postsList.map(async (post) => {
       try {
         const voteStatus = await forumService.checkPostVoteStatus(post.id);
-        if (voteStatus.hasVoted) {
-          newVotes[post.id] = voteStatus.voteType;
-        }
+        return {
+          postId: post.id,
+          voteType: voteStatus.hasVoted ? voteStatus.voteType : null
+        };
       } catch (error) {
         console.error(`Error checking vote for post ${post.id}:`, error);
+        return { postId: post.id, voteType: null };
       }
-    }
+    });
     
-    setUserVotes(newVotes);
-  };
+    const voteResults = await Promise.all(votePromises);
+    
+    // Update votes state
+    setUserVotes(prevVotes => {
+      const newVotes = { ...prevVotes };
+      voteResults.forEach(({ postId, voteType }) => {
+        if (voteType) {
+          newVotes[postId] = voteType;
+        }
+      });
+      return newVotes;
+    });
+  }, [currentUser]);
 
   // Function to fetch user details and store them in userMap
-  const fetchUserDetails = async (userIds) => {
+  const fetchUserDetails = useCallback(async (userIds) => {
     try {
-      const newUserMap = { ...userMap };
-      
-      // Fetch only users that aren't already in our map
-      const idsToFetch = userIds.filter(id => !newUserMap[id]);
-      
-      if (idsToFetch.length > 0) {
-        // Fetch user details in parallel
-        const userPromises = idsToFetch.map(async (userId) => {
-          try {
-            const userData = await userService.getUserById(userId);
-            return {
-              id: userId,
-              user: userData
-            };
-          } catch (error) {
-            console.error(`Error fetching user ${userId}:`, error);
-            return { id: userId, user: null };
-          }
-        });
+      setUserMap(prevMap => {
+        const newUserMap = { ...prevMap };
         
-        const userResults = await Promise.all(userPromises);
+        // Fetch only users that aren't already in our map (cache is handled in getUserById)
+        const idsToFetch = userIds.filter(id => !newUserMap[id]);
         
-        // Process users and fetch missing usernames
-        const processedUsers = await Promise.all(
-          userResults.map(async ({ id, user }) => {
-            if (user) {
-              // If user exists but username is missing, try to fetch it separately
-              if (!user.username || !user.username.trim()) {
-                try {
-                  const username = await getUsername(id);
-                  if (username && username !== 'Unknown') {
-                    user.username = username;
-                  }
-                } catch (error) {
-                  console.error(`Error fetching username for user ${id}:`, error);
-                }
+        if (idsToFetch.length > 0) {
+          // Fetch user details in parallel (cache is handled in getUserById)
+          Promise.all(
+            idsToFetch.map(async (userId) => {
+              try {
+                const userData = await userService.getUserById(userId);
+                return {
+                  id: userId,
+                  user: userData
+                };
+              } catch (error) {
+                console.error(`Error fetching user ${userId}:`, error);
+                return { id: userId, user: null };
               }
-              
-              return {
-                id,
-                userData: {
+            })
+          ).then(userResults => {
+            // Process users and update map
+            const processedMap = { ...prevMap };
+            userResults.forEach(({ id, user }) => {
+              if (user) {
+                processedMap[id] = {
                   ...user,
                   typeOfCook: user.typeOfCook || null,
                   usertype: user.usertype || null
-                }
-              };
-            } else {
-              // Try to fetch username even if user fetch failed
-              try {
-                const username = await getUsername(id);
-                return {
-                  id,
-                  userData: { 
-                    id: id, 
-                    username: username && username !== 'Unknown' ? username : `User ${id}`, 
-                    typeOfCook: null, 
-                    usertype: null 
-                  }
-                };
-              } catch (error) {
-                return {
-                  id,
-                  userData: { id: id, username: `User ${id}`, typeOfCook: null, usertype: null }
                 };
               }
-            }
-          })
-        );
+            });
+            setUserMap(processedMap);
+          });
+        }
         
-        // Update userMap with processed users
-        processedUsers.forEach(({ id, userData }) => {
-          newUserMap[id] = userData;
-        });
-        
-        setUserMap(newUserMap);
-      }
+        return prevMap; // Return immediately, update will happen async
+      });
     } catch (error) {
       console.error('Error fetching user details:', error);
     }
-  };
+  }, []);
 
   // Function to get user's name/username from userMap
   const getUserName = (userId) => {
