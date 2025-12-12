@@ -769,6 +769,7 @@
   "qaRuleLanguageDesc": "Questions and answers are available in multiple languages with proper localization to ensure accessible nutrition information for all users.",
 
   "createQuestionPageTitle": "Ask a Question - FitHub",
+  "questionDetailPageTitle": "Question Details",
   "createQuestionPageHeading": "Ask a Nutrition Question",
   "createQuestionPageSubtitle": "Get professional answers from verified dietitians",
   "createQuestionPageTitleLabel": "Question Title",

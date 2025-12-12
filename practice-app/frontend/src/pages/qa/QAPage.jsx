@@ -46,6 +46,10 @@ const QAPage = () => {
   ];
 
   useEffect(() => {
+    document.title = `${t('qaPageTitle', 'Q&A Community')}`;
+  }, [t]);
+
+  useEffect(() => {
     loadQuestions();
     // Load user's preferred date format
     const loadUserDateFormat = async () => {

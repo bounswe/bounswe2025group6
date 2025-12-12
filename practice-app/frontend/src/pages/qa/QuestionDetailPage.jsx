@@ -72,6 +72,13 @@ const QuestionDetailPage = () => {
     try {
       const questionData = await qaService.getQuestionById(id);
       setQuestion(questionData);
+      
+      // Update document title with question title
+      if (questionData.title) {
+        document.title = `${questionData.title} - ${t('qaPageTitle', 'Q&A Community')} - FitHub`;
+      } else {
+        document.title = t('questionDetailPageTitle', 'Question Details - FitHub');
+      }
 
       // Load author data with full user details
       try {
