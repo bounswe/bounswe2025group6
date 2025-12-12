@@ -76,23 +76,19 @@ class QAService {
     try {
       final url = '$baseUrl/qa/questions/?page=$page&page_size=$pageSize';
       print('QA Service: Fetching questions from: $url');
-      
-      var response = await http.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+
+      var response = await http.get(Uri.parse(url), headers: headers);
 
       print('QA Service: Response status: ${response.statusCode}');
-      print('QA Service: Response body preview: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      print(
+        'QA Service: Response body preview: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}',
+      );
 
       if (response.statusCode == 401) {
         final refreshSuccess = await _refreshToken();
         if (!refreshSuccess) throw Exception('Authentication failed');
 
-        response = await http.get(
-          Uri.parse(url),
-          headers: headers,
-        );
+        response = await http.get(Uri.parse(url), headers: headers);
       }
 
       if (response.statusCode == 200) {
@@ -132,12 +128,16 @@ class QAService {
           final error = jsonDecode(response.body);
           throw Exception(error['detail'] ?? 'Failed to load questions');
         } catch (_) {
-          throw Exception('Failed to load questions. Status: ${response.statusCode}. Response: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}');
+          throw Exception(
+            'Failed to load questions. Status: ${response.statusCode}. Response: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}',
+          );
         }
       }
     } catch (e) {
       if (e.toString().contains('FormatException')) {
-        throw Exception('Invalid response from server. The endpoint might not exist or returned HTML instead of JSON.');
+        throw Exception(
+          'Invalid response from server. The endpoint might not exist or returned HTML instead of JSON.',
+        );
       }
       throw Exception('Network error: ${e.toString()}');
     }

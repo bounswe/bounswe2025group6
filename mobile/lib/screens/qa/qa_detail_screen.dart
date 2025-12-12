@@ -30,7 +30,6 @@ class _QADetailScreenState extends State<QADetailScreen> {
   String? _authorBadge;
   List<Map<String, dynamic>> _answers = [];
   bool _isAnswersLoading = false;
-  String? _answersError;
   bool _isSubmittingAnswer = false;
   int? _currentUserId;
   DateFormat? _userDateFormat;
@@ -109,9 +108,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
             setState(() {
               _isLoading = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(e.toString())),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       }
@@ -121,23 +120,26 @@ class _QADetailScreenState extends State<QADetailScreen> {
   Future<void> _showDeleteConfirmation() async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Question'),
-        content: const Text('Are you sure you want to delete this question?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Question'),
+            content: const Text(
+              'Are you sure you want to delete this question?',
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (shouldDelete == true && mounted) {
@@ -147,9 +149,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
         Navigator.of(context).pop(true);
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -198,7 +200,6 @@ class _QADetailScreenState extends State<QADetailScreen> {
 
     setState(() {
       _isAnswersLoading = true;
-      _answersError = null;
     });
 
     try {
@@ -215,7 +216,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _answersError = e.toString();
+          _answers = [];
           _isAnswersLoading = false;
         });
       }
@@ -263,9 +264,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
       _initializeQuestion();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -280,9 +281,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
     if (_answerController.text.trim().isEmpty) return;
     if (!_isDietitian) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Only dietitians can answer questions'),
-        ),
+        const SnackBar(content: Text('Only dietitians can answer questions')),
       );
       return;
     }
@@ -306,9 +305,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -351,8 +350,8 @@ class _QADetailScreenState extends State<QADetailScreen> {
       );
     }
 
-    final isAuthor = _currentUserId != null &&
-        _currentUserId == question!['author_id'];
+    final isAuthor =
+        _currentUserId != null && _currentUserId == question!['author_id'];
 
     return Scaffold(
       appBar: AppBar(
@@ -365,18 +364,19 @@ class _QADetailScreenState extends State<QADetailScreen> {
                   _showDeleteConfirmation();
                 }
               },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
+              itemBuilder:
+                  (context) => [
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Delete', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
             ),
         ],
       ),
@@ -442,22 +442,25 @@ class _QADetailScreenState extends State<QADetailScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 4,
-                        children: (question!['tags'] as List<dynamic>)
-                            .map((tag) => Chip(
-                                  label: Text(
-                                    tag.toString(),
-                                    style: theme.textTheme.bodySmall,
+                        children:
+                            (question!['tags'] as List<dynamic>)
+                                .map(
+                                  (tag) => Chip(
+                                    label: Text(
+                                      tag.toString(),
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                    backgroundColor: theme.primaryColor
+                                        .withOpacity(0.1),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 0,
+                                    ),
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  backgroundColor:
-                                      theme.primaryColor.withOpacity(0.1),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 0,
-                                  ),
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ))
-                            .toList(),
+                                )
+                                .toList(),
                       ),
                     const SizedBox(height: 16),
 
@@ -468,9 +471,10 @@ class _QADetailScreenState extends State<QADetailScreen> {
                         IconButton(
                           icon: Icon(
                             Icons.arrow_upward,
-                            color: currentVote == 'up'
-                                ? Colors.green
-                                : theme.iconTheme.color,
+                            color:
+                                currentVote == 'up'
+                                    ? Colors.green
+                                    : theme.iconTheme.color,
                           ),
                           onPressed:
                               isVoteLoading ? null : () => _handleVote('up'),
@@ -482,9 +486,10 @@ class _QADetailScreenState extends State<QADetailScreen> {
                         IconButton(
                           icon: Icon(
                             Icons.arrow_downward,
-                            color: currentVote == 'down'
-                                ? Colors.red
-                                : theme.iconTheme.color,
+                            color:
+                                currentVote == 'down'
+                                    ? Colors.red
+                                    : theme.iconTheme.color,
                           ),
                           onPressed:
                               isVoteLoading ? null : () => _handleVote('down'),
@@ -493,8 +498,11 @@ class _QADetailScreenState extends State<QADetailScreen> {
                         const SizedBox(width: 16),
 
                         // Views
-                        Icon(Icons.visibility,
-                            size: 18, color: theme.iconTheme.color),
+                        Icon(
+                          Icons.visibility,
+                          size: 18,
+                          color: theme.iconTheme.color,
+                        ),
                         const SizedBox(width: 4),
                         Text('${question!['view_count'] ?? 0}'),
                       ],
@@ -519,8 +527,6 @@ class _QADetailScreenState extends State<QADetailScreen> {
             // Answers List
             if (_isAnswersLoading)
               const Center(child: CircularProgressIndicator())
-            else if (_answersError != null)
-              Center(child: Text(_answersError!))
             else if (_answers.isEmpty)
               const Center(
                 child: Padding(
@@ -572,17 +578,17 @@ class _QADetailScreenState extends State<QADetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed:
-                              _isSubmittingAnswer ? null : _submitAnswer,
-                          child: _isSubmittingAnswer
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Submit Answer'),
+                          onPressed: _isSubmittingAnswer ? null : _submitAnswer,
+                          child:
+                              _isSubmittingAnswer
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Text('Submit Answer'),
                         ),
                       ),
                     ],
@@ -708,9 +714,9 @@ class _AnswerCardState extends State<AnswerCard> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -762,9 +768,7 @@ class _AnswerCardState extends State<AnswerCard> {
             const SizedBox(height: 8),
             Text(
               _formatDateTime(widget.answer['created_at']),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 12),
 
@@ -781,9 +785,10 @@ class _AnswerCardState extends State<AnswerCard> {
                 IconButton(
                   icon: Icon(
                     Icons.arrow_upward,
-                    color: currentVote == 'up'
-                        ? Colors.green
-                        : theme.iconTheme.color,
+                    color:
+                        currentVote == 'up'
+                            ? Colors.green
+                            : theme.iconTheme.color,
                   ),
                   onPressed: isLoading ? null : () => _handleVote('up'),
                 ),
@@ -792,9 +797,10 @@ class _AnswerCardState extends State<AnswerCard> {
                 IconButton(
                   icon: Icon(
                     Icons.arrow_downward,
-                    color: currentVote == 'down'
-                        ? Colors.red
-                        : theme.iconTheme.color,
+                    color:
+                        currentVote == 'down'
+                            ? Colors.red
+                            : theme.iconTheme.color,
                   ),
                   onPressed: isLoading ? null : () => _handleVote('down'),
                 ),
