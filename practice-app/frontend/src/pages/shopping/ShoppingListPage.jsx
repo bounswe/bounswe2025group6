@@ -37,10 +37,13 @@ const ShoppingListPage = () => {
     const savedState = localStorage.getItem('shoppingListState');
     if (savedState) {
       try {
-        const { recipes: savedRecipes, consolidatedIngredients: savedIngredients, marketCosts: savedMarketCosts } = JSON.parse(savedState);
+        const { recipes: savedRecipes, consolidatedIngredients: savedIngredients, marketCosts: savedMarketCosts, portion: savedPortion } = JSON.parse(savedState);
         setRecipes(savedRecipes);
         setConsolidatedIngredients(savedIngredients);
         setMarketCosts(savedMarketCosts);
+        if (savedPortion) {
+          setPortion(Number(savedPortion));
+        }
         setIsLoading(false);
         
         // Clear the saved state
@@ -66,7 +69,7 @@ const ShoppingListPage = () => {
 
       const parsedPlan = JSON.parse(storedPlan);
       const { activePlan, portion: savedPortion } = parsedPlan;
-      const portionMultiplier = savedPortion || 1;
+      const portionMultiplier = savedPortion ? Number(savedPortion) : 1;
       setPortion(portionMultiplier);
       const recipeIds = [];
       
@@ -89,7 +92,8 @@ const ShoppingListPage = () => {
           recipe.ingredients.forEach(recipeIngredient => {
             const ingredientId = recipeIngredient.ingredient.id;
             const ingredientName = recipeIngredient.ingredient_name || recipeIngredient.ingredient.name;
-            const quantity = (parseFloat(recipeIngredient.quantity) || 0) * portionMultiplier;
+            const baseQuantity = parseFloat(recipeIngredient.quantity) || 0;
+            const quantity = baseQuantity * portionMultiplier;
             const unit = recipeIngredient.unit;
 
             // Create unique key for same ingredient and unit
@@ -102,21 +106,31 @@ const ShoppingListPage = () => {
               // Add costs for each market (multiplied by portion)
               if (recipeIngredient.costs_for_recipe) {
                 Object.keys(recipeIngredient.costs_for_recipe).forEach(market => {
-                  if (existing.costs_for_recipe[market] !== undefined && recipeIngredient.costs_for_recipe[market] !== undefined) {
-                    existing.costs_for_recipe[market] += parseFloat(recipeIngredient.costs_for_recipe[market] || 0) * portionMultiplier;
+                  const baseCost = parseFloat(recipeIngredient.costs_for_recipe[market] || 0);
+                  const multipliedCost = baseCost * portionMultiplier;
+                  if (existing.costs_for_recipe[market] !== undefined) {
+                    existing.costs_for_recipe[market] += multipliedCost;
+                  } else {
+                    existing.costs_for_recipe[market] = multipliedCost;
                   }
                 });
               }
             } else {
+              const costs = recipeIngredient.costs_for_recipe ? 
+                Object.fromEntries(
+                  Object.entries(recipeIngredient.costs_for_recipe).map(([k, v]) => {
+                    const baseCost = parseFloat(v || 0);
+                    const multipliedCost = baseCost * portionMultiplier;
+                    return [k, multipliedCost];
+                  })
+                ) : {};
+              
               ingredientsMap.set(key, {
                 ingredientId,
                 name: ingredientName,
                 quantity,
                 unit,
-                costs_for_recipe: recipeIngredient.costs_for_recipe ? 
-                  Object.fromEntries(
-                    Object.entries(recipeIngredient.costs_for_recipe).map(([k, v]) => [k, parseFloat(v || 0) * portionMultiplier])
-                  ) : {},
+                costs_for_recipe: costs,
               });
             }
           });
@@ -206,7 +220,8 @@ const ShoppingListPage = () => {
     localStorage.setItem('shoppingListState', JSON.stringify({
       recipes,
       consolidatedIngredients,
-      marketCosts
+      marketCosts,
+      portion
     }));
     navigate(`/ingredients/${ingredientId}`);
   };
