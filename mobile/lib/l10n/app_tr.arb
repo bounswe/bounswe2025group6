@@ -1109,7 +1109,7 @@
     "tagNutrition": "Beslenme",
     "tagHealthyEating": "Sağlıklı Beslenme",
     "tagSnacks": "Atıştırmalıklar",
-    "error": "Hata: {message}"
+    "error": "Hata: {message}",
     "water": "Su",
 
     "deleteRatingTitle": "Puanı Sil",

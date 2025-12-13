@@ -1293,7 +1293,7 @@
   "tagSnacks": "Snacks",
   "@tagSnacks": { "description": "Q&A tag: Snacks" },
   "error": "Error: {message}",
-  "@error": { "description": "Generic error message", "placeholders": { "message": {} } }
+  "@error": { "description": "Generic error message", "placeholders": { "message": {} } },
   "water": "Water",
   "deleteRatingTitle": "Delete Rating",
   "@deleteRatingTitle": { "description": "Title for delete rating dialog" },
