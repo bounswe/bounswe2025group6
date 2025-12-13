@@ -161,12 +161,22 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
               children: QAService.availableTags.map((tag) {
                 final isSelected = _selectedTags.contains(tag);
                 return FilterChip(
-                  label: Text(tag),
+                  label: Text(
+                    tag,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : theme.primaryColor,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
                   selected: isSelected,
                   onSelected: (_) => _toggleTag(tag),
-                  selectedColor: theme.primaryColor.withOpacity(0.3),
-                  checkmarkColor: theme.primaryColor,
-                  backgroundColor: theme.chipTheme.backgroundColor,
+                  selectedColor: theme.primaryColor,
+                  checkmarkColor: Colors.white,
+                  backgroundColor: Colors.transparent,
+                  side: BorderSide(
+                    color: theme.primaryColor,
+                    width: isSelected ? 2 : 1,
+                  ),
                 );
               }).toList(),
             ),
@@ -194,7 +204,14 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
             // Guidelines Card
             Card(
-              color: theme.primaryColor.withOpacity(0.1),
+              color: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: theme.primaryColor,
+                  width: 1,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -211,6 +228,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                           'Question Guidelines',
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: theme.primaryColor,
                           ),
                         ),
                       ],
@@ -234,11 +252,14 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
   }
 
   Widget _buildGuideline(String text) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.bodySmall,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.textTheme.bodyLarge?.color,
+        ),
       ),
     );
   }
