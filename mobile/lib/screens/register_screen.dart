@@ -68,11 +68,12 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       String apiUserType = _userType.toLowerCase();
 
+      // Backend requires a valid URL format for certification_url
+      // Send a placeholder URL when PDF is uploaded
       String? certificationUrl;
-      if (_pdfFile != null) {
-        // For now, use the file path or name as a placeholder
-        // In production, you'd upload the file first and get a URL
-        certificationUrl = _pdfFile!.path ?? _pdfFile!.name;
+      if (apiUserType == 'dietitian' && _pdfFile != null) {
+        // Create a valid placeholder URL - backend requires URLField format
+        certificationUrl = 'https://fithub.app/certifications/${Uri.encodeComponent(_pdfFile!.name)}';
       }
 
       await _authService.register(
