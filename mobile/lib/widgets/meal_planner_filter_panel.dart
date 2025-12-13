@@ -61,6 +61,10 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
   bool? _approvedOnly;
   bool? _featuredOnly;
 
+  // Allergen and dietary filters
+  Set<String> _excludeAllergens = {};
+  Set<String> _dietInfo = {};
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +95,8 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
     _hasImage = _filters['hasImage'];
     _approvedOnly = _filters['approvedOnly'];
     _featuredOnly = _filters['featuredOnly'];
+    _excludeAllergens = (_filters['excludeAllergens'] as List<String>?)?.toSet() ?? {};
+    _dietInfo = (_filters['dietInfo'] as List<String>?)?.toSet() ?? {};
   }
 
   void _saveFiltersToMap() {
@@ -118,6 +124,8 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
       if (_hasImage != null) 'hasImage': _hasImage,
       if (_approvedOnly != null) 'approvedOnly': _approvedOnly,
       if (_featuredOnly != null) 'featuredOnly': _featuredOnly,
+      if (_excludeAllergens.isNotEmpty) 'excludeAllergens': _excludeAllergens.toList(),
+      if (_dietInfo.isNotEmpty) 'dietInfo': _dietInfo.toList(),
     };
   }
 
@@ -144,6 +152,8 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
       _hasImage = null;
       _approvedOnly = null;
       _featuredOnly = null;
+      _excludeAllergens.clear();
+      _dietInfo.clear();
       _selectedMealType = null;
       _filters.clear();
 
@@ -428,6 +438,18 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
                     ),
                     const SizedBox(height: 24),
 
+                    // Exclude Allergens
+                    _buildSectionTitle(localizations.excludeAllergensFilter),
+                    const SizedBox(height: 8),
+                    _buildAllergenChips(localizations),
+                    const SizedBox(height: 24),
+
+                    // Dietary Preferences
+                    _buildSectionTitle(localizations.dietaryPreferencesFilter),
+                    const SizedBox(height: 8),
+                    _buildDietaryChips(localizations),
+                    const SizedBox(height: 24),
+
                     // Additional Filters
                     _buildSectionTitle(localizations.additionalFilters),
                     _buildCheckboxTile(
@@ -703,6 +725,142 @@ class _MealPlannerFilterPanelState extends State<MealPlannerFilterPanel> {
       activeColor: AppTheme.primaryGreen,
       onChanged: onChanged,
       controlAffinity: ListTileControlAffinity.leading,
+    );
+  }
+
+  Widget _buildAllergenChips(AppLocalizations localizations) {
+    // Define allergens based on backend data
+    final allergens = [
+      {'value': 'nuts', 'label': localizations.allergenNuts},
+      {'value': 'dairy', 'label': localizations.allergenDairy},
+      {'value': 'egg', 'label': localizations.allergenEgg},
+      {'value': 'fish', 'label': localizations.allergenFish},
+      {'value': 'gluten', 'label': localizations.allergenGluten},
+      {'value': 'probiotic', 'label': localizations.allergenProbiotic},
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: allergens.map((allergen) {
+        final value = allergen['value'] as String;
+        final isSelected = _excludeAllergens.contains(value);
+        return FilterChip(
+          label: Text(allergen['label'] as String),
+          selected: isSelected,
+          onSelected: (selected) {
+            setState(() {
+              if (selected) {
+                _excludeAllergens.add(value);
+              } else {
+                _excludeAllergens.remove(value);
+              }
+            });
+          },
+          selectedColor: AppTheme.errorColor.withOpacity(0.3),
+          checkmarkColor: AppTheme.errorColor,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDietaryChips(AppLocalizations localizations) {
+    // Define dietary tags based on backend data
+    // Strict tags marked with asterisk in UI
+    final dietaryTags = [
+      {'value': 'vegan', 'label': localizations.dietaryVegan, 'strict': true},
+      {'value': 'gluten-free', 'label': localizations.dietaryGlutenFree, 'strict': true},
+      {'value': 'high-protein', 'label': localizations.dietaryHighProtein, 'strict': false},
+      {'value': 'keto-friendly', 'label': localizations.dietaryKetoFriendly, 'strict': false},
+      {'value': 'healthy-fat', 'label': localizations.dietaryHealthyFat, 'strict': false},
+      {'value': 'omega-3', 'label': localizations.dietaryOmega3, 'strict': false},
+      {'value': 'potassium-rich', 'label': localizations.dietaryPotassiumRich, 'strict': false},
+      {'value': 'low-carb', 'label': localizations.dietaryLowCarb, 'strict': false},
+      {'value': 'whole-grain', 'label': localizations.dietaryWholeGrain, 'strict': false},
+      {'value': 'soy-based', 'label': localizations.dietarySoyBased, 'strict': false},
+      {'value': 'lean-protein', 'label': localizations.dietaryLeanProtein, 'strict': false},
+      {'value': 'high-fiber', 'label': localizations.dietaryHighFiber, 'strict': false},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Info message about strict vs optional tags
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                size: 20,
+                color: AppTheme.primaryGreen,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  localizations.dietaryFilterInfo,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: dietaryTags.map((tag) {
+            final value = tag['value'] as String;
+            final label = tag['label'] as String;
+            final isStrict = tag['strict'] as bool;
+            final isSelected = _dietInfo.contains(value);
+            
+            return FilterChip(
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(label),
+                  if (isStrict) ...[
+                    const SizedBox(width: 4),
+                    const Text(
+                      '*',
+                      style: TextStyle(
+                        color: AppTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  if (selected) {
+                    _dietInfo.add(value);
+                  } else {
+                    _dietInfo.remove(value);
+                  }
+                });
+              },
+              selectedColor: AppTheme.primaryGreen.withOpacity(0.3),
+              checkmarkColor: AppTheme.primaryGreen,
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '* ${localizations.strictDietaryTagInfo}',
+          style: const TextStyle(
+            fontSize: 11,
+            fontStyle: FontStyle.italic,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

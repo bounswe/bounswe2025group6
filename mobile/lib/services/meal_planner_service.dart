@@ -60,6 +60,8 @@ class MealPlannerService {
   /// - Nutrition filters: min/max for calories, carbs, fat, protein
   /// - Time filters: min/max for prepTime, cookTime, totalTime
   /// - Boolean filters: hasImage, isApproved, isFeatured
+  /// - Allergen filters: excludeAllergens (list of allergens to exclude)
+  /// - Dietary filters: dietInfo (list of dietary preferences)
   /// - Pagination: page, pageSize
   Future<Map<String, dynamic>> getMealPlannerRecipes({
     // Search and classification
@@ -101,6 +103,10 @@ class MealPlannerService {
     bool? hasImage,
     bool? isApproved,
     bool? isFeatured,
+
+    // Allergen and dietary filters
+    List<String>? excludeAllergens,
+    List<String>? dietInfo,
 
     // Pagination
     int? page,
@@ -215,6 +221,16 @@ class MealPlannerService {
       queryParams['is_featured'] = isFeatured.toString();
     }
 
+    // Allergen and dietary filters
+    if (excludeAllergens != null && excludeAllergens.isNotEmpty) {
+      // Convert list to comma-separated string
+      queryParams['exclude_allergens'] = excludeAllergens.join(',');
+    }
+    if (dietInfo != null && dietInfo.isNotEmpty) {
+      // Convert list to comma-separated string
+      queryParams['diet_info'] = dietInfo.join(',');
+    }
+
     // Pagination
     if (page != null) {
       queryParams['page'] = page.toString();
@@ -314,6 +330,8 @@ class MealPlannerService {
       maxHealthRating: additionalFilters?['maxHealthRating'],
       hasImage: additionalFilters?['hasImage'],
       isApproved: additionalFilters?['isApproved'],
+      excludeAllergens: additionalFilters?['excludeAllergens'],
+      dietInfo: additionalFilters?['dietInfo'],
       pageSize: additionalFilters?['pageSize'] ?? 10,
     );
 
