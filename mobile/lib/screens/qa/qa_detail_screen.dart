@@ -118,24 +118,23 @@ class _QADetailScreenState extends State<QADetailScreen> {
   }
 
   Future<void> _showDeleteConfirmation() async {
+    final localizations = AppLocalizations.of(context)!;
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Delete Question'),
-            content: const Text(
-              'Are you sure you want to delete this question?',
-            ),
+            title: Text(localizations.deleteQuestion),
+            content: Text(localizations.deleteQuestionConfirm),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(localizations.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
+                child: Text(
+                  localizations.delete,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
@@ -235,9 +234,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
         await _qaService.removeQuestionVote(question!['id']);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vote removed'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.voteRemoved),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -252,7 +251,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Voted ${voteType == 'up' ? 'up' : 'down'}'),
+              content: Text(voteType == 'up' 
+                  ? AppLocalizations.of(context)!.votedUp 
+                  : AppLocalizations.of(context)!.votedDown),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -281,7 +282,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
     if (_answerController.text.trim().isEmpty) return;
     if (!_isDietitian) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Only dietitians can answer questions')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.onlyDietitiansCanAnswer)),
       );
       return;
     }
@@ -299,7 +300,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
       if (mounted) {
         _answerController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Answer submitted successfully')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.answerSubmittedSuccess)),
         );
         _loadAnswers();
       }
@@ -307,7 +308,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.error(e.toString()))));
       }
     } finally {
       if (mounted) {
@@ -335,18 +336,19 @@ class _QADetailScreenState extends State<QADetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Q&A')),
+        appBar: AppBar(title: Text(localizations.qaTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (question == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Q&A')),
-        body: const Center(child: Text('Question not found')),
+        appBar: AppBar(title: Text(localizations.qaTitle)),
+        body: Center(child: Text(localizations.questionNotFound)),
       );
     }
 
@@ -355,7 +357,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Q&A'),
+        title: Text(localizations.qaTitle),
         actions: [
           if (isAuthor)
             PopupMenuButton<String>(
@@ -366,13 +368,13 @@ class _QADetailScreenState extends State<QADetailScreen> {
               },
               itemBuilder:
                   (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
+                          const Icon(Icons.delete, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text(localizations.delete, style: const TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
@@ -516,7 +518,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Answers (${_answers.length})',
+                localizations.answersCount(_answers.length.toString()),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -528,10 +530,10 @@ class _QADetailScreenState extends State<QADetailScreen> {
             if (_isAnswersLoading)
               const Center(child: CircularProgressIndicator())
             else if (_answers.isEmpty)
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text('No answers yet. Be the first to answer!'),
+                  padding: const EdgeInsets.all(32),
+                  child: Text(localizations.noAnswersYet),
                 ),
               )
             else
@@ -560,7 +562,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Your Answer',
+                        localizations.yourAnswer,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -569,9 +571,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
                       TextField(
                         controller: _answerController,
                         maxLines: 5,
-                        decoration: const InputDecoration(
-                          hintText: 'Write your answer here...',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          hintText: localizations.writeAnswerHint,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -588,7 +590,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                  : const Text('Submit Answer'),
+                                  : Text(localizations.submitAnswer),
                         ),
                       ),
                     ],
@@ -682,9 +684,9 @@ class _AnswerCardState extends State<AnswerCard> {
         await _qaService.removeAnswerVote(widget.answer['id']);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vote removed'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.voteRemoved),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -699,7 +701,9 @@ class _AnswerCardState extends State<AnswerCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Voted ${voteType == 'up' ? 'up' : 'down'}'),
+              content: Text(voteType == 'up' 
+                  ? AppLocalizations.of(context)!.votedUp 
+                  : AppLocalizations.of(context)!.votedDown),
               duration: const Duration(seconds: 2),
             ),
           );

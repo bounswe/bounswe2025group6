@@ -47,7 +47,7 @@ class _QAScreenState extends State<QAScreen> {
     } catch (e) {
       setState(() {
         _error = e.toString().contains('Invalid response from server')
-            ? 'The Q&A feature is not available. Please ensure the backend has been set up correctly.'
+            ? AppLocalizations.of(context)!.qaFeatureNotAvailable
             : e.toString();
         _isLoading = false;
       });
@@ -56,9 +56,11 @@ class _QAScreenState extends State<QAScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Q&A'),
+        title: Text(localizations.qaTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -199,8 +201,8 @@ class _QuestionCardState extends State<QuestionCard> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vote removed'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.voteRemoved),
               duration: Duration(seconds: 2),
             ),
           );
@@ -220,7 +222,9 @@ class _QuestionCardState extends State<QuestionCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Voted ${voteType == 'up' ? 'up' : 'down'}'),
+              content: Text(voteType == 'up' 
+                  ? AppLocalizations.of(context)!.votedUp 
+                  : AppLocalizations.of(context)!.votedDown),
               duration: const Duration(seconds: 2),
             ),
           );

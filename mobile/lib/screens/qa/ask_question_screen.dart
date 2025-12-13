@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/qa_service.dart';
 import '../../services/storage_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class AskQuestionScreen extends StatefulWidget {
   const AskQuestionScreen({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
     if (_selectedTags.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one tag')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectAtLeastOneTag)),
       );
       return;
     }
@@ -53,14 +54,14 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Question posted successfully!')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.questionPostedSuccess)),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.error(e.toString()))),
         );
       }
     } finally {
@@ -85,10 +86,11 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ask a Question'),
+        title: Text(localizations.askQuestion),
       ),
       body: Form(
         key: _formKey,
@@ -98,17 +100,17 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             // Title Field
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Enter your question title',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: localizations.questionTitle,
+                hintText: localizations.questionTitleHint,
+                border: const OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a title';
+                  return localizations.questionTitleRequired;
                 }
                 if (value.trim().length < 10) {
-                  return 'Title must be at least 10 characters';
+                  return localizations.questionTitleMinLength;
                 }
                 return null;
               },
@@ -119,19 +121,19 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             // Content Field
             TextFormField(
               controller: _contentController,
-              decoration: const InputDecoration(
-                labelText: 'Question Details',
-                hintText: 'Describe your question in detail',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: localizations.questionDetails,
+                hintText: localizations.questionDetailsHint,
+                border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
               maxLines: 10,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter question details';
+                  return localizations.questionDetailsRequired;
                 }
                 if (value.trim().length < 20) {
-                  return 'Details must be at least 20 characters';
+                  return localizations.questionDetailsMinLength;
                 }
                 return null;
               },
@@ -140,14 +142,14 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
             // Tags Section
             Text(
-              'Select Tags',
+              localizations.selectTags,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose tags that best describe your question',
+              localizations.selectTagsDescription,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: Colors.grey,
               ),
@@ -197,7 +199,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                               AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text('Post Question'),
+                    : Text(localizations.postQuestion),
               ),
             ),
             const SizedBox(height: 16),
@@ -225,7 +227,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Question Guidelines',
+                          localizations.questionGuidelines,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.primaryColor,
@@ -234,13 +236,11 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildGuideline('• Be specific and clear in your title'),
-                    _buildGuideline(
-                        '• Provide enough context in the details'),
-                    _buildGuideline('• Select relevant tags'),
-                    _buildGuideline('• Be respectful and courteous'),
-                    _buildGuideline(
-                        '• Only dietitians can answer your questions'),
+                    _buildGuideline('• ${localizations.guidelineSpecificTitle}'),
+                    _buildGuideline('• ${localizations.guidelineProvideContext}'),
+                    _buildGuideline('• ${localizations.guidelineSelectTags}'),
+                    _buildGuideline('• ${localizations.guidelineBeRespectful}'),
+                    _buildGuideline('• ${localizations.guidelineOnlyDietitians}'),
                   ],
                 ),
               ),

@@ -68,10 +68,11 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       String apiUserType = _userType.toLowerCase();
 
-      // If dietitian and PDF is uploaded, send a placeholder URL
       String? certificationUrl;
-      if (apiUserType == 'dietitian' && _pdfFile != null) {
-        certificationUrl = 'https://example.com/certification.pdf';
+      if (_pdfFile != null) {
+        // For now, use the file path or name as a placeholder
+        // In production, you'd upload the file first and get a URL
+        certificationUrl = _pdfFile!.path ?? _pdfFile!.name;
       }
 
       await _authService.register(
