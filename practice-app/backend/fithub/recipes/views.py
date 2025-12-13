@@ -1,11 +1,12 @@
 # recipes/views.py
 
+from django.db import models
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import RecipeCreateSerializer, RecipeUpdateSerializer
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from .models import Recipe
 from drf_yasg import openapi
@@ -15,10 +16,11 @@ from django.utils import timezone
 from .models import RecipeIngredient
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Q
-
+from .models import Ingredient
 from rest_framework.decorators import api_view
 from decimal import Decimal, InvalidOperation
+from django.db.models import F, ExpressionWrapper, IntegerField
+from django.db.models import Count, Q, Exists, OuterRef
 
 
 # Created for swagger documentation, paginate get request
@@ -41,11 +43,19 @@ class RecipePagination(PageNumberPagination):
             'results': data
         })
 
-@permission_classes([IsAuthenticated])
 class RecipeViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     queryset = Recipe.objects.filter(deleted_on=None)  # Filter out soft-deleted recipes
     http_method_names = ['get', 'post', 'put', 'delete'] # We don't need PATCH method (PUT can also be used for partial updates)
+
+    def get_permissions(self):
+        """
+        Allow public access to list and retrieve (viewing recipes).
+        Require authentication for create, update, delete (modifying recipes).
+        """
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     # Use the correct serializer class based on the action type
     def get_serializer_class(self):
@@ -203,6 +213,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             openapi.Parameter('is_approved', openapi.IN_QUERY, description="Filter only approved recipes", type=openapi.TYPE_BOOLEAN),
             openapi.Parameter('is_featured', openapi.IN_QUERY, description="Filter only featured recipes", type=openapi.TYPE_BOOLEAN),
             openapi.Parameter('exclude_allergens', openapi.IN_QUERY, description="Comma-separated list of allergens to exclude (e.g., 'nuts,gluten')", type=openapi.TYPE_STRING),
+            openapi.Parameter('diet_info', openapi.IN_QUERY, description="Comma-separated list of diet info (e.g., 'vegetarian, healthy-fat')", type=openapi.TYPE_STRING),
             *pagination_params,  # include page & page_size
         ],
         responses={200: RecipeListSerializer(many=True)},
@@ -271,6 +282,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         is_approved = request.query_params.get("is_approved")
         is_featured = request.query_params.get("is_featured")
         exclude_allergens = request.query_params.get("exclude_allergens")
+
+        diet_info = request.query_params.get("diet_info")
 
         # Apply filters dynamically
         filters = Q()
@@ -358,12 +371,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if max_cook_time:
             filters &= Q(cook_time__lte=max_cook_time)
         if min_total_time:
-            from django.db.models import F, ExpressionWrapper, IntegerField
             queryset = queryset.annotate(
                 total_time_expr=ExpressionWrapper(F('prep_time') + F('cook_time'), output_field=IntegerField())
             ).filter(total_time_expr__gte=min_total_time)
         if max_total_time:
-            from django.db.models import F, ExpressionWrapper, IntegerField
             queryset = queryset.annotate(
                 total_time_expr=ExpressionWrapper(F('prep_time') + F('cook_time'), output_field=IntegerField())
             ).filter(total_time_expr__lte=max_total_time)
@@ -378,11 +389,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if is_featured is not None:
             filters &= Q(is_featured=(is_featured.lower() == "true"))
 
+        from django.db.models import Exists, OuterRef
+
+        if diet_info:
+            diet_info_list = [
+                info.strip().lower()
+                for info in diet_info.split(',')
+                if info.strip()
+            ]
+
+            STRICT_TAGS = {"vegan", "gluten-free"}
+
+            queryset = queryset.filter(
+                recipe_ingredients__deleted_on__isnull=True
+            )
+
+
+            # all recipe ingredient must have tags
+            for tag in diet_info_list:
+                if tag in STRICT_TAGS:
+                    bad_ingredient_qs = RecipeIngredient.objects.filter(
+                        recipe_id=OuterRef("pk"),
+                        deleted_on__isnull=True
+                    ).exclude(
+                        ingredient__dietary_info__contains=[tag]
+                    )
+
+                    queryset = queryset.filter(
+                        ~Exists(bad_ingredient_qs)
+                    )
+
+            # at least one recipe ingredient must have tags
+            for tag in diet_info_list:
+                if tag not in STRICT_TAGS:
+                    queryset = queryset.filter(
+                        recipe_ingredients__deleted_on__isnull=True,
+                        recipe_ingredients__ingredient__dietary_info__contains=[tag]
+                    )
+
+            queryset = queryset.distinct()
+
+
         queryset = queryset.filter(filters)
 
         # Filter out recipes containing excluded allergens
         if exclude_allergens:
-            from ingredients.models import Ingredient
             # Parse comma-separated allergens
             allergens_to_exclude = [a.strip().lower() for a in exclude_allergens.split(',') if a.strip()]
             

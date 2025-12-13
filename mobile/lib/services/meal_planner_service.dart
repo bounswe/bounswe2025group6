@@ -50,7 +50,7 @@ class MealPlannerService {
   }
 
   /// Get filtered recipes from meal planner endpoint
-  /// 
+  ///
   /// Supports all filters available in the backend:
   /// - name: Recipe name search
   /// - mealType: breakfast, lunch, or dinner
@@ -65,7 +65,6 @@ class MealPlannerService {
     // Search and classification
     String? name,
     String? mealType, // 'breakfast', 'lunch', 'dinner'
-
     // Cost filters
     double? minCostPerServing,
     double? maxCostPerServing,
@@ -225,8 +224,9 @@ class MealPlannerService {
     }
 
     // Build URL with query parameters
-    final uri = Uri.parse('$baseUrl/recipes/meal_planner/')
-        .replace(queryParameters: queryParams);
+    final uri = Uri.parse(
+      '$baseUrl/recipes/meal_planner/',
+    ).replace(queryParameters: queryParams);
 
     try {
       var response = await http.get(uri, headers: headers);
@@ -248,14 +248,17 @@ class MealPlannerService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-        
+
         // Parse recipes from results
         final List<dynamic> results =
             responseData['results'] as List<dynamic>? ?? [];
 
-        List<Recipe> recipes = results
-            .map((data) => Recipe.fromListJson(data as Map<String, dynamic>))
-            .toList();
+        List<Recipe> recipes =
+            results
+                .map(
+                  (data) => Recipe.fromListJson(data as Map<String, dynamic>),
+                )
+                .toList();
 
         // Return paginated response
         return {
@@ -333,18 +336,12 @@ class MealPlannerService {
 
     final lunchRecipes = await getRecipesForMealType(
       'lunch',
-      additionalFilters: {
-        ...?filters,
-        'pageSize': recipesPerMealType * 2,
-      },
+      additionalFilters: {...?filters, 'pageSize': recipesPerMealType * 2},
     );
 
     final dinnerRecipes = await getRecipesForMealType(
       'dinner',
-      additionalFilters: {
-        ...?filters,
-        'pageSize': recipesPerMealType * 2,
-      },
+      additionalFilters: {...?filters, 'pageSize': recipesPerMealType * 2},
     );
 
     // Shuffle and limit results for randomness
@@ -359,4 +356,3 @@ class MealPlannerService {
     };
   }
 }
-

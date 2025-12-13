@@ -40,6 +40,13 @@ jest.mock('react-i18next', () => ({
         postDetailPageDisabledComments: 'Comments are disabled for this post.',
         previous: 'Previous',
         next: 'Next',
+        sharePost: 'Share Post',
+        createPostPageTags: 'Tags',
+        'createPost.tags.budget': 'Budget',
+        'createPost.tags.tips': 'Tips',
+        shareLink: 'View at',
+        shareCopied: 'Link copied to clipboard!',
+        shareError: 'Failed to share. Please try again.',
       };
       return translations[key] || key;
     },
@@ -138,6 +145,7 @@ describe('PostDetailPage', () => {
     userService.getUserById.mockResolvedValue({
       id: 1,
       username: 'testuser',
+      profilePhoto: null,
     });
     userService.getUserRecipeCount.mockResolvedValue({
       badge: 'Novice Cook',
@@ -456,6 +464,125 @@ describe('PostDetailPage', () => {
     });
   });
 
+  describe('Share Functionality', () => {
+    beforeEach(() => {
+      // Mock Web Share API
+      global.navigator.share = jest.fn();
+      global.navigator.canShare = jest.fn(() => true);
+    });
+
+    test('renders share button for post', async () => {
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+    });
+
+    test('shares post using Web Share API when available', async () => {
+      global.navigator.share.mockResolvedValue();
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByTitle('Share Post');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Test Post Title',
+            text: expect.stringContaining('This is test post content'),
+            url: expect.stringContaining('/community/post/1')
+          })
+        );
+      });
+    });
+
+    test('falls back to clipboard when Web Share API is not available', async () => {
+      delete global.navigator.share;
+      const mockClipboard = {
+        writeText: jest.fn(() => Promise.resolve()),
+      };
+      Object.defineProperty(navigator, 'clipboard', { 
+        value: mockClipboard,
+        writable: true,
+        configurable: true
+      });
+
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByTitle('Share Post');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(mockClipboard.writeText).toHaveBeenCalled();
+      });
+    });
+
+    test('includes post tags in share text', async () => {
+      global.navigator.share.mockResolvedValue();
+      useAuth.mockReturnValue({ currentUser: mockCurrentUser });
+      forumService.getPostById.mockResolvedValue(mockPost);
+      forumService.checkPostVoteStatus.mockResolvedValue({ hasVoted: false, voteType: null });
+      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+
+      render(
+        <BrowserRouter>
+          <PostDetailPage />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Share Post')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByTitle('Share Post');
+      fireEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(global.navigator.share).toHaveBeenCalledWith(
+          expect.objectContaining({
+            text: expect.stringContaining('Tags: Budget, Tips')
+          })
+        );
+      });
+    });
+  });
+
   describe('Navigation', () => {
     test('navigates back to community when back button is clicked', async () => {
       renderPostDetailPage();
@@ -603,6 +730,82 @@ describe('PostDetailPage', () => {
         expect(screen.getByText('Previous')).toBeInTheDocument();
         expect(screen.getByText('Next')).toBeInTheDocument();
         expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Author Profile Photo', () => {
+    test('displays author profile photo for post when available', async () => {
+      const authorWithPhoto = {
+        id: 1,
+        username: 'testuser',
+        profilePhoto: 'data:image/png;base64,test123'
+      };
+      userService.getUserById.mockResolvedValue(authorWithPhoto);
+
+      renderPostDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Post Title')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const authorAvatar = document.querySelector('.author-avatar');
+        expect(authorAvatar).toBeInTheDocument();
+        expect(authorAvatar).toHaveAttribute('src', 'data:image/png;base64,test123');
+      });
+    });
+
+    test('displays placeholder when author has no profile photo', async () => {
+      const authorWithoutPhoto = {
+        id: 1,
+        username: 'testuser',
+        profilePhoto: null
+      };
+      userService.getUserById.mockResolvedValue(authorWithoutPhoto);
+
+      renderPostDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Post Title')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const placeholder = document.querySelector('.author-avatar-placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder).toHaveTextContent('t'); // First letter of username
+      });
+    });
+
+    test('displays author profile photo for comments when available', async () => {
+      const commentAuthorWithPhoto = {
+        id: 2,
+        username: 'commentauthor',
+        profilePhoto: 'data:image/png;base64,commentphoto'
+      };
+      
+      userService.getUserById.mockImplementation((id) => {
+        if (id === 1) {
+          return Promise.resolve({ id: 1, username: 'testuser', profilePhoto: null });
+        }
+        if (id === 2) {
+          return Promise.resolve(commentAuthorWithPhoto);
+        }
+        return Promise.resolve({ id, username: 'user', profilePhoto: null });
+      });
+
+      renderPostDetailPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('This is a test comment')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const commentAvatars = document.querySelectorAll('.author-avatar');
+        const commentAvatar = Array.from(commentAvatars).find(avatar => 
+          avatar.getAttribute('src') === 'data:image/png;base64,commentphoto'
+        );
+        expect(commentAvatar).toBeInTheDocument();
       });
     });
   });

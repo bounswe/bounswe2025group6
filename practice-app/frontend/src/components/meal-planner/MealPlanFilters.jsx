@@ -31,6 +31,7 @@ export const MEAL_PLANNER_DEFAULT_FILTERS = {
   max_health_rating: '',
   has_image: false,
   excludeAllergens: [],
+  dietInfo: [],
 };
 
 const cloneFilterPayload = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
@@ -38,20 +39,24 @@ const cloneFilterPayload = (payload = MEAL_PLANNER_DEFAULT_FILTERS) => ({
   ...payload,
   mealTypes: payload?.mealTypes ? [...payload.mealTypes] : [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
   excludeAllergens: payload?.excludeAllergens ? [...payload.excludeAllergens] : [],
+  dietInfo: payload?.dietInfo ? [...payload.dietInfo] : [],
 });
 
 const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initialFilters }) => {
   const { t } = useTranslation();
   
   // Normalize allergen tokens to better match locale keys
+  // SQL allergens: dairy, egg, fish, gluten, nuts, probiotic
   const normalizeAllergenToken = (allergen) => {
     if (!allergen || typeof allergen !== 'string') return allergen;
     const s = allergen.toLowerCase().trim();
-    if (s.includes('peanut')) return 'Peanut';
     if (s === 'nuts' || s === 'nut') return 'Nuts';
-    if (s.includes('tree')) return 'TreeNut';
-    if (s === 'wheat') return 'Gluten';
-    // keep common casing for others (Dairy, Egg, Fish, Soy, Shellfish, Gluten)
+    if (s === 'dairy' || s === 'milk') return 'Dairy';
+    if (s === 'egg' || s === 'eggs') return 'Egg';
+    if (s === 'fish') return 'Fish';
+    if (s === 'gluten' || s === 'wheat') return 'Gluten';
+    if (s === 'probiotic') return 'Probiotic';
+    // keep common casing for others
     return allergen;
   };
 
@@ -91,6 +96,7 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
     nutrition: false,
     time: false,
     allergens: false,
+    dietary: false,
   });
 
   const toggleSection = (section) => {
@@ -144,6 +150,22 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
     onFilterChange(payload);
   };
 
+  const handleDietInfoToggle = (dietInfo) => {
+    const currentDietInfo = filters.dietInfo || [];
+    const newDietInfo = currentDietInfo.includes(dietInfo)
+      ? currentDietInfo.filter((d) => d !== dietInfo)
+      : [...currentDietInfo, dietInfo];
+    
+    const newFilters = {
+      ...filters,
+      dietInfo: newDietInfo,
+    };
+    
+    const payload = cloneFilterPayload(newFilters);
+    setFilters(payload);
+    onFilterChange(payload);
+  };
+
   const handleApply = () => {
     onApplyFilters(cloneFilterPayload(filters));
   };
@@ -157,8 +179,13 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
   };
 
   const commonAllergens = [
-    'Dairy', 'Egg', 'Nuts', 'Peanuts',
-    'Shellfish', 'Fish', 'Wheat', 'Soy', 'Gluten'
+    'Dairy', 'Egg', 'Nuts', 'Fish', 'Gluten', 'Probiotic'
+  ];
+
+  const commonDietInfo = [
+    'vegan', 'gluten-free', 'high-protein', 'low-carb', 
+    'whole-grain', 'keto-friendly', 'healthy-fat', 'soy-based', 
+    'lean-protein', 'omega-3', 'high-fiber', 'potassium-rich'
   ];
 
   return (
@@ -533,6 +560,37 @@ const MealPlanFilters = ({ onFilterChange, onApplyFilters, onClearFilters, initi
                     className="filter-input filter-input-small"
                   />
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Dietary Info - Collapsible */}
+        <div className="filter-section collapsible-section dietary-section">
+          <button 
+            className="filter-section-toggle"
+            onClick={() => toggleSection('dietary')}
+          >
+            <span className="filter-label">{t('filtersDietaryInfo')}</span>
+            <span className="toggle-icon">{expandedSections.dietary ? '▼' : '▶'}</span>
+          </button>
+          
+          {expandedSections.dietary && (
+            <div className="collapsible-content">
+              <div className="checkbox-group">
+                {commonDietInfo.map((dietInfo) => {
+                  const labelKey = `dietaryInfo${sanitizeKey(dietInfo)}`;
+                  return (
+                    <label key={dietInfo} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={(filters.dietInfo || []).includes(dietInfo)}
+                        onChange={() => handleDietInfoToggle(dietInfo)}
+                      />
+                      <span>{t(labelKey, { defaultValue: dietInfo })}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}

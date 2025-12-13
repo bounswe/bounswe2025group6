@@ -7,21 +7,25 @@ import { toggleBookmark, getBookmarkedRecipes } from '../../services/bookmarkSer
 import { translateIngredient } from '../../utils/ingredientTranslations';
 // Removed wikidata import as it's not needed
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { getNutritionIcon } from '../../utils/nutritionIcons';
 import { useAuth } from '../../contexts/AuthContext';
 import RatingStars from '../../components/recipe/RatingStars';
 import { formatDate } from '../../utils/dateFormatter';
 import '../../styles/RecipeDetailPage.css';
 import '../../styles/style.css';
-import { getCurrentUser } from '../../services/authService';
+import { getCurrentUser, isAuthenticated } from '../../services/authService';
 import ReportButton from '../../components/report/ReportButton';
 import InteractiveRatingStars from '../../components/recipe/InteractiveRatingStars';
 import InteractiveHealthRating from '../../components/recipe/InteractiveHealthRating';
 import { useTranslation } from "react-i18next";
+import { createLoginUrl } from "../../utils/authUtils";
 
 const RecipeDetailPage = () => {
-  const { id } = useParams();  const [recipe, setRecipe] = useState(null);
+  const { id } = useParams();
+  const [recipe, setRecipe] = useState(null);
   const [creatorName, setCreatorName] = useState('');
   const [creatorId, setCreatorId] = useState(null);
+  const [creatorPhoto, setCreatorPhoto] = useState(null);
   const [error, setError] = useState(null);
   const [isPageReady, setIsPageReady] = useState(false);
   const [recipeId, setRecipeId] = useState('');
@@ -141,7 +145,9 @@ const RecipeDetailPage = () => {
   // Handle bookmark toggle
   const handleBookmarkToggle = async () => {
     if (!authUser || !authUser.id) {
-      alert('Please login to bookmark recipes');
+      // Redirect to login with current recipe page as next parameter
+      const currentPath = `/recipes/${id}`;
+      navigate(createLoginUrl(currentPath));
       return;
     }
 
@@ -168,6 +174,94 @@ const RecipeDetailPage = () => {
       alert('Failed to bookmark recipe. Please try again.');
     } finally {
       setIsBookmarking(false);
+    }
+  };
+
+  // Handle share recipe
+  const handleShare = async () => {
+    if (!recipe) return;
+
+    const recipeUrl = `${window.location.origin}/recipes/${id}`;
+    
+    // Format recipe details for sharing
+    let shareText = `${recipe.name}\n\n`;
+    
+    if (recipe.ingredients && recipe.ingredients.length > 0) {
+      shareText += `${t("recipeDetailPageIngredients")}:\n`;
+      recipe.ingredients.forEach((item, index) => {
+        const ingredientName = translateIngredient(item.ingredient.name, currentLanguage);
+        shareText += `- ${formatQuantity(item.quantity)} ${item.unit} ${ingredientName}\n`;
+      });
+      shareText += '\n';
+    }
+    
+    if (recipe.steps && recipe.steps.length > 0) {
+      shareText += `${t("recipeDetailPageInstructions")}:\n`;
+      recipe.steps.forEach((step, index) => {
+        shareText += `${index + 1}. ${step}\n`;
+      });
+      shareText += '\n';
+    }
+    
+    shareText += `${t("recipeDetailPageShareLink")}: ${recipeUrl}`;
+
+    const shareData = {
+      title: recipe.name,
+      text: shareText,
+      url: recipeUrl,
+    };
+
+    try {
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        // Check if canShare is available and use it, otherwise try to share directly
+        if (navigator.canShare) {
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            return;
+          }
+        } else {
+          // canShare not available, try to share directly
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (shareError) {
+            // If share fails, fall through to clipboard
+            if (shareError.name === 'AbortError') {
+              // User cancelled, don't show error
+              return;
+            }
+          }
+        }
+      }
+      
+      // Fallback: Copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText);
+        alert(t("recipeDetailPageShareCopied"));
+      } else {
+        // Last resort: Show text in alert for user to copy manually
+        alert(`${t("recipeDetailPageShareLink")}:\n${recipeUrl}`);
+      }
+    } catch (error) {
+      // User cancelled or error occurred
+      if (error.name === 'AbortError') {
+        // User cancelled sharing, do nothing
+        return;
+      }
+      
+      // Try clipboard as fallback
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText);
+          alert(t("recipeDetailPageShareCopied"));
+        } else {
+          alert(`${t("recipeDetailPageShareLink")}:\n${recipeUrl}`);
+        }
+      } catch (clipboardError) {
+        console.error('Error sharing recipe:', error);
+        alert(t("recipeDetailPageShareError"));
+      }
     }
   };
 
@@ -212,11 +306,20 @@ const RecipeDetailPage = () => {
           const nutrition = calculateTotalNutrition(recipeData);
           setTotalNutrition(nutrition);
           
-          // Fetch creator name and ID
+          // Fetch creator name, ID, and photo
           if (recipeData.creator_id) {
             setCreatorId(recipeData.creator_id);
             const name = await getUsername(recipeData.creator_id);
             setCreatorName(name);
+            // Fetch creator profile for photo
+            try {
+              const creatorProfile = await userService.getUserById(recipeData.creator_id);
+              if (creatorProfile && creatorProfile.profilePhoto) {
+                setCreatorPhoto(creatorProfile.profilePhoto);
+              }
+            } catch (error) {
+              console.error('Error fetching creator profile:', error);
+            }
           }
           
           // First check if recipe has an uploaded image
@@ -238,17 +341,13 @@ const RecipeDetailPage = () => {
           setError('Recipe not found');
         }
       } catch (err) {
+        // For errors, show error message
         console.error('Error loading recipe:', err);
-        if (err.message && err.message.includes('Authentication required')) {
-          setError('Please log in to view recipes');
-        } else if (err.response && err.response.status === 401) {
-          setError('Your session has expired. Please log in again.');
-        } else if (err.response && err.response.status === 404) {
+        if (err.response?.status === 404) {
           setError('Recipe not found');
         } else {
-          setError('Failed to load recipe. Please try again.');w
+          setError('Failed to load recipe. Please try again.');
         }
-      } finally {
         setIsPageReady(true);
       }
     };
@@ -274,11 +373,12 @@ const RecipeDetailPage = () => {
             const userData = await userService.getUserById(user.id);
             setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
           } catch (error) {
-            console.error('Error loading user date format:', error);
+            // Silently fail for unauthenticated users
+            console.log('User not authenticated, using default date format');
           }
         }
       } catch (error) {
-        console.error('Error fetching current user:', error);
+        // Silently handle unauthenticated users - don't show errors
         setCurrentUser(null);
       }
     };
@@ -365,31 +465,74 @@ const RecipeDetailPage = () => {
         {/* Creator information positioned at top right */}
         <div className="creator-info-top-right">
           <div className="creator-info-content">
-            <p className="creator-name">
-              {t("recipeDetailPageCreatedBy")}:{' '}
-              {creatorId ? (
-                <span
-                  className="creator-link"
-                  onClick={() => navigate(`/profile/${creatorId}`)}
-                >
-                  {creatorName || t("recipeDetailPageLoading")}
-                </span>
+            <div className="creator-avatar-name">
+              {creatorPhoto ? (
+                <img 
+                  src={creatorPhoto} 
+                  alt={creatorName} 
+                  className="creator-avatar"
+                  onClick={() => creatorId && navigate(`/profile/${creatorId}`)}
+                />
               ) : (
-                <span>{creatorName || t("recipeDetailPageLoading")}</span>
+                <div 
+                  className="creator-avatar-placeholder"
+                  onClick={() => creatorId && navigate(`/profile/${creatorId}`)}
+                >
+                  {creatorName?.[0]?.toUpperCase() || 'U'}
+                </div>
               )}
-            </p>
-            {recipe.created_at && (
-              <p className="creator-date">
-                {formatDate(recipe.created_at, userDateFormat)}
-              </p>
-            )}
+              <div className="creator-text-info">
+                <p className="creator-name">
+                  {t("recipeDetailPageCreatedBy")}:{' '}
+                  {creatorId ? (
+                    <span
+                      className="creator-link"
+                      onClick={() => navigate(`/profile/${creatorId}`)}
+                    >
+                      {creatorName || t("recipeDetailPageLoading")}
+                    </span>
+                  ) : (
+                    <span>{creatorName || t("recipeDetailPageLoading")}</span>
+                  )}
+                </p>
+                {recipe.created_at && (
+                  <p className="creator-date">
+                    {formatDate(recipe.created_at, userDateFormat)}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Bookmark and Report buttons positioned at bottom */}
-        {authUser && (
-          <div className="recipe-actions-bottom">
-            {/* Bookmark button - left side */}
+        {/* Bookmark, Share and Report buttons positioned at bottom */}
+        <div className="recipe-actions-bottom">
+          {/* Share button - always visible */}
+          <button
+            className="recipe-share-button"
+            onClick={handleShare}
+            title={t("recipeDetailPageShareRecipe")}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#48bb78"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+          </button>
+
+          {/* Bookmark button - only show if user is logged in */}
+          {authUser && (
             <button
               className={`recipe-bookmark-button ${isBookmarked ? 'bookmarked' : ''}`}
               onClick={handleBookmarkToggle}
@@ -409,15 +552,15 @@ const RecipeDetailPage = () => {
                 <path d="M6 2v20l6-4 6 4V2H6z" />
               </svg>
             </button>
+          )}
 
-            {/* Report button - right side, only show if not owner */}
-            {currentUser && currentUser.id !== recipe.creator_id && (
-              <div className="recipe-report-button-wrapper">
+          {/* Report button - right side, only show if user is logged in and not owner */}
+          {authUser && currentUser && currentUser.id !== recipe.creator_id && (
+            <div className="recipe-report-button-wrapper">
               <ReportButton targetType="recipe" targetId={id} />
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
         
       </div>
       
@@ -622,71 +765,84 @@ const RecipeDetailPage = () => {
                   {hasMainNutrients && (
                   <div className="nutrition-cards">
                       {/* Calories */}
-                      {nutritionData.calories && (
-                        <div className="nutrition-card calories">
-                          <div className="nutrition-icon">🔥</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">
-                              {typeof nutritionData.calories === 'number' 
-                                ? nutritionData.calories.toFixed(0) 
-                                : nutritionData.calories}
-                            </span>
-                            <span className="nutrition-label">{t("nutritionCalories")}</span>
-                            <span className="nutrition-unit">kcal</span>
+                      {nutritionData.calories && (() => {
+                        const caloriesValue = typeof nutritionData.calories === 'number' 
+                          ? nutritionData.calories 
+                          : parseFloat(nutritionData.calories) || 0;
+                        const { icon, sizeClass } = getNutritionIcon('calories', caloriesValue);
+                        return (
+                          <div className="nutrition-card calories">
+                            <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                            <div className="nutrition-info">
+                              <span className="nutrition-value">
+                                {caloriesValue.toFixed(0)}
+                              </span>
+                              <span className="nutrition-label">{t("nutritionCalories")}</span>
+                              <span className="nutrition-unit">kcal</span>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                       
                       {/* Protein */}
-                      {nutritionData.protein && (
-                        <div className="nutrition-card protein">
-                          <div className="nutrition-icon">💪</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">
-                              {typeof nutritionData.protein === 'number' 
-                                ? nutritionData.protein.toFixed(1) 
-                                : nutritionData.protein}
-                            </span>
-                            <span className="nutrition-label">{t("nutritionProtein")}</span>
-                            <span className="nutrition-unit">g</span>
+                      {nutritionData.protein && (() => {
+                        const proteinValue = typeof nutritionData.protein === 'number' 
+                          ? nutritionData.protein 
+                          : parseFloat(nutritionData.protein) || 0;
+                        const { icon, sizeClass } = getNutritionIcon('protein', proteinValue);
+                        return (
+                          <div className="nutrition-card protein">
+                            <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                            <div className="nutrition-info">
+                              <span className="nutrition-value">
+                                {proteinValue.toFixed(1)}
+                              </span>
+                              <span className="nutrition-label">{t("nutritionProtein")}</span>
+                              <span className="nutrition-unit">g</span>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                       
                       {/* Fat */}
-                      {nutritionData.fat && (
-                        <div className="nutrition-card fat">
-                          <div className="nutrition-icon">🧈</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">
-                              {typeof nutritionData.fat === 'number' 
-                                ? nutritionData.fat.toFixed(1) 
-                                : nutritionData.fat}
-                            </span>
-                            <span className="nutrition-label">{t("nutritionFat")}</span>
-                            <span className="nutrition-unit">g</span>
+                      {nutritionData.fat && (() => {
+                        const fatValue = typeof nutritionData.fat === 'number' 
+                          ? nutritionData.fat 
+                          : parseFloat(nutritionData.fat) || 0;
+                        const { icon, sizeClass } = getNutritionIcon('fat', fatValue);
+                        return (
+                          <div className="nutrition-card fat">
+                            <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                            <div className="nutrition-info">
+                              <span className="nutrition-value">
+                                {fatValue.toFixed(1)}
+                              </span>
+                              <span className="nutrition-label">{t("nutritionFat")}</span>
+                              <span className="nutrition-unit">g</span>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                       
                       {/* Carbohydrates - check both 'carbs' and 'carbohydrates' */}
-                      {(nutritionData.carbohydrates || nutritionData.carbs) && (
-                        <div className="nutrition-card carbs">
-                          <div className="nutrition-icon">🌾</div>
-                          <div className="nutrition-info">
-                            <span className="nutrition-value">
-                              {(() => {
-                                const carbValue = nutritionData.carbohydrates || nutritionData.carbs;
-                                return typeof carbValue === 'number' 
-                                  ? carbValue.toFixed(1) 
-                                  : carbValue;
-                              })()}
-                            </span>
-                            <span className="nutrition-label">{t("nutritionCarbs")}</span>
-                            <span className="nutrition-unit">g</span>
+                      {(nutritionData.carbohydrates || nutritionData.carbs) && (() => {
+                        const carbValue = typeof (nutritionData.carbohydrates || nutritionData.carbs) === 'number' 
+                          ? (nutritionData.carbohydrates || nutritionData.carbs)
+                          : parseFloat(nutritionData.carbohydrates || nutritionData.carbs) || 0;
+                        const { icon, sizeClass } = getNutritionIcon('carbs', carbValue);
+                        return (
+                          <div className="nutrition-card carbs">
+                            <div className={`nutrition-icon ${sizeClass}`}>{icon}</div>
+                            <div className="nutrition-info">
+                              <span className="nutrition-value">
+                                {carbValue.toFixed(1)}
+                              </span>
+                              <span className="nutrition-label">{t("nutritionCarbs")}</span>
+                              <span className="nutrition-unit">g</span>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                   </div>
                   )}
                 </>

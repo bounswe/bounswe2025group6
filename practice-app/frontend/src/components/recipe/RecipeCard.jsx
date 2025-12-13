@@ -10,7 +10,7 @@ import userService from '../../services/userService';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import '../../styles/RecipeCard.css';
 
-const RecipeCard = ({ recipe }) => {
+const RecipeCard = ({ recipe, creatorName: propCreatorName, creatorBadge: propCreatorBadge, creatorUsertype: propCreatorUsertype }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { currency } = useCurrency();
@@ -75,31 +75,44 @@ const RecipeCard = ({ recipe }) => {
     loadImage();
   }, [recipe.name, recipe.image_full_url, isVisible, isLoading, recipeImage]);
   
-  // Fetch creator's username and role
+  // Fetch creator's username and role (only if not provided as props)
   useEffect(() => {
+    // If creator data is provided as props, use it and skip fetching
+    if (propCreatorName !== undefined) {
+      setCreatorName(propCreatorName || 'Unknown');
+      setCreatorUsertype(propCreatorUsertype || null);
+      setCreatorBadge(propCreatorBadge || null);
+      return;
+    }
+    
+    // Otherwise, fetch creator data
+    let isMounted = true;
+    
     const fetchCreatorData = async () => {
       if (recipe.creator_id) {
         try {
           const userData = await userService.getUserById(recipe.creator_id);
-          setCreatorName(userData.username || 'Unknown');
-          setCreatorUsertype(userData.usertype || null);
-          // Fetch badge for creator
-          try {
-            const badgeData = await userService.getUserRecipeCount(recipe.creator_id);
-            setCreatorBadge(badgeData.badge);
-          } catch (error) {
-            console.error('Error fetching creator badge:', error);
-            setCreatorBadge(null);
+          if (isMounted) {
+            setCreatorName(userData.username || 'Unknown');
+            setCreatorUsertype(userData.usertype || null);
+            // Set badge from typeOfCook
+            setCreatorBadge(userData.typeOfCook || null);
           }
         } catch (error) {
-          console.error('Error fetching creator data:', error);
-          setCreatorName('Unknown');
+          if (isMounted) {
+            console.error('Error fetching creator data:', error);
+            setCreatorName('Unknown');
+          }
         }
       }
     };
     
     fetchCreatorData();
-  }, [recipe.creator_id]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [recipe.creator_id, propCreatorName, propCreatorBadge, propCreatorUsertype]);
 
   const handleClick = () => {
     // Save current location state before navigating

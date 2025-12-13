@@ -22,9 +22,9 @@ const OtherUserProfilePage = () => {
   // State
   const [activeTab, setActiveTab] = useState("recipes");
   const [userProfile, setUserProfile] = useState(null);
-  const [userBadge, setUserBadge] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
+  const [creatorMap, setCreatorMap] = useState({}); // Map of creator_id -> creator data
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -36,26 +36,29 @@ const OtherUserProfilePage = () => {
   // Popup states
   const [showFollowersPopup, setShowFollowersPopup] = useState(false);
   const [showFollowingPopup, setShowFollowingPopup] = useState(false);
+  const [showPhotoPopup, setShowPhotoPopup] = useState(false);
 
   // Load user profile
   useEffect(() => {
+    let isMounted = true;
     document.title = t('profile');
+    
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
 
         // Redirect to own profile if userId is "me" or matches current user ID
         if (userId === "me" || (currentUser && String(currentUser.id) === String(userId))) {
-          navigate("/profile");
+          if (isMounted) {
+            navigate("/profile");
+          }
           return;
         }
 
         const userData = await userService.getUserById(userId);
-        setUserProfile(userData);
+        if (!isMounted) return;
         
-        // Fetch user badge
-        const badgeData = await userService.getUserRecipeCount(userId);
-        setUserBadge(badgeData.badge);
+        setUserProfile(userData);
 
         // Load all user data in parallel
         await Promise.all([
@@ -65,41 +68,97 @@ const OtherUserProfilePage = () => {
           checkFollowStatus(userId)
         ]);
         
+        if (!isMounted) return;
+        
         // Load current user's preferred date format
         try {
           const currentUserData = await getCurrentUserService();
-          if (currentUserData && currentUserData.id) {
+          if (currentUserData && currentUserData.id && isMounted) {
             const currentUserProfile = await userService.getUserById(currentUserData.id);
             setUserDateFormat(currentUserProfile.preferredDateFormat || 'DD/MM/YYYY');
           }
         } catch (error) {
-          console.error('Error loading user date format:', error);
+          if (isMounted) {
+            console.error('Error loading user date format:', error);
+          }
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        if (isMounted) {
+          console.error("Error fetching user data:", error);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     if (userId) {
       fetchUserData();
     }
-  }, [userId, currentUser, navigate]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, t]); // Only depend on userId and t, currentUser and navigate are stable
 
   const loadRecipes = async (uid) => {
     try {
-      const allRecipes = await recipeService.getRecipesByCreator(uid);
-      // Filter to ensure only recipes belonging to this user are included
-      const userRecipes = (allRecipes || []).filter(recipe => {
-        const recipeCreatorId = recipe.creator || recipe.creator_id || recipe.created_by;
-        return String(recipeCreatorId) === String(uid);
-      });
-      setRecipes(userRecipes);
+      // Use new optimized endpoint - returns array of recipe objects
+      const userRecipes = await userService.getUserRecipes(uid);
+      setRecipes(userRecipes || []);
+      
+      // Pre-load creator data for all recipes
+      if (userRecipes && userRecipes.length > 0) {
+        const creatorIds = [...new Set(userRecipes.map(r => r.creator_id).filter(Boolean))];
+        await loadCreatorsData(creatorIds);
+      }
     } catch (error) {
       console.error("Error loading recipes:", error);
       setRecipes([]);
     }
+  };
+  
+  // Load creator data for multiple creator IDs
+  const loadCreatorsData = async (creatorIds) => {
+    if (!creatorIds || creatorIds.length === 0) return;
+    
+    // Get current state to filter out creators we already have
+    let idsToFetch = [];
+    setCreatorMap(prevMap => {
+      idsToFetch = creatorIds.filter(id => !prevMap[id]);
+      return prevMap; // Don't update yet
+    });
+    
+    if (idsToFetch.length === 0) return; // All creators already loaded
+    
+    // Fetch in parallel (cache is handled in getUserById)
+    const results = await Promise.all(
+      idsToFetch.map(async (creatorId) => {
+        try {
+          const userData = await userService.getUserById(creatorId);
+          return { id: creatorId, data: userData };
+        } catch (error) {
+          console.error(`Error loading creator ${creatorId}:`, error);
+          return { id: creatorId, data: null };
+        }
+      })
+    );
+    
+    // Update state with all results at once
+    setCreatorMap(prevMap => {
+      const newMap = { ...prevMap };
+      results.forEach(({ id, data }) => {
+        if (data && !newMap[id]) { // Double check to avoid duplicates
+          newMap[id] = {
+            username: data.username || 'Unknown',
+            typeOfCook: data.typeOfCook || null,
+            usertype: data.usertype || null
+          };
+        }
+      });
+      return newMap;
+    });
   };
 
   const loadFollowersAndFollowing = async (uid) => {
@@ -117,111 +176,19 @@ const OtherUserProfilePage = () => {
 
   const loadPostsAndComments = async (uid) => {
     try {
-      const userIdNum = Number(uid);
-      
-      // Fetch user's posts - get all pages
-      let allPosts = [];
-      let page = 1;
-      let total = null;
-      const pageSize = 100;
-      
-      while (true) {
-        try {
-          const postsResponse = await forumService.getPosts(page, pageSize);
-        const posts = postsResponse.results || [];
-          
-          if (!posts || posts.length === 0) {
-            break;
-          }
-          
-          allPosts.push(...posts);
-          
-          // Get total from first response
-          if (total === null) {
-            total = postsResponse.total || 0;
-          }
-        
-        // Check if there are more pages
-          const currentTotal = allPosts.length;
-          if (posts.length < pageSize || (total > 0 && currentTotal >= total)) {
-            break;
-          }
-          
-        page++;
-        
-        // Safety limit
-          if (page > 100) break;
-        } catch (error) {
-          // If 404 error, it means no more pages
-          if (error.response?.status === 404) {
-            break;
-          }
-          throw error;
-        }
-      }
-      
-      // Filter user's posts
-      const userPosts = allPosts.filter(post => Number(post.author) === userIdNum);
-      setPosts(userPosts);
+      // Use new optimized endpoints - fetch in parallel
+      const [userPosts, userComments] = await Promise.all([
+        userService.getUserPosts(uid),
+        userService.getUserComments(uid)
+      ]);
 
-      // Fetch user's comments from all posts - handle pagination for each post
-      const allComments = [];
-      for (const post of allPosts) {
-        try {
-          let commentPage = 1;
-          let commentTotal = null;
-          const commentPageSize = 100;
-          const postComments = []; // Track comments for this specific post
-          
-          while (true) {
-            try {
-              const commentsResponse = await forumService.getCommentsByPostId(post.id, commentPage, commentPageSize);
-              const comments = commentsResponse.results || [];
-              
-              if (!comments || comments.length === 0) {
-                break;
-              }
-              
-              // Filter user's comments
-          const userComments = comments.filter(comment => Number(comment.author) === userIdNum);
-              const mappedComments = userComments.map(c => ({ ...c, postId: post.id, postTitle: post.title }));
-              postComments.push(...mappedComments);
-              
-              // Get total from first response
-              if (commentTotal === null) {
-                commentTotal = commentsResponse.total || 0;
-              }
-              
-              // Check if there are more pages
-              // If we got fewer comments than pageSize, we're on the last page
-              // Or if we've fetched all comments for this post
-              if (comments.length < commentPageSize || (commentTotal > 0 && postComments.length >= commentTotal)) {
-                break;
-              }
-              
-              commentPage++;
-              
-              // Safety limit
-              if (commentPage > 100) break;
-            } catch (error) {
-              // If 404 error, it means no more pages
-              if (error.response?.status === 404) {
-                break;
-              }
-              throw error;
-            }
-          }
-          
-          // Add this post's comments to the overall list
-          allComments.push(...postComments);
-        } catch (error) {
-          console.error(`Error fetching comments for post ${post.id}:`, error);
-          // Continue with next post
-        }
-      }
-      setComments(allComments);
+      // Both functions return arrays directly
+      setPosts(userPosts || []);
+      setComments(userComments || []);
     } catch (error) {
       console.error("Error loading posts/comments:", error);
+      setPosts([]);
+      setComments([]);
     }
   };
 
@@ -302,7 +269,7 @@ const OtherUserProfilePage = () => {
       {/* Header with profile info */}
       <div className="other-profile-header">
         <div className="other-profile-header-content">
-          <div className="other-profile-avatar">
+          <div className="other-profile-avatar" onClick={() => setShowPhotoPopup(true)} style={{ cursor: 'pointer' }}>
             {userProfile.profilePhoto ? (
               <img src={userProfile.profilePhoto} alt={userProfile.username} />
             ) : (
@@ -312,13 +279,13 @@ const OtherUserProfilePage = () => {
           <div className="other-profile-info">
             <h1 className="other-profile-username">
               {userProfile.username}
-              <Badge badge={userBadge} size="large" usertype={userProfile.usertype} />
+              <Badge badge={userProfile.typeOfCook} size="large" usertype={userProfile.usertype} />
             </h1>
             <p 
               className="other-profile-badge-label"
-              style={{ color: getBadgeColor(userBadge, userProfile.usertype) }}
+              style={{ color: getBadgeColor(userProfile.typeOfCook, userProfile.usertype) }}
             >
-              {getBadgeLabel(userBadge, userProfile.usertype, t)}
+              {getBadgeLabel(userProfile.typeOfCook, userProfile.usertype, t)}
             </p>
             <div className="other-profile-stats">
               <div className="other-stat-item" onClick={() => setShowFollowersPopup(true)}>
@@ -376,9 +343,18 @@ const OtherUserProfilePage = () => {
             {recipes.length === 0 ? (
               <p className="other-empty-message">{t('otherUserProfileNoRecipes')}</p>
             ) : (
-              recipes.map(recipe => (
-                <RecipeCard key={recipe.id} recipe={recipe} />
-              ))
+              recipes.map(recipe => {
+                const creator = recipe.creator_id ? creatorMap[recipe.creator_id] : null;
+                return (
+                  <RecipeCard 
+                    key={recipe.id} 
+                    recipe={recipe}
+                    creatorName={creator?.username}
+                    creatorBadge={creator?.typeOfCook}
+                    creatorUsertype={creator?.usertype}
+                  />
+                );
+              })
             )}
           </div>
         )}
@@ -474,7 +450,7 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
@@ -533,10 +509,33 @@ const OtherUserProfilePage = () => {
                     </div>
                     <div className="other-user-info">
                       <span className="other-user-name">{user.username}</span>
-                      <Badge badge={user.badge} size="small" usertype={user.usertype} />
+                      <Badge badge={user.typeOfCook} size="small" usertype={user.usertype} />
                     </div>
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Photo Popup */}
+      {showPhotoPopup && (
+        <div className="profile-photo-popup-overlay" onClick={() => setShowPhotoPopup(false)}>
+          <div className="profile-photo-popup-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="profile-photo-popup-close"
+              onClick={() => setShowPhotoPopup(false)}
+            >
+              ✕
+            </button>
+            <div className="profile-photo-popup-image-container">
+              {userProfile.profilePhoto ? (
+                <img src={userProfile.profilePhoto} alt={userProfile.username} />
+              ) : (
+                <div className="profile-photo-popup-placeholder">
+                  {userProfile.username?.[0]?.toUpperCase() || 'U'}
+                </div>
               )}
             </div>
           </div>

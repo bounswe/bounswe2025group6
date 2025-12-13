@@ -121,13 +121,16 @@ class RecipeService {
   }
 
   /// Fetches recipes with pagination metadata
-  Future<PaginatedRecipes> getPaginatedRecipes({int page = 1, int pageSize = 10}) async {
+  Future<PaginatedRecipes> getPaginatedRecipes({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
     String url = '$baseUrl/recipes/'; // Removed /api prefix for recipes
     Map<String, String> queryParams = {
       'page': page.toString(),
       'page_size': pageSize.toString(),
     };
-    
+
     url += '?' + Uri(queryParameters: queryParams).query;
 
     token = await StorageService.getJwtAccessToken();
@@ -155,14 +158,16 @@ class RecipeService {
       if (response.statusCode == 200) {
         print('RecipeService: Parsing paginated response body');
         final Map<String, dynamic> responseData = json.decode(response.body);
-        
+
         final paginatedRecipes = PaginatedRecipes.fromJson(
           responseData,
           fallbackPage: page,
           fallbackPageSize: pageSize,
         );
-        print('RecipeService: Successfully parsed ${paginatedRecipes.results.length} recipes on page ${paginatedRecipes.page}');
-        
+        print(
+          'RecipeService: Successfully parsed ${paginatedRecipes.results.length} recipes on page ${paginatedRecipes.page}',
+        );
+
         return paginatedRecipes;
       } else if (response.statusCode == 500) {
         // Backend may fail computing recipe costs for some ingredients.
@@ -193,7 +198,6 @@ class RecipeService {
       );
     }
   }
-
 
   /// Fetches filtered recipes from meal_planner endpoint with pagination
   /// Supports all backend filters
@@ -244,7 +248,7 @@ class RecipeService {
     if (mealType != null && mealType.isNotEmpty) {
       queryParams['meal_type'] = mealType;
     }
-    
+
     // Cost filters
     if (minCostPerServing != null) {
       queryParams['min_cost_per_serving'] = minCostPerServing.toString();
@@ -252,7 +256,7 @@ class RecipeService {
     if (maxCostPerServing != null) {
       queryParams['max_cost_per_serving'] = maxCostPerServing.toString();
     }
-    
+
     // Time filters
     if (minPrepTime != null) {
       queryParams['min_prep_time'] = minPrepTime.toString();
@@ -272,7 +276,7 @@ class RecipeService {
     if (maxTotalTime != null) {
       queryParams['max_total_time'] = maxTotalTime.toString();
     }
-    
+
     // Nutrition filters
     if (minCalories != null) {
       queryParams['min_calories'] = minCalories.toString();
@@ -298,7 +302,7 @@ class RecipeService {
     if (maxFat != null) {
       queryParams['max_fat'] = maxFat.toString();
     }
-    
+
     // Rating filters
     if (minDifficultyRating != null) {
       queryParams['min_difficulty_rating'] = minDifficultyRating.toString();
@@ -318,7 +322,7 @@ class RecipeService {
     if (maxHealthRating != null) {
       queryParams['max_health_rating'] = maxHealthRating.toString();
     }
-    
+
     // Like count filters
     if (minLikeCount != null) {
       queryParams['min_like_count'] = minLikeCount.toString();
@@ -326,7 +330,7 @@ class RecipeService {
     if (maxLikeCount != null) {
       queryParams['max_like_count'] = maxLikeCount.toString();
     }
-    
+
     // Other filters
     if (excludeAllergens != null && excludeAllergens.isNotEmpty) {
       queryParams['exclude_allergens'] = excludeAllergens;
@@ -374,7 +378,9 @@ class RecipeService {
           fallbackPage: page,
           fallbackPageSize: pageSize,
         );
-        print('RecipeService: Successfully parsed ${paginatedRecipes.results.length} filtered recipes on page ${paginatedRecipes.page}');
+        print(
+          'RecipeService: Successfully parsed ${paginatedRecipes.results.length} filtered recipes on page ${paginatedRecipes.page}',
+        );
 
         return paginatedRecipes;
       } else if (response.statusCode == 500) {
@@ -403,7 +409,6 @@ class RecipeService {
       );
     }
   }
-
 
   // Fetches detailed information for a specific recipe by its ID.
   Future<Recipe> getRecipeDetails(int recipeId) async {

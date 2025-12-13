@@ -274,6 +274,55 @@
   min-width: 200px;
 }
 
+.creator-avatar-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.creator-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.creator-avatar:hover {
+  border-color: #48bb78;
+  transform: scale(1.05);
+}
+
+.creator-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #48bb78, #38a169);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.creator-avatar-placeholder:hover {
+  border-color: #48bb78;
+  transform: scale(1.05);
+}
+
+.creator-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
 .creator-info-top-right .creator-name {
   color: #ffffff;
   font-size: 0.9rem;
@@ -368,6 +417,35 @@
 .recipe-bookmark-button:hover:not(:disabled) svg {
   fill: white;
   stroke: white;
+}
+
+.recipe-share-button {
+  background: white;
+  border: 2px solid #48bb78;
+  border-radius: 8px;
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-share-button:hover {
+  background: #48bb78;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.recipe-share-button:hover svg {
+  stroke: white;
+}
+
+.recipe-share-button svg {
+  transition: all 0.2s ease;
 }
 
 .recipe-report-button-wrapper {
@@ -576,6 +654,36 @@
 .nutrition-icon {
   font-size: 1rem;
   margin-bottom: 6px;
+  transition: transform 0.2s ease;
+}
+
+/* Dynamic nutrition icon sizes with pulse animation for medium and high */
+.nutrition-icon-small {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  /* No animation for small values */
+}
+
+.nutrition-icon-medium {
+  font-size: 1.5rem;
+  opacity: 0.9;
+  animation: nutritionPulse 2s ease-in-out infinite;
+}
+
+.nutrition-icon-high {
+  font-size: 1.8rem;
+  opacity: 1;
+  animation: nutritionPulse 2s ease-in-out infinite;
+}
+
+/* Pulse animation - scales from small to medium/high size */
+@keyframes nutritionPulse {
+  0%, 100% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .nutrition-info {

@@ -22,6 +22,7 @@ const createDefaultFilters = () => ({
   ...MEAL_PLANNER_DEFAULT_FILTERS,
   mealTypes: [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
   excludeAllergens: [...MEAL_PLANNER_DEFAULT_FILTERS.excludeAllergens],
+  dietInfo: [...MEAL_PLANNER_DEFAULT_FILTERS.dietInfo],
 });
 
 const MealPlannerPage = () => {
@@ -144,6 +145,7 @@ const MealPlannerPage = () => {
     ...payload,
     mealTypes: payload?.mealTypes ? [...payload.mealTypes] : [...MEAL_PLANNER_DEFAULT_FILTERS.mealTypes],
     excludeAllergens: payload?.excludeAllergens ? [...payload.excludeAllergens] : [],
+    dietInfo: payload?.dietInfo ? [...payload.dietInfo] : [],
   });
 
   const loadAllRecipes = async (filtersToUse = appliedFilters) => {
@@ -271,7 +273,7 @@ const MealPlannerPage = () => {
   };
 
   const handleGenerateShopping = () => {
-    localStorage.setItem('currentMealPlan', JSON.stringify({ activePlan: mealPlan }));
+    // Just keep it for backward compatibility
   };
 
   const toggleMealSection = (mealType) => {
