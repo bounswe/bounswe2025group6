@@ -262,6 +262,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       return;
     }
 
+    // Show portion selector dialog
+    final portionCount = await _showPortionSelectorDialog();
+    if (portionCount == null) return; // User cancelled
+
     // Show loading
     setState(() {
       _isLoading = true;
@@ -279,7 +283,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
 
       if (mounted) {
         setState(() {
-          _shoppingList = ShoppingList.fromRecipes(detailedRecipes);
+          _shoppingList = ShoppingList.fromRecipes(
+            detailedRecipes,
+            portionCount: portionCount,
+          );
           _isLoading = false;
           _tabController.animateTo(2); // Switch to shopping list tab
         });
@@ -304,6 +311,108 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         );
       }
     }
+  }
+
+  Future<int?> _showPortionSelectorDialog() async {
+    int selectedPortion = 1;
+    
+    return showDialog<int>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.selectPortions),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.howManyPortions,
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: selectedPortion > 1
+                            ? () {
+                                setDialogState(() {
+                                  selectedPortion--;
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.remove_circle_outline),
+                        iconSize: 36,
+                        color: AppTheme.primaryGreen,
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: AppTheme.primaryGreen,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$selectedPortion',
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        onPressed: selectedPortion < 10
+                            ? () {
+                                setDialogState(() {
+                                  selectedPortion++;
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.add_circle_outline),
+                        iconSize: 36,
+                        color: AppTheme.primaryGreen,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppLocalizations.of(context)!.portionsHelpText,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, selectedPortion),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.generate),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   // Used by recipe selector in Step 6
@@ -864,6 +973,40 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
 
     return Column(
       children: [
+        // Portion Count Info Card
+        if (_shoppingList!.portionCount > 1)
+          Container(
+            margin: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.primaryGreen.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.people,
+                  color: AppTheme.primaryGreen,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  localizations.shoppingListForPortions(
+                    _shoppingList!.portionCount.toString(),
+                  ),
+                  style: const TextStyle(
+                    color: AppTheme.primaryGreen,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        
         // Select/Deselect All Button
         Padding(
           padding: const EdgeInsets.all(16.0),
@@ -1083,6 +1226,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
       totalCostLabel: localizations.totalCost,
       costByRetailerLabel: localizations.costByRetailerLabel,
       bestLabel: localizations.bestRetailerLabel,
+      portionsLabel: localizations.portions,
       footerLabel: localizations.generatedByFitHub,
     );
 

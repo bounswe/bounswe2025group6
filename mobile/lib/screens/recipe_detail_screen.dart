@@ -510,6 +510,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       AppLocalizations.of(context)!.ingredientsTitle,
                       Icons.kitchen_outlined,
                       context,
+                      subtitle: AppLocalizations.of(context)!.valuesForOnePortion,
                     ),
                     const SizedBox(height: 8),
                     Card(
@@ -593,6 +594,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: TotalNutritionWidget(
                           recipeNutritions: recipe.recipeNutritions,
+                          subtitle: AppLocalizations.of(context)!.valuesForOnePortion,
                         ),
                       ),
                     if (recipe.recipeNutritions != null)
@@ -832,18 +834,42 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, BuildContext context) {
-    return Row(
+  Widget _buildSectionTitle(
+    String title,
+    IconData icon,
+    BuildContext context, {
+    String? subtitle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppTheme.primaryGreen, size: 24),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppTheme.primaryGreen,
-          ),
+        Row(
+          children: [
+            Icon(icon, color: AppTheme.primaryGreen, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryGreen,
+              ),
+            ),
+          ],
         ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 32.0),
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
