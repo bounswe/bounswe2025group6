@@ -68,18 +68,18 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       String apiUserType = _userType.toLowerCase();
 
-      String? certificationUrl = null;
-      // if (_pdfFile != null) {
-      //   // This is a placeholder.
-      //   // certificationUrl = "url_to_uploaded_pdf/${_pdfFile!.name}";
-      // }
+      // If dietitian and PDF is uploaded, send a placeholder URL
+      String? certificationUrl;
+      if (apiUserType == 'dietitian' && _pdfFile != null) {
+        certificationUrl = 'https://example.com/certification.pdf';
+      }
 
       await _authService.register(
         username: _username,
         email: _email,
         password: _password,
         usertype: apiUserType,
-        certificationUrl: certificationUrl, // Pass null for now
+        certificationUrl: certificationUrl,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,12 +115,38 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _pickPdfFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result != null && result.files.isNotEmpty) {
-      setState(() => _pdfFile = result.files.first);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        allowMultiple: false,
+        withData: false,
+        withReadStream: false,
+        dialogTitle: AppLocalizations.of(context)!.uploadPdfButton,
+      );
+      
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        if (file.extension?.toLowerCase() == 'pdf') {
+          setState(() => _pdfFile = file);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.dietitianMustUploadPdf),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking file: ${e.toString()}'),
+          ),
+        );
+      }
     }
   }
 
