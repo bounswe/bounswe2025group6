@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
+import '../models/health_rating.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import 'rating_dialog.dart';
@@ -8,12 +9,14 @@ import 'rating_dialog.dart';
 class RatingDisplay extends StatelessWidget {
   final Recipe recipe;
   final RecipeRating? userRating;
+  final HealthRating? userHealthRating;
   final VoidCallback? onRatingChanged;
 
   const RatingDisplay({
     Key? key,
     required this.recipe,
     this.userRating,
+    this.userHealthRating,
     this.onRatingChanged,
   }) : super(key: key);
 
@@ -77,22 +80,28 @@ class RatingDisplay extends StatelessWidget {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     // If screen is narrow, show icon-only button
-                    final buttonText = userRating != null 
-                      ? AppLocalizations.of(context)!.editRating 
-                      : AppLocalizations.of(context)!.rateRecipe;
-                    
+                    final buttonText =
+                        userRating != null || userHealthRating != null
+                            ? AppLocalizations.of(context)!.editRating
+                            : AppLocalizations.of(context)!.rateRecipe;
+
                     return OutlinedButton(
                       onPressed: () => _showRatingDialog(context),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.primaryGreen,
                         side: BorderSide(color: AppTheme.primaryGreen),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            userRating != null ? Icons.edit : Icons.star_outline,
+                            userRating != null || userHealthRating != null
+                                ? Icons.edit
+                                : Icons.star_outline,
                             size: 16,
                           ),
                           const SizedBox(width: 4),
@@ -146,7 +155,7 @@ class RatingDisplay extends StatelessWidget {
             ],
 
             // User's rating section (if exists)
-            if (userRating != null) ...[
+            if (userRating != null || userHealthRating != null) ...[
               const Divider(height: 24),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -178,11 +187,14 @@ class RatingDisplay extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    if (userRating!.tasteRating != null)
+                    if (userRating?.tasteRating != null)
                       Row(
                         children: [
                           const SizedBox(width: 20),
-                          Text('${AppLocalizations.of(context)!.taste}: ', style: TextStyle(fontSize: 13)),
+                          Text(
+                            '${AppLocalizations.of(context)!.taste}: ',
+                            style: TextStyle(fontSize: 13),
+                          ),
                           _buildStarRating(
                             userRating!.tasteRating,
                             AppTheme.primaryGreen,
@@ -198,7 +210,7 @@ class RatingDisplay extends StatelessWidget {
                           ),
                         ],
                       ),
-                    if (userRating!.difficultyRating != null)
+                    if (userRating?.difficultyRating != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
@@ -216,6 +228,32 @@ class RatingDisplay extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               userRating!.difficultyRating!.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (userHealthRating != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 20),
+                            Text(
+                              '${AppLocalizations.of(context)!.health}: ',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            _buildStarRating(
+                              userHealthRating!.healthScore,
+                              Colors.green.shade700,
+                              small: true,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              userHealthRating!.healthScore.toStringAsFixed(1),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
