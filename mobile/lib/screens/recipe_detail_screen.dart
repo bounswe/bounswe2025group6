@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/recipe.dart';
 import '../models/recipe_rating.dart';
 import '../models/health_rating.dart';
@@ -179,6 +180,90 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
+  Future<void> _shareRecipe(Recipe recipe) async {
+    try {
+      final localizations = AppLocalizations.of(context)!;
+      
+      // Build the recipe URL
+      final recipeUrl = 'https://fithubmp.xyz/recipes/${recipe.id}';
+      
+      // Build the shareable text
+      final buffer = StringBuffer();
+      
+      // Recipe name and URL at the top
+      buffer.writeln(recipe.name);
+      buffer.writeln('');
+      buffer.writeln(recipeUrl);
+      buffer.writeln('');
+      
+      // Ingredients section
+      buffer.writeln('${localizations.ingredientsTitle.toUpperCase()}:');
+      buffer.writeln('');
+      
+      if (recipe.ingredients.isNotEmpty) {
+        for (var ingredient in recipe.ingredients) {
+          final translatedName = translateIngredient(
+            context,
+            ingredient.ingredient.name,
+          );
+          final translatedUnit = translateUnit(context, ingredient.unit);
+          buffer.writeln(
+            '- ${ingredient.quantity} $translatedUnit $translatedName',
+          );
+        }
+      } else {
+        buffer.writeln('- ${localizations.noIngredients}');
+      }
+      
+      buffer.writeln('');
+      
+      // Instructions section
+      buffer.writeln('${localizations.instructionsLabel.toUpperCase()}:');
+      buffer.writeln('');
+      
+      if (recipe.steps.isNotEmpty) {
+        for (var i = 0; i < recipe.steps.length; i++) {
+          buffer.writeln('${i + 1}. ${recipe.steps[i]}');
+        }
+      } else {
+        buffer.writeln('${localizations.noStepsProvided}');
+      }
+      
+      buffer.writeln('');
+      
+      // Footer with link
+      buffer.writeln('${localizations.viewRecipeAt}: $recipeUrl');
+      
+      // Share the text
+      await Share.share(
+        buffer.toString(),
+        subject: recipe.name,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizations.recipeShared),
+            backgroundColor: AppTheme.successColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.failedToShareRecipe,
+            ),
+            backgroundColor: AppTheme.errorColor,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,12 +271,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         title: Text(AppLocalizations.of(context)!.recipeDetailsTitle),
         backgroundColor: AppTheme.primaryGreen,
         actions: [
-          if (_currentRecipe != null)
+          if (_currentRecipe != null) ...[
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () => _shareRecipe(_currentRecipe!),
+              tooltip: AppLocalizations.of(context)!.shareRecipe,
+            ),
             ReportButton(
               contentType: ReportContentType.recipe,
               objectId: widget.recipeId,
               contentPreview: _currentRecipe!.name,
             ),
+          ],
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -438,6 +529,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       AppLocalizations.of(context)!.ingredientsTitle,
                       Icons.kitchen_outlined,
                       context,
+                      subtitle: AppLocalizations.of(context)!.valuesForOnePortion,
                     ),
                     const SizedBox(height: 8),
                     Card(
@@ -521,6 +613,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: TotalNutritionWidget(
                           recipeNutritions: recipe.recipeNutritions,
+                          subtitle: AppLocalizations.of(context)!.valuesForOnePortion,
                         ),
                       ),
                     if (recipe.recipeNutritions != null)
@@ -761,18 +854,42 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, BuildContext context) {
-    return Row(
+  Widget _buildSectionTitle(
+    String title,
+    IconData icon,
+    BuildContext context, {
+    String? subtitle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppTheme.primaryGreen, size: 24),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppTheme.primaryGreen,
-          ),
+        Row(
+          children: [
+            Icon(icon, color: AppTheme.primaryGreen, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryGreen,
+              ),
+            ),
+          ],
         ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 32.0),
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

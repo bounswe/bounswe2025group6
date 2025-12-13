@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getHealthRating, submitHealthRating } from '../../services/ratingService';
 import { getCurrentUser } from '../../services/authService';
 import { useToast } from '../ui/Toast';
+import { createLoginUrl } from '../../utils/authUtils';
 import '../../styles/InteractiveHealthRating.css';
 
 const InteractiveHealthRating = ({ 
@@ -13,6 +15,8 @@ const InteractiveHealthRating = ({
   onRatingChange
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [userRating, setUserRating] = useState(0); // Kullanıcının verdiği rating
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,7 +69,9 @@ const InteractiveHealthRating = ({
 
   const handleStarClick = async (newRating) => {
     if (!user) {
-      toast.error('Please log in to rate recipes');
+      // Redirect to login with current recipe page as next parameter
+      const currentPath = location.pathname;
+      navigate(createLoginUrl(currentPath));
       return;
     }
 

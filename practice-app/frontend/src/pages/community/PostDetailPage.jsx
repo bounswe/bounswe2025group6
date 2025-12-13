@@ -44,24 +44,35 @@ const PostDetailPage = () => {
   const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Scroll to top instantly when component mounts or id changes to prevent flickering
     window.scrollTo({ top: 0, behavior: 'auto' });
     
     loadPostAndVoteStatus();
+    
     // Load user's preferred date format
     const loadUserDateFormat = async () => {
       try {
         const user = await getCurrentUser();
-        if (user && user.id) {
+        if (user && user.id && isMounted) {
           const userData = await userService.getUserById(user.id);
-          setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          if (isMounted) {
+            setUserDateFormat(userData.preferredDateFormat || 'DD/MM/YYYY');
+          }
         }
       } catch (error) {
-        console.error('Error loading user date format:', error);
+        if (isMounted) {
+          console.error('Error loading user date format:', error);
+        }
       }
     };
     loadUserDateFormat();
-  }, [id, currentUser]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [id]); // Remove currentUser from dependencies as it's not needed
 
   useEffect(() => {
     if (post && post.is_commentable) {
@@ -191,19 +202,17 @@ const PostDetailPage = () => {
       const idsToFetch = userIds.filter(id => !newUserMap[id]);
       
       if (idsToFetch.length > 0) {
-        // Fetch user details and badges in parallel
+        // Fetch user details in parallel
         const userPromises = idsToFetch.map(async (userId) => {
           try {
             const userData = await userService.getUserById(userId);
-            const badgeData = await userService.getUserRecipeCount(userId);
             return {
               id: userId,
-              user: userData,
-              badge: badgeData.badge
+              user: userData
             };
           } catch (error) {
             console.error(`Error fetching user ${userId}:`, error);
-            return { id: userId, user: null, badge: null };
+            return { id: userId, user: null };
           }
         });
         
@@ -211,7 +220,7 @@ const PostDetailPage = () => {
         
         // Process users and fetch missing usernames
         const processedUsers = await Promise.all(
-          userResults.map(async ({ id, user, badge }) => {
+          userResults.map(async ({ id, user }) => {
             if (user) {
               // If user exists but username is missing, try to fetch it separately
               if (!user.username || !user.username.trim()) {
@@ -229,7 +238,7 @@ const PostDetailPage = () => {
                 id,
                 userData: {
                   ...user,
-                  badge: badge,
+                  typeOfCook: user.typeOfCook || null,
                   usertype: user.usertype || null
                 }
               };
@@ -242,14 +251,14 @@ const PostDetailPage = () => {
                   userData: { 
                     id: id, 
                     username: username && username !== 'Unknown' ? username : `User ${id}`, 
-                    badge: null, 
+                    typeOfCook: null, 
                     usertype: null 
                   }
                 };
               } catch (error) {
                 return {
                   id,
-                  userData: { id: id, username: `User ${id}`, badge: null, usertype: null }
+                  userData: { id: id, username: `User ${id}`, typeOfCook: null, usertype: null }
                 };
               }
             }
@@ -784,7 +793,7 @@ const PostDetailPage = () => {
                     className="author-link"
                   >
                     {getUserName(post.author)}
-                    <Badge badge={userMap[post.author]?.badge} size="small" usertype={userMap[post.author]?.usertype} />
+                    <Badge badge={userMap[post.author]?.typeOfCook} size="small" usertype={userMap[post.author]?.usertype} />
                   </span>
                 </div>
               </div>
@@ -952,7 +961,7 @@ const PostDetailPage = () => {
                                 className="author-link"
                               >
                                 {getUserName(comment.author)}
-                                <Badge badge={userMap[comment.author]?.badge} size="small" usertype={userMap[comment.author]?.usertype} />
+                                <Badge badge={userMap[comment.author]?.typeOfCook} size="small" usertype={userMap[comment.author]?.usertype} />
                               </span>
                             </div>
                           </div>
