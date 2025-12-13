@@ -821,6 +821,17 @@
   "failedToUpdateBookmark": "Failed to update bookmark: {error}",
   "@failedToUpdateBookmark": { "description": "Snackbar text when bookmark update fails", "placeholders": { "error": {} } },
 
+  "shareRecipe": "Share Recipe",
+  "@shareRecipe": { "description": "Tooltip and action for sharing a recipe" },
+  "recipeShared": "Recipe shared successfully!",
+  "@recipeShared": { "description": "Snackbar text when recipe is shared" },
+  "failedToShareRecipe": "Failed to share recipe",
+  "@failedToShareRecipe": { "description": "Snackbar text when recipe sharing fails" },
+  "instructionsLabel": "Instructions",
+  "@instructionsLabel": { "description": "Label for recipe instructions section" },
+  "viewRecipeAt": "View recipe at",
+  "@viewRecipeAt": { "description": "Text before recipe URL in shared content" },
+
   "noBookmarkedRecipesYet": "No bookmarked recipes yet",
   "@noBookmarkedRecipesYet": { "description": "Message when user has no bookmarked recipes" },
   "failedToLoadBookmarkedRecipes": "Failed to load bookmarked recipes: {error}",

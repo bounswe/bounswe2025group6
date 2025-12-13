@@ -894,6 +894,17 @@
     "failedToUpdateBookmark": "Yer işareti güncellenemedi: {error}",
     "@failedToUpdateBookmark": { "description": "Snackbar text when bookmark update fails", "placeholders": { "error": {} } },
 
+    "shareRecipe": "Tarifi Paylaş",
+    "@shareRecipe": { "description": "Tooltip and action for sharing a recipe" },
+    "recipeShared": "Tarif başarıyla paylaşıldı!",
+    "@recipeShared": { "description": "Snackbar text when recipe is shared" },
+    "failedToShareRecipe": "Tarif paylaşılamadı",
+    "@failedToShareRecipe": { "description": "Snackbar text when recipe sharing fails" },
+    "instructionsLabel": "Talimatlar",
+    "@instructionsLabel": { "description": "Label for recipe instructions section" },
+    "viewRecipeAt": "Tarifi görüntüle",
+    "@viewRecipeAt": { "description": "Text before recipe URL in shared content" },
+
     "noBookmarkedRecipesYet": "Henüz yer işaretli tarif yok",
     "@noBookmarkedRecipesYet": { "description": "Message when user has no bookmarked recipes" },
     "failedToLoadBookmarkedRecipes": "Yer işaretli tarifler yüklenemedi: {error}",
