@@ -198,6 +198,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                     },
                   ),
+                  _buildDashboardCard(
+                    icon: Icons.question_answer,
+                    title: 'Q&A',
+                    color: Colors.teal,
+                    onTap: () async {
+                      await Navigator.pushNamed(context, '/qa');
+                      _bumpRefresh();
+                    },
+                  ),
                 ],
               ),
             ],
@@ -208,6 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentIndex: 0,
         selectedItemColor: AppTheme.primaryGreen,
         unselectedItemColor: AppTheme.textSecondary,
+        type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -216,6 +226,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.group),
             label: AppLocalizations.of(context)!.community,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.question_answer),
+            label: 'Q&A',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -229,6 +243,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _bumpRefresh();
               break;
             case 2:
+              await Navigator.pushNamed(context, '/qa');
+              _bumpRefresh();
+              break;
+            case 3:
               await Navigator.pushNamed(context, ProfileScreen.routeName);
               _bumpRefresh();
               break;
