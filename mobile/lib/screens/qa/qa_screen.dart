@@ -83,14 +83,13 @@ class _QAScreenState extends State<QAScreen> {
                         question: question,
                         onVoteChanged: _loadQuestions,
                         onTap: () async {
-                          final result = await Navigator.pushNamed(
+                          await Navigator.pushNamed(
                             context,
                             '/qa/detail',
                             arguments: question['id'],
                           );
-                          if (result == true) {
-                            _loadQuestions();
-                          }
+                          // Always reload to update view count and any other changes
+                          _loadQuestions();
                         },
                       );
                     },
