@@ -4,14 +4,17 @@ Tests models, serializers, and views with edge cases
 """
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from django.urls import reverse
 from api.models import RegisteredUser
 from reports.models import Report
 from reports.serializers import ReportCreateSerializer, ReportSerializer
 from recipes.models import Recipe
 from forum.models import ForumPost, ForumPostComment
+from qa.models import Question, Answer
 from unittest.mock import Mock
 
 
@@ -178,6 +181,45 @@ class ReportCreateSerializerTests(TestCase):
         serializer = ReportCreateSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
     
+    def test_serializer_validates_question_content_type(self):
+        """Test serializer validates question content type"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test question content',
+            author=self.user
+        )
+        data = {
+            'content_type': 'question',
+            'object_id': question.id,
+            'report_type': 'inappropriate'
+        }
+        serializer = ReportCreateSerializer(data=data, context={'request': self.request})
+        self.assertTrue(serializer.is_valid())
+        report = serializer.save()
+        self.assertEqual(report.content_object, question)
+    
+    def test_serializer_validates_answer_content_type(self):
+        """Test serializer validates answer content type"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test question content',
+            author=self.user
+        )
+        answer = Answer.objects.create(
+            post=question,
+            content='Test answer content',
+            author=self.user
+        )
+        data = {
+            'content_type': 'answer',
+            'object_id': answer.id,
+            'report_type': 'harassment'
+        }
+        serializer = ReportCreateSerializer(data=data, context={'request': self.request})
+        self.assertTrue(serializer.is_valid())
+        report = serializer.save()
+        self.assertEqual(report.content_object, answer)
+    
     def test_serializer_rejects_nonexistent_object(self):
         """Test serializer rejects nonexistent object"""
         data = {
@@ -215,6 +257,53 @@ class ReportCreateSerializerTests(TestCase):
         }
         serializer = ReportCreateSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
+    
+    def test_serializer_rejects_soft_deleted_question(self):
+        """Test serializer rejects soft-deleted questions"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test content',
+            author=self.user
+        )
+        # Soft delete the question
+        question.deleted_on = timezone.now()
+        question.save()
+        
+        data = {
+            'content_type': 'question',
+            'object_id': question.id,
+            'report_type': 'spam'
+        }
+        serializer = ReportCreateSerializer(data=data, context={'request': self.request})
+        self.assertTrue(serializer.is_valid())  # Validation happens in create()
+        with self.assertRaises(ValidationError):
+            serializer.save()
+    
+    def test_serializer_rejects_soft_deleted_answer(self):
+        """Test serializer rejects soft-deleted answers"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test content',
+            author=self.user
+        )
+        answer = Answer.objects.create(
+            post=question,
+            content='Test answer',
+            author=self.user
+        )
+        # Soft delete the answer
+        answer.deleted_on = timezone.now()
+        answer.save()
+        
+        data = {
+            'content_type': 'answer',
+            'object_id': answer.id,
+            'report_type': 'spam'
+        }
+        serializer = ReportCreateSerializer(data=data, context={'request': self.request})
+        self.assertTrue(serializer.is_valid())  # Validation happens in create()
+        with self.assertRaises(ValidationError):
+            serializer.save()
 
 
 class ReportSerializerTests(TestCase):

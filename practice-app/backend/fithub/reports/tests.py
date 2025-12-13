@@ -6,6 +6,7 @@ from django.urls import reverse
 from api.models import RegisteredUser
 from reports.models import Report
 from recipes.models import Recipe
+from qa.models import Question, Answer
 
 
 class ReportTests(APITestCase):
@@ -137,3 +138,111 @@ class ReportTests(APITestCase):
         self.assertEqual(report.status, 'resolved')
         # Verify content still exists
         self.assertTrue(Recipe.objects.filter(id=self.recipe.id).exists())
+    
+    def test_user_can_report_question(self):
+        """Test that authenticated user can create a report for a question"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test question content',
+            author=self.user1
+        )
+        self.client.force_authenticate(user=self.user1)
+        url = reverse('reports-list')
+        data = {
+            'content_type': 'question',
+            'object_id': question.id,
+            'report_type': 'inappropriate',
+            'description': 'This question is inappropriate'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Report.objects.count(), 1)
+        report = Report.objects.first()
+        self.assertEqual(report.reporter, self.user1)
+        self.assertEqual(report.report_type, 'inappropriate')
+        self.assertEqual(report.content_object, question)
+    
+    def test_user_can_report_answer(self):
+        """Test that authenticated user can create a report for an answer"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test question content',
+            author=self.user1
+        )
+        answer = Answer.objects.create(
+            post=question,
+            content='Test answer content',
+            author=self.user2
+        )
+        self.client.force_authenticate(user=self.user1)
+        url = reverse('reports-list')
+        data = {
+            'content_type': 'answer',
+            'object_id': answer.id,
+            'report_type': 'harassment',
+            'description': 'This answer contains harassment'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Report.objects.count(), 1)
+        report = Report.objects.first()
+        self.assertEqual(report.reporter, self.user1)
+        self.assertEqual(report.report_type, 'harassment')
+        self.assertEqual(report.content_object, answer)
+    
+    def test_admin_can_delete_reported_question(self):
+        """Test that admin can resolve a report by deleting a question"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test question content',
+            author=self.user1
+        )
+        question_content_type = ContentType.objects.get_for_model(Question)
+        report = Report.objects.create(
+            content_type=question_content_type,
+            object_id=question.id,
+            reporter=self.user1,
+            report_type='spam',
+            description='Test report'
+        )
+        
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('admin-reports-resolve-delete', kwargs={'pk': report.id})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        report.refresh_from_db()
+        self.assertEqual(report.status, 'resolved')
+        # Verify question is soft-deleted
+        question.refresh_from_db()
+        self.assertIsNotNone(question.deleted_on)
+    
+    def test_admin_can_delete_reported_answer(self):
+        """Test that admin can resolve a report by deleting an answer"""
+        question = Question.objects.create(
+            title='Test Question',
+            content='Test question content',
+            author=self.user1
+        )
+        answer = Answer.objects.create(
+            post=question,
+            content='Test answer content',
+            author=self.user2
+        )
+        answer_content_type = ContentType.objects.get_for_model(Answer)
+        report = Report.objects.create(
+            content_type=answer_content_type,
+            object_id=answer.id,
+            reporter=self.user1,
+            report_type='spam',
+            description='Test report'
+        )
+        
+        self.client.force_authenticate(user=self.admin)
+        url = reverse('admin-reports-resolve-delete', kwargs={'pk': report.id})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        report.refresh_from_db()
+        self.assertEqual(report.status, 'resolved')
+        # Verify answer is soft-deleted
+        answer.refresh_from_db()
+        self.assertIsNotNone(answer.deleted_on)
