@@ -342,6 +342,21 @@
     "postFallback": "Gönderi",
     "@postFallback": { "description": "Fallback label for unnamed post" },
 
+    "commentFallback": "Yorum",
+    "@commentFallback": { "description": "Fallback label for comment" },
+
+    "questionFallback": "Soru",
+    "@questionFallback": { "description": "Fallback label for Q&A question" },
+
+    "answerFallback": "Cevap",
+    "@answerFallback": { "description": "Fallback label for Q&A answer" },
+
+    "reportQuestion": "Soruyu Şikayet Et",
+    "@reportQuestion": { "description": "Label for reporting a question in popup menu" },
+
+    "reportAnswer": "Cevabı Şikayet Et",
+    "@reportAnswer": { "description": "Label for reporting an answer in popup menu" },
+
 
     "unknown": "Bilinmiyor",
     "@unknown": { "description": "Fallback author name when unknown" },

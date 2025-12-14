@@ -555,6 +555,21 @@
   "postFallback": "Post",
   "@postFallback": { "description": "Fallback label for unnamed post" },
 
+  "commentFallback": "Comment",
+  "@commentFallback": { "description": "Fallback label for comment" },
+
+  "questionFallback": "Question",
+  "@questionFallback": { "description": "Fallback label for Q&A question" },
+
+  "answerFallback": "Answer",
+  "@answerFallback": { "description": "Fallback label for Q&A answer" },
+
+  "reportQuestion": "Report Question",
+  "@reportQuestion": { "description": "Label for reporting a question in popup menu" },
+
+  "reportAnswer": "Report Answer",
+  "@reportAnswer": { "description": "Label for reporting an answer in popup menu" },
+
 
   "unknown": "Unknown",
   "@unknown": { "description": "Fallback author name when unknown" },

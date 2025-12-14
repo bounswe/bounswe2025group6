@@ -5,9 +5,10 @@ import '../../services/profile_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_formatter.dart';
 import '../../models/user_profile.dart';
+import '../../models/report.dart';
 import '../../widgets/badge_widget.dart';
+import '../../widgets/report_dialog.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/tag_localization.dart';
 import '../other_user_profile_screen.dart';
 
 class QADetailScreen extends StatefulWidget {
@@ -251,9 +252,11 @@ class _QADetailScreenState extends State<QADetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(voteType == 'up' 
-                  ? AppLocalizations.of(context)!.votedUp 
-                  : AppLocalizations.of(context)!.votedDown),
+              content: Text(
+                voteType == 'up'
+                    ? AppLocalizations.of(context)!.votedUp
+                    : AppLocalizations.of(context)!.votedDown,
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -282,7 +285,9 @@ class _QADetailScreenState extends State<QADetailScreen> {
     if (_answerController.text.trim().isEmpty) return;
     if (!_isDietitian) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.onlyDietitiansCanAnswer)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.onlyDietitiansCanAnswer),
+        ),
       );
       return;
     }
@@ -300,15 +305,19 @@ class _QADetailScreenState extends State<QADetailScreen> {
       if (mounted) {
         _answerController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.answerSubmittedSuccess)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.answerSubmittedSuccess),
+          ),
         );
         _loadAnswers();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.error(e.toString()))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.error(e.toString())),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -374,7 +383,40 @@ class _QADetailScreenState extends State<QADetailScreen> {
                         children: [
                           const Icon(Icons.delete, color: Colors.red),
                           const SizedBox(width: 8),
-                          Text(localizations.delete, style: const TextStyle(color: Colors.red)),
+                          Text(
+                            localizations.delete,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+            )
+          else if (_currentUserId != null)
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value == 'report') {
+                  await ReportDialog.show(
+                    context: context,
+                    contentType: ReportContentType.question,
+                    objectId: question!['id'],
+                    contentPreview:
+                        question!['title'] ?? localizations.questionFallback,
+                  );
+                }
+              },
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(
+                      value: 'report',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.flag_outlined, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text(
+                            localizations.reportQuestion,
+                            style: const TextStyle(color: Colors.red),
+                          ),
                         ],
                       ),
                     ),
@@ -701,9 +743,11 @@ class _AnswerCardState extends State<AnswerCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(voteType == 'up' 
-                  ? AppLocalizations.of(context)!.votedUp 
-                  : AppLocalizations.of(context)!.votedDown),
+              content: Text(
+                voteType == 'up'
+                    ? AppLocalizations.of(context)!.votedUp
+                    : AppLocalizations.of(context)!.votedDown,
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -742,6 +786,12 @@ class _AnswerCardState extends State<AnswerCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
+
+    // Check if this is the current user's answer
+    final isOwnAnswer =
+        widget.currentUserId != null &&
+        widget.answer['author_id'] == widget.currentUserId;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -750,24 +800,74 @@ class _AnswerCardState extends State<AnswerCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Author
-            GestureDetector(
-              onTap: () => widget.navigateToProfile(widget.answer['author_id']),
-              child: Row(
-                children: [
-                  Text(
-                    widget.answer['author'] ?? 'Unknown',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.primaryColor,
+            // Author and Report Menu
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap:
+                        () => widget.navigateToProfile(
+                          widget.answer['author_id'],
+                        ),
+                    child: Row(
+                      children: [
+                        Text(
+                          widget.answer['author'] ?? 'Unknown',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                        if (_authorBadge != null) ...[
+                          const SizedBox(width: 8),
+                          BadgeWidget(badge: _authorBadge!),
+                        ],
+                      ],
                     ),
                   ),
-                  if (_authorBadge != null) ...[
-                    const SizedBox(width: 8),
-                    BadgeWidget(badge: _authorBadge!),
-                  ],
-                ],
-              ),
+                ),
+                // Show report menu for other users' answers
+                if (!isOwnAnswer && widget.currentUserId != null)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, size: 20),
+                    itemBuilder:
+                        (context) => [
+                          PopupMenuItem<String>(
+                            value: 'report',
+                            child: Row(
+                              children: [
+                                Icon(Icons.flag_outlined, color: Colors.red),
+                                const SizedBox(width: 8),
+                                Text(localizations.reportAnswer),
+                              ],
+                            ),
+                            onTap: () async {
+                              // Wait for menu to close
+                              await Future.delayed(
+                                const Duration(milliseconds: 100),
+                              );
+                              if (!context.mounted) return;
+
+                              final content =
+                                  widget.answer['content'] as String? ?? '';
+                              final preview =
+                                  content.length > 50
+                                      ? '${content.substring(0, 50)}...'
+                                      : content.isNotEmpty
+                                      ? content
+                                      : localizations.answerFallback;
+
+                              await ReportDialog.show(
+                                context: context,
+                                contentType: ReportContentType.answer,
+                                objectId: widget.answer['id'],
+                                contentPreview: preview,
+                              );
+                            },
+                          ),
+                        ],
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
