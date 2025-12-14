@@ -136,6 +136,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen>
         hasImage: _filters['hasImage'],
         isApproved: _filters['approvedOnly'],
         isFeatured: _filters['featuredOnly'],
+        excludeAllergens: _filters['excludeAllergens'],
+        dietInfo: _filters['dietInfo'],
         pageSize: 50,
       );
 
