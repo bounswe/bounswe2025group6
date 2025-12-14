@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import RecipeCreateSerializer, RecipeUpdateSerializer
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from .models import Recipe
 from drf_yasg import openapi
@@ -43,11 +43,19 @@ class RecipePagination(PageNumberPagination):
             'results': data
         })
 
-@permission_classes([IsAuthenticated])
 class RecipeViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     queryset = Recipe.objects.filter(deleted_on=None)  # Filter out soft-deleted recipes
     http_method_names = ['get', 'post', 'put', 'delete'] # We don't need PATCH method (PUT can also be used for partial updates)
+
+    def get_permissions(self):
+        """
+        Allow public access to list and retrieve (viewing recipes).
+        Require authentication for create, update, delete (modifying recipes).
+        """
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     # Use the correct serializer class based on the action type
     def get_serializer_class(self):

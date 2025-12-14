@@ -19,7 +19,7 @@ class HealthRating {
     return HealthRating(
       id: json['id'] as int?,
       dietitianId: json['dietitian'] as int,
-      recipeId: json['recipe_id'] as int,
+      recipeId: json['recipe'] as int,
       healthScore: (json['health_score'] as num).toDouble(),
       comment: json['comment'] as String?,
       timestamp:
@@ -31,7 +31,7 @@ class HealthRating {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {
-      'recipe_id': recipeId,
+      'recipe': recipeId,
       'health_score': healthScore,
     };
 

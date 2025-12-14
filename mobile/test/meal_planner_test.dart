@@ -181,8 +181,9 @@ void main() {
 
       expect(text, contains('🛒 Shopping List'));
       expect(text, contains('Test Recipe'));
-      expect(text, contains('2.0 cup Flour'));
+      expect(text, contains('2.00 cup Flour')); // Updated to match toStringAsFixed(2) format
       expect(text, contains('₺10.00'));
+      expect(text, contains('Portions: 1')); // Should include portion count
     });
 
     test('Should sort ingredients alphabetically', () {
@@ -202,6 +203,187 @@ void main() {
       expect(shoppingList.items[0].ingredientName, 'Apple');
       expect(shoppingList.items[1].ingredientName, 'Milk');
       expect(shoppingList.items[2].ingredientName, 'Zucchini');
+    });
+
+    test('Should default to 1 portion when not specified', () {
+      final recipe = _createTestRecipe('Test Recipe', 10.0);
+      final shoppingList = ShoppingList.fromRecipes([recipe]);
+      
+      expect(shoppingList.portionCount, 1);
+    });
+
+    test('Should multiply ingredient quantities by portion count', () {
+      final recipe = _createTestRecipeWithIngredients(
+        'Pancakes',
+        5.0,
+        [
+          _createIngredientQuantity('Flour', 2.0, 'cup'),
+          _createIngredientQuantity('Eggs', 3.0, 'pcs'),
+          _createIngredientQuantity('Milk', 1.5, 'cup'),
+        ],
+      );
+
+      final shoppingList = ShoppingList.fromRecipes([recipe], portionCount: 3);
+
+      expect(shoppingList.portionCount, 3);
+      
+      // Find ingredients and verify quantities are multiplied by 3
+      final flour = shoppingList.items.firstWhere((item) => item.ingredientName == 'Flour');
+      expect(flour.quantity, 6.0); // 2.0 * 3
+      
+      final eggs = shoppingList.items.firstWhere((item) => item.ingredientName == 'Eggs');
+      expect(eggs.quantity, 9.0); // 3.0 * 3
+      
+      final milk = shoppingList.items.firstWhere((item) => item.ingredientName == 'Milk');
+      expect(milk.quantity, 4.5); // 1.5 * 3
+    });
+
+    test('Should multiply total cost by portion count', () {
+      final recipe1 = _createTestRecipe('Recipe1', 10.0);
+      final recipe2 = _createTestRecipe('Recipe2', 15.0);
+
+      final shoppingList = ShoppingList.fromRecipes(
+        [recipe1, recipe2],
+        portionCount: 4,
+      );
+
+      // Total cost should be (10 + 15) * 4 = 100
+      expect(shoppingList.totalCost, 100.0);
+      expect(shoppingList.portionCount, 4);
+    });
+
+    test('Should multiply aggregated ingredients by portion count', () {
+      final recipe1 = _createTestRecipeWithIngredients(
+        'Pancakes',
+        5.0,
+        [
+          _createIngredientQuantity('Flour', 2.0, 'cup'),
+          _createIngredientQuantity('Eggs', 2.0, 'pcs'),
+        ],
+      );
+
+      final recipe2 = _createTestRecipeWithIngredients(
+        'Omelette',
+        6.0,
+        [
+          _createIngredientQuantity('Eggs', 3.0, 'pcs'),
+          _createIngredientQuantity('Cheese', 50.0, 'g'),
+        ],
+      );
+
+      final shoppingList = ShoppingList.fromRecipes(
+        [recipe1, recipe2],
+        portionCount: 2,
+      );
+
+      // Eggs: (2 + 3) * 2 = 10
+      final eggs = shoppingList.items.firstWhere((item) => item.ingredientName == 'Eggs');
+      expect(eggs.quantity, 10.0);
+      
+      // Flour: 2 * 2 = 4
+      final flour = shoppingList.items.firstWhere((item) => item.ingredientName == 'Flour');
+      expect(flour.quantity, 4.0);
+      
+      // Cheese: 50 * 2 = 100
+      final cheese = shoppingList.items.firstWhere((item) => item.ingredientName == 'Cheese');
+      expect(cheese.quantity, 100.0);
+    });
+
+    test('Should include portion count in plain text export', () {
+      final recipe = _createTestRecipeWithIngredients(
+        'Test Recipe',
+        10.0,
+        [_createIngredientQuantity('Flour', 2.0, 'cup')],
+      );
+
+      final shoppingList = ShoppingList.fromRecipes([recipe], portionCount: 5);
+      final text = shoppingList.toPlainText(
+        currencySymbol: '\$',
+        portionsLabel: 'Portions',
+      );
+
+      expect(text, contains('Portions: 5'));
+      expect(text, contains('10.00 cup Flour')); // 2.0 * 5
+      expect(text, contains('\$50.00')); // 10.0 * 5
+    });
+
+    test('Should serialize portion count to JSON', () {
+      final recipe = _createTestRecipe('Test', 10.0);
+      final shoppingList = ShoppingList.fromRecipes([recipe], portionCount: 3);
+      
+      final json = shoppingList.toJson();
+      
+      expect(json['portionCount'], 3);
+      expect(json['totalCost'], 30.0);
+    });
+
+    test('Should deserialize portion count from JSON', () {
+      final json = {
+        'items': [],
+        'totalCost': 30.0,
+        'createdAt': DateTime.now().toIso8601String(),
+        'recipeNames': ['Test'],
+        'portionCount': 3,
+      };
+
+      final shoppingList = ShoppingList.fromJson(json);
+      
+      expect(shoppingList.portionCount, 3);
+      expect(shoppingList.totalCost, 30.0);
+    });
+
+    test('Should default to 1 portion when missing from JSON', () {
+      final json = {
+        'items': [],
+        'totalCost': 15.0,
+        'createdAt': DateTime.now().toIso8601String(),
+        'recipeNames': ['Test'],
+        // No portionCount field
+      };
+
+      final shoppingList = ShoppingList.fromJson(json);
+      
+      expect(shoppingList.portionCount, 1); // Should default to 1
+    });
+
+    test('Should create copy with updated portion count', () {
+      final recipe = _createTestRecipe('Test', 10.0);
+      final original = ShoppingList.fromRecipes([recipe], portionCount: 2);
+      
+      final copy = original.copyWith(portionCount: 5);
+      
+      expect(copy.portionCount, 5);
+      expect(original.portionCount, 2); // Original unchanged
+    });
+
+    test('Should handle large portion counts correctly', () {
+      final recipe = _createTestRecipeWithIngredients(
+        'Test',
+        5.0,
+        [_createIngredientQuantity('Sugar', 0.5, 'cup')],
+      );
+
+      final shoppingList = ShoppingList.fromRecipes([recipe], portionCount: 10);
+
+      expect(shoppingList.portionCount, 10);
+      expect(shoppingList.totalCost, 50.0); // 5.0 * 10
+      
+      final sugar = shoppingList.items.firstWhere((item) => item.ingredientName == 'Sugar');
+      expect(sugar.quantity, 5.0); // 0.5 * 10
+    });
+
+    test('Should format ingredient quantities correctly in plain text with decimals', () {
+      final recipe = _createTestRecipeWithIngredients(
+        'Test Recipe',
+        10.0,
+        [_createIngredientQuantity('Flour', 1.5, 'cup')],
+      );
+
+      final shoppingList = ShoppingList.fromRecipes([recipe], portionCount: 3);
+      final text = shoppingList.toPlainText(currencySymbol: '\$');
+
+      // 1.5 * 3 = 4.5, formatted to 2 decimal places
+      expect(text, contains('4.50 cup Flour'));
     });
   });
 

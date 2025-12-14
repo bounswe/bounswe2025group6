@@ -9,6 +9,9 @@ import 'screens/community/community_screen.dart';
 import 'screens/community/create_post_screen.dart';
 import 'screens/community/post_detail_screen.dart';
 import 'screens/community/edit_post_screen.dart';
+import 'screens/qa/qa_screen.dart';
+import 'screens/qa/qa_detail_screen.dart';
+import 'screens/qa/ask_question_screen.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
@@ -70,6 +73,9 @@ class MyApp extends StatelessWidget {
               '/community/edit': (context) => EditPostScreen(
                 post: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>,
               ),
+              '/qa': (context) => const QAScreen(),
+              '/qa/create': (context) => const AskQuestionScreen(),
+              '/qa/detail': (context) => const QADetailScreen(),
             },
             // Localization setup
             localizationsDelegates: AppLocalizations.localizationsDelegates,

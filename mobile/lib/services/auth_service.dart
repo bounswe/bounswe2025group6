@@ -98,7 +98,16 @@ class AuthService {
             // Example: concatenate error messages from fields
             List<String> errors = [];
             responseBody.forEach((key, value) {
-              if (value is List && value.isNotEmpty) {
+              if (value is Map) {
+                // Handle nested errors like dietitian
+                value.forEach((nestedKey, nestedValue) {
+                  if (nestedValue is List && nestedValue.isNotEmpty) {
+                    errors.add('$key.$nestedKey: ${nestedValue.join(', ')}');
+                  } else if (nestedValue is String) {
+                    errors.add('$key.$nestedKey: $nestedValue');
+                  }
+                });
+              } else if (value is List && value.isNotEmpty) {
                 errors.add('$key: ${value.join(', ')}');
               } else if (value is String) {
                 errors.add('$key: $value');

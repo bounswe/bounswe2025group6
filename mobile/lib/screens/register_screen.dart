@@ -68,18 +68,20 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       String apiUserType = _userType.toLowerCase();
 
-      String? certificationUrl = null;
-      // if (_pdfFile != null) {
-      //   // This is a placeholder.
-      //   // certificationUrl = "url_to_uploaded_pdf/${_pdfFile!.name}";
-      // }
+      // Backend requires a valid URL format for certification_url
+      // Send a placeholder URL when PDF is uploaded
+      String? certificationUrl;
+      if (apiUserType == 'dietitian' && _pdfFile != null) {
+        // Create a valid placeholder URL - backend requires URLField format
+        certificationUrl = 'https://fithub.app/certifications/${Uri.encodeComponent(_pdfFile!.name)}';
+      }
 
       await _authService.register(
         username: _username,
         email: _email,
         password: _password,
         usertype: apiUserType,
-        certificationUrl: certificationUrl, // Pass null for now
+        certificationUrl: certificationUrl,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,12 +117,38 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _pickPdfFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result != null && result.files.isNotEmpty) {
-      setState(() => _pdfFile = result.files.first);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        allowMultiple: false,
+        withData: false,
+        withReadStream: false,
+        dialogTitle: AppLocalizations.of(context)!.uploadPdfButton,
+      );
+      
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        if (file.extension?.toLowerCase() == 'pdf') {
+          setState(() => _pdfFile = file);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.dietitianMustUploadPdf),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking file: ${e.toString()}'),
+          ),
+        );
+      }
     }
   }
 

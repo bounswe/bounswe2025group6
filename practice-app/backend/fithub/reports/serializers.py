@@ -6,6 +6,7 @@ from .models import Report
 from forum.models import ForumPost as Post
 from forum.models import ForumPostComment as PostComment
 from recipes.models import Recipe
+from qa.models import Question, Answer
 
 
 class ReportCreateSerializer(serializers.ModelSerializer):
@@ -24,6 +25,8 @@ class ReportCreateSerializer(serializers.ModelSerializer):
             'post': ContentType.objects.get_for_model(Post),
             'recipe': ContentType.objects.get_for_model(Recipe),
             'postcomment': ContentType.objects.get_for_model(PostComment),
+            'question': ContentType.objects.get_for_model(Question),
+            'answer': ContentType.objects.get_for_model(Answer),
         }
         
         content_type = content_type_map.get(content_type_name.lower())
@@ -33,10 +36,16 @@ class ReportCreateSerializer(serializers.ModelSerializer):
                 f"Invalid content type '{content_type_name}'. Available types: {available_types}"
             )
         
-        # Verify the object exists
+        # Verify the object exists and is not soft-deleted
         model_class = content_type.model_class()
         try:
-            content_object = model_class.objects.get(id=object_id)
+            # Check if model has deleted_on field (soft delete support)
+            if hasattr(model_class, 'deleted_on'):
+                content_object = model_class.objects.filter(id=object_id, deleted_on__isnull=True).first()
+                if not content_object:
+                    raise serializers.ValidationError("The reported content does not exist or has been deleted")
+            else:
+                content_object = model_class.objects.get(id=object_id)
         except model_class.DoesNotExist:
             raise serializers.ValidationError("The reported content does not exist")
         

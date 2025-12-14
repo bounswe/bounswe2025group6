@@ -24,6 +24,7 @@ const ShoppingListPage = () => {
   const [marketCosts, setMarketCosts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [portion, setPortion] = useState(1);
   const hasSavedToHistory = useRef(false); // Flag to prevent duplicate saves
 
   useEffect(() => {
@@ -36,10 +37,13 @@ const ShoppingListPage = () => {
     const savedState = localStorage.getItem('shoppingListState');
     if (savedState) {
       try {
-        const { recipes: savedRecipes, consolidatedIngredients: savedIngredients, marketCosts: savedMarketCosts } = JSON.parse(savedState);
+        const { recipes: savedRecipes, consolidatedIngredients: savedIngredients, marketCosts: savedMarketCosts, portion: savedPortion } = JSON.parse(savedState);
         setRecipes(savedRecipes);
         setConsolidatedIngredients(savedIngredients);
         setMarketCosts(savedMarketCosts);
+        if (savedPortion) {
+          setPortion(Number(savedPortion));
+        }
         setIsLoading(false);
         
         // Clear the saved state
@@ -63,7 +67,10 @@ const ShoppingListPage = () => {
         return;
       }
 
-      const { activePlan } = JSON.parse(storedPlan);
+      const parsedPlan = JSON.parse(storedPlan);
+      const { activePlan, portion: savedPortion } = parsedPlan;
+      const portionMultiplier = savedPortion ? Number(savedPortion) : 1;
+      setPortion(portionMultiplier);
       const recipeIds = [];
       
       if (activePlan.breakfast) recipeIds.push(activePlan.breakfast.id);
@@ -85,7 +92,8 @@ const ShoppingListPage = () => {
           recipe.ingredients.forEach(recipeIngredient => {
             const ingredientId = recipeIngredient.ingredient.id;
             const ingredientName = recipeIngredient.ingredient_name || recipeIngredient.ingredient.name;
-            const quantity = parseFloat(recipeIngredient.quantity) || 0;
+            const baseQuantity = parseFloat(recipeIngredient.quantity) || 0;
+            const quantity = baseQuantity * portionMultiplier;
             const unit = recipeIngredient.unit;
 
             // Create unique key for same ingredient and unit
@@ -95,24 +103,34 @@ const ShoppingListPage = () => {
               const existing = ingredientsMap.get(key);
               existing.quantity += quantity;
               
-              // Add costs for each market
+              // Add costs for each market (multiplied by portion)
               if (recipeIngredient.costs_for_recipe) {
                 Object.keys(recipeIngredient.costs_for_recipe).forEach(market => {
-                  if (existing.costs_for_recipe[market] !== undefined && recipeIngredient.costs_for_recipe[market] !== undefined) {
-                    existing.costs_for_recipe[market] += parseFloat(recipeIngredient.costs_for_recipe[market] || 0);
+                  const baseCost = parseFloat(recipeIngredient.costs_for_recipe[market] || 0);
+                  const multipliedCost = baseCost * portionMultiplier;
+                  if (existing.costs_for_recipe[market] !== undefined) {
+                    existing.costs_for_recipe[market] += multipliedCost;
+                  } else {
+                    existing.costs_for_recipe[market] = multipliedCost;
                   }
                 });
               }
             } else {
+              const costs = recipeIngredient.costs_for_recipe ? 
+                Object.fromEntries(
+                  Object.entries(recipeIngredient.costs_for_recipe).map(([k, v]) => {
+                    const baseCost = parseFloat(v || 0);
+                    const multipliedCost = baseCost * portionMultiplier;
+                    return [k, multipliedCost];
+                  })
+                ) : {};
+              
               ingredientsMap.set(key, {
                 ingredientId,
                 name: ingredientName,
                 quantity,
                 unit,
-                costs_for_recipe: recipeIngredient.costs_for_recipe ? 
-                  Object.fromEntries(
-                    Object.entries(recipeIngredient.costs_for_recipe).map(([k, v]) => [k, parseFloat(v || 0)])
-                  ) : {},
+                costs_for_recipe: costs,
               });
             }
           });
@@ -202,7 +220,8 @@ const ShoppingListPage = () => {
     localStorage.setItem('shoppingListState', JSON.stringify({
       recipes,
       consolidatedIngredients,
-      marketCosts
+      marketCosts,
+      portion
     }));
     navigate(`/ingredients/${ingredientId}`);
   };
@@ -239,7 +258,7 @@ const ShoppingListPage = () => {
     await shareContent({
       title: t('shoppingListPageTitle'),
       text: text,
-      url: window.location.href
+      url: null
     }, t);
   };
 
@@ -270,7 +289,14 @@ const ShoppingListPage = () => {
     <div className="shopping-list-container">
       {/* Header */}
       <div className="shopping-list-header">
-        <h1 className="shopping-list-title">{t('shoppingListPageTitle')}</h1>
+        <div className="shopping-list-title-section">
+          <h1 className="shopping-list-title">{t('shoppingListPageTitle')}</h1>
+          {portion > 1 && (
+            <span className="portion-badge">
+              {t('shoppingListPortionLabel')}: {portion} {t('mealPlanSummary.portionUnit')}
+            </span>
+          )}
+        </div>
         <button 
           onClick={handleShare}
           className="copy-button share-button"
