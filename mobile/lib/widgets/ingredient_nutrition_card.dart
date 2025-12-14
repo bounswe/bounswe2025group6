@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/nutrition_icon_helper.dart';
 
 /// Widget to display nutritional information for an ingredient
 /// Shows calories, protein, fat, and carbs in a compact card format
+/// Icons dynamically adapt based on nutrition values
 class IngredientNutritionCard extends StatelessWidget {
   final Map<String, dynamic>? nutritionInfo;
   final bool isCompact;
@@ -25,11 +27,41 @@ class IngredientNutritionCard extends StatelessWidget {
     final fat = _parseValue(nutritionInfo!['fat']);
     final carbs = _parseValue(nutritionInfo!['carbs']);
 
+    // Parse numeric values for dynamic icons
+    final caloriesNum = NutritionIconHelper.parseValue(
+      nutritionInfo!['calories'],
+    );
+    final proteinNum = NutritionIconHelper.parseValue(
+      nutritionInfo!['protein'],
+    );
+    final fatNum = NutritionIconHelper.parseValue(nutritionInfo!['fat']);
+    final carbsNum = NutritionIconHelper.parseValue(nutritionInfo!['carbs']);
+
     if (isCompact) {
-      return _buildCompactView(context, calories, protein, fat, carbs);
+      return _buildCompactView(
+        context,
+        calories,
+        protein,
+        fat,
+        carbs,
+        caloriesNum,
+        proteinNum,
+        fatNum,
+        carbsNum,
+      );
     }
 
-    return _buildDetailedView(context, calories, protein, fat, carbs);
+    return _buildDetailedView(
+      context,
+      calories,
+      protein,
+      fat,
+      carbs,
+      caloriesNum,
+      proteinNum,
+      fatNum,
+      carbsNum,
+    );
   }
 
   Widget _buildCompactView(
@@ -38,6 +70,10 @@ class IngredientNutritionCard extends StatelessWidget {
     String protein,
     String fat,
     String carbs,
+    double caloriesNum,
+    double proteinNum,
+    double fatNum,
+    double carbsNum,
   ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -48,13 +84,13 @@ class IngredientNutritionCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildNutrientChip(Icons.local_fire_department, calories, 'kcal'),
+          _buildDynamicNutrientChip('calories', calories, 'kcal', caloriesNum),
           const SizedBox(width: 8),
-          _buildNutrientChip(Icons.fitness_center, protein, 'P'),
+          _buildDynamicNutrientChip('protein', protein, 'P', proteinNum),
           const SizedBox(width: 8),
-          _buildNutrientChip(Icons.opacity, fat, 'F'),
+          _buildDynamicNutrientChip('fat', fat, 'F', fatNum),
           const SizedBox(width: 8),
-          _buildNutrientChip(Icons.grass, carbs, 'C'),
+          _buildDynamicNutrientChip('carbs', carbs, 'C', carbsNum),
         ],
       ),
     );
@@ -66,6 +102,10 @@ class IngredientNutritionCard extends StatelessWidget {
     String protein,
     String fat,
     String carbs,
+    double caloriesNum,
+    double proteinNum,
+    double fatNum,
+    double carbsNum,
   ) {
     return Container(
       margin: const EdgeInsets.only(top: 8),
@@ -102,33 +142,37 @@ class IngredientNutritionCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildNutrientDetail(
+              _buildDynamicNutrientDetail(
                 context,
-                Icons.local_fire_department,
+                'calories',
                 AppLocalizations.of(context)!.calories,
                 calories,
                 AppLocalizations.of(context)!.kcal,
+                caloriesNum,
               ),
-              _buildNutrientDetail(
+              _buildDynamicNutrientDetail(
                 context,
-                Icons.fitness_center,
+                'protein',
                 AppLocalizations.of(context)!.protein,
                 protein,
                 AppLocalizations.of(context)!.grams,
+                proteinNum,
               ),
-              _buildNutrientDetail(
-                context, 
-                Icons.opacity, 
-                AppLocalizations.of(context)!.fat, 
-                fat, 
+              _buildDynamicNutrientDetail(
+                context,
+                'fat',
+                AppLocalizations.of(context)!.fat,
+                fat,
                 AppLocalizations.of(context)!.grams,
+                fatNum,
               ),
-              _buildNutrientDetail(
-                context, 
-                Icons.grass, 
-                AppLocalizations.of(context)!.carbs, 
-                carbs, 
+              _buildDynamicNutrientDetail(
+                context,
+                'carbs',
+                AppLocalizations.of(context)!.carbs,
+                carbs,
                 AppLocalizations.of(context)!.grams,
+                carbsNum,
               ),
             ],
           ),
@@ -137,41 +181,55 @@ class IngredientNutritionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildNutrientChip(IconData icon, String value, String label) {
+  /// Dynamic nutrient chip with emoji based on intensity
+  Widget _buildDynamicNutrientChip(
+    String type,
+    String value,
+    String label,
+    double numericValue,
+  ) {
+    final color = NutritionIconHelper.getColor(type, numericValue);
+    final emoji = NutritionIconHelper.getCompactEmoji(type, numericValue);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: AppTheme.primaryGreen),
-        const SizedBox(width: 2),
+        Text(emoji, style: const TextStyle(fontSize: 11)),
+        const SizedBox(width: 1),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: color,
           ),
         ),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.black54)),
+        Text(label, style: TextStyle(fontSize: 9, color: Colors.black54)),
       ],
     );
   }
 
-  Widget _buildNutrientDetail(
+  /// Dynamic nutrient detail with emoji based on intensity
+  Widget _buildDynamicNutrientDetail(
     BuildContext context,
-    IconData icon,
+    String type,
     String label,
     String value,
     String unit,
+    double numericValue,
   ) {
+    final color = NutritionIconHelper.getColor(type, numericValue);
+    final emoji = NutritionIconHelper.getCompactEmoji(type, numericValue);
+
     return Column(
       children: [
-        Icon(icon, size: 20, color: AppTheme.primaryGreen),
+        Text(emoji, style: const TextStyle(fontSize: 16)),
         const SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: color,
           ),
         ),
         Text(
@@ -182,9 +240,10 @@ class IngredientNutritionCard extends StatelessWidget {
         ),
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.black54, fontSize: 9),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: color.withOpacity(0.8),
+            fontSize: 9,
+          ),
         ),
       ],
     );

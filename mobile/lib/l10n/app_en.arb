@@ -1229,7 +1229,7 @@
   "dietaryWholeGrain": "Whole Grain",
   "dietarySoyBased": "Soy-Based",
   "dietaryLeanProtein": "Lean Protein",
-  "dietaryHighFiber": "High Fiber"
+  "dietaryHighFiber": "High Fiber",
   "qaTitle": "Q&A",
   "@qaTitle": { "description": "Title for Q&A screen" },
   "qaFeatureNotAvailable": "The Q&A feature is not available. Please ensure the backend has been set up correctly.",
