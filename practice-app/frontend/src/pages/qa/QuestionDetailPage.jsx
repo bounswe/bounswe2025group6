@@ -1,6 +1,6 @@
 // src/pages/qa/QuestionDetailPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
@@ -14,14 +14,22 @@ import '../../styles/QuestionDetailPage.css';
 import ReportButton from '../../components/report/ReportButton';
 import { useTranslation } from "react-i18next";
 import { shareContent } from '../../utils/shareUtils';
+import reportService from '../../services/reportService';
 
 const QuestionDetailPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { currentUser } = useAuth();
   const toast = useToast();
+
+  // Admin report handling
+  const fromAdmin = searchParams.get('fromAdmin') === 'true';
+  const reportId = searchParams.get('reportId');
+  const highlightAnswerId = searchParams.get('answerId');
+  const [isProcessingReport, setIsProcessingReport] = useState(false);
 
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -46,6 +54,26 @@ const QuestionDetailPage = () => {
   // Add state for storing user details
   const [userMap, setUserMap] = useState({});
   const [userDateFormat, setUserDateFormat] = useState('DD/MM/YYYY');
+
+  // Admin report actions
+  const handleReportResolve = async (action) => {
+    if (!reportId) return;
+    setIsProcessingReport(true);
+    try {
+      if (action === 'keep') {
+        await reportService.resolveReportKeep(reportId);
+        toast.success(t('reportResolvedKeep', 'Report resolved - content kept'));
+      } else if (action === 'delete') {
+        await reportService.resolveReportDelete(reportId);
+        toast.success(t('reportResolvedDelete', 'Report resolved - content deleted'));
+      }
+      navigate('/admin-reports');
+    } catch (error) {
+      toast.error(t('reportResolveFailed', 'Failed to resolve report'));
+    } finally {
+      setIsProcessingReport(false);
+    }
+  };
 
   useEffect(() => {
     // Scroll to top instantly when component mounts or id changes to prevent flickering
@@ -528,6 +556,55 @@ const QuestionDetailPage = () => {
 
   return (
     <div className="question-detail-container">
+      {/* Admin Report Bar */}
+      {fromAdmin && reportId && (
+        <div className="admin-report-bar" style={{
+          background: 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)',
+          padding: '1rem 1.5rem',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={() => navigate('/admin-reports')}
+              style={{ background: '#4a5568', border: 'none' }}
+            >
+              ← {t('backToAdminPanel', 'Back to Admin Panel')}
+            </Button>
+            <span style={{ color: '#fff', fontWeight: '500' }}>
+              {t('reviewingReport', 'Reviewing Report')} #{reportId}
+              {highlightAnswerId && ` - ${t('answer', 'Answer')} #${highlightAnswerId}`}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button 
+              onClick={() => handleReportResolve('keep')}
+              disabled={isProcessingReport}
+              style={{ background: '#38a169', border: 'none', color: '#fff' }}
+              size="sm"
+            >
+              {isProcessingReport ? '...' : t('resolveKeep', 'Resolve - Keep')}
+            </Button>
+            <Button 
+              onClick={() => handleReportResolve('delete')}
+              disabled={isProcessingReport}
+              style={{ background: '#e53e3e', border: 'none', color: '#fff' }}
+              size="sm"
+            >
+              {isProcessingReport ? '...' : t('resolveDelete', 'Resolve - Delete')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Back to Q&A Button */}
       <div className="back-to-qa">
         <Button

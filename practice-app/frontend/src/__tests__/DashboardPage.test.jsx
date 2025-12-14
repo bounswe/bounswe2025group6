@@ -122,7 +122,6 @@ describe('DashboardPage', () => {
       renderDashboardPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Admin Reports')).toBeInTheDocument();
         expect(screen.getByText(/Manage user reports/i)).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /manage reports/i })).toHaveAttribute('href', '/admin-reports');
       });

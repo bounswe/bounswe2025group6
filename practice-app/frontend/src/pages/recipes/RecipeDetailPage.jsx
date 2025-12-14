@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { getRecipeById, getWikidataImage, deleteRecipe } from '../../services/recipeService';
 import userService, { getUsername } from '../../services/userService';
@@ -19,9 +19,19 @@ import InteractiveRatingStars from '../../components/recipe/InteractiveRatingSta
 import InteractiveHealthRating from '../../components/recipe/InteractiveHealthRating';
 import { useTranslation } from "react-i18next";
 import { createLoginUrl } from "../../utils/authUtils";
+import reportService from '../../services/reportService';
+import { useToast } from '../../components/ui/Toast';
 
 const RecipeDetailPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const toast = useToast();
+  
+  // Admin report handling
+  const fromAdmin = searchParams.get('fromAdmin') === 'true';
+  const reportId = searchParams.get('reportId');
+  const [isProcessingReport, setIsProcessingReport] = useState(false);
+
   const [recipe, setRecipe] = useState(null);
   const [creatorName, setCreatorName] = useState('');
   const [creatorId, setCreatorId] = useState(null);
@@ -42,6 +52,26 @@ const RecipeDetailPage = () => {
   
   // Get current language for ingredient translation
   const currentLanguage = i18n.language.startsWith('tr') ? 'tr' : 'en';
+
+  // Admin report actions
+  const handleReportResolve = async (action) => {
+    if (!reportId) return;
+    setIsProcessingReport(true);
+    try {
+      if (action === 'keep') {
+        await reportService.resolveReportKeep(reportId);
+        toast.success(t('reportResolvedKeep', 'Report resolved - content kept'));
+      } else if (action === 'delete') {
+        await reportService.resolveReportDelete(reportId);
+        toast.success(t('reportResolvedDelete', 'Report resolved - content deleted'));
+      }
+      navigate('/admin-reports');
+    } catch (error) {
+      toast.error(t('reportResolveFailed', 'Failed to resolve report'));
+    } finally {
+      setIsProcessingReport(false);
+    }
+  };
 
   // Calculate total nutrition for the recipe
   const calculateTotalNutrition = (recipeData) => {
@@ -300,6 +330,13 @@ const RecipeDetailPage = () => {
       try {
         const recipeData = await getRecipeById(Number(id));
         if (recipeData) {
+          // Check if recipe has been deleted (soft delete)
+          if (recipeData.deleted_on) {
+            setError('This recipe has been deleted.');
+            setIsPageReady(true);
+            return;
+          }
+          
           setRecipe(recipeData);
           
           // Calculate total nutrition
@@ -393,31 +430,100 @@ const RecipeDetailPage = () => {
 
   return (
     <div id="recipe-detail-page" className="container">
-      {/* Back Button */}
-      <div className="recipe-back-button-container">
-        <button 
-          className="recipe-back-button" 
-          onClick={() => {
-            // Check if we came from meal planner first
-            const returnToMealPlanner = localStorage.getItem('returnToMealPlanner');
-            if (returnToMealPlanner) {
-              localStorage.removeItem('returnToMealPlanner');
-              navigate(returnToMealPlanner);
-              return;
-            }
-            
-            // Otherwise check recipe search filters
-            const searchFilters = localStorage.getItem('recipeSearchFilters') || sessionStorage.getItem('recipeSearchFilters');
-            if (searchFilters) {
-              navigate(`/recipes?${searchFilters}`);
-            } else {
-              navigate('/recipes');
-            }
-          }}
-        >
-          ← {t("Back")}
-        </button>
-      </div>
+      {/* Admin Report Bar */}
+      {fromAdmin && reportId && (
+        <div className="admin-report-bar" style={{
+          background: 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)',
+          padding: '1rem 1.5rem',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          position: 'relative',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              onClick={() => navigate('/admin-reports')}
+              style={{ 
+                background: '#4a5568', 
+                border: 'none', 
+                color: '#fff',
+                padding: '0.5rem 1rem',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              ← {t('backToAdminPanel', 'Back to Admin Panel')}
+            </button>
+            <span style={{ color: '#fff', fontWeight: '500' }}>
+              {t('reviewingReport', 'Reviewing Report')} #{reportId}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button 
+              onClick={() => handleReportResolve('keep')}
+              disabled={isProcessingReport}
+              style={{ 
+                background: '#38a169', 
+                border: 'none', 
+                color: '#fff',
+                padding: '0.5rem 1rem',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              {isProcessingReport ? '...' : t('resolveKeep', 'Resolve - Keep')}
+            </button>
+            <button 
+              onClick={() => handleReportResolve('delete')}
+              disabled={isProcessingReport}
+              style={{ 
+                background: '#e53e3e', 
+                border: 'none', 
+                color: '#fff',
+                padding: '0.5rem 1rem',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              {isProcessingReport ? '...' : t('resolveDelete', 'Resolve - Delete')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Back Button - Hide when in admin mode */}
+      {!fromAdmin && (
+        <div className="recipe-back-button-container">
+          <button 
+            className="recipe-back-button" 
+            onClick={() => {
+              // Check if we came from meal planner first
+              const returnToMealPlanner = localStorage.getItem('returnToMealPlanner');
+              if (returnToMealPlanner) {
+                localStorage.removeItem('returnToMealPlanner');
+                navigate(returnToMealPlanner);
+                return;
+              }
+              
+              // Otherwise check recipe search filters
+              const searchFilters = localStorage.getItem('recipeSearchFilters') || sessionStorage.getItem('recipeSearchFilters');
+              if (searchFilters) {
+                navigate(`/recipes?${searchFilters}`);
+              } else {
+                navigate('/recipes');
+              }
+            }}
+          >
+            ← {t("Back")}
+          </button>
+        </div>
+      )}
       
       <div className="recipe-detail-page-header" style={{
 				backgroundImage: recipeImage
