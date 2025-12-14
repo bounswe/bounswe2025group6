@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/qa_service.dart';
 import '../../services/storage_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 
 class AskQuestionScreen extends StatefulWidget {
   const AskQuestionScreen({Key? key}) : super(key: key);
@@ -32,7 +33,9 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
     if (_selectedTags.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.selectAtLeastOneTag)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.selectAtLeastOneTag),
+        ),
       );
       return;
     }
@@ -54,14 +57,18 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.questionPostedSuccess)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.questionPostedSuccess),
+          ),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.error(e.toString()))),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.error(e.toString())),
+          ),
         );
       }
     } finally {
@@ -89,9 +96,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(localizations.askQuestion),
-      ),
+      appBar: AppBar(title: Text(localizations.askQuestion)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -150,9 +155,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             const SizedBox(height: 8),
             Text(
               localizations.selectTagsDescription,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 12),
 
@@ -160,27 +163,29 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: QAService.availableTags.map((tag) {
-                final isSelected = _selectedTags.contains(tag);
-                return FilterChip(
-                  label: Text(
-                    tag,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : theme.primaryColor,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  selected: isSelected,
-                  onSelected: (_) => _toggleTag(tag),
-                  selectedColor: theme.primaryColor,
-                  checkmarkColor: Colors.white,
-                  backgroundColor: Colors.transparent,
-                  side: BorderSide(
-                    color: theme.primaryColor,
-                    width: isSelected ? 2 : 1,
-                  ),
-                );
-              }).toList(),
+              children:
+                  QAService.availableTags.map((tag) {
+                    final isSelected = _selectedTags.contains(tag);
+                    return FilterChip(
+                      label: Text(
+                        localizedTagLabel(context, tag),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : theme.primaryColor,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isSelected,
+                      onSelected: (_) => _toggleTag(tag),
+                      selectedColor: theme.primaryColor,
+                      checkmarkColor: Colors.white,
+                      backgroundColor: Colors.transparent,
+                      side: BorderSide(
+                        color: theme.primaryColor,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    );
+                  }).toList(),
             ),
             const SizedBox(height: 24),
 
@@ -189,17 +194,19 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
               height: 48,
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitQuestion,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : Text(localizations.postQuestion),
+                child:
+                    _isSubmitting
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : Text(localizations.postQuestion),
               ),
             ),
             const SizedBox(height: 16),
@@ -209,10 +216,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
               color: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: theme.primaryColor,
-                  width: 1,
-                ),
+                side: BorderSide(color: theme.primaryColor, width: 1),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -221,10 +225,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: theme.primaryColor,
-                        ),
+                        Icon(Icons.info_outline, color: theme.primaryColor),
                         const SizedBox(width: 8),
                         Text(
                           localizations.questionGuidelines,
@@ -236,11 +237,17 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildGuideline('• ${localizations.guidelineSpecificTitle}'),
-                    _buildGuideline('• ${localizations.guidelineProvideContext}'),
+                    _buildGuideline(
+                      '• ${localizations.guidelineSpecificTitle}',
+                    ),
+                    _buildGuideline(
+                      '• ${localizations.guidelineProvideContext}',
+                    ),
                     _buildGuideline('• ${localizations.guidelineSelectTags}'),
                     _buildGuideline('• ${localizations.guidelineBeRespectful}'),
-                    _buildGuideline('• ${localizations.guidelineOnlyDietitians}'),
+                    _buildGuideline(
+                      '• ${localizations.guidelineOnlyDietitians}',
+                    ),
                   ],
                 ),
               ),
