@@ -6,6 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import reportService from '../../services/reportService';
+import { getRecipeById } from '../../services/recipeService';
+import forumService from '../../services/forumService';
+import qaService from '../../services/qaService';
+import { getUsername } from '../../services/userService';
 import '../../styles/AdminReportsPage.css';
 
 const REPORT_TYPES = {
@@ -40,6 +44,8 @@ const AdminReportsPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [contentDetails, setContentDetails] = useState(null);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
   
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -175,11 +181,146 @@ const AdminReportsPage = () => {
     }
   };
 
+  // Fetch content details based on content type
+  const fetchContentDetails = async (report) => {
+    const { content_type_name, object_id, content_object_preview } = report;
+    
+    try {
+      setIsLoadingContent(true);
+      let details = null;
+
+      if (content_type_name === 'recipe') {
+        const recipe = await getRecipeById(object_id);
+        let authorName = 'Unknown';
+        const creatorId = recipe.creator_id || recipe.creator;
+        if (creatorId) {
+          try {
+            authorName = await getUsername(creatorId);
+          } catch (e) {
+            authorName = `User #${creatorId}`;
+          }
+        }
+        details = {
+          type: 'recipe',
+          title: recipe.name,
+          content: recipe.steps?.join('\n') || '',
+          author: authorName,
+          createdAt: recipe.created_at
+        };
+      } else if (content_type_name === 'forumpost') {
+        const post = await forumService.getPostById(object_id);
+        let authorName = post.author_username;
+        if (!authorName && post.author) {
+          try {
+            authorName = await getUsername(post.author);
+          } catch (e) {
+            authorName = `User #${post.author}`;
+          }
+        }
+        details = {
+          type: 'forumpost',
+          title: post.title,
+          content: post.content,
+          author: authorName || 'Unknown',
+          createdAt: post.created_at
+        };
+      } else if (content_type_name === 'question') {
+        const question = await qaService.getQuestionById(object_id);
+        let authorName = question.author_username;
+        if (!authorName && question.author) {
+          try {
+            authorName = await getUsername(question.author);
+          } catch (e) {
+            authorName = `User #${question.author}`;
+          }
+        }
+        details = {
+          type: 'question',
+          title: question.title,
+          content: question.content,
+          author: authorName || 'Unknown',
+          createdAt: question.created_at
+        };
+      } else if (content_type_name === 'forumpostcomment') {
+        // Parse post ID from preview: "Comment by X on Post Y"
+        const postId = extractParentId(content_object_preview, 'forumpostcomment');
+        if (postId) {
+          try {
+            const commentsData = await forumService.getCommentsByPostId(postId, 1, 100);
+            const comments = commentsData.results || commentsData;
+            const comment = comments.find(c => c.id === object_id);
+            if (comment) {
+              let authorName = comment.author_username;
+              if (!authorName && comment.author) {
+                try {
+                  authorName = await getUsername(comment.author);
+                } catch (e) {
+                  authorName = `User #${comment.author}`;
+                }
+              }
+              details = {
+                type: 'comment',
+                title: `Comment on Post #${postId}`,
+                content: comment.content,
+                author: authorName || 'Unknown',
+                createdAt: comment.created_at,
+                parentId: postId
+              };
+            }
+          } catch (e) {
+            console.error('Error fetching comment:', e);
+          }
+        }
+      } else if (content_type_name === 'answer') {
+        // Parse question ID from preview: "Answer by X on Question Y"
+        const questionId = extractParentId(content_object_preview, 'answer');
+        if (questionId) {
+          try {
+            const answersData = await qaService.getAnswersByQuestionId(questionId, 1, 100);
+            const answers = answersData.results || answersData;
+            const answer = answers.find(a => a.id === object_id);
+            if (answer) {
+              let authorName = answer.author_username;
+              if (!authorName && answer.author) {
+                try {
+                  authorName = await getUsername(answer.author);
+                } catch (e) {
+                  authorName = `User #${answer.author}`;
+                }
+              }
+              details = {
+                type: 'answer',
+                title: `Answer on Question #${questionId}`,
+                content: answer.content,
+                author: authorName || 'Unknown',
+                createdAt: answer.created_at,
+                parentId: questionId
+              };
+            }
+          } catch (e) {
+            console.error('Error fetching answer:', e);
+          }
+        }
+      }
+
+      setContentDetails(details);
+    } catch (error) {
+      console.error('Error fetching content details:', error);
+      setContentDetails(null);
+    } finally {
+      setIsLoadingContent(false);
+    }
+  };
+
   const handleViewDetails = async (reportId) => {
     try {
       const reportDetail = await reportService.getReportByIdAdmin(reportId);
       setSelectedReport(reportDetail);
+      setContentDetails(null);
       setShowDetailModal(true);
+      
+      // Fetch content details in background
+      fetchContentDetails(reportDetail);
     } catch (error) {
       toast.error('Failed to load report details');
     }
@@ -200,6 +341,60 @@ const AdminReportsPage = () => {
       case 'pending': return 'status-pending';
       case 'resolved': return 'status-resolved';
       default: return 'status-pending';
+    }
+  };
+
+  // Extract parent ID from content_object_preview
+  // Comment format: "Comment by X on Post Y"
+  // Answer format: "Answer by X on Question Y"
+  const extractParentId = (preview, type) => {
+    if (!preview) return null;
+    
+    if (type === 'forumpostcomment') {
+      const match = preview.match(/on Post (\d+)/i);
+      return match ? match[1] : null;
+    } else if (type === 'answer') {
+      const match = preview.match(/on Question (\d+)/i);
+      return match ? match[1] : null;
+    }
+    return null;
+  };
+
+  // Get link to reported content
+  const getContentLink = (report) => {
+    const { content_type_name, object_id, id: reportId, content_object_preview } = report;
+    
+    if (content_type_name === 'forumpostcomment') {
+      // Parse parent post ID from preview: "Comment by X on Post Y"
+      const postId = extractParentId(content_object_preview, 'forumpostcomment');
+      if (postId) {
+        return `/community/post/${postId}?fromAdmin=true&reportId=${reportId}&commentId=${object_id}`;
+      }
+      return null;
+    } else if (content_type_name === 'answer') {
+      // Parse parent question ID from preview: "Answer by X on Question Y"
+      const questionId = extractParentId(content_object_preview, 'answer');
+      if (questionId) {
+        return `/qa/question/${questionId}?fromAdmin=true&reportId=${reportId}&answerId=${object_id}`;
+      }
+      return null;
+    } else if (content_type_name === 'recipe') {
+      return `/recipes/${object_id}?fromAdmin=true&reportId=${reportId}`;
+    } else if (content_type_name === 'forumpost') {
+      return `/community/post/${object_id}?fromAdmin=true&reportId=${reportId}`;
+    } else if (content_type_name === 'question') {
+      return `/qa/question/${object_id}?fromAdmin=true&reportId=${reportId}`;
+    }
+    return null;
+  };
+
+  const handleViewContent = (report) => {
+    const link = getContentLink(report);
+    if (link) {
+      navigate(link);
+      setShowDetailModal(false);
+    } else {
+      toast.error('Unable to generate link for this content');
     }
   };
 
@@ -368,8 +563,12 @@ const AdminReportsPage = () => {
                         </span>
                       </td>
                       <td className="reporter-cell">{report.reporter_username}</td>
-                      <td className="content-preview">
-                        {report.content_object_preview || 'No preview available'}
+                      <td className="content-preview" title={report.content_object_preview}>
+                        {report.content_object_preview 
+                          ? report.content_object_preview.length > 50 
+                            ? report.content_object_preview.substring(0, 50) + '...' 
+                            : report.content_object_preview
+                          : 'No preview available'}
                       </td>
                       <td>
                         <span className={`status-badge ${getStatusBadgeClass(report.status)}`}>
@@ -452,9 +651,60 @@ const AdminReportsPage = () => {
                 </div>
                 
                 <div className="detail-item full-width">
-                  <label>Content Preview:</label>
-                  <div className="content-preview-box">
-                    {selectedReport.content_object_preview || 'No preview available'}
+                  <label>Reported Content:</label>
+                  <div className="content-preview-box" style={{ 
+                    background: '#f8fafc', 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: '8px', 
+                    padding: '1rem',
+                    maxHeight: '300px',
+                    overflowY: 'auto'
+                  }}>
+                    {isLoadingContent ? (
+                      <div style={{ color: '#718096', fontStyle: 'italic' }}>Loading content details...</div>
+                    ) : contentDetails ? (
+                      <div>
+                        {contentDetails.title && (
+                          <div style={{ marginBottom: '0.75rem' }}>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>{contentDetails.title}</strong>
+                          </div>
+                        )}
+                        {contentDetails.author && (
+                          <div style={{ marginBottom: '0.5rem', color: '#718096', fontSize: '0.85rem' }}>
+                            By: <span style={{ color: '#4a5568' }}>{contentDetails.author}</span>
+                            {contentDetails.createdAt && (
+                              <span> • {formatDate(contentDetails.createdAt)}</span>
+                            )}
+                          </div>
+                        )}
+                        {contentDetails.content && (
+                          <div style={{ 
+                            marginTop: '0.75rem', 
+                            padding: '0.75rem', 
+                            background: '#fff', 
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            color: '#1a202c',
+                            lineHeight: '1.6'
+                          }}>
+                            {contentDetails.content.length > 1000 
+                              ? contentDetails.content.substring(0, 1000) + '...' 
+                              : contentDetails.content}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ color: '#718096' }}>
+                        <div style={{ marginBottom: '0.5rem', fontStyle: 'italic' }}>
+                          {selectedReport.content_object_preview || 'No preview available'}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#a0aec0' }}>
+                          (Click "View Reported Content" to see full details on the original page)
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -466,6 +716,17 @@ const AdminReportsPage = () => {
                     </div>
                   </div>
                 )}
+                
+                <div className="detail-item full-width">
+                  <label>Link:</label>
+                  <Button 
+                    onClick={() => handleViewContent(selectedReport)}
+                    variant="secondary"
+                    style={{ marginTop: '0.5rem' }}
+                  >
+                    View Reported Content
+                  </Button>
+                </div>
               </div>
             </div>
             
