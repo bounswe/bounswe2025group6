@@ -28,7 +28,9 @@ class Report {
       reportType: json['report_type']?.toString() ?? '',
       description: json['description']?.toString(),
       status: json['status']?.toString() ?? 'pending',
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 
@@ -56,7 +58,9 @@ class Report {
 enum ReportContentType {
   post,
   recipe,
-  postcomment;
+  postcomment,
+  question,
+  answer;
 
   String get value => name;
 }
@@ -70,7 +74,7 @@ enum ReportType {
 
   String get value => name;
 
-/*
+  /*
 Since this is now localized in the UI, we don't need hardcoded display names here.
 
   String get displayName {
@@ -88,7 +92,7 @@ Since this is now localized in the UI, we don't need hardcoded display names her
         return name;
     }
 */
-  }
+}
 
 /* Since descriptions are now localized in the UI, we don't need hardcoded descriptions here.
 
@@ -139,4 +143,3 @@ class CreateReportRequest {
     };
   }
 }
-

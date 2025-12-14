@@ -39,3 +39,42 @@ class FakeReport extends Fake implements Report {
   }) : createdAt = createdAt ?? DateTime.now();
 }
 
+/// Helper function to create a question report for testing
+FakeReport getMockQuestionReport({
+  int id = 1,
+  String reporterUsername = 'testuser',
+  String contentObjectPreview = 'Question: How to meal prep?',
+  String reportType = 'spam',
+  String? description,
+  String status = 'pending',
+}) {
+  return FakeReport(
+    id: id,
+    contentTypeName: 'question',
+    reporterUsername: reporterUsername,
+    contentObjectPreview: contentObjectPreview,
+    reportType: reportType,
+    description: description,
+    status: status,
+  );
+}
+
+/// Helper function to create an answer report for testing
+FakeReport getMockAnswerReport({
+  int id = 1,
+  String reporterUsername = 'testuser',
+  String contentObjectPreview = 'Answer: Here is my advice...',
+  String reportType = 'spam',
+  String? description,
+  String status = 'pending',
+}) {
+  return FakeReport(
+    id: id,
+    contentTypeName: 'answer',
+    reporterUsername: reporterUsername,
+    contentObjectPreview: contentObjectPreview,
+    reportType: reportType,
+    description: description,
+    status: status,
+  );
+}

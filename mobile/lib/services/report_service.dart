@@ -181,4 +181,34 @@ class ReportService {
     );
     return createReport(request);
   }
+
+  /// Helper method to report a Q&A question
+  Future<Report> reportQuestion({
+    required int questionId,
+    required ReportType reportType,
+    String? description,
+  }) async {
+    final request = CreateReportRequest(
+      contentType: ReportContentType.question,
+      objectId: questionId,
+      reportType: reportType,
+      description: description,
+    );
+    return createReport(request);
+  }
+
+  /// Helper method to report a Q&A answer
+  Future<Report> reportAnswer({
+    required int answerId,
+    required ReportType reportType,
+    String? description,
+  }) async {
+    final request = CreateReportRequest(
+      contentType: ReportContentType.answer,
+      objectId: answerId,
+      reportType: reportType,
+      description: description,
+    );
+    return createReport(request);
+  }
 }

@@ -4,6 +4,8 @@ import '../../services/qa_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/profile_service.dart';
 import '../../widgets/badge_widget.dart';
+import '../../widgets/report_dialog.dart';
+import '../../models/report.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
 import '../other_user_profile_screen.dart';
@@ -38,7 +40,7 @@ class _QAScreenState extends State<QAScreen> {
     try {
       final token = await StorageService.getJwtAccessToken();
       _qaService.token = token;
-      
+
       final response = await _qaService.getQuestions();
       setState(() {
         _questions = List<Map<String, dynamic>>.from(response['results']);
@@ -46,9 +48,10 @@ class _QAScreenState extends State<QAScreen> {
       });
     } catch (e) {
       setState(() {
-        _error = e.toString().contains('Invalid response from server')
-            ? AppLocalizations.of(context)!.qaFeatureNotAvailable
-            : e.toString();
+        _error =
+            e.toString().contains('Invalid response from server')
+                ? AppLocalizations.of(context)!.qaFeatureNotAvailable
+                : e.toString();
         _isLoading = false;
       });
     }
@@ -57,45 +60,47 @@ class _QAScreenState extends State<QAScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.qaTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => Navigator.pushNamed(
-              context,
-              '/qa/create',
-            ).then((_) => _loadQuestions()),
+            onPressed:
+                () => Navigator.pushNamed(
+                  context,
+                  '/qa/create',
+                ).then((_) => _loadQuestions()),
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadQuestions,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
                 ? Center(child: Text(_error!))
                 : ListView.builder(
-                    itemCount: _questions.length,
-                    itemBuilder: (context, index) {
-                      final question = _questions[index];
-                      return QuestionCard(
-                        question: question,
-                        onVoteChanged: _loadQuestions,
-                        onTap: () async {
-                          await Navigator.pushNamed(
-                            context,
-                            '/qa/detail',
-                            arguments: question['id'],
-                          );
-                          // Always reload to update view count and any other changes
-                          _loadQuestions();
-                        },
-                      );
-                    },
-                  ),
+                  itemCount: _questions.length,
+                  itemBuilder: (context, index) {
+                    final question = _questions[index];
+                    return QuestionCard(
+                      question: question,
+                      onVoteChanged: _loadQuestions,
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          '/qa/detail',
+                          arguments: question['id'],
+                        );
+                        // Always reload to update view count and any other changes
+                        _loadQuestions();
+                      },
+                    );
+                  },
+                ),
       ),
     );
   }
@@ -222,9 +227,11 @@ class _QuestionCardState extends State<QuestionCard> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(voteType == 'up' 
-                  ? AppLocalizations.of(context)!.votedUp 
-                  : AppLocalizations.of(context)!.votedDown),
+              content: Text(
+                voteType == 'up'
+                    ? AppLocalizations.of(context)!.votedUp
+                    : AppLocalizations.of(context)!.votedDown,
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -240,9 +247,9 @@ class _QuestionCardState extends State<QuestionCard> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -271,6 +278,12 @@ class _QuestionCardState extends State<QuestionCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
+
+    // Check if this is the current user's question
+    final isOwnQuestion =
+        _currentUserId != null &&
+        widget.question['author_id'] == _currentUserId;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -281,24 +294,64 @@ class _QuestionCardState extends State<QuestionCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Author and Badge
-              GestureDetector(
-                onTap: _navigateToProfile,
-                child: Row(
-                  children: [
-                    Text(
-                      widget.question['author'] ?? 'Unknown',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.primaryColor,
+              // Author, Badge, and Report Menu
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _navigateToProfile,
+                      child: Row(
+                        children: [
+                          Text(
+                            widget.question['author'] ?? 'Unknown',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.primaryColor,
+                            ),
+                          ),
+                          if (_authorBadge != null) ...[
+                            const SizedBox(width: 8),
+                            BadgeWidget(badge: _authorBadge!),
+                          ],
+                        ],
                       ),
                     ),
-                    if (_authorBadge != null) ...[
-                      const SizedBox(width: 8),
-                      BadgeWidget(badge: _authorBadge!),
-                    ],
-                  ],
-                ),
+                  ),
+                  // Show report menu for other users' questions
+                  if (!isOwnQuestion && _currentUserId != null)
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem<String>(
+                              value: 'report',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.flag_outlined, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Text(localizations.reportQuestion),
+                                ],
+                              ),
+                              onTap: () async {
+                                // Wait for menu to close
+                                await Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                );
+                                if (!context.mounted) return;
+
+                                await ReportDialog.show(
+                                  context: context,
+                                  contentType: ReportContentType.question,
+                                  objectId: widget.question['id'],
+                                  contentPreview:
+                                      widget.question['title'] ??
+                                      localizations.questionFallback,
+                                );
+                              },
+                            ),
+                          ],
+                    ),
+                ],
               ),
               const SizedBox(height: 12),
 
@@ -326,22 +379,26 @@ class _QuestionCardState extends State<QuestionCard> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
-                  children: (widget.question['tags'] as List<dynamic>)
-                      .map((tag) => Chip(
-                            label: Text(
-                              tag.toString(),
-                              style: theme.textTheme.bodySmall,
+                  children:
+                      (widget.question['tags'] as List<dynamic>)
+                          .map(
+                            (tag) => Chip(
+                              label: Text(
+                                localizedTagLabel(context, tag.toString()),
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              backgroundColor: theme.primaryColor.withOpacity(
+                                0.1,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 0,
+                              ),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                             ),
-                            backgroundColor:
-                                theme.primaryColor.withOpacity(0.1),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 0,
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ))
-                      .toList(),
+                          )
+                          .toList(),
                 ),
               const SizedBox(height: 12),
 
@@ -352,9 +409,10 @@ class _QuestionCardState extends State<QuestionCard> {
                   IconButton(
                     icon: Icon(
                       Icons.arrow_upward,
-                      color: currentVote == 'up'
-                          ? Colors.green
-                          : theme.iconTheme.color,
+                      color:
+                          currentVote == 'up'
+                              ? Colors.green
+                              : theme.iconTheme.color,
                     ),
                     onPressed: isLoading ? null : () => _handleVote('up'),
                   ),
@@ -365,9 +423,10 @@ class _QuestionCardState extends State<QuestionCard> {
                   IconButton(
                     icon: Icon(
                       Icons.arrow_downward,
-                      color: currentVote == 'down'
-                          ? Colors.red
-                          : theme.iconTheme.color,
+                      color:
+                          currentVote == 'down'
+                              ? Colors.red
+                              : theme.iconTheme.color,
                     ),
                     onPressed: isLoading ? null : () => _handleVote('down'),
                   ),
@@ -375,8 +434,11 @@ class _QuestionCardState extends State<QuestionCard> {
                   const SizedBox(width: 16),
 
                   // Views
-                  Icon(Icons.visibility,
-                      size: 18, color: theme.iconTheme.color),
+                  Icon(
+                    Icons.visibility,
+                    size: 18,
+                    color: theme.iconTheme.color,
+                  ),
                   const SizedBox(width: 4),
                   Text('${widget.question['view_count'] ?? 0}'),
                 ],

@@ -26,11 +26,12 @@ class ReportDialog extends StatefulWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => ReportDialog(
-        contentType: contentType,
-        objectId: objectId,
-        contentPreview: contentPreview,
-      ),
+      builder:
+          (context) => ReportDialog(
+            contentType: contentType,
+            objectId: objectId,
+            contentPreview: contentPreview,
+          ),
     );
   }
 
@@ -63,9 +64,10 @@ class _ReportDialogState extends State<ReportDialog> {
         contentType: widget.contentType,
         objectId: widget.objectId,
         reportType: _selectedReportType,
-        description: _descriptionController.text.trim().isNotEmpty
-            ? _descriptionController.text.trim()
-            : null,
+        description:
+            _descriptionController.text.trim().isNotEmpty
+                ? _descriptionController.text.trim()
+                : null,
       );
 
       await reportService.createReport(request);
@@ -93,22 +95,13 @@ class _ReportDialogState extends State<ReportDialog> {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.reportSubmitFailed(e.toString())),
+          content: Text(
+            AppLocalizations.of(context)!.reportSubmitFailed(e.toString()),
+          ),
           backgroundColor: AppTheme.errorColor,
           duration: const Duration(seconds: 4),
         ),
       );
-    }
-  }
-
-  String _getContentTypeDisplayName() {
-    switch (widget.contentType) {
-      case ReportContentType.post:
-        return 'Post';
-      case ReportContentType.recipe:
-        return 'Recipe';
-      case ReportContentType.postcomment:
-        return 'Comment';
     }
   }
 
@@ -119,10 +112,25 @@ class _ReportDialogState extends State<ReportDialog> {
         // Use localized label for content type (post/recipe) instead of raw enum value
         () {
           final loc = AppLocalizations.of(context)!;
-      final typeLabel = widget.contentType == ReportContentType.post
-        ? loc.postFallback
-        : loc.recipeFallback;
-      return '${loc.reportLabel} $typeLabel';
+          String typeLabel;
+          switch (widget.contentType) {
+            case ReportContentType.post:
+              typeLabel = loc.postFallback;
+              break;
+            case ReportContentType.recipe:
+              typeLabel = loc.recipeFallback;
+              break;
+            case ReportContentType.postcomment:
+              typeLabel = loc.commentFallback;
+              break;
+            case ReportContentType.question:
+              typeLabel = loc.questionFallback;
+              break;
+            case ReportContentType.answer:
+              typeLabel = loc.answerFallback;
+              break;
+          }
+          return '${loc.reportLabel} $typeLabel';
         }(),
         style: const TextStyle(
           color: AppTheme.textOnLight,
@@ -225,8 +233,10 @@ class _ReportDialogState extends State<ReportDialog> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.reportAdditionalDetails,
-                  hintText: AppLocalizations.of(context)!.reportAdditionalDetailsHint,
+                  labelText:
+                      AppLocalizations.of(context)!.reportAdditionalDetails,
+                  hintText:
+                      AppLocalizations.of(context)!.reportAdditionalDetailsHint,
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
@@ -240,22 +250,22 @@ class _ReportDialogState extends State<ReportDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isSubmitting
-              ? null
-              : () => Navigator.of(context).pop(false),
+          onPressed:
+              _isSubmitting ? null : () => Navigator.of(context).pop(false),
           child: Text(
-              AppLocalizations.of(context)!.cancel,
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
+            AppLocalizations.of(context)!.cancel,
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
         ),
-          ElevatedButton(
-            onPressed: _isSubmitting ? null : _submitReport,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-              foregroundColor: AppTheme.textOnDark,
-            ),
-            child: _isSubmitting
-                ? const SizedBox(
+        ElevatedButton(
+          onPressed: _isSubmitting ? null : _submitReport,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.errorColor,
+            foregroundColor: AppTheme.textOnDark,
+          ),
+          child:
+              _isSubmitting
+                  ? const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
@@ -263,10 +273,9 @@ class _ReportDialogState extends State<ReportDialog> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : Text(AppLocalizations.of(context)!.submitReport),
-          ),
+                  : Text(AppLocalizations.of(context)!.submitReport),
+        ),
       ],
     );
   }
 }
-
