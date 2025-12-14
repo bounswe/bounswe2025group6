@@ -1257,7 +1257,7 @@
   "@questionNotFound": { "description": "Message when question is not found" },
   "answersCount": "Answers ({count})",
   "@answersCount": { "description": "Label showing number of answers", "placeholders": { "count": {} } },
-  "noAnswersYet": "No answers yet. Be the first to answer!",
+  "noAnswersYet": "No answers yet.",
   "@noAnswersYet": { "description": "Message when there are no answers" },
   "yourAnswer": "Your Answer",
   "@yourAnswer": { "description": "Title for answer input section" },

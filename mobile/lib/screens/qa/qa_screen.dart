@@ -7,6 +7,7 @@ import '../../widgets/badge_widget.dart';
 import '../../widgets/report_dialog.dart';
 import '../../models/report.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 import '../other_user_profile_screen.dart';
 
 class QAScreen extends StatefulWidget {
@@ -383,7 +384,7 @@ class _QuestionCardState extends State<QuestionCard> {
                           .map(
                             (tag) => Chip(
                               label: Text(
-                                tag.toString(),
+                                localizedTagLabel(context, tag.toString()),
                                 style: theme.textTheme.bodySmall,
                               ),
                               backgroundColor: theme.primaryColor.withOpacity(

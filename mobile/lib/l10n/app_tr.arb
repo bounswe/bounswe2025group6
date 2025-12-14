@@ -1099,7 +1099,7 @@
     "delete": "Sil",
     "questionNotFound": "Soru bulunamadı",
     "answersCount": "Cevaplar ({count})",
-    "noAnswersYet": "Henüz cevap yok. İlk cevaplayan siz olun!",
+    "noAnswersYet": "Henüz cevap yok.",
     "yourAnswer": "Cevabınız",
     "writeAnswerHint": "Cevabınızı buraya yazın...",
     "submitAnswer": "Cevabı Gönder",

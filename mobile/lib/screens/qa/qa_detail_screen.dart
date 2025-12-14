@@ -9,6 +9,7 @@ import '../../models/report.dart';
 import '../../widgets/badge_widget.dart';
 import '../../widgets/report_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/tag_localization.dart';
 import '../other_user_profile_screen.dart';
 
 class QADetailScreen extends StatefulWidget {
@@ -491,7 +492,10 @@ class _QADetailScreenState extends State<QADetailScreen> {
                                 .map(
                                   (tag) => Chip(
                                     label: Text(
-                                      tag.toString(),
+                                      localizedTagLabel(
+                                        context,
+                                        tag.toString(),
+                                      ),
                                       style: theme.textTheme.bodySmall,
                                     ),
                                     backgroundColor: theme.primaryColor
