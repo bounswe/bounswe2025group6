@@ -38,7 +38,7 @@ String translateDietaryInfo(BuildContext context, String backendDietaryInfo) {
     'pescatarian': loc.dietaryPescatarian,
 
     // Additional dietary info tags
-    'ketofriendy': loc.dietaryKetoFriendly,
+    'ketofriendly': loc.dietaryKetoFriendly,
     'omega3': loc.dietaryOmega3,
     'healthyfat': loc.dietaryHealthyFat,
     'soybased': loc.dietarySoyBased,
