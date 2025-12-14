@@ -5,10 +5,14 @@ import './ReportButton.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../ui/Toast';
 
-const ReportButton = ({ targetType, targetId }) => {
+const ReportButton = ({ targetType, targetId, contentType, objectId }) => {
   const { currentUser } = useAuth();
   const toast = useToast();
   const [open, setOpen] = useState(false);
+
+  // Support both targetType/targetId and contentType/objectId props
+  const finalTargetType = targetType || contentType;
+  const finalTargetId = targetId || objectId;
 
   const handleOpen = () => {
     if (!currentUser) {
@@ -36,8 +40,8 @@ const ReportButton = ({ targetType, targetId }) => {
       <ReportModal
         isOpen={open}
         onClose={() => setOpen(false)}
-        targetType={targetType}
-        targetId={targetId}
+        targetType={finalTargetType}
+        targetId={finalTargetId}
         onSubmitted={() => setOpen(false)}
       />
       

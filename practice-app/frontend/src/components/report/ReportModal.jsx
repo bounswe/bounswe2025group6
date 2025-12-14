@@ -44,7 +44,9 @@ const ReportModal = ({ isOpen, onClose, targetType, targetId, onSubmitted }) => 
       const contentTypeMap = {
         'comment': 'postcomment',
         'post': 'post',
-        'recipe': 'recipe'
+        'recipe': 'recipe',
+        'question': 'question',
+        'answer': 'answer'
       };
       
       await reportService.createReport({
