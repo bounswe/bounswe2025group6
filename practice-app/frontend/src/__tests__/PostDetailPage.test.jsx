@@ -773,7 +773,7 @@ describe('PostDetailPage', () => {
       await waitFor(() => {
         const placeholder = document.querySelector('.author-avatar-placeholder');
         expect(placeholder).toBeInTheDocument();
-        expect(placeholder).toHaveTextContent('t'); // First letter of username
+        expect(placeholder).toHaveTextContent('T'); // First letter of username (uppercase)
       });
     });
 

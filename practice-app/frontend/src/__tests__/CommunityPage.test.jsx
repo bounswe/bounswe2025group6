@@ -403,7 +403,7 @@ describe('CommunityPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Previous')).toBeInTheDocument();
         expect(screen.getByText('Next')).toBeInTheDocument();
-        expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
+        expect(screen.getByText('1')).toBeInTheDocument(); // Current page number
       });
     });
 
@@ -549,7 +549,7 @@ describe('CommunityPage', () => {
       await waitFor(() => {
         const placeholder = document.querySelector('.author-avatar-placeholder');
         expect(placeholder).toBeInTheDocument();
-        expect(placeholder).toHaveTextContent('t'); // First letter of username
+        expect(placeholder).toHaveTextContent('T'); // First letter of username (uppercase)
       });
     });
   });

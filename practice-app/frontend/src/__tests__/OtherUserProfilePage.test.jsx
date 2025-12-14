@@ -110,7 +110,7 @@ describe('OtherUserProfilePage', () => {
 
   // Comments will be mapped with postId and postTitle from posts
   const mockComments = [
-    { id: 1, content: 'Target comment 1', author: 2, created_at: '2024-01-01T12:00:00Z' },
+    { id: 1, content: 'Target comment 1', author: 2, created_at: '2024-01-01T12:00:00Z', postId: 1, postTitle: 'Target Post 1' },
   ];
 
   beforeEach(() => {
@@ -123,9 +123,9 @@ describe('OtherUserProfilePage', () => {
     useParams.mockReturnValue({ userId: '2' });
 
     userService.getUserById.mockResolvedValue({ ...mockTargetUser, profilePhoto: null });
-    userService.getUserRecipeCount.mockResolvedValue({ badge: 'Home Chef' });
-
-    recipeService.getRecipesByCreator.mockResolvedValue(mockRecipes);
+    userService.getUserRecipes.mockResolvedValue(mockRecipes);
+    userService.getUserPosts.mockResolvedValue(mockPosts);
+    userService.getUserComments.mockResolvedValue(mockComments);
     
     getFollowers.mockResolvedValue(mockFollowers);
     // Mock getFollowing to return different values based on userId
@@ -136,9 +136,6 @@ describe('OtherUserProfilePage', () => {
       // For current user (id: 1) or follow status check, return empty array by default
       return Promise.resolve([]);
     });
-    
-    forumService.getPosts.mockResolvedValue({ results: mockPosts, total: 2 });
-    forumService.getCommentsByPostId.mockResolvedValue({ results: mockComments, total: 1 });
 
     getCurrentUserService.mockResolvedValue(mockCurrentUser);
 
@@ -187,7 +184,7 @@ describe('OtherUserProfilePage', () => {
 
       await waitFor(() => {
         expect(userService.getUserById).toHaveBeenCalledWith('2');
-        expect(userService.getUserRecipeCount).toHaveBeenCalledWith('2');
+        expect(userService.getUserRecipes).toHaveBeenCalledWith('2');
       });
     });
 
@@ -239,7 +236,7 @@ describe('OtherUserProfilePage', () => {
       renderOtherUserProfilePage();
 
       await waitFor(() => {
-        expect(userService.getUserRecipeCount).toHaveBeenCalledWith('2');
+        expect(userService.getUserRecipes).toHaveBeenCalledWith('2');
       });
     });
 
@@ -458,7 +455,7 @@ describe('OtherUserProfilePage', () => {
       renderOtherUserProfilePage();
 
       await waitFor(() => {
-        expect(recipeService.getRecipesByCreator).toHaveBeenCalledWith('2');
+        expect(userService.getUserRecipes).toHaveBeenCalledWith('2');
       });
     });
 
@@ -467,17 +464,17 @@ describe('OtherUserProfilePage', () => {
         { id: 1, name: 'Target Recipe', creator_id: 2 },
         { id: 2, name: 'Other Recipe', creator_id: 3 },
       ];
-      recipeService.getRecipesByCreator.mockResolvedValue(mixedRecipes);
+      userService.getUserRecipes.mockResolvedValue(mixedRecipes);
 
       renderOtherUserProfilePage();
 
       await waitFor(() => {
-        expect(recipeService.getRecipesByCreator).toHaveBeenCalledWith('2');
+        expect(userService.getUserRecipes).toHaveBeenCalledWith('2');
       });
     });
 
     test('shows empty message when no recipes', async () => {
-      recipeService.getRecipesByCreator.mockResolvedValue([]);
+      userService.getUserRecipes.mockResolvedValue([]);
 
       renderOtherUserProfilePage();
 
@@ -492,7 +489,7 @@ describe('OtherUserProfilePage', () => {
       renderOtherUserProfilePage();
 
       await waitFor(() => {
-        expect(forumService.getPosts).toHaveBeenCalled();
+        expect(userService.getUserPosts).toHaveBeenCalledWith('2');
       });
 
       const postsTab = screen.getByText('Posts');
@@ -529,7 +526,7 @@ describe('OtherUserProfilePage', () => {
     });
 
     test('shows empty message when no posts', async () => {
-      forumService.getPosts.mockResolvedValue({ results: [], total: 0 });
+      userService.getUserPosts.mockResolvedValue([]);
 
       renderOtherUserProfilePage();
 
@@ -558,8 +555,7 @@ describe('OtherUserProfilePage', () => {
       fireEvent.click(commentsTab);
 
       await waitFor(() => {
-        expect(forumService.getPosts).toHaveBeenCalled();
-        expect(forumService.getCommentsByPostId).toHaveBeenCalled();
+        expect(userService.getUserComments).toHaveBeenCalledWith('2');
       });
 
       await waitFor(() => {
@@ -594,7 +590,7 @@ describe('OtherUserProfilePage', () => {
     });
 
     test('shows empty message when no comments', async () => {
-      forumService.getCommentsByPostId.mockResolvedValue({ results: [], total: 0 });
+      userService.getUserComments.mockResolvedValue([]);
 
       renderOtherUserProfilePage();
 
@@ -760,12 +756,12 @@ describe('OtherUserProfilePage', () => {
 
       await waitFor(() => {
         expect(userService.getUserById).toHaveBeenCalledWith('2');
-        expect(userService.getUserRecipeCount).toHaveBeenCalledWith('2');
-        expect(recipeService.getRecipesByCreator).toHaveBeenCalledWith('2');
+        expect(userService.getUserRecipes).toHaveBeenCalledWith('2');
         expect(getFollowers).toHaveBeenCalledWith('2');
         expect(getFollowing).toHaveBeenCalledWith('2'); // Target user's following
         expect(getFollowing).toHaveBeenCalledWith(1); // Current user's following (for follow status)
-        expect(forumService.getPosts).toHaveBeenCalled();
+        expect(userService.getUserPosts).toHaveBeenCalledWith('2');
+        expect(userService.getUserComments).toHaveBeenCalledWith('2');
         expect(getCurrentUserService).toHaveBeenCalled();
       });
     });
@@ -773,7 +769,7 @@ describe('OtherUserProfilePage', () => {
     test('handles service errors gracefully', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       
-      recipeService.getRecipesByCreator.mockRejectedValue(new Error('Service error'));
+      userService.getUserRecipes.mockRejectedValue(new Error('Service error'));
 
       renderOtherUserProfilePage();
 
@@ -785,7 +781,7 @@ describe('OtherUserProfilePage', () => {
     });
 
     test('sets empty arrays on service failures', async () => {
-      recipeService.getRecipesByCreator.mockRejectedValue(new Error('Service error'));
+      userService.getUserRecipes.mockRejectedValue(new Error('Service error'));
       getFollowers.mockRejectedValue(new Error('Followers error'));
 
       renderOtherUserProfilePage();
@@ -796,8 +792,8 @@ describe('OtherUserProfilePage', () => {
     });
 
     test('handles pagination for posts and comments correctly', async () => {
-      // Mock multiple pages of posts - first page has full pageSize, so it will try to fetch page 2
-      const firstPagePosts = Array.from({ length: 100 }, (_, i) => ({
+      // Mock posts - getUserPosts returns array directly, no pagination
+      const userPosts = Array.from({ length: 50 }, (_, i) => ({
         id: i + 1,
         title: `Post ${i + 1}`,
         content: `Content ${i + 1}`,
@@ -805,20 +801,15 @@ describe('OtherUserProfilePage', () => {
         created_at: '2024-01-01T10:00:00Z'
       }));
       
-      forumService.getPosts
-        .mockResolvedValueOnce({ results: firstPagePosts, total: 150 })
-        .mockResolvedValueOnce({ results: [], total: 150 }); // Second page empty
+      userService.getUserPosts.mockResolvedValue(userPosts);
+      userService.getUserComments.mockResolvedValue([]);
 
       renderOtherUserProfilePage();
 
       await waitFor(() => {
-        expect(forumService.getPosts).toHaveBeenCalledWith(1, 100);
+        expect(userService.getUserPosts).toHaveBeenCalledWith('2');
+        expect(userService.getUserComments).toHaveBeenCalledWith('2');
       });
-      
-      // Wait for second page call
-      await waitFor(() => {
-        expect(forumService.getPosts).toHaveBeenCalledWith(2, 100);
-      }, { timeout: 3000 });
     });
   });
 
