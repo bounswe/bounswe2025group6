@@ -7,7 +7,7 @@ import '../../services/community_service.dart';
 import '../../services/profile_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_formatter.dart';
-// Badge normalization handled by ProfileService; no direct import needed
+import '../../utils/user_badge_helper.dart';
 import './edit_post_screen.dart';
 import '../../widgets/comment_card.dart'; // Import CommentCard (will be created later)
 import '../../widgets/report_button.dart';
@@ -34,6 +34,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   String? currentVote;
   bool isVoteLoading = false;
   String? _authorBadge;
+  String? _authorProfilePhoto;
   List<Map<String, dynamic>> _comments =
       []; // Use Map for now, includes author_username
   bool _isCommentsLoading = false;
@@ -197,10 +198,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (authorId == null) return;
 
     try {
-      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      final profile = await _profileService.getUserProfileById(authorId);
       if (mounted) {
         setState(() {
-          _authorBadge = badgeData?['badge'];
+          // Normalize badge with dietitian priority
+          _authorBadge = normalizeBadgeFromApi(
+            profile.typeOfCook,
+            userType: profile.userType,
+          );
+          _authorProfilePhoto = profile.profilePictureUrl;
         });
       }
     } catch (_) {
@@ -231,24 +237,34 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             _isCommentsLoading = false;
           });
         } else {
-          // Fetch badges for all comment authors (only when we have items)
+          // Fetch badges and profile photos for all comment authors (only when we have items)
           final commentsWithBadges = await Future.wait(
             results.map((rawComment) async {
               // Normalize each entry to a Map<String, dynamic>
               final comment = Map<String, dynamic>.from(rawComment as Map);
               final authorId = comment['author'] as int?;
               String? badge;
+              String? profilePhoto;
               if (authorId != null) {
                 try {
-                  final badgeData = await _profileService.getRecipeCountBadge(
+                  final profile = await _profileService.getUserProfileById(
                     authorId,
                   );
-                  badge = badgeData?['badge'];
+                  // Normalize badge with dietitian priority
+                  badge = normalizeBadgeFromApi(
+                    profile.typeOfCook,
+                    userType: profile.userType,
+                  );
+                  profilePhoto = profile.profilePictureUrl;
                 } catch (_) {
-                  // Silent fail for badge fetch
+                  // Silent fail for profile fetch
                 }
               }
-              return {...comment, 'author_badge': badge};
+              return {
+                ...comment,
+                'author_badge': badge,
+                'author_profile_photo': profilePhoto,
+              };
             }).toList(),
           );
 
@@ -555,37 +571,67 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OtherUserProfileScreen(
-                                  userId: post!['author_id'],
-                                ),
+                                builder:
+                                    (context) => OtherUserProfileScreen(
+                                      userId: post!['author_id'],
+                                    ),
                               ),
                             );
                           }
                         },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              '${post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
-                              style: TextStyle(
-                                color: _currentUserId != null &&
-                                        post!['author_id'] != _currentUserId
-                                    ? Colors.blue[700]
-                                    : null,
-                                decoration: _currentUserId != null &&
-                                        post!['author_id'] != _currentUserId
-                                    ? TextDecoration.underline
-                                    : null,
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.grey.shade300,
+                              backgroundImage:
+                                  _authorProfilePhoto != null &&
+                                          _authorProfilePhoto!.isNotEmpty
+                                      ? NetworkImage(_authorProfilePhoto!)
+                                      : null,
+                              child:
+                                  _authorProfilePhoto == null ||
+                                          _authorProfilePhoto!.isEmpty
+                                      ? Icon(
+                                        Icons.person,
+                                        size: 24,
+                                        color: Colors.grey.shade600,
+                                      )
+                                      : null,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${post!['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
+                                    style: TextStyle(
+                                      color:
+                                          _currentUserId != null &&
+                                                  post!['author_id'] !=
+                                                      _currentUserId
+                                              ? Colors.blue[700]
+                                              : null,
+                                      decoration:
+                                          _currentUserId != null &&
+                                                  post!['author_id'] !=
+                                                      _currentUserId
+                                              ? TextDecoration.underline
+                                              : null,
+                                    ),
+                                  ),
+                                  if (_authorBadge != null) ...[
+                                    const SizedBox(height: 2),
+                                    BadgeWidget(
+                                      badge: _authorBadge!,
+                                      fontSize: 11,
+                                      iconSize: 13,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
-                            if (_authorBadge != null) ...[
-                              const SizedBox(height: 4),
-                              BadgeWidget(
-                                badge: _authorBadge!,
-                                fontSize: 11,
-                                iconSize: 13,
-                              ),
-                            ],
                           ],
                         ),
                       ),
@@ -720,11 +766,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         final authorUsername =
             commentData['author_username'] ?? 'Unknown'; // Get username
         final authorBadge = commentData['author_badge'] as String?; // Get badge
+        final authorProfilePhoto =
+            commentData['author_profile_photo'] as String?; // Get profile photo
 
         return CommentCard(
           comment: comment,
           authorUsername: authorUsername, // Pass username
           authorBadge: authorBadge, // Pass badge from enriched comment data
+          authorProfilePhoto: authorProfilePhoto, // Pass profile photo
           communityService: _communityService, // Pass service instance
           currentUserId: _currentUserId, // Pass current user ID
           onDelete: () => _deleteComment(comment.id), // Pass delete callback

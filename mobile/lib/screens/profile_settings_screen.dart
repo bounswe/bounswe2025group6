@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import '../providers/locale_provider.dart';
 import '../providers/currency_provider.dart';
@@ -31,20 +33,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // Temporary language selection that won't update app locale until saved
   late Language _tempSelectedLanguage;
 
-  final List<String> _avatarPaths = [
-    'assets/avatars/cat.png',
-    'assets/avatars/dog.png',
-    'assets/avatars/meerkat.png',
-    'assets/avatars/panda.png',
-    'assets/avatars/gorilla.png',
-  ];
+  // For profile photo
+  final ImagePicker _imagePicker = ImagePicker();
+  bool _isUploadingPhoto = false;
 
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
   late TextEditingController _dislikedFoodsController;
   late TextEditingController _monthlyBudgetController;
   late TextEditingController _nationalityController;
-  
+
   DateTime? _selectedDateOfBirth;
 
   List<String> _availableDietaryPreferences = [
@@ -96,12 +94,172 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     super.dispose();
   }
 
-  void _selectAvatar(String avatarPath) {
-    setState(() {
-      _editableProfile = _editableProfile.copyWith(
-        profilePictureUrl: avatarPath,
+  /// Get the profile image provider for displaying current profile picture
+  ImageProvider? _getProfileImageProvider() {
+    final url = _editableProfile.profilePictureUrl;
+    if (url != null && url.isNotEmpty) {
+      return NetworkImage(url);
+    }
+    return null;
+  }
+
+  /// Check if user has a profile photo
+  bool get _hasProfilePhoto {
+    final url = _editableProfile.profilePictureUrl;
+    return url != null && url.isNotEmpty;
+  }
+
+  /// Show dialog to select photo source (camera or gallery)
+  Future<void> _showPhotoSourceDialog() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.camera_alt, color: AppTheme.primaryGreen),
+                  title: Text(AppLocalizations.of(context)!.takePhoto),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.photo_library,
+                    color: AppTheme.primaryGreen,
+                  ),
+                  title: Text(AppLocalizations.of(context)!.chooseFromGallery),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+    );
+
+    if (source != null) {
+      await _pickAndUploadImage(source);
+    }
+  }
+
+  /// Pick an image and upload it to the server
+  Future<void> _pickAndUploadImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
       );
-    });
+
+      if (pickedFile == null) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      final imageFile = File(pickedFile.path);
+      final updatedProfile = await _profileService.uploadProfilePhoto(
+        imageFile,
+      );
+
+      if (mounted) {
+        setState(() {
+          _editableProfile = _editableProfile.copyWith(
+            profilePictureUrl: updatedProfile.profilePictureUrl,
+          );
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.photoUploadSuccess),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.photoUploadError(e.toString()),
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Show confirmation dialog and delete profile photo
+  Future<void> _confirmDeletePhoto() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.removePhoto),
+            content: Text(AppLocalizations.of(context)!.photoDeleteConfirm),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(AppLocalizations.of(context)!.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(AppLocalizations.of(context)!.removePhoto),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      await _deleteProfilePhoto();
+    }
+  }
+
+  /// Delete profile photo from the server
+  Future<void> _deleteProfilePhoto() async {
+    try {
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      await _profileService.deleteProfilePhoto();
+
+      if (mounted) {
+        setState(() {
+          _editableProfile = _editableProfile.copyWith(
+            clearProfilePictureUrl: true,
+          );
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.photoDeleteSuccess),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.photoDeleteError(e.toString()),
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   void _toggleSelection(List<String> list, String item) {
@@ -123,46 +281,59 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         dislikedFoods: _dislikedFoodsController.text,
         monthlyBudget: double.tryParse(_monthlyBudgetController.text),
         clearMonthlyBudget: _monthlyBudgetController.text.isEmpty,
-        nationality: _nationalityController.text.isNotEmpty ? _nationalityController.text : null,
+        nationality:
+            _nationalityController.text.isNotEmpty
+                ? _nationalityController.text
+                : null,
         clearNationality: _nationalityController.text.isEmpty,
         dateOfBirth: _selectedDateOfBirth,
         clearDateOfBirth: _selectedDateOfBirth == null,
         language: _tempSelectedLanguage,
       );
 
+      try {
+        final updatedProfile = await _profileService.updateUserProfile(
+          finalProfileToSave,
+        );
+        if (mounted) {
+          // Ensure provider reflects the saved language
           try {
-            final updatedProfile = await _profileService.updateUserProfile(
-              finalProfileToSave,
-            );
-            if (mounted) {
-              // Ensure provider reflects the saved language
-              try {
-                // Update the app locale only after backend confirmed the change.
-                Provider.of<LocaleProvider>(context, listen: false)
-                    .setLocaleFromLanguage(updatedProfile.language);
-                    // Update currency provider after backend confirms change.
-                    try {
-                      Provider.of<CurrencyProvider>(context, listen: false)
-                          .setCurrency(updatedProfile.preferredCurrency);
-                    } catch (_) {}
-              } catch (_) {}
-              ScaffoldMessenger.of(
+            // Update the app locale only after backend confirmed the change.
+            Provider.of<LocaleProvider>(
+              context,
+              listen: false,
+            ).setLocaleFromLanguage(updatedProfile.language);
+            // Update currency provider after backend confirms change.
+            try {
+              Provider.of<CurrencyProvider>(
                 context,
-              ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.settingsSaved)));
+                listen: false,
+              ).setCurrency(updatedProfile.preferredCurrency);
+            } catch (_) {}
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.settingsSaved),
+            ),
+          );
 
-              Navigator.pop(context, finalProfileToSave);
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  // content: Text('Failed to save settings: ${e.toString()}'),
-                  content: Text(AppLocalizations.of(context)!.failedToSaveSettings(e.toString())),
-                  backgroundColor: AppTheme.errorColor,
-                ),
-              );
-            }
-          }
+          Navigator.pop(context, finalProfileToSave);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              // content: Text('Failed to save settings: ${e.toString()}'),
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.failedToSaveSettings(e.toString()),
+              ),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -190,9 +361,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               SizedBox(height: 10),
               Text(
                 AppLocalizations.of(context)!.deleteAccountWarning,
-                style: TextStyle(
-                  color: Colors.grey[700],
-                ),
+                style: TextStyle(color: Colors.grey[700]),
               ),
             ],
           ),
@@ -223,20 +392,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-        ),
-      ),
+      builder:
+          (context) => Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+            ),
+          ),
     );
 
     try {
       await _profileService.deleteAccount();
-      
+
       if (mounted) {
         // Close the loading dialog
         Navigator.of(context).pop();
-        
+
         // Navigate to login screen and clear navigation stack
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -246,7 +416,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         // Show success message after navigation
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.accountDeletedSuccessfully),
+            content: Text(
+              AppLocalizations.of(context)!.accountDeletedSuccessfully,
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -255,11 +427,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       if (mounted) {
         // Close the loading dialog
         Navigator.of(context).pop();
-        
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToDeleteAccount(e.toString())),
+            content: Text(
+              AppLocalizations.of(context)!.failedToDeleteAccount(e.toString()),
+            ),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
           ),
@@ -294,46 +468,74 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         child: ListView(
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
+            // Profile Photo Section
             Text(
-              AppLocalizations.of(context)!.chooseAvatar,
+              AppLocalizations.of(context)!.profilePhoto,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             SizedBox(height: 10),
-            Wrap(
-              spacing: 10.0,
-              runSpacing: 10.0,
-              alignment: WrapAlignment.center,
-              children:
-                  _avatarPaths.map((path) {
-                    bool isSelected =
-                        _editableProfile.profilePictureUrl == path;
-                    return GestureDetector(
-                      onTap: () => _selectAvatar(path),
-                      child: Opacity(
-                        opacity: isSelected ? 1.0 : 0.7,
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundImage: AssetImage(
-                            path,
-                          ), // Ensure these assets exist
-                          child:
-                              isSelected
-                                  ? CircleAvatar(
-                                    radius: 40,
-                                    backgroundColor: AppTheme.primaryGreen
-                                        .withOpacity(0.5),
-                                    child: Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 30,
-                                    ),
-                                  )
-                                  : null,
-                        ),
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: _getProfileImageProvider(),
+                    child:
+                        _isUploadingPhoto
+                            ? CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryGreen,
+                              ),
+                            )
+                            : _getProfileImageProvider() == null
+                            ? Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.grey.shade700,
+                            )
+                            : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen,
+                        shape: BoxShape.circle,
                       ),
-                    );
-                  }).toList(),
+                      child: IconButton(
+                        icon: Icon(
+                          _hasProfilePhoto ? Icons.edit : Icons.add_a_photo,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed:
+                            _isUploadingPhoto ? null : _showPhotoSourceDialog,
+                        tooltip:
+                            _hasProfilePhoto
+                                ? AppLocalizations.of(context)!.changePhoto
+                                : AppLocalizations.of(context)!.addPhoto,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(height: 10),
+            if (_hasProfilePhoto)
+              Center(
+                child: TextButton.icon(
+                  onPressed: _isUploadingPhoto ? null : _confirmDeletePhoto,
+                  icon: Icon(Icons.delete_outline, color: Colors.red),
+                  label: Text(
+                    AppLocalizations.of(context)!.removePhoto,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+            SizedBox(height: 20),
+            Divider(),
             SizedBox(height: 20),
             TextFormField(
               controller: _usernameController,
@@ -341,10 +543,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 labelText: AppLocalizations.of(context)!.usernameLabel,
                 border: OutlineInputBorder(),
               ),
-              validator: (value) => value == null || value.isEmpty
-                  ? // 'Username cannot be empty'
-                      AppLocalizations.of(context)!.usernameEmptyError
-                  : null,
+              validator:
+                  (value) =>
+                      value == null || value.isEmpty
+                          ? // 'Username cannot be empty'
+                          AppLocalizations.of(context)!.usernameEmptyError
+                          : null,
             ),
             SizedBox(height: 12),
             TextFormField(
@@ -410,7 +614,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             SizedBox(height: 12),
-            
+
             // Language Dropdown
             DropdownButtonFormField<Language>(
               value: _tempSelectedLanguage,
@@ -419,24 +623,27 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.language),
               ),
-              items: Language.values.map((lang) {
-                return DropdownMenuItem(
-                  value: lang,
-                  child: Text(lang.displayName),
-                );
-              }).toList(),
+              items:
+                  Language.values.map((lang) {
+                    return DropdownMenuItem(
+                      value: lang,
+                      child: Text(lang.displayName),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
                     // Only change temporary selection — don't update app locale yet
                     _tempSelectedLanguage = value;
-                    _editableProfile = _editableProfile.copyWith(language: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      language: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Date Format Dropdown
             DropdownButtonFormField<DateFormat>(
               value: _editableProfile.preferredDateFormat,
@@ -445,47 +652,53 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.calendar_today),
               ),
-              items: DateFormat.values.map((format) {
-                return DropdownMenuItem(
-                  value: format,
-                  child: Text(localizedDateFormatLabel(context, format)),
-                );
-              }).toList(),
+              items:
+                  DateFormat.values.map((format) {
+                    return DropdownMenuItem(
+                      value: format,
+                      child: Text(localizedDateFormatLabel(context, format)),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _editableProfile = _editableProfile.copyWith(preferredDateFormat: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      preferredDateFormat: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Currency Dropdown
             DropdownButtonFormField<Currency>(
               value: _editableProfile.preferredCurrency,
               decoration: InputDecoration(
-                  // 'Preferred Currency' (use existing key)
-                  labelText: AppLocalizations.of(context)!.currencyLabel,
+                // 'Preferred Currency' (use existing key)
+                labelText: AppLocalizations.of(context)!.currencyLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.attach_money),
               ),
-              items: Currency.values.map((currency) {
-                return DropdownMenuItem(
-                  value: currency,
-                  child: Text(localizedCurrencyLabel(context, currency)),
-                );
-              }).toList(),
+              items:
+                  Currency.values.map((currency) {
+                    return DropdownMenuItem(
+                      value: currency,
+                      child: Text(localizedCurrencyLabel(context, currency)),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _editableProfile = _editableProfile.copyWith(preferredCurrency: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      preferredCurrency: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Accessibility Needs Dropdown
             DropdownButtonFormField<AccessibilityNeeds>(
               value: _editableProfile.accessibilityNeeds,
@@ -494,22 +707,25 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.accessibility_new),
               ),
-              items: AccessibilityNeeds.values.map((needs) {
-                return DropdownMenuItem(
-                  value: needs,
-                  child: Text(localizedAccessibilityLabel(context, needs)),
-                );
-              }).toList(),
+              items:
+                  AccessibilityNeeds.values.map((needs) {
+                    return DropdownMenuItem(
+                      value: needs,
+                      child: Text(localizedAccessibilityLabel(context, needs)),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _editableProfile = _editableProfile.copyWith(accessibilityNeeds: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      accessibilityNeeds: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Nationality Field
             TextFormField(
               controller: _nationalityController,
@@ -521,19 +737,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               maxLength: 50,
             ),
             SizedBox(height: 12),
-            
+
             // Date of Birth Picker
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.cake, color: AppTheme.primaryGreen),
-              title: Text(
-                AppLocalizations.of(context)!.dateOfBirthLabel,
-              ),
+              title: Text(AppLocalizations.of(context)!.dateOfBirthLabel),
               subtitle: Text(
                 _selectedDateOfBirth != null
                     ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
                     : // 'Not set'
-                        AppLocalizations.of(context)!.notSet,
+                    AppLocalizations.of(context)!.notSet,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -552,7 +766,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     onPressed: () async {
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: _selectedDateOfBirth ?? DateTime.now().subtract(Duration(days: 365 * 25)),
+                        initialDate:
+                            _selectedDateOfBirth ??
+                            DateTime.now().subtract(Duration(days: 365 * 25)),
                         firstDate: DateTime(1900),
                         lastDate: DateTime.now(),
                       );
@@ -615,7 +831,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               availableItems.map((item) {
                 final bool isSelected = selectedItems.contains(item);
                 return FilterChip(
-                      label: Text(localizedItemLabel(context, item)),
+                  label: Text(localizedItemLabel(context, item)),
                   selected: isSelected,
                   onSelected: (bool selected) {
                     _toggleSelection(selectedItems, item);
@@ -628,5 +844,4 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       ],
     );
   }
-      
 }
