@@ -31,6 +31,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // Temporary language selection that won't update app locale until saved
   late Language _tempSelectedLanguage;
 
+  // Track original username to detect changes
+  late String _originalUsername;
+  bool _isSaving = false;
+
   final List<String> _avatarPaths = [
     'assets/avatars/cat.png',
     'assets/avatars/dog.png',
@@ -39,12 +43,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     'assets/avatars/gorilla.png',
   ];
 
+  // Username validation regex: letters, numbers, underscore only
+  final RegExp _usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
+
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
   late TextEditingController _dislikedFoodsController;
   late TextEditingController _monthlyBudgetController;
   late TextEditingController _nationalityController;
-  
+
   DateTime? _selectedDateOfBirth;
 
   List<String> _availableDietaryPreferences = [
@@ -69,6 +76,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     super.initState();
     _profileService = widget.profileService;
     _editableProfile = widget.userProfile.copyWith();
+    _originalUsername = _editableProfile.username;
     _usernameController = TextEditingController(
       text: _editableProfile.username,
     );
@@ -114,55 +122,128 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     });
   }
 
+  /// Validates username format
+  String? _validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return AppLocalizations.of(context)!.usernameEmptyError;
+    }
+    if (value.length < 3) {
+      return AppLocalizations.of(context)!.usernameTooShort;
+    }
+    if (value.length > 30) {
+      return AppLocalizations.of(context)!.usernameTooLong;
+    }
+    if (!_usernameRegex.hasMatch(value)) {
+      return AppLocalizations.of(context)!.usernameInvalidChars;
+    }
+    return null;
+  }
+
+  /// Checks if username was changed
+  bool get _usernameChanged =>
+      _usernameController.text.trim() != _originalUsername;
+
+  /// Parses backend error for username-specific messages
+  String _parseBackendError(String error) {
+    final lowerError = error.toLowerCase();
+    if (lowerError.contains('username') &&
+        (lowerError.contains('already') ||
+            lowerError.contains('exists') ||
+            lowerError.contains('taken') ||
+            lowerError.contains('unique'))) {
+      return AppLocalizations.of(context)!.usernameAlreadyTaken;
+    }
+    return error;
+  }
+
   Future<void> _saveSettings() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      // Prevent double-tap
+      if (_isSaving) return;
+
+      setState(() {
+        _isSaving = true;
+      });
+
+      final newUsername = _usernameController.text.trim();
+      final usernameWasChanged = newUsername != _originalUsername;
+
       UserProfile finalProfileToSave = _editableProfile.copyWith(
         id: _editableProfile.id,
-        username: _usernameController.text,
+        username: newUsername,
         dislikedFoods: _dislikedFoodsController.text,
         monthlyBudget: double.tryParse(_monthlyBudgetController.text),
         clearMonthlyBudget: _monthlyBudgetController.text.isEmpty,
-        nationality: _nationalityController.text.isNotEmpty ? _nationalityController.text : null,
+        nationality:
+            _nationalityController.text.isNotEmpty
+                ? _nationalityController.text
+                : null,
         clearNationality: _nationalityController.text.isEmpty,
         dateOfBirth: _selectedDateOfBirth,
         clearDateOfBirth: _selectedDateOfBirth == null,
         language: _tempSelectedLanguage,
       );
 
+      try {
+        final updatedProfile = await _profileService.updateUserProfile(
+          finalProfileToSave,
+        );
+        if (mounted) {
+          // Ensure provider reflects the saved language
           try {
-            final updatedProfile = await _profileService.updateUserProfile(
-              finalProfileToSave,
-            );
-            if (mounted) {
-              // Ensure provider reflects the saved language
-              try {
-                // Update the app locale only after backend confirmed the change.
-                Provider.of<LocaleProvider>(context, listen: false)
-                    .setLocaleFromLanguage(updatedProfile.language);
-                    // Update currency provider after backend confirms change.
-                    try {
-                      Provider.of<CurrencyProvider>(context, listen: false)
-                          .setCurrency(updatedProfile.preferredCurrency);
-                    } catch (_) {}
-              } catch (_) {}
-              ScaffoldMessenger.of(
+            // Update the app locale only after backend confirmed the change.
+            Provider.of<LocaleProvider>(
+              context,
+              listen: false,
+            ).setLocaleFromLanguage(updatedProfile.language);
+            // Update currency provider after backend confirms change.
+            try {
+              Provider.of<CurrencyProvider>(
                 context,
-              ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.settingsSaved)));
+                listen: false,
+              ).setCurrency(updatedProfile.preferredCurrency);
+            } catch (_) {}
+          } catch (_) {}
 
-              Navigator.pop(context, finalProfileToSave);
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  // content: Text('Failed to save settings: ${e.toString()}'),
-                  content: Text(AppLocalizations.of(context)!.failedToSaveSettings(e.toString())),
-                  backgroundColor: AppTheme.errorColor,
-                ),
-              );
-            }
-          }
+          // Show appropriate success message
+          final successMessage =
+              usernameWasChanged
+                  ? AppLocalizations.of(context)!.usernameChangeSuccess
+                  : AppLocalizations.of(context)!.settingsSaved;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(successMessage),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.pop(context, finalProfileToSave);
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+
+          // Parse error for user-friendly message
+          final errorMessage = _parseBackendError(e.toString());
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.failedToSaveSettings(errorMessage),
+              ),
+              backgroundColor: AppTheme.errorColor,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -190,9 +271,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               SizedBox(height: 10),
               Text(
                 AppLocalizations.of(context)!.deleteAccountWarning,
-                style: TextStyle(
-                  color: Colors.grey[700],
-                ),
+                style: TextStyle(color: Colors.grey[700]),
               ),
             ],
           ),
@@ -223,20 +302,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-        ),
-      ),
+      builder:
+          (context) => Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+            ),
+          ),
     );
 
     try {
       await _profileService.deleteAccount();
-      
+
       if (mounted) {
         // Close the loading dialog
         Navigator.of(context).pop();
-        
+
         // Navigate to login screen and clear navigation stack
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -246,7 +326,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         // Show success message after navigation
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.accountDeletedSuccessfully),
+            content: Text(
+              AppLocalizations.of(context)!.accountDeletedSuccessfully,
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -255,11 +337,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       if (mounted) {
         // Close the loading dialog
         Navigator.of(context).pop();
-        
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToDeleteAccount(e.toString())),
+            content: Text(
+              AppLocalizations.of(context)!.failedToDeleteAccount(e.toString()),
+            ),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
           ),
@@ -282,11 +366,25 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: AppTheme.primaryGreen),
         actions: [
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: _saveSettings,
-            color: AppTheme.primaryGreen,
-          ),
+          _isSaving
+              ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryGreen,
+                    ),
+                  ),
+                ),
+              )
+              : IconButton(
+                icon: Icon(Icons.save),
+                onPressed: _saveSettings,
+                color: AppTheme.primaryGreen,
+              ),
         ],
       ),
       body: Form(
@@ -339,12 +437,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.usernameLabel,
+                helperText: AppLocalizations.of(context)!.usernameHint,
+                helperMaxLines: 2,
+                errorMaxLines: 2,
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person_outline),
+                suffixIcon:
+                    _usernameChanged
+                        ? Icon(Icons.edit, color: AppTheme.primaryGreen)
+                        : null,
               ),
-              validator: (value) => value == null || value.isEmpty
-                  ? // 'Username cannot be empty'
-                      AppLocalizations.of(context)!.usernameEmptyError
-                  : null,
+              validator: _validateUsername,
+              onChanged:
+                  (_) => setState(() {}), // Trigger rebuild to show edit icon
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
+              enableSuggestions: false,
             ),
             SizedBox(height: 12),
             TextFormField(
@@ -410,7 +518,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             SizedBox(height: 12),
-            
+
             // Language Dropdown
             DropdownButtonFormField<Language>(
               value: _tempSelectedLanguage,
@@ -419,24 +527,27 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.language),
               ),
-              items: Language.values.map((lang) {
-                return DropdownMenuItem(
-                  value: lang,
-                  child: Text(lang.displayName),
-                );
-              }).toList(),
+              items:
+                  Language.values.map((lang) {
+                    return DropdownMenuItem(
+                      value: lang,
+                      child: Text(lang.displayName),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
                     // Only change temporary selection — don't update app locale yet
                     _tempSelectedLanguage = value;
-                    _editableProfile = _editableProfile.copyWith(language: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      language: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Date Format Dropdown
             DropdownButtonFormField<DateFormat>(
               value: _editableProfile.preferredDateFormat,
@@ -445,47 +556,53 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.calendar_today),
               ),
-              items: DateFormat.values.map((format) {
-                return DropdownMenuItem(
-                  value: format,
-                  child: Text(localizedDateFormatLabel(context, format)),
-                );
-              }).toList(),
+              items:
+                  DateFormat.values.map((format) {
+                    return DropdownMenuItem(
+                      value: format,
+                      child: Text(localizedDateFormatLabel(context, format)),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _editableProfile = _editableProfile.copyWith(preferredDateFormat: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      preferredDateFormat: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Currency Dropdown
             DropdownButtonFormField<Currency>(
               value: _editableProfile.preferredCurrency,
               decoration: InputDecoration(
-                  // 'Preferred Currency' (use existing key)
-                  labelText: AppLocalizations.of(context)!.currencyLabel,
+                // 'Preferred Currency' (use existing key)
+                labelText: AppLocalizations.of(context)!.currencyLabel,
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.attach_money),
               ),
-              items: Currency.values.map((currency) {
-                return DropdownMenuItem(
-                  value: currency,
-                  child: Text(localizedCurrencyLabel(context, currency)),
-                );
-              }).toList(),
+              items:
+                  Currency.values.map((currency) {
+                    return DropdownMenuItem(
+                      value: currency,
+                      child: Text(localizedCurrencyLabel(context, currency)),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _editableProfile = _editableProfile.copyWith(preferredCurrency: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      preferredCurrency: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Accessibility Needs Dropdown
             DropdownButtonFormField<AccessibilityNeeds>(
               value: _editableProfile.accessibilityNeeds,
@@ -494,22 +611,25 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.accessibility_new),
               ),
-              items: AccessibilityNeeds.values.map((needs) {
-                return DropdownMenuItem(
-                  value: needs,
-                  child: Text(localizedAccessibilityLabel(context, needs)),
-                );
-              }).toList(),
+              items:
+                  AccessibilityNeeds.values.map((needs) {
+                    return DropdownMenuItem(
+                      value: needs,
+                      child: Text(localizedAccessibilityLabel(context, needs)),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
-                    _editableProfile = _editableProfile.copyWith(accessibilityNeeds: value);
+                    _editableProfile = _editableProfile.copyWith(
+                      accessibilityNeeds: value,
+                    );
                   });
                 }
               },
             ),
             SizedBox(height: 12),
-            
+
             // Nationality Field
             TextFormField(
               controller: _nationalityController,
@@ -521,19 +641,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               maxLength: 50,
             ),
             SizedBox(height: 12),
-            
+
             // Date of Birth Picker
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.cake, color: AppTheme.primaryGreen),
-              title: Text(
-                AppLocalizations.of(context)!.dateOfBirthLabel,
-              ),
+              title: Text(AppLocalizations.of(context)!.dateOfBirthLabel),
               subtitle: Text(
                 _selectedDateOfBirth != null
                     ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
                     : // 'Not set'
-                        AppLocalizations.of(context)!.notSet,
+                    AppLocalizations.of(context)!.notSet,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -552,7 +670,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     onPressed: () async {
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: _selectedDateOfBirth ?? DateTime.now().subtract(Duration(days: 365 * 25)),
+                        initialDate:
+                            _selectedDateOfBirth ??
+                            DateTime.now().subtract(Duration(days: 365 * 25)),
                         firstDate: DateTime(1900),
                         lastDate: DateTime.now(),
                       );
@@ -615,7 +735,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               availableItems.map((item) {
                 final bool isSelected = selectedItems.contains(item);
                 return FilterChip(
-                      label: Text(localizedItemLabel(context, item)),
+                  label: Text(localizedItemLabel(context, item)),
                   selected: isSelected,
                   onSelected: (bool selected) {
                     _toggleSelection(selectedItems, item);
@@ -628,5 +748,4 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       ],
     );
   }
-      
 }
