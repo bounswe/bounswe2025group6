@@ -338,15 +338,17 @@ class _QADetailScreenState extends State<QADetailScreen> {
   void _navigateToProfile(int? authorId) {
     if (authorId == null) return;
 
+    // Don't navigate if it's the current user's own profile
     if (_currentUserId != null && _currentUserId == authorId) {
-      Navigator.pushNamed(context, '/profile');
-    } else {
-      Navigator.pushNamed(
-        context,
-        OtherUserProfileScreen.routeName,
-        arguments: authorId,
-      );
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OtherUserProfileScreen(userId: authorId),
+      ),
+    );
   }
 
   @override
