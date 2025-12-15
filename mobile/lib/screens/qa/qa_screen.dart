@@ -270,15 +270,17 @@ class _QuestionCardState extends State<QuestionCard> {
     final authorId = widget.question['author_id'] as int?;
     if (authorId == null) return;
 
+    // Don't navigate if it's the current user's own profile
     if (_currentUserId != null && _currentUserId == authorId) {
-      Navigator.pushNamed(context, '/profile');
-    } else {
-      Navigator.pushNamed(
-        context,
-        OtherUserProfileScreen.routeName,
-        arguments: authorId,
-      );
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OtherUserProfileScreen(userId: authorId),
+      ),
+    );
   }
 
   @override
