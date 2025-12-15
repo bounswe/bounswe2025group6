@@ -22,8 +22,11 @@ RUN git clone https://github.com/flutter/flutter.git
 ENV PATH="/flutter/bin:${PATH}"
 COPY . /app
 WORKDIR /app
+
+ARG API_URL
+
 RUN flutter clean
-RUN flutter build apk
+RUN flutter build apk --dart-define=API_URL=$API_URL
 
 
 FROM scratch
