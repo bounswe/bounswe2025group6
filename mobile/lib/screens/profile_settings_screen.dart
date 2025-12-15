@@ -33,9 +33,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // Temporary language selection that won't update app locale until saved
   late Language _tempSelectedLanguage;
 
+  // Track original username to detect changes
+  late String _originalUsername;
+  bool _isSaving = false;
+
   // For profile photo
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploadingPhoto = false;
+
+  // Username validation regex: letters, numbers, underscore only
+  final RegExp _usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
 
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
@@ -67,6 +74,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     super.initState();
     _profileService = widget.profileService;
     _editableProfile = widget.userProfile.copyWith();
+    _originalUsername = _editableProfile.username;
     _usernameController = TextEditingController(
       text: _editableProfile.username,
     );
@@ -272,12 +280,57 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     });
   }
 
+  /// Validates username format
+  String? _validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return AppLocalizations.of(context)!.usernameEmptyError;
+    }
+    if (value.length < 3) {
+      return AppLocalizations.of(context)!.usernameTooShort;
+    }
+    if (value.length > 30) {
+      return AppLocalizations.of(context)!.usernameTooLong;
+    }
+    if (!_usernameRegex.hasMatch(value)) {
+      return AppLocalizations.of(context)!.usernameInvalidChars;
+    }
+    return null;
+  }
+
+  /// Checks if username was changed
+  bool get _usernameChanged =>
+      _usernameController.text.trim() != _originalUsername;
+
+  /// Parses backend error for username-specific messages
+  String _parseBackendError(String error) {
+    final lowerError = error.toLowerCase();
+    if (lowerError.contains('username') &&
+        (lowerError.contains('already') ||
+            lowerError.contains('exists') ||
+            lowerError.contains('taken') ||
+            lowerError.contains('unique'))) {
+      return AppLocalizations.of(context)!.usernameAlreadyTaken;
+    }
+    return error;
+  }
+
   Future<void> _saveSettings() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      // Prevent double-tap
+      if (_isSaving) return;
+
+      setState(() {
+        _isSaving = true;
+      });
+
+      final newUsername = _usernameController.text.trim();
+      final usernameWasChanged = newUsername != _originalUsername;
+
       UserProfile finalProfileToSave = _editableProfile.copyWith(
         id: _editableProfile.id,
-        username: _usernameController.text,
+        username: newUsername,
         dislikedFoods: _dislikedFoodsController.text,
         monthlyBudget: double.tryParse(_monthlyBudgetController.text),
         clearMonthlyBudget: _monthlyBudgetController.text.isEmpty,
@@ -311,9 +364,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               ).setCurrency(updatedProfile.preferredCurrency);
             } catch (_) {}
           } catch (_) {}
+
+          // Show appropriate success message
+          final successMessage =
+              usernameWasChanged
+                  ? AppLocalizations.of(context)!.usernameChangeSuccess
+                  : AppLocalizations.of(context)!.settingsSaved;
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.settingsSaved),
+              content: Text(successMessage),
+              backgroundColor: Colors.green,
             ),
           );
 
@@ -321,15 +382,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         }
       } catch (e) {
         if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+
+          // Parse error for user-friendly message
+          final errorMessage = _parseBackendError(e.toString());
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              // content: Text('Failed to save settings: ${e.toString()}'),
               content: Text(
                 AppLocalizations.of(
                   context,
-                )!.failedToSaveSettings(e.toString()),
+                )!.failedToSaveSettings(errorMessage),
               ),
               backgroundColor: AppTheme.errorColor,
+              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -456,11 +524,25 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: AppTheme.primaryGreen),
         actions: [
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: _saveSettings,
-            color: AppTheme.primaryGreen,
-          ),
+          _isSaving
+              ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryGreen,
+                    ),
+                  ),
+                ),
+              )
+              : IconButton(
+                icon: Icon(Icons.save),
+                onPressed: _saveSettings,
+                color: AppTheme.primaryGreen,
+              ),
         ],
       ),
       body: Form(
@@ -541,14 +623,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.usernameLabel,
+                helperText: AppLocalizations.of(context)!.usernameHint,
+                helperMaxLines: 2,
+                errorMaxLines: 2,
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person_outline),
+                suffixIcon:
+                    _usernameChanged
+                        ? Icon(Icons.edit, color: AppTheme.primaryGreen)
+                        : null,
               ),
-              validator:
-                  (value) =>
-                      value == null || value.isEmpty
-                          ? // 'Username cannot be empty'
-                          AppLocalizations.of(context)!.usernameEmptyError
-                          : null,
+              validator: _validateUsername,
+              onChanged:
+                  (_) => setState(() {}), // Trigger rebuild to show edit icon
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
+              enableSuggestions: false,
             ),
             SizedBox(height: 12),
             TextFormField(
