@@ -9,7 +9,7 @@ class MockProfileService extends Mock implements ProfileService {}
 UserProfile getMockUserProfile({
   String username = 'TestUser',
   String email = 'testuser@example.com',
-  String? profilePictureUrl = 'assets/avatars/cat.png',
+  String? profilePictureUrl,
   DateTime? joinedDate,
   List<String> dietaryPreferences = const ['Vegetarian'],
   List<String> allergens = const ['Peanuts'],
