@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
 import '../utils/user_badge_helper.dart';
@@ -313,6 +314,125 @@ class ProfileService {
   /// Clear all cached badges
   void clearAllBadgeCache() {
     _badgeCache.clear();
+  }
+
+  /// Upload a profile photo
+  /// Returns the updated UserProfile with the new profile photo URL
+  Future<UserProfile> uploadProfilePhoto(File imageFile) async {
+    token = await StorageService.getJwtAccessToken();
+    final userId = await StorageService.getUserId();
+
+    if (token == null || userId == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token or User ID missing.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      var request = http.MultipartRequest(
+        'PATCH',
+        Uri.parse('$baseUrl/api/users/$userId/'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Add the image file
+      request.files.add(
+        await http.MultipartFile.fromPath('profilePhoto', imageFile.path),
+      );
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
+        }
+
+        // Retry the request with refreshed token
+        request = http.MultipartRequest(
+          'PATCH',
+          Uri.parse('$baseUrl/api/users/$userId/'),
+        );
+        request.headers['Authorization'] = 'Bearer $token';
+        request.files.add(
+          await http.MultipartFile.fromPath('profilePhoto', imageFile.path),
+        );
+        streamedResponse = await request.send();
+        response = await http.Response.fromStream(streamedResponse);
+      }
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        return UserProfile.fromJson(responseBody, int.parse(userId));
+      } else {
+        throw ProfileServiceException(
+          'Failed to upload profile photo. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ProfileServiceException) rethrow;
+      throw ProfileServiceException(e.toString());
+    }
+  }
+
+  /// Delete/remove the profile photo
+  /// Returns the updated UserProfile with profile photo set to null
+  Future<UserProfile> deleteProfilePhoto() async {
+    token = await StorageService.getJwtAccessToken();
+    final userId = await StorageService.getUserId();
+
+    if (token == null || userId == null) {
+      throw ProfileServiceException(
+        'User not authenticated. Token or User ID missing.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      var response = await http.patch(
+        Uri.parse('$baseUrl/api/users/$userId/'),
+        headers: headers,
+        body: jsonEncode({'profilePhoto': null}),
+      );
+
+      if (response.statusCode == 401) {
+        final refreshSuccess = await _refreshToken();
+        if (!refreshSuccess) {
+          await StorageService.deleteAllUserData();
+          throw ProfileServiceException(
+            'Authentication failed',
+            statusCode: 401,
+          );
+        }
+
+        response = await http.patch(
+          Uri.parse('$baseUrl/api/users/$userId/'),
+          headers: headers,
+          body: jsonEncode({'profilePhoto': null}),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        return UserProfile.fromJson(responseBody, int.parse(userId));
+      } else {
+        throw ProfileServiceException(
+          'Failed to delete profile photo. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ProfileServiceException) rethrow;
+      throw ProfileServiceException(e.toString());
+    }
   }
 
   Future<void> deleteAccount() async {

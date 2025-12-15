@@ -267,12 +267,9 @@ class UserProfile {
     if (email.isNotEmpty) data['email'] = email;
     data['usertype'] = userType;
 
-    // Handle profilePictureUrl: send null if it's an asset path, otherwise send the URL
-    if (profilePictureUrl != null && profilePictureUrl!.startsWith('assets/')) {
-      data['profilePhoto'] = null;
-    } else {
-      data['profilePhoto'] = profilePictureUrl;
-    }
+    // Note: profilePhoto is NOT included here because the backend expects
+    // it as a multipart file upload, not a JSON string. Use uploadProfilePhoto
+    // method in ProfileService for photo uploads.
 
     data['foodAllergies'] = allergens.isNotEmpty ? allergens : [];
     data['profileVisibility'] = publicProfile ? 'public' : 'private';
@@ -301,6 +298,7 @@ class UserProfile {
     String? username,
     String? email,
     String? profilePictureUrl,
+    bool clearProfilePictureUrl = false,
     List<String>? dietaryPreferences,
     List<String>? allergens,
     String? dislikedFoods,
@@ -331,7 +329,10 @@ class UserProfile {
       id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,
-      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      profilePictureUrl:
+          clearProfilePictureUrl
+              ? null
+              : profilePictureUrl ?? this.profilePictureUrl,
       dietaryPreferences: List<String>.from(
         dietaryPreferences ?? this.dietaryPreferences,
       ),

@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart'; // Import AppLocalizations
 import '../providers/locale_provider.dart';
 import '../providers/currency_provider.dart';
@@ -35,13 +37,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   late String _originalUsername;
   bool _isSaving = false;
 
-  final List<String> _avatarPaths = [
-    'assets/avatars/cat.png',
-    'assets/avatars/dog.png',
-    'assets/avatars/meerkat.png',
-    'assets/avatars/panda.png',
-    'assets/avatars/gorilla.png',
-  ];
+  // For profile photo
+  final ImagePicker _imagePicker = ImagePicker();
+  bool _isUploadingPhoto = false;
 
   // Username validation regex: letters, numbers, underscore only
   final RegExp _usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
@@ -104,12 +102,172 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     super.dispose();
   }
 
-  void _selectAvatar(String avatarPath) {
-    setState(() {
-      _editableProfile = _editableProfile.copyWith(
-        profilePictureUrl: avatarPath,
+  /// Get the profile image provider for displaying current profile picture
+  ImageProvider? _getProfileImageProvider() {
+    final url = _editableProfile.profilePictureUrl;
+    if (url != null && url.isNotEmpty) {
+      return NetworkImage(url);
+    }
+    return null;
+  }
+
+  /// Check if user has a profile photo
+  bool get _hasProfilePhoto {
+    final url = _editableProfile.profilePictureUrl;
+    return url != null && url.isNotEmpty;
+  }
+
+  /// Show dialog to select photo source (camera or gallery)
+  Future<void> _showPhotoSourceDialog() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.camera_alt, color: AppTheme.primaryGreen),
+                  title: Text(AppLocalizations.of(context)!.takePhoto),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.photo_library,
+                    color: AppTheme.primaryGreen,
+                  ),
+                  title: Text(AppLocalizations.of(context)!.chooseFromGallery),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+    );
+
+    if (source != null) {
+      await _pickAndUploadImage(source);
+    }
+  }
+
+  /// Pick an image and upload it to the server
+  Future<void> _pickAndUploadImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
       );
-    });
+
+      if (pickedFile == null) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      final imageFile = File(pickedFile.path);
+      final updatedProfile = await _profileService.uploadProfilePhoto(
+        imageFile,
+      );
+
+      if (mounted) {
+        setState(() {
+          _editableProfile = _editableProfile.copyWith(
+            profilePictureUrl: updatedProfile.profilePictureUrl,
+          );
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.photoUploadSuccess),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.photoUploadError(e.toString()),
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Show confirmation dialog and delete profile photo
+  Future<void> _confirmDeletePhoto() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.removePhoto),
+            content: Text(AppLocalizations.of(context)!.photoDeleteConfirm),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(AppLocalizations.of(context)!.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(AppLocalizations.of(context)!.removePhoto),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      await _deleteProfilePhoto();
+    }
+  }
+
+  /// Delete profile photo from the server
+  Future<void> _deleteProfilePhoto() async {
+    try {
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      await _profileService.deleteProfilePhoto();
+
+      if (mounted) {
+        setState(() {
+          _editableProfile = _editableProfile.copyWith(
+            clearProfilePictureUrl: true,
+          );
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.photoDeleteSuccess),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.photoDeleteError(e.toString()),
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   void _toggleSelection(List<String> list, String item) {
@@ -392,46 +550,74 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         child: ListView(
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
+            // Profile Photo Section
             Text(
-              AppLocalizations.of(context)!.chooseAvatar,
+              AppLocalizations.of(context)!.profilePhoto,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             SizedBox(height: 10),
-            Wrap(
-              spacing: 10.0,
-              runSpacing: 10.0,
-              alignment: WrapAlignment.center,
-              children:
-                  _avatarPaths.map((path) {
-                    bool isSelected =
-                        _editableProfile.profilePictureUrl == path;
-                    return GestureDetector(
-                      onTap: () => _selectAvatar(path),
-                      child: Opacity(
-                        opacity: isSelected ? 1.0 : 0.7,
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundImage: AssetImage(
-                            path,
-                          ), // Ensure these assets exist
-                          child:
-                              isSelected
-                                  ? CircleAvatar(
-                                    radius: 40,
-                                    backgroundColor: AppTheme.primaryGreen
-                                        .withOpacity(0.5),
-                                    child: Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 30,
-                                    ),
-                                  )
-                                  : null,
-                        ),
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: _getProfileImageProvider(),
+                    child:
+                        _isUploadingPhoto
+                            ? CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryGreen,
+                              ),
+                            )
+                            : _getProfileImageProvider() == null
+                            ? Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.grey.shade700,
+                            )
+                            : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen,
+                        shape: BoxShape.circle,
                       ),
-                    );
-                  }).toList(),
+                      child: IconButton(
+                        icon: Icon(
+                          _hasProfilePhoto ? Icons.edit : Icons.add_a_photo,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed:
+                            _isUploadingPhoto ? null : _showPhotoSourceDialog,
+                        tooltip:
+                            _hasProfilePhoto
+                                ? AppLocalizations.of(context)!.changePhoto
+                                : AppLocalizations.of(context)!.addPhoto,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(height: 10),
+            if (_hasProfilePhoto)
+              Center(
+                child: TextButton.icon(
+                  onPressed: _isUploadingPhoto ? null : _confirmDeletePhoto,
+                  icon: Icon(Icons.delete_outline, color: Colors.red),
+                  label: Text(
+                    AppLocalizations.of(context)!.removePhoto,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+            SizedBox(height: 20),
+            Divider(),
             SizedBox(height: 20),
             TextFormField(
               controller: _usernameController,

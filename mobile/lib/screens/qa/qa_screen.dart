@@ -8,6 +8,7 @@ import '../../widgets/report_dialog.dart';
 import '../../models/report.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../../utils/user_badge_helper.dart';
 import '../other_user_profile_screen.dart';
 
 class QAScreen extends StatefulWidget {
@@ -129,13 +130,14 @@ class _QuestionCardState extends State<QuestionCard> {
   bool isLoading = false;
   int? _currentUserId;
   String? _authorBadge;
+  String? _authorProfilePhoto;
 
   @override
   void initState() {
     super.initState();
     _loadVoteStatus();
     _loadCurrentUserId();
-    _loadAuthorBadge();
+    _loadAuthorProfile();
   }
 
   Future<void> _loadCurrentUserId() async {
@@ -173,19 +175,23 @@ class _QuestionCardState extends State<QuestionCard> {
     }
   }
 
-  Future<void> _loadAuthorBadge() async {
+  Future<void> _loadAuthorProfile() async {
     final authorId = widget.question['author_id'] as int?;
     if (authorId == null) return;
 
     try {
-      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      final profile = await _profileService.getUserProfileById(authorId);
       if (mounted) {
         setState(() {
-          _authorBadge = badgeData?['badge'];
+          _authorBadge = normalizeBadgeFromApi(
+            profile.typeOfCook,
+            userType: profile.userType,
+          );
+          _authorProfilePhoto = profile.profilePictureUrl;
         });
       }
     } catch (_) {
-      // Silent fail - just don't show badge
+      // Silent fail - just don't show badge/photo
     }
   }
 
@@ -302,17 +308,43 @@ class _QuestionCardState extends State<QuestionCard> {
                       onTap: _navigateToProfile,
                       child: Row(
                         children: [
-                          Text(
-                            widget.question['author'] ?? 'Unknown',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.primaryColor,
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.grey.shade300,
+                            backgroundImage:
+                                _authorProfilePhoto != null &&
+                                        _authorProfilePhoto!.isNotEmpty
+                                    ? NetworkImage(_authorProfilePhoto!)
+                                    : null,
+                            child:
+                                _authorProfilePhoto == null ||
+                                        _authorProfilePhoto!.isEmpty
+                                    ? Icon(
+                                      Icons.person,
+                                      size: 18,
+                                      color: Colors.grey.shade600,
+                                    )
+                                    : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.question['author'] ?? 'Unknown',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.primaryColor,
+                                  ),
+                                ),
+                                if (_authorBadge != null) ...[
+                                  const SizedBox(height: 2),
+                                  BadgeWidget(badge: _authorBadge!),
+                                ],
+                              ],
                             ),
                           ),
-                          if (_authorBadge != null) ...[
-                            const SizedBox(width: 8),
-                            BadgeWidget(badge: _authorBadge!),
-                          ],
                         ],
                       ),
                     ),

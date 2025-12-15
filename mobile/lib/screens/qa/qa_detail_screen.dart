@@ -10,6 +10,7 @@ import '../../widgets/badge_widget.dart';
 import '../../widgets/report_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../../utils/user_badge_helper.dart';
 import '../other_user_profile_screen.dart';
 
 class QADetailScreen extends StatefulWidget {
@@ -30,6 +31,7 @@ class _QADetailScreenState extends State<QADetailScreen> {
   String? currentVote;
   bool isVoteLoading = false;
   String? _authorBadge;
+  String? _authorProfilePhoto;
   List<Map<String, dynamic>> _answers = [];
   bool _isAnswersLoading = false;
   bool _isSubmittingAnswer = false;
@@ -185,14 +187,18 @@ class _QADetailScreenState extends State<QADetailScreen> {
     if (authorId == null) return;
 
     try {
-      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      final profile = await _profileService.getUserProfileById(authorId);
       if (mounted) {
         setState(() {
-          _authorBadge = badgeData?['badge'];
+          _authorBadge = normalizeBadgeFromApi(
+            profile.typeOfCook,
+            userType: profile.userType,
+          );
+          _authorProfilePhoto = profile.profilePictureUrl;
         });
       }
     } catch (_) {
-      // Silent fail - just don't show badge
+      // Silent fail - just don't show badge/photo
     }
   }
 
@@ -442,17 +448,43 @@ class _QADetailScreenState extends State<QADetailScreen> {
                       onTap: () => _navigateToProfile(question!['author_id']),
                       child: Row(
                         children: [
-                          Text(
-                            question!['author'] ?? 'Unknown',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.primaryColor,
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.grey.shade300,
+                            backgroundImage:
+                                _authorProfilePhoto != null &&
+                                        _authorProfilePhoto!.isNotEmpty
+                                    ? NetworkImage(_authorProfilePhoto!)
+                                    : null,
+                            child:
+                                _authorProfilePhoto == null ||
+                                        _authorProfilePhoto!.isEmpty
+                                    ? Icon(
+                                      Icons.person,
+                                      size: 20,
+                                      color: Colors.grey.shade600,
+                                    )
+                                    : null,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  question!['author'] ?? 'Unknown',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.primaryColor,
+                                  ),
+                                ),
+                                if (_authorBadge != null) ...[
+                                  const SizedBox(height: 2),
+                                  BadgeWidget(badge: _authorBadge!),
+                                ],
+                              ],
                             ),
                           ),
-                          if (_authorBadge != null) ...[
-                            const SizedBox(width: 8),
-                            BadgeWidget(badge: _authorBadge!),
-                          ],
                         ],
                       ),
                     ),
@@ -676,12 +708,13 @@ class _AnswerCardState extends State<AnswerCard> {
   String? currentVote;
   bool isLoading = false;
   String? _authorBadge;
+  String? _authorProfilePhoto;
 
   @override
   void initState() {
     super.initState();
     _loadVoteStatus();
-    _loadAuthorBadge();
+    _loadAuthorProfile();
   }
 
   Future<void> _loadVoteStatus() async {
@@ -699,19 +732,23 @@ class _AnswerCardState extends State<AnswerCard> {
     }
   }
 
-  Future<void> _loadAuthorBadge() async {
+  Future<void> _loadAuthorProfile() async {
     final authorId = widget.answer['author_id'] as int?;
     if (authorId == null) return;
 
     try {
-      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      final profile = await _profileService.getUserProfileById(authorId);
       if (mounted) {
         setState(() {
-          _authorBadge = badgeData?['badge'];
+          _authorBadge = normalizeBadgeFromApi(
+            profile.typeOfCook,
+            userType: profile.userType,
+          );
+          _authorProfilePhoto = profile.profilePictureUrl;
         });
       }
     } catch (_) {
-      // Silent fail
+      // Silent fail - just don't show badge/photo
     }
   }
 
@@ -815,17 +852,43 @@ class _AnswerCardState extends State<AnswerCard> {
                         ),
                     child: Row(
                       children: [
-                        Text(
-                          widget.answer['author'] ?? 'Unknown',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.primaryColor,
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.grey.shade300,
+                          backgroundImage:
+                              _authorProfilePhoto != null &&
+                                      _authorProfilePhoto!.isNotEmpty
+                                  ? NetworkImage(_authorProfilePhoto!)
+                                  : null,
+                          child:
+                              _authorProfilePhoto == null ||
+                                      _authorProfilePhoto!.isEmpty
+                                  ? Icon(
+                                    Icons.person,
+                                    size: 18,
+                                    color: Colors.grey.shade600,
+                                  )
+                                  : null,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.answer['author'] ?? 'Unknown',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.primaryColor,
+                                ),
+                              ),
+                              if (_authorBadge != null) ...[
+                                const SizedBox(height: 2),
+                                BadgeWidget(badge: _authorBadge!),
+                              ],
+                            ],
                           ),
                         ),
-                        if (_authorBadge != null) ...[
-                          const SizedBox(width: 8),
-                          BadgeWidget(badge: _authorBadge!),
-                        ],
                       ],
                     ),
                   ),

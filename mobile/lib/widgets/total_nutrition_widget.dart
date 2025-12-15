@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/nutrition_icon_helper.dart';
 
 /// Widget to display total nutritional information for a recipe
 /// Shows calories, protein, fat, and carbs in a prominent card
+/// Icons dynamically adapt based on nutrition values
 class TotalNutritionWidget extends StatelessWidget {
   final Map<String, dynamic>? recipeNutritions;
   final String? title;
@@ -21,6 +23,17 @@ class TotalNutritionWidget extends StatelessWidget {
     if (recipeNutritions == null) {
       return const SizedBox.shrink();
     }
+
+    final caloriesValue = NutritionIconHelper.parseValue(
+      recipeNutritions!['calories'],
+    );
+    final proteinValue = NutritionIconHelper.parseValue(
+      recipeNutritions!['protein'],
+    );
+    final fatValue = NutritionIconHelper.parseValue(recipeNutritions!['fat']);
+    final carbsValue = NutritionIconHelper.parseValue(
+      recipeNutritions!['carbs'],
+    );
 
     final calories = _parseValue(recipeNutritions!['calories']);
     final protein = _parseValue(recipeNutritions!['protein']);
@@ -62,7 +75,9 @@ class TotalNutritionWidget extends StatelessWidget {
                       children: [
                         Text(
                           title ?? AppLocalizations.of(context)!.nutritionFacts,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryGreen,
                           ),
@@ -85,28 +100,28 @@ class TotalNutritionWidget extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Nutrition Grid
+              // Nutrition Grid - Dynamic icons based on values
               Row(
                 children: [
                   Expanded(
-                    child: _buildNutrientCard(
+                    child: _buildDynamicNutrientCard(
                       context,
-                      Icons.local_fire_department,
+                      'calories',
                       AppLocalizations.of(context)!.calories,
                       calories,
                       AppLocalizations.of(context)!.kcal,
-                      Colors.orange,
+                      caloriesValue,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildNutrientCard(
+                    child: _buildDynamicNutrientCard(
                       context,
-                      Icons.fitness_center,
+                      'protein',
                       AppLocalizations.of(context)!.protein,
                       protein,
                       AppLocalizations.of(context)!.grams,
-                      Colors.red,
+                      proteinValue,
                     ),
                   ),
                 ],
@@ -115,24 +130,24 @@ class TotalNutritionWidget extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _buildNutrientCard(
+                    child: _buildDynamicNutrientCard(
                       context,
-                      Icons.opacity,
+                      'fat',
                       AppLocalizations.of(context)!.fat,
                       fat,
                       AppLocalizations.of(context)!.grams,
-                      Colors.yellow.shade700,
+                      fatValue,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildNutrientCard(
+                    child: _buildDynamicNutrientCard(
                       context,
-                      Icons.grass,
+                      'carbs',
                       AppLocalizations.of(context)!.carbs,
                       carbs,
                       AppLocalizations.of(context)!.grams,
-                      Colors.green,
+                      carbsValue,
                     ),
                   ),
                 ],
@@ -144,14 +159,18 @@ class TotalNutritionWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildNutrientCard(
+  /// Builds a dynamic nutrient card with icons that adapt to value intensity
+  Widget _buildDynamicNutrientCard(
     BuildContext context,
-    IconData icon,
+    String type,
     String label,
     String value,
     String unit,
-    Color color,
+    double numericValue,
   ) {
+    final color = NutritionIconHelper.getColor(type, numericValue);
+    final emoji = NutritionIconHelper.getEmoji(type, numericValue);
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -161,8 +180,9 @@ class TotalNutritionWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 28, color: color),
-          const SizedBox(height: 8),
+          // Dynamic emoji row based on intensity (centered, no overflow)
+          Text(emoji, style: TextStyle(fontSize: 22)),
+          const SizedBox(height: 6),
           Text(
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(

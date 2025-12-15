@@ -18,6 +18,7 @@ class CommentCard extends StatefulWidget {
   final VoidCallback onVoteChanged;
   final DateFormat? userDateFormat;
   final String? authorBadge;
+  final String? authorProfilePhoto;
 
   const CommentCard({
     Key? key,
@@ -29,6 +30,7 @@ class CommentCard extends StatefulWidget {
     required this.onVoteChanged,
     this.userDateFormat,
     this.authorBadge,
+    this.authorProfilePhoto,
   }) : super(key: key);
 
   @override
@@ -208,43 +210,74 @@ class _CommentCardState extends State<CommentCard> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => OtherUserProfileScreen(
-                            userId: widget.comment.author,
-                          ),
+                          builder:
+                              (context) => OtherUserProfileScreen(
+                                userId: widget.comment.author,
+                              ),
                         ),
                       );
                     }
                   },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        AppLocalizations.of(context)!.byAuthor(
-                          widget.authorUsername,
-                        ),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: widget.currentUserId != widget.comment.author
-                                  ? Colors.blue[700]
-                                  : null,
-                              decoration:
-                                  widget.currentUserId != widget.comment.author
-                                      ? TextDecoration.underline
-                                      : null,
-                            ),
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.grey.shade300,
+                        backgroundImage:
+                            widget.authorProfilePhoto != null &&
+                                    widget.authorProfilePhoto!.isNotEmpty
+                                ? NetworkImage(widget.authorProfilePhoto!)
+                                : null,
+                        child:
+                            widget.authorProfilePhoto == null ||
+                                    widget.authorProfilePhoto!.isEmpty
+                                ? Icon(
+                                  Icons.person,
+                                  size: 18,
+                                  color: Colors.grey.shade600,
+                                )
+                                : null,
                       ),
-                      if (widget.authorBadge != null) ...[
-                        const SizedBox(height: 4),
-                        BadgeWidget(
-                          badge: widget.authorBadge!,
-                          fontSize: 9,
-                          iconSize: 11,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.byAuthor(widget.authorUsername),
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    widget.currentUserId !=
+                                            widget.comment.author
+                                        ? Colors.blue[700]
+                                        : null,
+                                decoration:
+                                    widget.currentUserId !=
+                                            widget.comment.author
+                                        ? TextDecoration.underline
+                                        : null,
+                              ),
+                            ),
+                            if (widget.authorBadge != null) ...[
+                              const SizedBox(height: 2),
+                              BadgeWidget(
+                                badge: widget.authorBadge!,
+                                fontSize: 9,
+                                iconSize: 11,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),

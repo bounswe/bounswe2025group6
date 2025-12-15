@@ -46,7 +46,7 @@ UserProfile getMockUserProfile({
     id: id,
     username: username,
     email: email,
-    profilePictureUrl: profilePictureUrl ?? 'assets/avatars/cat.png',
+    profilePictureUrl: profilePictureUrl,
     joinedDate: joinedDate ?? DateTime(2023, 1, 1),
     dietaryPreferences: List<String>.from(dietaryPreferences),
     allergens: List<String>.from(allergens),

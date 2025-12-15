@@ -8,8 +8,8 @@ import '../../widgets/report_dialog.dart';
 import '../../widgets/badge_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/tag_localization.dart';
+import '../../utils/user_badge_helper.dart';
 import '../other_user_profile_screen.dart';
-// badge normalization handled by ProfileService
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -122,6 +122,7 @@ class _PostCardState extends State<PostCard> {
   bool isLoading = false;
   int? _currentUserId;
   String? _authorBadge;
+  String? _authorProfilePhoto;
 
   @override
   void initState() {
@@ -169,15 +170,20 @@ class _PostCardState extends State<PostCard> {
     if (authorId == null) return;
 
     try {
-      final badgeData = await _profileService.getRecipeCountBadge(authorId);
+      // Get full profile to access both badge and profile photo
+      final profile = await _profileService.getUserProfileById(authorId);
       if (mounted) {
         setState(() {
-          // ProfileService returns a normalized badge (dietitian prioritized)
-          _authorBadge = badgeData?['badge'];
+          // Normalize badge with dietitian priority
+          _authorBadge = normalizeBadgeFromApi(
+            profile.typeOfCook,
+            userType: profile.userType,
+          );
+          _authorProfilePhoto = profile.profilePictureUrl;
         });
       }
     } catch (_) {
-      // Silent fail - just don't show badge
+      // Silent fail - just don't show badge/photo
     }
   }
 
@@ -376,36 +382,64 @@ class _PostCardState extends State<PostCard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => OtherUserProfileScreen(
-                                userId: widget.post['author_id'],
-                              ),
+                              builder:
+                                  (context) => OtherUserProfileScreen(
+                                    userId: widget.post['author_id'],
+                                  ),
                             ),
                           );
                         }
                       },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Text(
-                            '${widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
-                            style: TextStyle(
-                              color: !isOwnPost ? Colors.blue[700] : null,
-                              decoration:
-                                  !isOwnPost ? TextDecoration.underline : null,
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.grey.shade300,
+                            backgroundImage:
+                                _authorProfilePhoto != null &&
+                                        _authorProfilePhoto!.isNotEmpty
+                                    ? NetworkImage(_authorProfilePhoto!)
+                                    : null,
+                            child:
+                                _authorProfilePhoto == null ||
+                                        _authorProfilePhoto!.isEmpty
+                                    ? Icon(
+                                      Icons.person,
+                                      size: 20,
+                                      color: Colors.grey.shade600,
+                                    )
+                                    : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${widget.post['author']?.toString() ?? AppLocalizations.of(context)!.unknown}',
+                                  style: TextStyle(
+                                    color: !isOwnPost ? Colors.blue[700] : null,
+                                    decoration:
+                                        !isOwnPost
+                                            ? TextDecoration.underline
+                                            : null,
+                                  ),
+                                ),
+                                if (_authorBadge != null) ...[
+                                  const SizedBox(height: 2),
+                                  BadgeWidget(
+                                    badge: _authorBadge!,
+                                    fontSize: 10,
+                                    iconSize: 12,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                          if (_authorBadge != null) ...[
-                            const SizedBox(height: 4),
-                            BadgeWidget(
-                              badge: _authorBadge!,
-                              fontSize: 10,
-                              iconSize: 12,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
