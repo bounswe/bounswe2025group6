@@ -15,8 +15,8 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react()],
       server: {
         https: {
-          key: fs.readFileSync(path.resolve(__dirname, 'privkey.pem')),
-          cert: fs.readFileSync(path.resolve(__dirname, 'fullchain.pem')),
+          key: fs.readFileSync(path.resolve(__dirname, env.HTTPS_KEY)),
+          cert: fs.readFileSync(path.resolve(__dirname, env.HTTPS_CERT)),
         },
 
         host: '0.0.0.0',
@@ -29,13 +29,16 @@ export default defineConfig(({ command, mode }) => {
   else {
 
     return {
-    plugins: [react()],
+      plugins: [react()],
       server: {
         allowedHosts: [".fithubmp.xyz"],
         host: '0.0.0.0',
         port: 5173
       },
       logLevel: 'info'
+//      define: {
+//      __APP_ENV__: JSON.stringify(env.APP_ENV),
+//      },
     }
   }
 })

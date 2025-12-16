@@ -16,3 +16,4 @@ django-extensions
 Werkzeug
 pyOpenSSL
 django-extensions
+gunicorn

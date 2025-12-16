@@ -59,7 +59,7 @@ class UserProfileUpdateSwaggerSerializer(UserProfileCreateSwaggerSerializer):
     password = serializers.CharField(required=False)
 
 def index(request):
-    return HttpResponse("Home page! Work in progress...")
+    return HttpResponse("API OK")
 
 @swagger_auto_schema(
     method='post',

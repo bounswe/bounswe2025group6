@@ -10,16 +10,10 @@ COPY . /frontend
 
 WORKDIR /frontend
 
-# Allow the container to accept requests coming to the port 5173.
-
-#EXPOSE 443
-
-# Run the preperations.
+# Install dependencies.
 
 RUN npm i
 
-# Run the server. "0.0.0.0" is to make the server be able to listen from anywhere, not just from within the container.
+# Run the server.
 
 CMD [ "npm", "run", "dev" ]
-
-#, "--host=0.0.0.0" ]
