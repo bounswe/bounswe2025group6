@@ -1,0 +1,39 @@
+# Base this image on the premade package which only includes Node.js version 18.
+
+FROM node:18 AS build
+
+# Copy all the files in current directory to the /frontend directory in the container.
+
+COPY . /frontend
+
+# Set the working directory (like "cd") to "/frontend".
+
+WORKDIR /frontend
+
+# Install dependencies.
+
+RUN npm i
+
+# Build static web files.
+
+RUN npm run build
+
+# Configure Nginx server and copy the compiled code.
+
+FROM nginx
+
+RUN mkdir /cert
+
+# Arguments for HTTPS configuration.
+
+ARG HTTPS_CERT
+
+ARG HTTPS_KEY
+
+COPY $HTTPS_CERT /cert/certificate.pem
+
+COPY $HTTPS_KEY /cert/privkey.pem
+
+COPY nginx-https.conf /etc/nginx/conf.d/default.conf 
+COPY --from=build /frontend/dist /usr/share/nginx/html
+

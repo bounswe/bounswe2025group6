@@ -38,7 +38,7 @@ for var in ENV_VARIABLES:
 SECRET_KEY = 'django-insecure-f7#u$4w*^*l6s*yh^$6=a9t*h$loal!1^=p@_u%icge!g_ul%h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1', '10.0.2.2', '95.179.161.59', '104.248.36.144', 'fithubmp.xyz']
 
@@ -242,6 +242,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = "../../static/"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -262,7 +264,7 @@ AUTH_USER_MODEL = 'api.RegisteredUser'
 
 SITE_DOMAIN = "http://95.179.161.59:8000"
 
-SERVER_PROTOCOL = 'https' if os.environ.get('COMPOSE_PROFILES') == 'https' else 'http'
+SERVER_PROTOCOL = 'https' if (os.environ.get('COMPOSE_PROFILES') == 'https' or os.environ.get('COMPOSE_PROFILES') == 'https_prod') else 'http'
 
 
 # Login attempt settings

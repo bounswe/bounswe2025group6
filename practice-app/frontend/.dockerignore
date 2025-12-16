@@ -3,7 +3,6 @@ npm-debug.log
 package-lock.json
 .git
 .gitignore
-.env
 .env.local
 .env.*.local
 dist

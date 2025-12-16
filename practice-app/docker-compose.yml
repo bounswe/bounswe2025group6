@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: mysql:8.0
-    container_name: myproject-mysql
+    container_name: fithub-mysql
 #    restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -25,7 +25,7 @@ services:
 
   backend:
     build: ./backend/fithub
-    container_name: myproject-django
+    container_name: fithub-django
     command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
@@ -43,7 +43,7 @@ services:
 
   backend_https:
     build: ./backend/fithub
-    container_name: myproject-django-https
+    container_name: fithub-django-https
     command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec python manage.py runserver_plus --cert-file ${HTTPS_CERT} --key-file ${HTTPS_KEY} 0.0.0.0:8000"
     volumes:
       - .:/code
@@ -59,9 +59,30 @@ services:
     profiles:
       - https
 
+  backend_prod:
+    build: 
+      context: ./backend/fithub
+      dockerfile: Dockerfile.prod
+    container_name: fithub-django-prod
+    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec gunicorn fithub.wsgi -b 0.0.0.0:8001"
+    volumes:
+      - .:/code
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - web
+    profiles:
+      - http_prod
+      - https_prod
+
   frontend:
     build: ./frontend
-    container_name: myproject-frontend
+    container_name: fithub-frontend
     volumes:
       - .:/frontend_code
     ports:
@@ -75,7 +96,7 @@ services:
 
   frontend_https:
     build: ./frontend
-    container_name: myproject-frontend-https
+    container_name: fithub-frontend-https
     volumes:
       - .:/frontend_code
     ports:
@@ -86,6 +107,47 @@ services:
       - web
     profiles:
       - https
+
+  frontend_prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: fithub-frontend-prod
+    volumes:
+      - .:/frontend_code
+    depends_on:
+      backend_prod:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - web
+    profiles:
+      - http_prod
+
+  frontend_https_prod:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.prodhttps
+      args:
+        HTTPS_CERT: ${HTTPS_CERT}
+        HTTPS_KEY: ${HTTPS_KEY}
+    container_name: fithub-frontend-https-prod
+    volumes:
+      - .:/frontend_code
+    depends_on:
+      backend_prod:
+        condition: service_started
+    ports:
+      - "443:443"
+    env_file:
+      - .env
+    networks:
+      - web
+    profiles:
+      - https_prod
 
 volumes:
   db_data:
