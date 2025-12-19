@@ -41,10 +41,11 @@ class RecipeViewSetTests(APITestCase):
         )
 
     def test_list_recipes_unauthenticated(self):
-        """Test that listing recipes requires authentication."""
+        """Test that listing recipes is publicly accessible."""
         url = reverse("recipe-list")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("results", response.data)
 
     def test_list_recipes_authenticated(self):
         """Test listing recipes when authenticated."""

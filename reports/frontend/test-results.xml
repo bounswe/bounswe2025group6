@@ -1,0 +1,1105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="521" failures="0" errors="0" time="23.667">
+  <testsuite name="src/__tests__/RecipeWorkflow.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:06" time="9.046" tests="29">
+    <testcase classname="UploadRecipePage › Form Rendering" name="renders upload recipe form with all required fields" time="0.619">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Rendering" name="renders upload and cancel buttons" time="0.505">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Validation" name="shows validation errors when submitting empty form" time="0.35">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Validation" name="recipe name field is required" time="0.023">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Validation" name="cooking time field is required" time="0.073">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Validation" name="prep time field is required" time="0.191">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Validation" name="meal type field is required" time="0.083">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Validation" name="steps field is required" time="0.076">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="allows user to enter recipe name" time="0.075">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="allows user to enter cooking time" time="0.057">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="allows user to enter prep time" time="0.118">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="allows user to select meal type" time="0.125">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="allows user to select different meal types" time="0.074">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="allows user to enter recipe steps" time="0.03">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="only allows numeric values for cooking time" time="0.096">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="only allows numeric values for prep time" time="0.041">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="prevents negative values for cooking time" time="0.038">
+    </testcase>
+    <testcase classname="UploadRecipePage › Form Input Handling" name="prevents negative values for prep time" time="0.012">
+    </testcase>
+    <testcase classname="UploadRecipePage › Complete Recipe Upload Workflow" name="should fill complete form with all required data" time="0.072">
+    </testcase>
+    <testcase classname="UploadRecipePage › Complete Recipe Upload Workflow" name="should clear form fields after canceling" time="0.178">
+    </testcase>
+    <testcase classname="UploadRecipePage › Meal Type Options" name="meal type select has breakfast option" time="0.045">
+    </testcase>
+    <testcase classname="UploadRecipePage › Meal Type Options" name="meal type select has lunch option" time="0.018">
+    </testcase>
+    <testcase classname="UploadRecipePage › Meal Type Options" name="meal type select has dinner option" time="0.099">
+    </testcase>
+    <testcase classname="UploadRecipePage › Recipe Upload" name="should call addRecipe service when form is submitted" time="0.473">
+    </testcase>
+    <testcase classname="UploadRecipePage › Recipe Upload" name="should navigate to recipe detail page after successful upload" time="0.204">
+    </testcase>
+    <testcase classname="UploadRecipePage › Recipe Upload" name="should show success toast after upload" time="0.174">
+    </testcase>
+    <testcase classname="UploadRecipePage › Recipe Upload" name="should show error toast if upload fails" time="0.121">
+    </testcase>
+    <testcase classname="UploadRecipePage › Time Input Constraints" name="cooking time should accept decimal values" time="0.056">
+    </testcase>
+    <testcase classname="UploadRecipePage › Time Input Constraints" name="prep time should accept decimal values" time="0.021">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/Community.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:06" time="11.552" tests="20">
+    <testcase classname="CommunityPage › Community Page Rendering" name="renders community page with header" time="1.02">
+    </testcase>
+    <testcase classname="CommunityPage › Community Page Rendering" name="renders create post button" time="0.699">
+    </testcase>
+    <testcase classname="CommunityPage › Community Page Rendering" name="displays list of community posts" time="0.201">
+    </testcase>
+    <testcase classname="CommunityPage › Post Search and Filter" name="filters posts by search term" time="0.417">
+    </testcase>
+    <testcase classname="CommunityPage › Post Search and Filter" name="filters posts by tag" time="0.28">
+    </testcase>
+    <testcase classname="CommunityPage › Post Voting" name="upvotes a post successfully" time="0.261">
+    </testcase>
+    <testcase classname="CommunityPage › Post Voting" name="downvotes a post successfully" time="0.228">
+    </testcase>
+    <testcase classname="CommunityPage › Post Display" name="displays post title and content" time="0.144">
+    </testcase>
+    <testcase classname="CommunityPage › Post Display" name="displays post author information" time="0.099">
+    </testcase>
+    <testcase classname="CommunityPage › Post Display" name="displays post statistics (upvotes, downvotes, comments)" time="0.094">
+    </testcase>
+    <testcase classname="CommunityPage › Post Display" name="displays post tags" time="0.057">
+    </testcase>
+    <testcase classname="CommunityPage › Sorting" name="sorts posts by recent" time="0.185">
+    </testcase>
+    <testcase classname="CommunityPage › Sorting" name="sorts posts by popular" time="0.073">
+    </testcase>
+    <testcase classname="CommunityPage › Error Handling" name="displays error message when posts fail to load" time="0.185">
+    </testcase>
+    <testcase classname="CommunityPage › Error Handling" name="handles unauthenticated user attempting to create post" time="0.162">
+    </testcase>
+    <testcase classname="CommunityPage › User Post Actions" name="allows user to delete their own post" time="0.087">
+    </testcase>
+    <testcase classname="CommunityPage › User Post Actions" name="allows user to edit their own post" time="0.172">
+    </testcase>
+    <testcase classname="CommunityPage › Pagination" name="navigates to next page of posts" time="0.205">
+    </testcase>
+    <testcase classname="CommunityPage › Pagination" name="navigates to previous page of posts" time="0.156">
+    </testcase>
+    <testcase classname="CommunityPage › Loading State" name="displays loading indicator while fetching posts" time="0.021">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/ShoppingListPage.test.jsx" errors="0" failures="0" skipped="2" timestamp="2025-12-19T19:17:06" time="11.895" tests="33">
+    <testcase classname="ShoppingListPage › Page Rendering" name="renders shopping list page with title and main sections" time="0.454">
+    </testcase>
+    <testcase classname="ShoppingListPage › Page Rendering" name="shows loading state initially" time="0.008">
+    </testcase>
+    <testcase classname="ShoppingListPage › Page Rendering" name="loads meal plan from localStorage and fetches recipe details" time="0.018">
+    </testcase>
+    <testcase classname="ShoppingListPage › Page Rendering" name="renders recipe cards with nutrition information" time="0.067">
+    </testcase>
+    <testcase classname="ShoppingListPage › Page Rendering" name="renders market comparison with costs" time="0.19">
+    </testcase>
+    <testcase classname="ShoppingListPage › Page Rendering" name="renders consolidated ingredients list" time="0.176">
+    </testcase>
+    <testcase classname="ShoppingListPage › Ingredient Consolidation" name="consolidates ingredients with same id and unit correctly" time="0.088">
+    </testcase>
+    <testcase classname="ShoppingListPage › Ingredient Consolidation" name="keeps separate entries for same ingredient with different units" time="0.057">
+    </testcase>
+    <testcase classname="ShoppingListPage › Market Cost Calculation" name="calculates total costs per market correctly" time="0.104">
+    </testcase>
+    <testcase classname="ShoppingListPage › Market Cost Calculation" name="highlights cheapest market with best deal badge" time="0.077">
+    </testcase>
+    <testcase classname="ShoppingListPage › Market Cost Calculation" name="displays market logos correctly" time="0.21">
+    </testcase>
+    <testcase classname="ShoppingListPage › Share Functionality" name="renders share button instead of copy button" time="0.071">
+    </testcase>
+    <testcase classname="ShoppingListPage › Share Functionality" name="shares shopping list using Web Share API when available" time="0.06">
+    </testcase>
+    <testcase classname="ShoppingListPage › Share Functionality" name="falls back to clipboard when Web Share API is not available" time="0.083">
+    </testcase>
+    <testcase classname="ShoppingListPage › Share Functionality" name="handles share cancellation gracefully" time="0.075">
+    </testcase>
+    <testcase classname="ShoppingListPage › Clipboard Functionality" name="copies shopping list to clipboard when copy button is clicked" time="0.041">
+    </testcase>
+    <testcase classname="ShoppingListPage › Clipboard Functionality" name="shows copied state temporarily after successful copy - legacy test" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ShoppingListPage › Clipboard Functionality" name="falls back to execCommand when clipboard API is not available" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ShoppingListPage › Navigation and Interaction" name="navigates to ingredient detail when ingredient is clicked" time="0.046">
+    </testcase>
+    <testcase classname="ShoppingListPage › Navigation and Interaction" name="saves state to localStorage when navigating to ingredient detail" time="0.069">
+    </testcase>
+    <testcase classname="ShoppingListPage › Navigation and Interaction" name="renders back to meal planner link" time="0.042">
+    </testcase>
+    <testcase classname="ShoppingListPage › State Restoration" name="restores state from localStorage when returning from ingredient detail" time="0.073">
+    </testcase>
+    <testcase classname="ShoppingListPage › Shopping List History" name="saves shopping list to history when loaded" time="0.056">
+    </testcase>
+    <testcase classname="ShoppingListPage › Shopping List History" name="prevents duplicate saves to history" time="0.049">
+    </testcase>
+    <testcase classname="ShoppingListPage › Shopping List History" name="limits history to 20 entries" time="0.031">
+    </testcase>
+    <testcase classname="ShoppingListPage › Empty States" name="shows empty state when no meal plan is found" time="0.012">
+    </testcase>
+    <testcase classname="ShoppingListPage › Empty States" name="shows empty state when meal plan has no recipes" time="0.006">
+    </testcase>
+    <testcase classname="ShoppingListPage › Empty States" name="renders go to meal planner link in empty state" time="0.005">
+    </testcase>
+    <testcase classname="ShoppingListPage › Error Handling" name="handles recipe loading errors gracefully" time="0.009">
+    </testcase>
+    <testcase classname="ShoppingListPage › Error Handling" name="handles localStorage errors gracefully" time="0.006">
+    </testcase>
+    <testcase classname="ShoppingListPage › Error Handling" name="handles share errors gracefully" time="0.148">
+    </testcase>
+    <testcase classname="ShoppingListPage › Internationalization" name="translates ingredient names correctly" time="0.071">
+    </testcase>
+    <testcase classname="ShoppingListPage › Internationalization" name="handles Turkish language correctly" time="0.04">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/OtherUserProfilePage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:06" time="12.437" tests="45">
+    <testcase classname="OtherUserProfilePage › Page Loading and Navigation" name="shows loading state initially" time="0.229">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Page Loading and Navigation" name="redirects to own profile when userId is &quot;me&quot;" time="0.075">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Page Loading and Navigation" name="redirects to own profile when userId matches current user" time="0.066">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Page Loading and Navigation" name="loads target user profile data on mount" time="0.092">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Page Loading and Navigation" name="shows user not found message when profile loading fails" time="0.047">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Header Display" name="renders target user profile information correctly" time="0.031">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Header Display" name="displays user stats correctly" time="0.266">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Header Display" name="shows profile avatar placeholder when no photo" time="0.057">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Header Display" name="displays user badge correctly" time="0.037">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Header Display" name="shows follow button for logged-in users" time="0.063">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Header Display" name="hides follow button for non-logged-in users" time="0.031">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="checks follow status on mount" time="0.051">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="shows correct follow button state when not following" time="0.056">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="shows correct follow button state when already following" time="0.039">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="toggles follow status when follow button is clicked" time="0.079">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="shows loading state while toggling follow" time="0.161">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="redirects to login when non-logged user tries to follow" time="0.017">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Follow Functionality" name="handles follow toggle errors gracefully" time="0.051">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Tab Navigation" name="renders profile tabs correctly" time="0.047">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Tab Navigation" name="switches between tabs correctly" time="0.119">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Tab Navigation" name="shows recipes tab as active by default" time="0.022">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Recipes Tab" name="displays user recipes correctly" time="0.046">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Recipes Tab" name="filters recipes by target user ID" time="0.015">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Recipes Tab" name="shows empty message when no recipes" time="0.029">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Posts Tab" name="loads and displays user posts" time="0.038">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Posts Tab" name="navigates to post when clicked" time="0.047">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Posts Tab" name="shows empty message when no posts" time="0.055">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Comments Tab" name="loads and displays user comments" time="0.032">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Comments Tab" name="navigates to post when comment is clicked" time="0.038">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Comments Tab" name="shows empty message when no comments" time="0.052">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="opens followers popup when followers count is clicked" time="0.192">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="opens following popup when following count is clicked" time="0.037">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="closes popup when overlay is clicked" time="0.096">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="navigates to user profile when user in popup is clicked" time="0.054">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="navigates to own profile when clicking self in popup" time="0.166">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="shows empty state when no followers" time="0.102">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Followers and Following Popups" name="shows empty state when not following anyone" time="0.04">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Data Loading and Error Handling" name="loads all user data in parallel" time="0.011">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Data Loading and Error Handling" name="handles service errors gracefully" time="0.025">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Data Loading and Error Handling" name="sets empty arrays on service failures" time="0.026">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Data Loading and Error Handling" name="handles pagination for posts and comments correctly" time="0.013">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Date Formatting" name="uses current user&apos;s preferred date format" time="0.008">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Date Formatting" name="falls back to default date format when current user data fails" time="0.023">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Photo Display" name="displays profile photo when available" time="0.063">
+    </testcase>
+    <testcase classname="OtherUserProfilePage › Profile Photo Display" name="displays placeholder when no profile photo" time="0.076">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/PostDetailPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:06" time="14.159" tests="37">
+    <testcase classname="PostDetailPage › Page Rendering" name="renders post details correctly" time="0.415">
+    </testcase>
+    <testcase classname="PostDetailPage › Page Rendering" name="shows loading state initially" time="0.023">
+    </testcase>
+    <testcase classname="PostDetailPage › Page Rendering" name="renders vote buttons for post" time="0.075">
+    </testcase>
+    <testcase classname="PostDetailPage › Page Rendering" name="renders post tags" time="0.09">
+    </testcase>
+    <testcase classname="PostDetailPage › Page Rendering" name="renders back to forum button" time="0.036">
+    </testcase>
+    <testcase classname="PostDetailPage › Page Rendering" name="shows edit and delete buttons for post owner" time="0.056">
+    </testcase>
+    <testcase classname="PostDetailPage › Page Rendering" name="hides edit and delete buttons for non-owner" time="0.063">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Voting" name="allows logged in user to upvote post" time="0.273">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Voting" name="allows logged in user to downvote post" time="0.141">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Voting" name="removes vote when clicking same vote type twice" time="0.158">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Voting" name="prompts login for non-authenticated users" time="0.067">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Section" name="renders comment form for logged in users" time="0.02">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Section" name="shows login prompt for comment form when not logged in" time="0.013">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Section" name="renders existing comments" time="0.18">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Section" name="allows submitting new comment" time="0.185">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Section" name="validates comment content before submission" time="0.048">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Section" name="shows delete button for own comments" time="0.108">
+    </testcase>
+    <testcase classname="PostDetailPage › Comment Voting" name="allows voting on comments" time="0.226">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Actions" name="allows editing own post" time="0.027">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Actions" name="allows deleting own post with confirmation" time="0.081">
+    </testcase>
+    <testcase classname="PostDetailPage › Post Actions" name="cancels deletion when not confirmed" time="0.034">
+    </testcase>
+    <testcase classname="PostDetailPage › Share Functionality" name="renders share button for post" time="0.096">
+    </testcase>
+    <testcase classname="PostDetailPage › Share Functionality" name="shares post using Web Share API when available" time="0.096">
+    </testcase>
+    <testcase classname="PostDetailPage › Share Functionality" name="falls back to clipboard when Web Share API is not available" time="0.044">
+    </testcase>
+    <testcase classname="PostDetailPage › Share Functionality" name="includes post tags in share text" time="0.046">
+    </testcase>
+    <testcase classname="PostDetailPage › Navigation" name="navigates back to community when back button is clicked" time="0.065">
+    </testcase>
+    <testcase classname="PostDetailPage › Navigation" name="navigates to user profile when author name is clicked" time="0.111">
+    </testcase>
+    <testcase classname="PostDetailPage › Error Handling" name="shows not found message when post does not exist" time="0.07">
+    </testcase>
+    <testcase classname="PostDetailPage › Error Handling" name="handles voting errors gracefully" time="0.228">
+    </testcase>
+    <testcase classname="PostDetailPage › Error Handling" name="handles comment submission errors" time="0.094">
+    </testcase>
+    <testcase classname="PostDetailPage › Error Handling" name="handles disabled comments error" time="0.33">
+    </testcase>
+    <testcase classname="PostDetailPage › Comments Disabled State" name="shows comments disabled message when is_commentable is false" time="0.161">
+    </testcase>
+    <testcase classname="PostDetailPage › No Comments State" name="shows no comments message when there are no comments" time="0.083">
+    </testcase>
+    <testcase classname="PostDetailPage › Comment Pagination" name="shows pagination when there are more comments than page size" time="0.158">
+    </testcase>
+    <testcase classname="PostDetailPage › Author Profile Photo" name="displays author profile photo for post when available" time="0.113">
+    </testcase>
+    <testcase classname="PostDetailPage › Author Profile Photo" name="displays placeholder when author has no profile photo" time="0.075">
+    </testcase>
+    <testcase classname="PostDetailPage › Author Profile Photo" name="displays author profile photo for comments when available" time="0.128">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/MealPlannerPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:15" time="5.142" tests="28">
+    <testcase classname="MealPlannerPage › Page Rendering" name="renders meal planner page with title and main sections" time="0.165">
+    </testcase>
+    <testcase classname="MealPlannerPage › Page Rendering" name="loads recipes for each meal type on mount" time="0.042">
+    </testcase>
+    <testcase classname="MealPlannerPage › Page Rendering" name="renders recipe cards for each meal type" time="0.049">
+    </testcase>
+    <testcase classname="MealPlannerPage › Page Rendering" name="renders meal plan summary component" time="0.038">
+    </testcase>
+    <testcase classname="MealPlannerPage › Recipe Selection" name="allows selecting recipes for meal plan" time="0.135">
+    </testcase>
+    <testcase classname="MealPlannerPage › Recipe Selection" name="deselects recipe when clicking selected recipe again" time="0.174">
+    </testcase>
+    <testcase classname="MealPlannerPage › Recipe Selection" name="shows selected styling for chosen recipes" time="0.052">
+    </testcase>
+    <testcase classname="MealPlannerPage › Random Meal Plan Generation" name="generates random meal plan when button is clicked" time="0.084">
+    </testcase>
+    <testcase classname="MealPlannerPage › Random Meal Plan Generation" name="shows loading state while generating random plan" time="0.106">
+    </testcase>
+    <testcase classname="MealPlannerPage › Random Meal Plan Generation" name="handles random generation errors" time="0.176">
+    </testcase>
+    <testcase classname="MealPlannerPage › Random Meal Plan Generation" name="scrolls to bottom after successful generation" time="0.074">
+    </testcase>
+    <testcase classname="MealPlannerPage › Filter Management" name="applies filters when filter component triggers apply" time="0.089">
+    </testcase>
+    <testcase classname="MealPlannerPage › Filter Management" name="clears filters when clear button is clicked" time="0.099">
+    </testcase>
+    <testcase classname="MealPlannerPage › Filter Management" name="updates pending filters when filter component changes" time="0.136">
+    </testcase>
+    <testcase classname="MealPlannerPage › Meal Section Collapsing" name="allows collapsing and expanding meal sections" time="0.079">
+    </testcase>
+    <testcase classname="MealPlannerPage › Meal Section Collapsing" name="toggles meal section visibility correctly" time="0.067">
+    </testcase>
+    <testcase classname="MealPlannerPage › Pagination" name="shows pagination when there are more than 6 recipes" time="0.39">
+    </testcase>
+    <testcase classname="MealPlannerPage › Pagination" name="navigates between pages correctly" time="0.225">
+    </testcase>
+    <testcase classname="MealPlannerPage › Pagination" name="disables pagination buttons appropriately" time="0.057">
+    </testcase>
+    <testcase classname="MealPlannerPage › Meal Plan Summary Integration" name="clears meal plan when summary clear button is clicked" time="0.064">
+    </testcase>
+    <testcase classname="MealPlannerPage › Meal Plan Summary Integration" name="generates shopping list when summary button is clicked" time="0.061">
+    </testcase>
+    <testcase classname="MealPlannerPage › Meal Plan Summary Integration" name="passes correct data to meal plan summary" time="0.028">
+    </testcase>
+    <testcase classname="MealPlannerPage › State Persistence" name="saves state to localStorage on changes" time="0.065">
+    </testcase>
+    <testcase classname="MealPlannerPage › State Persistence" name="restores state from localStorage on mount" time="0.017">
+    </testcase>
+    <testcase classname="MealPlannerPage › Error Handling" name="handles recipe loading errors gracefully" time="0.066">
+    </testcase>
+    <testcase classname="MealPlannerPage › Error Handling" name="handles localStorage errors gracefully" time="0.111">
+    </testcase>
+    <testcase classname="MealPlannerPage › Empty States" name="shows no recipes message when no recipes are available" time="0.065">
+    </testcase>
+    <testcase classname="MealPlannerPage › Meal Type Filtering" name="hides meal sections when not included in filters" time="0.063">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/AdminLogin.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:18" time="3.254" tests="29">
+    <testcase classname="AdminLogin › Component Rendering" name="renders admin login form correctly" time="0.06">
+    </testcase>
+    <testcase classname="AdminLogin › Component Rendering" name="renders security notice" time="0.084">
+    </testcase>
+    <testcase classname="AdminLogin › Component Rendering" name="renders footer with links and instructions" time="0.101">
+    </testcase>
+    <testcase classname="AdminLogin › Component Rendering" name="renders form inputs with proper attributes" time="0.048">
+    </testcase>
+    <testcase classname="AdminLogin › Form Input Handling" name="updates username field correctly" time="0.206">
+    </testcase>
+    <testcase classname="AdminLogin › Form Input Handling" name="updates password field correctly" time="0.203">
+    </testcase>
+    <testcase classname="AdminLogin › Form Input Handling" name="clears errors when user starts typing" time="0.107">
+    </testcase>
+    <testcase classname="AdminLogin › Form Validation" name="validates required username field" time="0.118">
+    </testcase>
+    <testcase classname="AdminLogin › Form Validation" name="validates required password field" time="0.031">
+    </testcase>
+    <testcase classname="AdminLogin › Form Validation" name="validates whitespace-only inputs" time="0.027">
+    </testcase>
+    <testcase classname="AdminLogin › Form Validation" name="adds error styling to invalid fields" time="0.062">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="submits form with valid credentials" time="0.032">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="trims whitespace from username" time="0.055">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="stores tokens in localStorage on successful login" time="0.145">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="updates auth context on successful login" time="0.038">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="shows success toast on successful login" time="0.07">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="calls onLoginSuccess callback if provided" time="0.067">
+    </testcase>
+    <testcase classname="AdminLogin › Form Submission" name="navigates to admin reports when no callback provided" time="0.027">
+    </testcase>
+    <testcase classname="AdminLogin › Loading States" name="shows loading state during submission" time="0.046">
+    </testcase>
+    <testcase classname="AdminLogin › Loading States" name="disables form inputs during submission" time="0.032">
+    </testcase>
+    <testcase classname="AdminLogin › Loading States" name="adds loading class to form during submission" time="0.062">
+    </testcase>
+    <testcase classname="AdminLogin › Error Handling" name="handles 401 unauthorized error" time="0.167">
+    </testcase>
+    <testcase classname="AdminLogin › Error Handling" name="handles 403 access denied error" time="0.071">
+    </testcase>
+    <testcase classname="AdminLogin › Error Handling" name="handles generic network errors" time="0.051">
+    </testcase>
+    <testcase classname="AdminLogin › Error Handling" name="shows field errors for invalid credentials" time="0.034">
+    </testcase>
+    <testcase classname="AdminLogin › Error Handling" name="restores form state after error" time="0.045">
+    </testcase>
+    <testcase classname="AdminLogin › Edge Cases" name="handles missing tokens in response" time="0.075">
+    </testcase>
+    <testcase classname="AdminLogin › Edge Cases" name="handles missing setCurrentUser function" time="0.067">
+    </testcase>
+    <testcase classname="AdminLogin › Edge Cases" name="handles keyboard submission" time="0.043">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/ProfilePage.test.jsx" errors="0" failures="0" skipped="8" timestamp="2025-12-19T19:17:06" time="15.036" tests="44">
+    <testcase classname="ProfilePage › Page Loading and Authentication" name="shows loading state initially" time="0.206">
+    </testcase>
+    <testcase classname="ProfilePage › Page Loading and Authentication" name="redirects to login when no user is found" time="0.036">
+    </testcase>
+    <testcase classname="ProfilePage › Page Loading and Authentication" name="loads user profile data on mount" time="0.165">
+    </testcase>
+    <testcase classname="ProfilePage › Page Loading and Authentication" name="shows error message when profile loading fails" time="0.13">
+    </testcase>
+    <testcase classname="ProfilePage › Profile Header Display" name="renders user profile information correctly" time="0.064">
+    </testcase>
+    <testcase classname="ProfilePage › Profile Header Display" name="displays user stats correctly" time="0.128">
+    </testcase>
+    <testcase classname="ProfilePage › Profile Header Display" name="shows profile avatar placeholder when no photo" time="0.081">
+    </testcase>
+    <testcase classname="ProfilePage › Profile Header Display" name="displays user badge correctly" time="0.065">
+    </testcase>
+    <testcase classname="ProfilePage › Tab Navigation" name="renders all profile tabs" time="0.113">
+    </testcase>
+    <testcase classname="ProfilePage › Tab Navigation" name="switches between tabs correctly" time="0.145">
+    </testcase>
+    <testcase classname="ProfilePage › Tab Navigation" name="shows recipes tab as active by default" time="0.086">
+    </testcase>
+    <testcase classname="ProfilePage › Recipes Tab" name="displays user recipes correctly" time="0.037">
+    </testcase>
+    <testcase classname="ProfilePage › Recipes Tab" name="shows empty message when no recipes" time="0.014">
+    </testcase>
+    <testcase classname="ProfilePage › Recipes Tab" name="filters recipes by current user ID" time="0.032">
+    </testcase>
+    <testcase classname="ProfilePage › Bookmarks Tab" name="loads and displays bookmarked recipes" time="0.099">
+    </testcase>
+    <testcase classname="ProfilePage › Bookmarks Tab" name="shows empty message when no bookmarks" time="0.08">
+    </testcase>
+    <testcase classname="ProfilePage › Shopping Lists Tab" name="displays shopping list history" time="0.097">
+    </testcase>
+    <testcase classname="ProfilePage › Shopping Lists Tab" name="shows empty message when no shopping lists" time="0.068">
+    </testcase>
+    <testcase classname="ProfilePage › Shopping Lists Tab" name="deletes shopping list when delete button is clicked" time="0.118">
+    </testcase>
+    <testcase classname="ProfilePage › Posts and Comments Tabs" name="loads and displays user posts" time="0.093">
+    </testcase>
+    <testcase classname="ProfilePage › Posts and Comments Tabs" name="navigates to post when clicked" time="0.114">
+    </testcase>
+    <testcase classname="ProfilePage › Posts and Comments Tabs" name="shows empty message when no posts" time="0.143">
+    </testcase>
+    <testcase classname="ProfilePage › Settings Tab" name="displays settings form correctly" time="0.18">
+    </testcase>
+    <testcase classname="ProfilePage › Settings Tab" name="updates currency preference" time="0.173">
+    </testcase>
+    <testcase classname="ProfilePage › Settings Tab" name="updates date format preference" time="0.247">
+    </testcase>
+    <testcase classname="ProfilePage › Settings Tab" name="saves all settings when save button is clicked" time="0.195">
+    </testcase>
+    <testcase classname="ProfilePage › Settings Tab" name="shows loading state while saving settings" time="0.63">
+    </testcase>
+    <testcase classname="ProfilePage › Settings Tab" name="shows saved confirmation temporarily" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Followers and Following Popups" name="opens followers popup when followers count is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Followers and Following Popups" name="opens following popup when following count is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Followers and Following Popups" name="closes popup when overlay is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Followers and Following Popups" name="navigates to user profile when user in popup is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Shopping List Share Functionality" name="shares shopping list from history using Web Share API" time="0.156">
+    </testcase>
+    <testcase classname="ProfilePage › Shopping List Share Functionality" name="falls back to clipboard when Web Share API is not available" time="0.323">
+    </testcase>
+    <testcase classname="ProfilePage › Shopping List Share Functionality" name="handles null totalCost in shopping list share" time="0.212">
+    </testcase>
+    <testcase classname="ProfilePage › Shopping List Detail Popup" name="opens shopping list detail when view button is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Shopping List Detail Popup" name="copies shopping list to clipboard" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="ProfilePage › Profile Photo Management" name="deletes profile photo successfully" time="0.165">
+    </testcase>
+    <testcase classname="ProfilePage › Profile Photo Management" name="validates file type on upload" time="0.096">
+    </testcase>
+    <testcase classname="ProfilePage › Username Change" name="displays username change input in preferences" time="0.177">
+    </testcase>
+    <testcase classname="ProfilePage › Username Change" name="checks username availability before change" time="0.161">
+    </testcase>
+    <testcase classname="ProfilePage › Username Change" name="shows error when username is taken" time="0.198">
+    </testcase>
+    <testcase classname="ProfilePage › Error Handling" name="handles service errors gracefully" time="0.026">
+    </testcase>
+    <testcase classname="ProfilePage › Error Handling" name="handles localStorage errors gracefully" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/CreatePostPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:18" time="3.619" tests="27">
+    <testcase classname="CreatePostPage › Page Rendering" name="renders create post form correctly" time="0.44">
+    </testcase>
+    <testcase classname="CreatePostPage › Page Rendering" name="renders all available tags as buttons" time="0.17">
+    </testcase>
+    <testcase classname="CreatePostPage › Page Rendering" name="renders form action buttons" time="0.015">
+    </testcase>
+    <testcase classname="CreatePostPage › Page Rendering" name="shows character count for title" time="0.084">
+    </testcase>
+    <testcase classname="CreatePostPage › Page Rendering" name="shows tag count" time="0.017">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Input Handling" name="updates title field correctly" time="0.099">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Input Handling" name="updates content field correctly" time="0.116">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Input Handling" name="toggles comments checkbox correctly" time="0.076">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Input Handling" name="updates character count when typing title" time="0.07">
+    </testcase>
+    <testcase classname="CreatePostPage › Tag Selection" name="allows selecting tags" time="0.048">
+    </testcase>
+    <testcase classname="CreatePostPage › Tag Selection" name="allows deselecting tags" time="0.052">
+    </testcase>
+    <testcase classname="CreatePostPage › Tag Selection" name="allows selecting multiple tags" time="0.057">
+    </testcase>
+    <testcase classname="CreatePostPage › Tag Selection" name="prevents selecting more than 5 tags" time="0.117">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Validation" name="validates required title field" time="0.067">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Validation" name="validates required content field" time="0.16">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Validation" name="validates at least one tag is selected" time="0.098">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Validation" name="validates whitespace-only title" time="0.014">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Validation" name="validates whitespace-only content" time="0.059">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Submission" name="submits form with valid data" time="0.139">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Submission" name="shows success message and navigates on successful submission" time="0.155">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Submission" name="shows loading state while submitting" time="0.057">
+    </testcase>
+    <testcase classname="CreatePostPage › Form Submission" name="includes is_commentable setting in submission" time="0.099">
+    </testcase>
+    <testcase classname="CreatePostPage › Error Handling" name="handles submission errors with specific error message" time="0.162">
+    </testcase>
+    <testcase classname="CreatePostPage › Error Handling" name="handles submission errors with generic error message" time="0.173">
+    </testcase>
+    <testcase classname="CreatePostPage › Authentication Handling" name="redirects to login when user is not authenticated" time="0.075">
+    </testcase>
+    <testcase classname="CreatePostPage › Navigation" name="navigates to community page when cancel button is clicked" time="0.01">
+    </testcase>
+    <testcase classname="CreatePostPage › Character Limits" name="enforces title character limit" time="0.066">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/EditPostPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:19" time="3.587" tests="29">
+    <testcase classname="EditPostPage › Page Loading" name="shows loading state initially" time="0.084">
+    </testcase>
+    <testcase classname="EditPostPage › Page Loading" name="loads and displays post data in form" time="0.033">
+    </testcase>
+    <testcase classname="EditPostPage › Page Loading" name="loads comments checkbox state correctly" time="0.032">
+    </testcase>
+    <testcase classname="EditPostPage › Page Loading" name="redirects non-author users" time="0.076">
+    </testcase>
+    <testcase classname="EditPostPage › Page Rendering" name="renders edit post form correctly" time="0.149">
+    </testcase>
+    <testcase classname="EditPostPage › Page Rendering" name="renders all available tags as buttons" time="0.05">
+    </testcase>
+    <testcase classname="EditPostPage › Page Rendering" name="renders form action buttons" time="0.049">
+    </testcase>
+    <testcase classname="EditPostPage › Page Rendering" name="shows character count for loaded title" time="0.013">
+    </testcase>
+    <testcase classname="EditPostPage › Page Rendering" name="shows tag count for loaded tags" time="0.014">
+    </testcase>
+    <testcase classname="EditPostPage › Form Input Handling" name="updates title field correctly" time="0.023">
+    </testcase>
+    <testcase classname="EditPostPage › Form Input Handling" name="updates content field correctly" time="0.12">
+    </testcase>
+    <testcase classname="EditPostPage › Form Input Handling" name="toggles comments checkbox correctly" time="0.053">
+    </testcase>
+    <testcase classname="EditPostPage › Form Input Handling" name="updates character count when editing title" time="0.126">
+    </testcase>
+    <testcase classname="EditPostPage › Tag Management" name="allows deselecting existing tags" time="0.063">
+    </testcase>
+    <testcase classname="EditPostPage › Tag Management" name="allows adding new tags" time="0.036">
+    </testcase>
+    <testcase classname="EditPostPage › Tag Management" name="prevents selecting more than 5 tags" time="0.1">
+    </testcase>
+    <testcase classname="EditPostPage › Form Validation" name="validates required title field" time="0.048">
+    </testcase>
+    <testcase classname="EditPostPage › Form Validation" name="validates required content field" time="0.166">
+    </testcase>
+    <testcase classname="EditPostPage › Form Validation" name="validates at least one tag is selected" time="0.176">
+    </testcase>
+    <testcase classname="EditPostPage › Form Submission" name="submits form with updated data" time="0.263">
+    </testcase>
+    <testcase classname="EditPostPage › Form Submission" name="shows success message and navigates on successful submission" time="0.118">
+    </testcase>
+    <testcase classname="EditPostPage › Form Submission" name="shows loading state while submitting" time="0.046">
+    </testcase>
+    <testcase classname="EditPostPage › Form Submission" name="includes updated is_commentable setting" time="0.069">
+    </testcase>
+    <testcase classname="EditPostPage › Error Handling" name="handles post loading errors" time="0.133">
+    </testcase>
+    <testcase classname="EditPostPage › Error Handling" name="handles submission errors with specific error message" time="0.043">
+    </testcase>
+    <testcase classname="EditPostPage › Error Handling" name="handles submission errors with generic error message" time="0.032">
+    </testcase>
+    <testcase classname="EditPostPage › Authentication Handling" name="redirects to login when user is not authenticated" time="0.059">
+    </testcase>
+    <testcase classname="EditPostPage › Navigation" name="navigates to post detail when cancel button is clicked" time="0.022">
+    </testcase>
+    <testcase classname="EditPostPage › Character Limits" name="enforces title character limit" time="0.028">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/AdminReportsPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:06" time="16.789" tests="34">
+    <testcase classname="AdminReportsPage › Page Access Control" name="checks admin status on mount" time="0.28">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Access Control" name="redirects non-admin users to dashboard" time="0.071">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Access Control" name="handles admin status check errors" time="0.075">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Access Control" name="shows loading state while checking admin access" time="0.029">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Access Control" name="shows access denied message for non-admin users" time="0.058">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Rendering for Admin Users" name="renders page header correctly for admin users" time="0.074">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Rendering for Admin Users" name="renders filter section correctly" time="0.066">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Rendering for Admin Users" name="loads and displays reports table" time="0.274">
+    </testcase>
+    <testcase classname="AdminReportsPage › Page Rendering for Admin Users" name="shows results count" time="0.25">
+    </testcase>
+    <testcase classname="AdminReportsPage › Reports Data Loading" name="handles reports loading errors" time="0.032">
+    </testcase>
+    <testcase classname="AdminReportsPage › Reports Data Loading" name="handles different response formats" time="0.103">
+    </testcase>
+    <testcase classname="AdminReportsPage › Reports Data Loading" name="handles empty reports response" time="0.085">
+    </testcase>
+    <testcase classname="AdminReportsPage › Reports Data Loading" name="shows loading state while fetching reports" time="0.041">
+    </testcase>
+    <testcase classname="AdminReportsPage › Filtering Functionality" name="filters reports by status" time="0.148">
+    </testcase>
+    <testcase classname="AdminReportsPage › Filtering Functionality" name="filters reports by report type" time="0.21">
+    </testcase>
+    <testcase classname="AdminReportsPage › Filtering Functionality" name="filters reports by content type" time="0.1">
+    </testcase>
+    <testcase classname="AdminReportsPage › Filtering Functionality" name="filters reports by search term" time="0.126">
+    </testcase>
+    <testcase classname="AdminReportsPage › Filtering Functionality" name="resets all filters" time="0.271">
+    </testcase>
+    <testcase classname="AdminReportsPage › Filtering Functionality" name="shows no results message when filters return empty" time="0.2">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="opens report detail modal when view details is clicked" time="0.377">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="displays detailed report information in modal" time="0.817">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="shows action buttons for pending reports" time="0.568">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="resolves report with keep content action" time="0.353">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="resolves report with delete content action" time="0.253">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="shows resolved status for already resolved reports" time="0.658">
+    </testcase>
+    <testcase classname="AdminReportsPage › Report Actions" name="closes modal when close button is clicked" time="0.189">
+    </testcase>
+    <testcase classname="AdminReportsPage › Error Handling" name="handles report action errors" time="0.397">
+    </testcase>
+    <testcase classname="AdminReportsPage › Error Handling" name="handles report detail loading errors" time="0.164">
+    </testcase>
+    <testcase classname="AdminReportsPage › Loading States" name="shows processing state during report actions" time="0.38">
+    </testcase>
+    <testcase classname="AdminReportsPage › Loading States" name="disables modal actions during processing" time="0.248">
+    </testcase>
+    <testcase classname="AdminReportsPage › Refresh Functionality" name="refreshes reports when refresh button is clicked" time="0.236">
+    </testcase>
+    <testcase classname="AdminReportsPage › Refresh Functionality" name="shows loading state during refresh" time="0.066">
+    </testcase>
+    <testcase classname="AdminReportsPage › Date Formatting" name="formats dates correctly in table" time="0.078">
+    </testcase>
+    <testcase classname="AdminReportsPage › Status Badge Classes" name="applies correct CSS classes for status badges" time="0.017">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/UserProfilePage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:22" time="2.474" tests="22">
+    <testcase classname="UserProfilePage › Page Rendering" name="shows loading state initially" time="0.08">
+    </testcase>
+    <testcase classname="UserProfilePage › Page Rendering" name="renders user profile after loading" time="0.15">
+    </testcase>
+    <testcase classname="UserProfilePage › Page Rendering" name="renders user stats correctly" time="0.098">
+    </testcase>
+    <testcase classname="UserProfilePage › Page Rendering" name="renders user badges" time="0.099">
+    </testcase>
+    <testcase classname="UserProfilePage › Page Rendering" name="renders user avatar" time="0.025">
+    </testcase>
+    <testcase classname="UserProfilePage › Page Rendering" name="renders back button" time="0.079">
+    </testcase>
+    <testcase classname="UserProfilePage › Tab Navigation" name="renders tab navigation correctly" time="0.038">
+    </testcase>
+    <testcase classname="UserProfilePage › Tab Navigation" name="shows posts tab as active by default" time="0.079">
+    </testcase>
+    <testcase classname="UserProfilePage › Tab Navigation" name="switches to comments tab when clicked" time="0.043">
+    </testcase>
+    <testcase classname="UserProfilePage › Posts Content" name="renders user posts in posts tab" time="0.072">
+    </testcase>
+    <testcase classname="UserProfilePage › Posts Content" name="displays post engagement metrics" time="0.023">
+    </testcase>
+    <testcase classname="UserProfilePage › Posts Content" name="shows no posts message when user has no posts" time="0.036">
+    </testcase>
+    <testcase classname="UserProfilePage › Navigation Functionality" name="navigates back when back button is clicked" time="0.049">
+    </testcase>
+    <testcase classname="UserProfilePage › Navigation Functionality" name="navigates to post detail when post is clicked" time="0.035">
+    </testcase>
+    <testcase classname="UserProfilePage › Error Handling" name="handles loading errors gracefully" time="0.056">
+    </testcase>
+    <testcase classname="UserProfilePage › Comments Tab" name="shows placeholder message in comments tab" time="0.024">
+    </testcase>
+    <testcase classname="UserProfilePage › Date Formatting" name="formats dates correctly" time="0.046">
+    </testcase>
+    <testcase classname="UserProfilePage › Date Formatting" name="formats post timestamps correctly" time="0.019">
+    </testcase>
+    <testcase classname="UserProfilePage › User Profile Data" name="handles missing username gracefully" time="0.014">
+    </testcase>
+    <testcase classname="UserProfilePage › Profile Stats" name="displays correct post and comment counts" time="0.014">
+    </testcase>
+    <testcase classname="UserProfilePage › User Bio" name="renders user bio correctly" time="0.05">
+    </testcase>
+    <testcase classname="UserProfilePage › Mock Data Verification" name="verifies mock data structure is correctly used" time="0.022">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/ForgotPasswordPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:21" time="3.635" tests="14">
+    <testcase classname="ForgotPasswordPage › Step 1: Email Input" name="renders email input form" time="0.232">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 1: Email Input" name="validates email and shows error when empty" time="0.062">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 1: Email Input" name="validates email format" time="0.136">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 1: Email Input" name="sends reset code and moves to step 2 on success" time="0.299">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 1: Email Input" name="handles error when sending reset code fails" time="0.088">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 2: Code Verification" name="validates code and shows error when empty" time="0.156">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 2: Code Verification" name="validates code format (must be 6 digits)" time="0.106">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 2: Code Verification" name="verifies code and moves to step 3 on success" time="0.124">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 2: Code Verification" name="allows going back to email step" time="0.068">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 3: New Password" name="validates password requirements" time="0.265">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 3: New Password" name="validates password minimum length" time="0.117">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 3: New Password" name="validates password confirmation match" time="0.138">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Step 3: New Password" name="resets password and shows success screen" time="0.272">
+    </testcase>
+    <testcase classname="ForgotPasswordPage › Loading State" name="disables button and shows loading text when isLoading is true" time="0.031">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/ResetPasswordPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:23" time="2.207" tests="11">
+    <testcase classname="ResetPasswordPage › Page Rendering" name="renders reset password form when token is provided" time="0.191">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Page Rendering" name="shows error message when token is missing" time="0.054">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Form Validation" name="validates required fields and shows errors" time="0.038">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Form Validation" name="validates password minimum length" time="0.032">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Form Validation" name="validates password confirmation match" time="0.116">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Form Submission" name="calls resetPassword with token and new password on success" time="0.058">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Form Submission" name="shows success screen after successful reset" time="0.225">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Form Submission" name="redirects to login after 3 seconds on success" time="0.042">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Error Handling" name="handles reset password errors" time="0.199">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Error Handling" name="shows token-specific error when error message contains &quot;token&quot;" time="0.176">
+    </testcase>
+    <testcase classname="ResetPasswordPage › Loading State" name="disables submit button and shows loading text when isLoading is true" time="0.041">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/Register.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:21" time="5.158" tests="17">
+    <testcase classname="RegisterPage › Form Rendering" name="renders registration form with all required elements" time="0.323">
+    </testcase>
+    <testcase classname="RegisterPage › Form Rendering" name="shows certification URL field when dietitian is selected" time="0.041">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates required fields and shows errors" time="0.187">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates username minimum length" time="0.095">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates email format" time="0.143">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates password requirements (length, uppercase, lowercase, number)" time="0.229">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates password confirmation match" time="0.199">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates certification URL is required for dietitian" time="0.205">
+    </testcase>
+    <testcase classname="RegisterPage › Form Validation" name="validates terms acceptance" time="0.186">
+    </testcase>
+    <testcase classname="RegisterPage › Form Submission" name="calls register with correct data on successful validation" time="0.154">
+    </testcase>
+    <testcase classname="RegisterPage › Form Submission" name="includes certification URL when dietitian is selected" time="0.249">
+    </testcase>
+    <testcase classname="RegisterPage › Form Submission" name="shows success screen after successful registration" time="0.236">
+    </testcase>
+    <testcase classname="RegisterPage › Error Handling" name="handles registration errors and shows error message" time="0.28">
+    </testcase>
+    <testcase classname="RegisterPage › Error Handling" name="sets field-specific errors based on error message" time="0.458">
+    </testcase>
+    <testcase classname="RegisterPage › Terms Modal" name="opens and closes terms modal" time="0.095">
+    </testcase>
+    <testcase classname="RegisterPage › Terms Modal" name="accepts terms from modal and auto-checks checkbox" time="0.423">
+    </testcase>
+    <testcase classname="RegisterPage › Loading State" name="disables submit button and shows loading text when isLoading is true" time="0.145">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/CommunityPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:21" time="5.267" tests="25">
+    <testcase classname="CommunityPage › Page Rendering" name="renders community page header correctly" time="0.301">
+    </testcase>
+    <testcase classname="CommunityPage › Page Rendering" name="shows loading state initially" time="0.075">
+    </testcase>
+    <testcase classname="CommunityPage › Page Rendering" name="renders filter controls" time="0.352">
+    </testcase>
+    <testcase classname="CommunityPage › Page Rendering" name="renders posts after loading" time="0.167">
+    </testcase>
+    <testcase classname="CommunityPage › Page Rendering" name="renders vote buttons for each post" time="0.131">
+    </testcase>
+    <testcase classname="CommunityPage › Filtering and Searching" name="filters posts by search term when apply filters is clicked" time="0.117">
+    </testcase>
+    <testcase classname="CommunityPage › Filtering and Searching" name="filters posts by tag when apply filters is clicked" time="0.298">
+    </testcase>
+    <testcase classname="CommunityPage › Filtering and Searching" name="sorts posts by popularity when apply filters is clicked" time="0.145">
+    </testcase>
+    <testcase classname="CommunityPage › Filtering and Searching" name="resets filters when reset button is clicked" time="0.158">
+    </testcase>
+    <testcase classname="CommunityPage › Voting Functionality" name="allows logged in user to upvote a post" time="0.313">
+    </testcase>
+    <testcase classname="CommunityPage › Voting Functionality" name="allows logged in user to downvote a post" time="0.153">
+    </testcase>
+    <testcase classname="CommunityPage › Voting Functionality" name="removes vote when clicking same vote type twice" time="0.179">
+    </testcase>
+    <testcase classname="CommunityPage › Voting Functionality" name="shows login prompt when non-logged user tries to vote" time="0.1">
+    </testcase>
+    <testcase classname="CommunityPage › Navigation" name="navigates to create post page when create button is clicked" time="0.051">
+    </testcase>
+    <testcase classname="CommunityPage › Navigation" name="navigates to post detail when post is clicked" time="0.139">
+    </testcase>
+    <testcase classname="CommunityPage › Navigation" name="navigates to user profile when author name is clicked" time="0.107">
+    </testcase>
+    <testcase classname="CommunityPage › Pagination" name="shows pagination controls when there are more posts than page size" time="0.118">
+    </testcase>
+    <testcase classname="CommunityPage › Pagination" name="disables previous button on first page" time="0.072">
+    </testcase>
+    <testcase classname="CommunityPage › Error Handling" name="shows error message when posts fail to load" time="0.184">
+    </testcase>
+    <testcase classname="CommunityPage › Error Handling" name="shows try again button on error" time="0.046">
+    </testcase>
+    <testcase classname="CommunityPage › Error Handling" name="handles voting errors gracefully" time="0.244">
+    </testcase>
+    <testcase classname="CommunityPage › Empty States" name="shows empty state when no posts are found" time="0.144">
+    </testcase>
+    <testcase classname="CommunityPage › Empty States" name="shows filtered empty state when filters return no results" time="0.205">
+    </testcase>
+    <testcase classname="CommunityPage › Author Profile Photo" name="displays author profile photo when available" time="0.452">
+    </testcase>
+    <testcase classname="CommunityPage › Author Profile Photo" name="displays placeholder when author has no profile photo" time="0.113">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/Login.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:23" time="3.164" tests="11">
+    <testcase classname="LoginPage › Form Rendering" name="renders login form with all required elements" time="0.429">
+    </testcase>
+    <testcase classname="LoginPage › Form Validation" name="validates required fields and shows errors" time="0.324">
+    </testcase>
+    <testcase classname="LoginPage › Form Validation" name="validates email format" time="0.07">
+    </testcase>
+    <testcase classname="LoginPage › Form Validation" name="clears error when user starts typing" time="0.126">
+    </testcase>
+    <testcase classname="LoginPage › Form Submission" name="calls login with correct credentials and navigates on success" time="0.438">
+    </testcase>
+    <testcase classname="LoginPage › Form Submission" name="navigates to redirectPath from location state if available" time="0.194">
+    </testcase>
+    <testcase classname="LoginPage › Error Handling" name="handles 429 rate limit error with custom message" time="0.102">
+    </testcase>
+    <testcase classname="LoginPage › Error Handling" name="handles generic login errors" time="0.148">
+    </testcase>
+    <testcase classname="LoginPage › Error Handling" name="sets field-specific errors based on error message" time="0.168">
+    </testcase>
+    <testcase classname="LoginPage › Remember Me Functionality" name="toggles remember me checkbox" time="0.035">
+    </testcase>
+    <testcase classname="LoginPage › Loading State" name="disables submit button and shows loading text when isLoading is true" time="0.092">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/IngredientWorkflow.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:26" time="0.87" tests="10">
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should search for Apple ingredient" time="0.001">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should find and click Apple ingredient" time="0.063">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should verify Apple category is fruit" time="0">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should display Apple category correctly" time="0.095">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should verify Apple nutritional info: 95 kcal calories" time="0.008">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should verify Apple nutritional info: 0.5 g protein" time="0">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should verify Apple nutritional info: 0.3 g fat" time="0.001">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should verify Apple nutritional info: 25.0 g carbohydrates" time="0">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should display all Apple nutritional information correctly" time="0.025">
+    </testcase>
+    <testcase classname="Apple Ingredient Workflow Scenario" name="should complete full Apple workflow: search -&gt; click -&gt; verify category -&gt; verify nutrition" time="0.011">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/EMailVerification.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:25" time="1.759" tests="6">
+    <testcase classname="EmailVerificationPage › Page Rendering" name="renders verification page with loading state initially" time="0.149">
+    </testcase>
+    <testcase classname="EmailVerificationPage › Page Rendering" name="shows error when token is missing" time="0.039">
+    </testcase>
+    <testcase classname="EmailVerificationPage › Email Verification Process" name="calls verifyEmail with token on mount" time="0.007">
+    </testcase>
+    <testcase classname="EmailVerificationPage › Email Verification Process" name="shows success screen after successful verification" time="0.118">
+    </testcase>
+    <testcase classname="EmailVerificationPage › Email Verification Process" name="shows error screen when verification fails" time="0.125">
+    </testcase>
+    <testcase classname="EmailVerificationPage › Email Verification Process" name="shows default error message when error has no message" time="0.031">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/HomePage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:25" time="2.283" tests="10">
+    <testcase classname="HomePage › Page Rendering" name="renders homepage with hero section" time="0.101">
+    </testcase>
+    <testcase classname="HomePage › Page Rendering" name="renders features section" time="0.125">
+    </testcase>
+    <testcase classname="HomePage › Page Rendering" name="renders how it works section" time="0.073">
+    </testcase>
+    <testcase classname="HomePage › Page Rendering" name="renders CTA section" time="0.072">
+    </testcase>
+    <testcase classname="HomePage › Authentication States" name="shows login and sign up buttons when user is not authenticated" time="0.045">
+    </testcase>
+    <testcase classname="HomePage › Authentication States" name="shows dashboard link when user is authenticated" time="0.134">
+    </testcase>
+    <testcase classname="HomePage › Authentication States" name="CTA button links to dashboard when authenticated" time="0.085">
+    </testcase>
+    <testcase classname="HomePage › Authentication States" name="CTA button links to register when not authenticated" time="0.026">
+    </testcase>
+    <testcase classname="HomePage › Language Selection" name="renders language dropdown" time="0.069">
+    </testcase>
+    <testcase classname="HomePage › Language Selection" name="changes language when dropdown value changes" time="0.035">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/ImageUploader.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:27" time="0.629" tests="5">
+    <testcase classname="ImageUploader Component" name="renders with placeholder when no current image is provided" time="0.014">
+    </testcase>
+    <testcase classname="ImageUploader Component" name="renders with current image when provided" time="0.019">
+    </testcase>
+    <testcase classname="ImageUploader Component" name="shows preview and action buttons when an image is selected" time="0.051">
+    </testcase>
+    <testcase classname="ImageUploader Component" name="calls onImageUpload when confirming upload" time="0.022">
+    </testcase>
+    <testcase classname="ImageUploader Component" name="cancels upload when cancel button is clicked" time="0.021">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/IngredientList.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:26" time="1.061" tests="8">
+    <testcase classname="IngredientList Component" name="renders non-editable view with ingredients" time="0.166">
+    </testcase>
+    <testcase classname="IngredientList Component" name="renders editable view with input fields" time="0.073">
+    </testcase>
+    <testcase classname="IngredientList Component" name="calls onUpdate when quantity is changed" time="0.01">
+    </testcase>
+    <testcase classname="IngredientList Component" name="calls onUpdate when unit is changed" time="0.053">
+    </testcase>
+    <testcase classname="IngredientList Component" name="calls onDelete when delete button is clicked" time="0.021">
+    </testcase>
+    <testcase classname="IngredientList Component" name="renders empty state when no ingredients are provided" time="0.065">
+    </testcase>
+    <testcase classname="IngredientList Component" name="renders selected ingredients when provided" time="0.025">
+    </testcase>
+    <testcase classname="IngredientList Component" name="calls onRemoveIngredient when Remove button is clicked" time="0.011">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/Button.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:27" time="0.457" tests="7">
+    <testcase classname="Button Component" name="renders button with default props" time="0.015">
+    </testcase>
+    <testcase classname="Button Component" name="renders button with custom variant" time="0.012">
+    </testcase>
+    <testcase classname="Button Component" name="renders button with custom size" time="0.012">
+    </testcase>
+    <testcase classname="Button Component" name="button is disabled when disabled prop is true" time="0.017">
+    </testcase>
+    <testcase classname="Button Component" name="calls onClick handler when clicked" time="0.01">
+    </testcase>
+    <testcase classname="Button Component" name="does not call onClick handler when disabled button is clicked" time="0.006">
+    </testcase>
+    <testcase classname="Button Component" name="applies custom className" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/DashboardPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:24" time="3.588" tests="10">
+    <testcase classname="DashboardPage › Page Rendering" name="shows loading state initially" time="0.081">
+    </testcase>
+    <testcase classname="DashboardPage › Page Rendering" name="renders dashboard with welcome message after loading" time="0.511">
+    </testcase>
+    <testcase classname="DashboardPage › Page Rendering" name="renders all dashboard cards" time="0.135">
+    </testcase>
+    <testcase classname="DashboardPage › Page Rendering" name="renders navigation links for each card" time="0.335">
+    </testcase>
+    <testcase classname="DashboardPage › Admin Features" name="shows admin reports card when user is admin" time="0.068">
+    </testcase>
+    <testcase classname="DashboardPage › Admin Features" name="does not show admin reports card when user is not admin" time="0.019">
+    </testcase>
+    <testcase classname="DashboardPage › Welcome Message" name="displays morning greeting in morning hours" time="0.032">
+    </testcase>
+    <testcase classname="DashboardPage › Welcome Message" name="displays afternoon greeting in afternoon hours" time="0.024">
+    </testcase>
+    <testcase classname="DashboardPage › Welcome Message" name="displays evening greeting in evening hours" time="0.025">
+    </testcase>
+    <testcase classname="DashboardPage › Error Handling" name="handles error when fetching user data" time="0.053">
+    </testcase>
+  </testsuite>
+  <testsuite name="src/__tests__/RecipeDetailPage.test.jsx" errors="0" failures="0" skipped="0" timestamp="2025-12-19T19:17:22" time="5.479" tests="10">
+    <testcase classname="RecipeDetailPage › Share Functionality" name="renders share button on recipe detail page" time="0.227">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Share Functionality" name="shares recipe using Web Share API when available" time="0.047">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Share Functionality" name="includes recipe ingredients in share text" time="0.053">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Share Functionality" name="includes recipe steps in share text" time="0.043">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Share Functionality" name="falls back to clipboard when Web Share API is not available" time="0.061">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Share Functionality" name="handles share cancellation gracefully" time="0.05">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Share Functionality" name="handles share errors gracefully" time="0.036">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Creator Profile Photo" name="displays creator profile photo when available" time="0.054">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Creator Profile Photo" name="displays placeholder when creator has no profile photo" time="0.056">
+    </testcase>
+    <testcase classname="RecipeDetailPage › Creator Profile Photo" name="navigates to creator profile when avatar is clicked" time="0.069">
+    </testcase>
+  </testsuite>
+</testsuites>
