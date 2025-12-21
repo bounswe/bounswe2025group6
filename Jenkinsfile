@@ -31,6 +31,8 @@ pipeline {
         stage('Copy secrets') {
             steps {
                 sh("cp $ENV_FILE practice-app/")
+                sh("cp $ENV_FILE practice-app/frontend/")
+                sh("cp $ENV_FILE practice-app/backend/fithub/")
                 sh("cp $CERT_FILE practice-app/backend/fithub")
                 sh("cp $CERT_FILE practice-app/frontend")
                 sh("cp $KEY_FILE practice-app/backend/fithub")

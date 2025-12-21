@@ -40,7 +40,7 @@
 
 1. While the server is running, on the same directory (`bounswe2025group6/practice-app`, from another terminal), enter the command: `mysql -h 127.0.0.1 -u <db user> -p < backend/populate_db_sqls/all_ingredients.sql`. You will be prompted asking for the password you selected in the `.env` file.
 
-2. For the users, enter: `mysql -h 127.0.0.1 -u <db user> -p < backend/populate_db_sqls/users.sql
+2. For the users, enter: `mysql -h 127.0.0.1 -u <db user> -p < backend/populate_db_sqls/users.sql`.
 
 ## Pre created user information
 
