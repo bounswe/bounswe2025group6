@@ -1,0 +1,484 @@
+<?xml version="1.0" ?>
+<testsuites tests="425" failures="0" errors="0" skipped="6" time="54.169">
+  <testsuite name="bookmark_test.dart" tests="20" failures="0" errors="0" skipped="0" time="0.256">
+    <testcase name="Bookmark Recipe Tests bookmarkRecipe returns true on success" classname="bookmark_test.dart" time="0.057"/>
+    <testcase name="Bookmark Recipe Tests bookmarkRecipe throws exception when token is missing" classname="bookmark_test.dart" time="0.012"/>
+    <testcase name="Bookmark Recipe Tests bookmarkRecipe throws exception on network error" classname="bookmark_test.dart" time="0.005"/>
+    <testcase name="Bookmark Recipe Tests bookmarkRecipe throws exception when status code is not 200" classname="bookmark_test.dart" time="0.004"/>
+    <testcase name="Bookmark Recipe Tests bookmarkRecipe handles multiple recipe IDs correctly" classname="bookmark_test.dart" time="0.013"/>
+    <testcase name="Unbookmark Recipe Tests unbookmarkRecipe returns true on success" classname="bookmark_test.dart" time="0.004"/>
+    <testcase name="Unbookmark Recipe Tests unbookmarkRecipe throws exception when token is missing" classname="bookmark_test.dart" time="0.004"/>
+    <testcase name="Unbookmark Recipe Tests unbookmarkRecipe throws exception when recipe not bookmarked (400)" classname="bookmark_test.dart" time="0.006"/>
+    <testcase name="Unbookmark Recipe Tests unbookmarkRecipe throws exception when recipe not found (404)" classname="bookmark_test.dart" time="0.004"/>
+    <testcase name="Unbookmark Recipe Tests unbookmarkRecipe throws exception on network error" classname="bookmark_test.dart" time="0.005"/>
+    <testcase name="Unbookmark Recipe Tests unbookmarkRecipe handles multiple recipe IDs correctly" classname="bookmark_test.dart" time="0.005"/>
+    <testcase name="Bookmark Toggle Tests bookmark then unbookmark recipe successfully" classname="bookmark_test.dart" time="0.005"/>
+    <testcase name="Bookmark Toggle Tests unbookmark before bookmark throws exception" classname="bookmark_test.dart" time="0.062"/>
+    <testcase name="Bookmark Toggle Tests double bookmark same recipe should succeed" classname="bookmark_test.dart" time="0.008"/>
+    <testcase name="Bookmark Edge Cases bookmark recipe with invalid ID throws exception" classname="bookmark_test.dart" time="0.015"/>
+    <testcase name="Bookmark Edge Cases unbookmark recipe with invalid ID throws exception" classname="bookmark_test.dart" time="0.006"/>
+    <testcase name="Bookmark Edge Cases bookmark recipe with zero ID" classname="bookmark_test.dart" time="0.017"/>
+    <testcase name="Bookmark Edge Cases bookmark recipe with very large ID" classname="bookmark_test.dart" time="0.007"/>
+    <testcase name="Bookmark Authentication Tests bookmark recipe with expired token triggers refresh" classname="bookmark_test.dart" time="0.010"/>
+    <testcase name="Bookmark Authentication Tests unbookmark recipe with expired token triggers refresh" classname="bookmark_test.dart" time="0.007"/>
+  </testsuite>
+  <testsuite name="other_user_profile_screen_test.dart" tests="4" failures="0" errors="0" skipped="0" time="2.972">
+    <testcase name="OtherUserProfileScreen Widget Tests displays public profile information" classname="other_user_profile_screen_test.dart" time="2.340"/>
+    <testcase name="OtherUserProfileScreen Widget Tests displays &quot;Private&quot; instead of email for private profiles" classname="other_user_profile_screen_test.dart" time="0.220"/>
+    <testcase name="OtherUserProfileScreen Widget Tests displays activity stats for public profiles" classname="other_user_profile_screen_test.dart" time="0.236"/>
+    <testcase name="OtherUserProfileScreen Widget Tests displays activity stats for private profiles too" classname="other_user_profile_screen_test.dart" time="0.176"/>
+  </testsuite>
+  <testsuite name="follow_unfollow_test.dart" tests="17" failures="0" errors="0" skipped="0" time="0.266">
+    <testcase name="Follow/Unfollow Functionality Tests followUnfollowUser returns followed status" classname="follow_unfollow_test.dart" time="0.130"/>
+    <testcase name="Follow/Unfollow Functionality Tests followUnfollowUser returns unfollowed status" classname="follow_unfollow_test.dart" time="0.023"/>
+    <testcase name="Follow/Unfollow Functionality Tests followUnfollowUser throws exception on error" classname="follow_unfollow_test.dart" time="0.008"/>
+    <testcase name="Follow/Unfollow Functionality Tests getUserProfile returns user with followedUsers list" classname="follow_unfollow_test.dart" time="0.011"/>
+    <testcase name="Follow/Unfollow Functionality Tests getUserProfileById returns target user profile" classname="follow_unfollow_test.dart" time="0.006"/>
+    <testcase name="Follow/Unfollow Functionality Tests checking if user is followed" classname="follow_unfollow_test.dart" time="0.005"/>
+    <testcase name="Follow/Unfollow Functionality Tests public profile shows all information" classname="follow_unfollow_test.dart" time="0.005"/>
+    <testcase name="Follow/Unfollow Functionality Tests private profile hides email but shows other stats" classname="follow_unfollow_test.dart" time="0.005"/>
+    <testcase name="Follow/Unfollow Functionality Tests follow action updates followed users list" classname="follow_unfollow_test.dart" time="0.004"/>
+    <testcase name="Follow/Unfollow Functionality Tests unfollow action removes user from followed users list" classname="follow_unfollow_test.dart" time="0.004"/>
+    <testcase name="Follow/Unfollow Functionality Tests getUserProfileById handles null optional fields" classname="follow_unfollow_test.dart" time="0.004"/>
+    <testcase name="Follow/Unfollow Functionality Tests followUnfollowUser with multiple users" classname="follow_unfollow_test.dart" time="0.010"/>
+    <testcase name="Follow/Unfollow Functionality Tests user profile creation with all fields" classname="follow_unfollow_test.dart" time="0.005"/>
+    <testcase name="Follow/Unfollow Functionality Tests profile with asset image path" classname="follow_unfollow_test.dart" time="0.007"/>
+    <testcase name="UserProfile Model Tests copyWith creates new instance with updated fields" classname="follow_unfollow_test.dart" time="0.010"/>
+    <testcase name="UserProfile Model Tests toJson includes all necessary fields" classname="follow_unfollow_test.dart" time="0.007"/>
+    <testcase name="UserProfile Model Tests fromJson creates UserProfile correctly" classname="follow_unfollow_test.dart" time="0.022"/>
+  </testsuite>
+  <testsuite name="bookmarked_recipes_screen_test.dart" tests="11" failures="0" errors="0" skipped="0" time="2.355">
+    <testcase name="BookmarkedRecipesScreen UI Component Tests error state displays correctly" classname="bookmarked_recipes_screen_test.dart" time="0.174"/>
+    <testcase name="BookmarkedRecipesScreen UI Component Tests empty state displays correctly" classname="bookmarked_recipes_screen_test.dart" time="0.048"/>
+    <testcase name="BookmarkedRecipesScreen UI Component Tests retry button is functional" classname="bookmarked_recipes_screen_test.dart" time="0.284"/>
+    <testcase name="BookmarkedRecipesScreen UI Component Tests RefreshIndicator works correctly" classname="bookmarked_recipes_screen_test.dart" time="0.487"/>
+    <testcase name="BookmarkedRecipesScreen UI Component Tests AppBar structure is correct" classname="bookmarked_recipes_screen_test.dart" time="0.139"/>
+    <testcase name="BookmarkedRecipesScreen UI Component Tests ListView displays items correctly" classname="bookmarked_recipes_screen_test.dart" time="0.128"/>
+    <testcase name="BookmarkedRecipesScreen Navigation Tests navigation push and pop works" classname="bookmarked_recipes_screen_test.dart" time="0.715"/>
+    <testcase name="BookmarkedRecipesScreen Navigation Tests Scaffold supports back button" classname="bookmarked_recipes_screen_test.dart" time="0.097"/>
+    <testcase name="BookmarkedRecipesScreen State Management Tests StatefulWidget can manage state" classname="bookmarked_recipes_screen_test.dart" time="0.119"/>
+    <testcase name="BookmarkedRecipesScreen State Management Tests widget can be rebuilt multiple times" classname="bookmarked_recipes_screen_test.dart" time="0.164"/>
+  </testsuite>
+  <testsuite name="discover_recipes_filters_test.dart" tests="6" failures="0" errors="0" skipped="0" time="7.283">
+    <testcase name="filter button opens sheet with apply action" classname="discover_recipes_filters_test.dart" time="3.657"/>
+    <testcase name="shows empty state text when no recipes available" classname="discover_recipes_filters_test.dart" time="0.168"/>
+    <testcase name="discover header shows search prompt and filter button" classname="discover_recipes_filters_test.dart" time="0.133"/>
+    <testcase name="filter sheet shows preferences section" classname="discover_recipes_filters_test.dart" time="1.137"/>
+    <testcase name="tapping apply filters closes sheet" classname="discover_recipes_filters_test.dart" time="0.752"/>
+    <testcase name="applies entered calories filter to the service" classname="discover_recipes_filters_test.dart" time="1.436"/>
+  </testsuite>
+  <testsuite name="qa_service_test.dart" tests="33" failures="0" errors="0" skipped="0" time="0.344">
+    <testcase name="QA Service Tests getQuestions returns questions list on success" classname="qa_service_test.dart" time="0.095"/>
+    <testcase name="QA Service Tests getQuestions returns empty list when no questions exist" classname="qa_service_test.dart" time="0.009"/>
+    <testcase name="QA Service Tests getQuestions throws exception when authentication fails" classname="qa_service_test.dart" time="0.016"/>
+    <testcase name="QA Service Tests getQuestions handles pagination correctly" classname="qa_service_test.dart" time="0.007"/>
+    <testcase name="QA Service Tests getQuestionDetail returns question detail on success" classname="qa_service_test.dart" time="0.008"/>
+    <testcase name="QA Service Tests getQuestionDetail throws exception when question not found" classname="qa_service_test.dart" time="0.005"/>
+    <testcase name="QA Service Tests createQuestion creates question successfully" classname="qa_service_test.dart" time="0.007"/>
+    <testcase name="QA Service Tests createQuestion throws exception when creation fails" classname="qa_service_test.dart" time="0.007"/>
+    <testcase name="QA Service Tests updateQuestion updates question successfully" classname="qa_service_test.dart" time="0.005"/>
+    <testcase name="QA Service Tests updateQuestion throws exception when update fails" classname="qa_service_test.dart" time="0.006"/>
+    <testcase name="QA Service Tests deleteQuestion deletes question successfully" classname="qa_service_test.dart" time="0.007"/>
+    <testcase name="QA Service Tests deleteQuestion throws exception when deletion fails" classname="qa_service_test.dart" time="0.006"/>
+    <testcase name="QA Service Tests voteQuestion upvotes question successfully" classname="qa_service_test.dart" time="0.006"/>
+    <testcase name="QA Service Tests voteQuestion downvotes question successfully" classname="qa_service_test.dart" time="0.005"/>
+    <testcase name="QA Service Tests voteQuestion throws exception when vote fails" classname="qa_service_test.dart" time="0.008"/>
+    <testcase name="QA Service Tests getQuestionVote returns upvote status" classname="qa_service_test.dart" time="0.008"/>
+    <testcase name="QA Service Tests getQuestionVote returns downvote status" classname="qa_service_test.dart" time="0.009"/>
+    <testcase name="QA Service Tests getQuestionVote returns null when no vote exists" classname="qa_service_test.dart" time="0.008"/>
+    <testcase name="QA Service Tests removeQuestionVote removes vote successfully" classname="qa_service_test.dart" time="0.010"/>
+    <testcase name="QA Service Tests removeQuestionVote throws exception when removal fails" classname="qa_service_test.dart" time="0.006"/>
+    <testcase name="QA Service Tests getAnswers returns answers list on success" classname="qa_service_test.dart" time="0.009"/>
+    <testcase name="QA Service Tests getAnswers returns empty list when no answers exist" classname="qa_service_test.dart" time="0.005"/>
+    <testcase name="QA Service Tests createAnswer creates answer successfully" classname="qa_service_test.dart" time="0.007"/>
+    <testcase name="QA Service Tests createAnswer throws exception when creation fails" classname="qa_service_test.dart" time="0.007"/>
+    <testcase name="QA Service Tests deleteAnswer deletes answer successfully" classname="qa_service_test.dart" time="0.009"/>
+    <testcase name="QA Service Tests deleteAnswer throws exception when deletion fails" classname="qa_service_test.dart" time="0.009"/>
+    <testcase name="QA Service Tests voteAnswer upvotes answer successfully" classname="qa_service_test.dart" time="0.016"/>
+    <testcase name="QA Service Tests voteAnswer downvotes answer successfully" classname="qa_service_test.dart" time="0.006"/>
+    <testcase name="QA Service Tests getAnswerVote returns vote status" classname="qa_service_test.dart" time="0.008"/>
+    <testcase name="QA Service Tests getAnswerVote returns null when no vote exists" classname="qa_service_test.dart" time="0.012"/>
+    <testcase name="QA Service Tests removeAnswerVote removes answer vote successfully" classname="qa_service_test.dart" time="0.008"/>
+    <testcase name="QA Service Tests availableTags contains expected tags" classname="qa_service_test.dart" time="0.005"/>
+    <testcase name="QA Service Tests availableTags has correct number of tags" classname="qa_service_test.dart" time="0.005"/>
+  </testsuite>
+  <testsuite name="recipe_card_test.dart" tests="18" failures="0" errors="0" skipped="2" time="4.407">
+    <testcase name="RecipeCard Widget Tests displays recipe name correctly" classname="recipe_card_test.dart" time="2.192"/>
+    <testcase name="RecipeCard Widget Tests displays meal type and time correctly" classname="recipe_card_test.dart" time="0.097"/>
+    <testcase name="RecipeCard Widget Tests displays placeholder icon when no image URL" classname="recipe_card_test.dart" time="0.088"/>
+    <testcase name="RecipeCard Widget Tests displays placeholder icon when empty image URL" classname="recipe_card_test.dart" time="0.099"/>
+    <testcase name="RecipeCard Widget Tests displays cost per serving when available" classname="recipe_card_test.dart" time="0.122"/>
+    <testcase name="RecipeCard Widget Tests card is tappable" classname="recipe_card_test.dart" time="0.539"/>
+    <testcase name="RecipeCard Widget Tests displays correct icons for meal type and time" classname="recipe_card_test.dart" time="0.097"/>
+    <testcase name="RecipeCard Widget Tests card has proper styling and elevation" classname="recipe_card_test.dart" time="0.071"/>
+    <testcase name="RecipeCard Widget Tests truncates long recipe names" classname="recipe_card_test.dart" time="0.074"/>
+    <testcase name="RecipeCard Widget Tests displays creator username when provided" classname="recipe_card_test.dart" time="0.001">
+      <skipped/>
+    </testcase>
+    <testcase name="RecipeCard Widget Tests displays taste rating when available" classname="recipe_card_test.dart" time="0.076"/>
+    <testcase name="RecipeCard Widget Tests displays difficulty rating when available" classname="recipe_card_test.dart" time="0.219"/>
+    <testcase name="RecipeCard Widget Tests displays health rating when available" classname="recipe_card_test.dart" time="0.091"/>
+    <testcase name="RecipeCard Widget Tests displays all ratings when available" classname="recipe_card_test.dart" time="0.137"/>
+    <testcase name="RecipeCard Widget Tests displays different meal types correctly" classname="recipe_card_test.dart" time="0.231"/>
+    <testcase name="RecipeCard Widget Tests displays like and comment counts" classname="recipe_card_test.dart" time="0.001">
+      <skipped/>
+    </testcase>
+    <testcase name="RecipeCard Widget Tests handles network image URL" classname="recipe_card_test.dart" time="0.183"/>
+    <testcase name="RecipeCard Widget Tests displays recipe card with all optional fields" classname="recipe_card_test.dart" time="0.089"/>
+  </testsuite>
+  <testsuite name="profile_photo_test.dart" tests="10" failures="0" errors="0" skipped="0" time="0.157">
+    <testcase name="Profile Photo Service Tests uploadProfilePhoto returns updated profile with photo URL" classname="profile_photo_test.dart" time="0.096"/>
+    <testcase name="Profile Photo Service Tests deleteProfilePhoto returns profile with null photo URL" classname="profile_photo_test.dart" time="0.010"/>
+    <testcase name="Profile Photo Service Tests uploadProfilePhoto throws exception on failure" classname="profile_photo_test.dart" time="0.013"/>
+    <testcase name="Profile Photo Service Tests deleteProfilePhoto throws exception on failure" classname="profile_photo_test.dart" time="0.007"/>
+    <testcase name="Profile Photo URL Detection Tests detects network URL correctly" classname="profile_photo_test.dart" time="0.006"/>
+    <testcase name="Profile Photo URL Detection Tests detects asset path correctly" classname="profile_photo_test.dart" time="0.005"/>
+    <testcase name="Profile Photo URL Detection Tests handles null profile picture URL" classname="profile_photo_test.dart" time="0.004"/>
+    <testcase name="Profile Photo URL Detection Tests handles empty profile picture URL" classname="profile_photo_test.dart" time="0.004"/>
+    <testcase name="UserProfile toJson profilePhoto handling toJson excludes profilePhoto field (backend expects multipart upload)" classname="profile_photo_test.dart" time="0.006"/>
+    <testcase name="UserProfile toJson profilePhoto handling toJson excludes profilePhoto even with network URL" classname="profile_photo_test.dart" time="0.006"/>
+  </testsuite>
+  <testsuite name="forgot_password_screen_test.dart" tests="11" failures="0" errors="0" skipped="0" time="5.693">
+    <testcase name="Forgot Password Screen Tests Forgot password screen shows all required elements" classname="forgot_password_screen_test.dart" time="2.542"/>
+    <testcase name="Forgot Password Screen Tests Forgot password form validation works" classname="forgot_password_screen_test.dart" time="1.183"/>
+    <testcase name="Forgot Password Screen Tests Successful password reset request shows success message" classname="forgot_password_screen_test.dart" time="0.403"/>
+    <testcase name="Forgot Password Screen Tests Failed password reset request shows error message" classname="forgot_password_screen_test.dart" time="0.486"/>
+    <testcase name="Forgot Password Screen Tests Successful password reset request navigates to verify code screen" classname="forgot_password_screen_test.dart" time="0.507"/>
+    <testcase name="Forgot Password Screen Tests Email field accepts input" classname="forgot_password_screen_test.dart" time="0.096"/>
+    <testcase name="Forgot Password Screen Tests AppBar has back button icon" classname="forgot_password_screen_test.dart" time="0.133"/>
+    <testcase name="Forgot Password Screen Tests AppBar shows correct title" classname="forgot_password_screen_test.dart" time="0.109"/>
+    <testcase name="Forgot Password Screen Tests Multiple invalid emails show appropriate errors" classname="forgot_password_screen_test.dart" time="0.234"/>
+  </testsuite>
+  <testsuite name="dashboard_screen_test.dart" tests="5" failures="0" errors="0" skipped="0" time="5.093">
+    <testcase name="Dashboard Screen Tests Dashboard shows all required elements" classname="dashboard_screen_test.dart" time="2.673"/>
+    <testcase name="Dashboard Screen Tests Logout confirmation dialog appears on logout button press" classname="dashboard_screen_test.dart" time="0.719"/>
+    <testcase name="Dashboard Screen Tests Successful logout navigates to login screen" classname="dashboard_screen_test.dart" time="1.012"/>
+    <testcase name="Dashboard Screen Tests Cancel logout keeps user on dashboard screen" classname="dashboard_screen_test.dart" time="0.590"/>
+    <testcase name="Dashboard Screen Tests Quick action cards are clickable" classname="dashboard_screen_test.dart" time="0.099"/>
+  </testsuite>
+  <testsuite name="scenario_qa_report_test.dart" tests="18" failures="0" errors="0" skipped="0" time="0.217">
+    <testcase name="Scenario: User reports a spam question Given a user viewing a question with spam content" classname="scenario_qa_report_test.dart" time="0.019"/>
+    <testcase name="Scenario: User reports a spam question When the user submits a spam report for the question" classname="scenario_qa_report_test.dart" time="0.082"/>
+    <testcase name="Scenario: User reports a spam question Then the report is created with correct details" classname="scenario_qa_report_test.dart" time="0.007"/>
+    <testcase name="Scenario: User reports an inappropriate answer Given a user viewing an answer with inappropriate content" classname="scenario_qa_report_test.dart" time="0.005"/>
+    <testcase name="Scenario: User reports an inappropriate answer When the user reports the answer as inappropriate" classname="scenario_qa_report_test.dart" time="0.007"/>
+    <testcase name="Scenario: User reports an inappropriate answer Then the report is created with answer content type" classname="scenario_qa_report_test.dart" time="0.005"/>
+    <testcase name="Scenario: User reports harassment in Q&amp;A User can report a question containing harassment" classname="scenario_qa_report_test.dart" time="0.007"/>
+    <testcase name="Scenario: User reports harassment in Q&amp;A User can report an answer containing harassment" classname="scenario_qa_report_test.dart" time="0.006"/>
+    <testcase name="Scenario: Report submission error handling User gets error when reporting deleted question" classname="scenario_qa_report_test.dart" time="0.020"/>
+    <testcase name="Scenario: Report submission error handling User gets error when reporting deleted answer" classname="scenario_qa_report_test.dart" time="0.007"/>
+    <testcase name="Scenario: Report submission error handling User must be authenticated to report" classname="scenario_qa_report_test.dart" time="0.005"/>
+    <testcase name="Scenario: Report submission error handling Network error handling for question report" classname="scenario_qa_report_test.dart" time="0.007"/>
+    <testcase name="Scenario: Report all types on questions and answers All report types can be submitted for questions" classname="scenario_qa_report_test.dart" time="0.011"/>
+    <testcase name="Scenario: Report all types on questions and answers All report types can be submitted for answers" classname="scenario_qa_report_test.dart" time="0.005"/>
+    <testcase name="CreateReportRequest serialization for Q&amp;A Question report request serializes correctly" classname="scenario_qa_report_test.dart" time="0.007"/>
+    <testcase name="CreateReportRequest serialization for Q&amp;A Answer report request serializes correctly" classname="scenario_qa_report_test.dart" time="0.006"/>
+    <testcase name="CreateReportRequest serialization for Q&amp;A Report request without description serializes without description field" classname="scenario_qa_report_test.dart" time="0.008"/>
+    <testcase name="CreateReportRequest serialization for Q&amp;A Report request with empty description serializes without description field" classname="scenario_qa_report_test.dart" time="0.003"/>
+  </testsuite>
+  <testsuite name="scenario_qa_test.dart" tests="9" failures="0" errors="0" skipped="0" time="0.252">
+    <testcase name="Scenario: User asks a question and receives answers User can create a question, view it, and receive answers" classname="scenario_qa_test.dart" time="0.157"/>
+    <testcase name="Scenario: User browses and votes on questions User can browse questions and vote on them" classname="scenario_qa_test.dart" time="0.030"/>
+    <testcase name="Scenario: User manages their own questions User can edit and delete their own question" classname="scenario_qa_test.dart" time="0.009"/>
+    <testcase name="Scenario: Pagination through questions User can navigate through multiple pages of questions" classname="scenario_qa_test.dart" time="0.012"/>
+    <testcase name="Scenario: Dietitian answers multiple questions Dietitian can answer questions and receive votes" classname="scenario_qa_test.dart" time="0.012"/>
+    <testcase name="Scenario: Error handling in Q&amp;A Handles network errors gracefully" classname="scenario_qa_test.dart" time="0.016"/>
+    <testcase name="Scenario: Error handling in Q&amp;A Handles authentication errors" classname="scenario_qa_test.dart" time="0.005"/>
+    <testcase name="Scenario: Error handling in Q&amp;A Handles question not found error" classname="scenario_qa_test.dart" time="0.005"/>
+    <testcase name="Scenario: Error handling in Q&amp;A Handles vote on deleted question" classname="scenario_qa_test.dart" time="0.006"/>
+  </testsuite>
+  <testsuite name="rating_service_test.dart" tests="11" failures="0" errors="0" skipped="0" time="0.183">
+    <testcase name="RecipeRating Model Tests RecipeRating should be created with all fields" classname="rating_service_test.dart" time="0.059"/>
+    <testcase name="RecipeRating Model Tests RecipeRating should be created with null ratings" classname="rating_service_test.dart" time="0.006"/>
+    <testcase name="RecipeRating Model Tests RecipeRating fromJson should parse JSON correctly" classname="rating_service_test.dart" time="0.024"/>
+    <testcase name="RecipeRating Model Tests RecipeRating fromJson should handle null ratings" classname="rating_service_test.dart" time="0.008"/>
+    <testcase name="RecipeRating Model Tests RecipeRating fromJson should handle missing user/recipe as 0" classname="rating_service_test.dart" time="0.007"/>
+    <testcase name="RecipeRating Model Tests RecipeRating toJson should convert to JSON correctly" classname="rating_service_test.dart" time="0.010"/>
+    <testcase name="RecipeRating Model Tests RecipeRating toJson should exclude null values" classname="rating_service_test.dart" time="0.008"/>
+    <testcase name="RecipeRating Model Tests RecipeRating copyWith should create a new instance with updated values" classname="rating_service_test.dart" time="0.008"/>
+    <testcase name="RecipeRating Model Tests RecipeRating toString should return formatted string" classname="rating_service_test.dart" time="0.018"/>
+    <testcase name="RecipeRating Validation Tests RecipeRating should accept valid rating ranges" classname="rating_service_test.dart" time="0.023"/>
+    <testcase name="RecipeRating Validation Tests RecipeRating should handle decimal precision" classname="rating_service_test.dart" time="0.012"/>
+  </testsuite>
+  <testsuite name="qa_screen_test.dart" tests="35" failures="0" errors="0" skipped="0" time="5.439">
+    <testcase name="QuestionCard Widget Tests displays question title correctly" classname="qa_screen_test.dart" time="2.034"/>
+    <testcase name="QuestionCard Widget Tests displays question content preview" classname="qa_screen_test.dart" time="0.146"/>
+    <testcase name="QuestionCard Widget Tests displays author name" classname="qa_screen_test.dart" time="0.164"/>
+    <testcase name="QuestionCard Widget Tests displays vote counts" classname="qa_screen_test.dart" time="0.164"/>
+    <testcase name="QuestionCard Widget Tests displays view count" classname="qa_screen_test.dart" time="0.103"/>
+    <testcase name="QuestionCard Widget Tests displays tags when available" classname="qa_screen_test.dart" time="0.192"/>
+    <testcase name="QuestionCard Widget Tests displays upvote and downvote icons" classname="qa_screen_test.dart" time="0.113"/>
+    <testcase name="QuestionCard Widget Tests displays visibility icon for view count" classname="qa_screen_test.dart" time="0.103"/>
+    <testcase name="QuestionCard Widget Tests card is tappable when onTap is provided" classname="qa_screen_test.dart" time="0.601"/>
+    <testcase name="QuestionCard Widget Tests handles missing tags gracefully" classname="qa_screen_test.dart" time="0.131"/>
+    <testcase name="QuestionCard Widget Tests handles zero counts correctly" classname="qa_screen_test.dart" time="0.135"/>
+    <testcase name="QAScreen Widget Tests displays Q&amp;A title in app bar" classname="qa_screen_test.dart" time="0.259"/>
+    <testcase name="QAScreen Widget Tests displays add button in app bar" classname="qa_screen_test.dart" time="0.175"/>
+    <testcase name="Question Voting Tests upvote button changes color when active" classname="qa_screen_test.dart" time="0.136"/>
+    <testcase name="Question Voting Tests downvote button changes color when active" classname="qa_screen_test.dart" time="0.180"/>
+    <testcase name="Question Content Tests long content is truncated with ellipsis" classname="qa_screen_test.dart" time="0.195"/>
+    <testcase name="Question Content Tests special characters in title are displayed correctly" classname="qa_screen_test.dart" time="0.103"/>
+    <testcase name="QuestionCard Report Menu Tests QuestionCard renders without report menu when not authenticated" classname="qa_screen_test.dart" time="0.110"/>
+    <testcase name="QuestionCard Report Menu Tests QuestionCard renders successfully with all required data" classname="qa_screen_test.dart" time="0.121"/>
+    <testcase name="QA Report Content Type Tests ReportContentType.question has correct value" classname="qa_screen_test.dart" time="0.014"/>
+    <testcase name="QA Report Content Type Tests ReportContentType.answer has correct value" classname="qa_screen_test.dart" time="0.006"/>
+    <testcase name="QA Report Content Type Tests CreateReportRequest for question generates correct JSON" classname="qa_screen_test.dart" time="0.008"/>
+    <testcase name="QA Report Content Type Tests CreateReportRequest for answer generates correct JSON" classname="qa_screen_test.dart" time="0.005"/>
+    <testcase name="QA Report Content Type Tests CreateReportRequest for question without description" classname="qa_screen_test.dart" time="0.004"/>
+    <testcase name="QA Report Service Integration Tests reportQuestion calls service with correct parameters" classname="qa_screen_test.dart" time="0.105"/>
+    <testcase name="QA Report Service Integration Tests reportAnswer calls service with correct parameters" classname="qa_screen_test.dart" time="0.034"/>
+    <testcase name="QA Report Service Integration Tests reportQuestion handles all report types" classname="qa_screen_test.dart" time="0.023"/>
+    <testcase name="QA Report Service Integration Tests reportAnswer handles all report types" classname="qa_screen_test.dart" time="0.008"/>
+    <testcase name="QA Report Service Integration Tests reportQuestion throws exception on network error" classname="qa_screen_test.dart" time="0.034"/>
+    <testcase name="QA Report Service Integration Tests reportAnswer throws exception on question not found" classname="qa_screen_test.dart" time="0.008"/>
+    <testcase name="QA Report Service Integration Tests reportQuestion throws exception on authentication failure" classname="qa_screen_test.dart" time="0.005"/>
+    <testcase name="Question Report Mock Data Tests getMockQuestionReport creates report with default values" classname="qa_screen_test.dart" time="0.007"/>
+    <testcase name="Question Report Mock Data Tests getMockQuestionReport creates report with custom values" classname="qa_screen_test.dart" time="0.005"/>
+    <testcase name="Question Report Mock Data Tests getMockAnswerReport creates report with default values" classname="qa_screen_test.dart" time="0.005"/>
+    <testcase name="Question Report Mock Data Tests getMockAnswerReport creates report with custom values" classname="qa_screen_test.dart" time="0.003"/>
+  </testsuite>
+  <testsuite name="meal_planner_test.dart" tests="35" failures="0" errors="0" skipped="0" time="0.285">
+    <testcase name="DailyMealPlan Tests Should calculate total cost correctly" classname="meal_planner_test.dart" time="0.046"/>
+    <testcase name="DailyMealPlan Tests Should return empty list when no recipes selected" classname="meal_planner_test.dart" time="0.009"/>
+    <testcase name="DailyMealPlan Tests Should correctly identify complete meal plan" classname="meal_planner_test.dart" time="0.009"/>
+    <testcase name="DailyMealPlan Tests Should set and get meals by type" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="DailyMealPlan Tests Should clear specific meal" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="DailyMealPlan Tests Should collect all allergens from recipes" classname="meal_planner_test.dart" time="0.017"/>
+    <testcase name="DailyMealPlan Tests Should collect dietary info from recipes" classname="meal_planner_test.dart" time="0.004"/>
+    <testcase name="ShoppingList Tests Should aggregate duplicate ingredients" classname="meal_planner_test.dart" time="0.010"/>
+    <testcase name="ShoppingList Tests Should calculate total cost from recipes" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should handle recipes without cost" classname="meal_planner_test.dart" time="0.004"/>
+    <testcase name="ShoppingList Tests Should track checked items count" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should generate plain text with custom currency" classname="meal_planner_test.dart" time="0.012"/>
+    <testcase name="ShoppingList Tests Should sort ingredients alphabetically" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should default to 1 portion when not specified" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should multiply ingredient quantities by portion count" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="ShoppingList Tests Should multiply total cost by portion count" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="ShoppingList Tests Should multiply aggregated ingredients by portion count" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="ShoppingList Tests Should include portion count in plain text export" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should serialize portion count to JSON" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should deserialize portion count from JSON" classname="meal_planner_test.dart" time="0.021"/>
+    <testcase name="ShoppingList Tests Should default to 1 portion when missing from JSON" classname="meal_planner_test.dart" time="0.004"/>
+    <testcase name="ShoppingList Tests Should create copy with updated portion count" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="ShoppingList Tests Should handle large portion counts correctly" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingList Tests Should format ingredient quantities correctly in plain text with decimals" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="Allergen and Dietary Filter Tests Should correctly identify recipes with allergens" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="Allergen and Dietary Filter Tests Should correctly identify recipes with dietary tags" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="Allergen and Dietary Filter Tests Should support multiple allergen exclusions" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="Allergen and Dietary Filter Tests Should support multiple dietary preferences" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="Allergen and Dietary Filter Tests Should handle empty allergen list correctly" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="Allergen and Dietary Filter Tests Should handle empty dietary info list correctly" classname="meal_planner_test.dart" time="0.005"/>
+    <testcase name="Allergen and Dietary Filter Tests Should support strict dietary tags (vegan, gluten-free)" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="Allergen and Dietary Filter Tests Should combine allergen exclusion and dietary preferences" classname="meal_planner_test.dart" time="0.006"/>
+    <testcase name="ShoppingListItem Tests Should create item with correct properties" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="ShoppingListItem Tests Should toggle checked state" classname="meal_planner_test.dart" time="0.007"/>
+    <testcase name="ShoppingListItem Tests Should create copy with updated values" classname="meal_planner_test.dart" time="0.004"/>
+  </testsuite>
+  <testsuite name="scenario_follow_user_test.dart" tests="14" failures="0" errors="0" skipped="0" time="0.177">
+    <testcase name="Scenario 3: Follow User and View Meal Plans Current user initially follows no one" classname="scenario_follow_user_test.dart" time="0.084"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User follows another user" classname="scenario_follow_user_test.dart" time="0.013"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User can follow multiple users" classname="scenario_follow_user_test.dart" time="0.006"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User can check if already following someone" classname="scenario_follow_user_test.dart" time="0.005"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User unfollows another user" classname="scenario_follow_user_test.dart" time="0.008"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User can view followed users list" classname="scenario_follow_user_test.dart" time="0.011"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User can access target user profile information" classname="scenario_follow_user_test.dart" time="0.005"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans Follow count is tracked correctly" classname="scenario_follow_user_test.dart" time="0.009"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User cannot follow the same user twice" classname="scenario_follow_user_test.dart" time="0.008"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans Complete scenario: Follow user and view their profile" classname="scenario_follow_user_test.dart" time="0.008"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans Following list persists across sessions" classname="scenario_follow_user_test.dart" time="0.004"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans Multiple users can follow the same user" classname="scenario_follow_user_test.dart" time="0.006"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans User can toggle follow status" classname="scenario_follow_user_test.dart" time="0.005"/>
+    <testcase name="Scenario 3: Follow User and View Meal Plans Target user information is accessible" classname="scenario_follow_user_test.dart" time="0.005"/>
+  </testsuite>
+  <testsuite name="scenario_bookmark_recipe_test.dart" tests="11" failures="0" errors="0" skipped="0" time="0.195">
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User profile initially has no bookmarked recipes" classname="scenario_bookmark_recipe_test.dart" time="0.107"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User bookmarks a recipe" classname="scenario_bookmark_recipe_test.dart" time="0.012"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User can have multiple bookmarked recipes" classname="scenario_bookmark_recipe_test.dart" time="0.008"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User can check if a recipe is bookmarked" classname="scenario_bookmark_recipe_test.dart" time="0.009"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User accesses bookmarked recipes from profile" classname="scenario_bookmark_recipe_test.dart" time="0.021"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User removes a bookmark" classname="scenario_bookmark_recipe_test.dart" time="0.008"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile Bookmark count is tracked correctly" classname="scenario_bookmark_recipe_test.dart" time="0.007"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile User cannot bookmark the same recipe twice" classname="scenario_bookmark_recipe_test.dart" time="0.005"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile Complete scenario: Bookmark and access recipe" classname="scenario_bookmark_recipe_test.dart" time="0.005"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile Multiple users can bookmark the same recipe" classname="scenario_bookmark_recipe_test.dart" time="0.009"/>
+    <testcase name="Scenario 2: Bookmark Recipe and Access from Profile Bookmarked recipes persist in user profile" classname="scenario_bookmark_recipe_test.dart" time="0.004"/>
+  </testsuite>
+  <testsuite name="scenario_meal_plan_creation_test.dart" tests="14" failures="0" errors="0" skipped="0" time="0.144">
+    <testcase name="Scenario 1: Meal Plan Creation and Save User creates an empty meal plan" classname="scenario_meal_plan_creation_test.dart" time="0.050"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save User selects breakfast recipe and adds to meal plan" classname="scenario_meal_plan_creation_test.dart" time="0.006"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save User selects lunch recipe and adds to meal plan" classname="scenario_meal_plan_creation_test.dart" time="0.007"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save User completes meal plan by adding dinner recipe" classname="scenario_meal_plan_creation_test.dart" time="0.007"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Meal plan contains all selected recipes" classname="scenario_meal_plan_creation_test.dart" time="0.006"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Meal plan calculates correct total cost" classname="scenario_meal_plan_creation_test.dart" time="0.007"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Meal plan identifies allergens from recipes" classname="scenario_meal_plan_creation_test.dart" time="0.009"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save User can replace a recipe in the meal plan" classname="scenario_meal_plan_creation_test.dart" time="0.008"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save User can remove a recipe from the meal plan" classname="scenario_meal_plan_creation_test.dart" time="0.005"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Meal plan can be cleared completely" classname="scenario_meal_plan_creation_test.dart" time="0.006"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Meal plan can be serialized to JSON for saving" classname="scenario_meal_plan_creation_test.dart" time="0.011"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Complete scenario: Create, populate, and verify meal plan" classname="scenario_meal_plan_creation_test.dart" time="0.007"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save Meal plan with partial recipes calculates correct cost" classname="scenario_meal_plan_creation_test.dart" time="0.006"/>
+    <testcase name="Scenario 1: Meal Plan Creation and Save User can create meal plan summary" classname="scenario_meal_plan_creation_test.dart" time="0.009"/>
+  </testsuite>
+  <testsuite name="new_password_screen_test.dart" tests="13" failures="0" errors="0" skipped="0" time="7.374">
+    <testcase name="CreateNewPasswordPage Tests CreateNewPasswordPage shows input fields and UI elements" classname="new_password_screen_test.dart" time="2.692"/>
+    <testcase name="CreateNewPasswordPage Tests Shows error for password shorter than 8 characters" classname="new_password_screen_test.dart" time="1.488"/>
+    <testcase name="CreateNewPasswordPage Tests Shows error for empty password" classname="new_password_screen_test.dart" time="0.294"/>
+    <testcase name="CreateNewPasswordPage Tests Shows error for mismatched passwords" classname="new_password_screen_test.dart" time="0.863"/>
+    <testcase name="CreateNewPasswordPage Tests Successful password reset shows success message" classname="new_password_screen_test.dart" time="0.590"/>
+    <testcase name="CreateNewPasswordPage Tests Screen has correct structure with Form" classname="new_password_screen_test.dart" time="0.187"/>
+    <testcase name="CreateNewPasswordPage Tests Form submits and shows snackbar when valid" classname="new_password_screen_test.dart" time="0.302"/>
+    <testcase name="CreateNewPasswordPage Tests Language toggle is present in app bar" classname="new_password_screen_test.dart" time="0.123"/>
+    <testcase name="CreateNewPasswordPage Tests Form validates both fields before submission" classname="new_password_screen_test.dart" time="0.200"/>
+    <testcase name="CreateNewPasswordPage Tests Accepts exactly 8 character password" classname="new_password_screen_test.dart" time="0.427"/>
+    <testcase name="CreateNewPasswordPage Tests Disposes controllers properly" classname="new_password_screen_test.dart" time="0.208"/>
+  </testsuite>
+  <testsuite name="profile_screen_test.dart" tests="32" failures="0" errors="0" skipped="4" time="6.869">
+    <testcase name="ProfileScreen Tests displays error message and retry button on load failure" classname="profile_screen_test.dart" time="0.002">
+      <skipped/>
+    </testcase>
+    <testcase name="ProfileScreen Tests navigates to ProfileSettingsScreen on settings icon tap" classname="profile_screen_test.dart" time="1.390"/>
+    <testcase name="ProfileScreen Tests updates profile data if settings screen returns UserProfile" classname="profile_screen_test.dart" time="0.858"/>
+    <testcase name="ProfileScreen Tests displays localization preferences correctly" classname="profile_screen_test.dart" time="0.708"/>
+    <testcase name="ProfileScreen Tests displays accessibility needs correctly" classname="profile_screen_test.dart" time="0.000">
+      <skipped/>
+    </testcase>
+    <testcase name="ProfileScreen Tests displays only English and Turkish language options" classname="profile_screen_test.dart" time="0.376"/>
+    <testcase name="ProfileScreen Tests displays only USD and TRY currency options" classname="profile_screen_test.dart" time="0.552"/>
+    <testcase name="ProfileScreen Tests handles optional nationality and date of birth fields" classname="profile_screen_test.dart" time="0.001">
+      <skipped/>
+    </testcase>
+    <testcase name="ProfileScreen Tests displays profile with default ProfileService when not provided" classname="profile_screen_test.dart" time="0.112"/>
+    <testcase name="ProfileScreen Tests displays profile with network image URL" classname="profile_screen_test.dart" time="0.000">
+      <skipped/>
+    </testcase>
+    <testcase name="ProfileScreen Tests displays profile without profile picture" classname="profile_screen_test.dart" time="0.452"/>
+    <testcase name="ProfileScreen Tests displays empty dietary preferences" classname="profile_screen_test.dart" time="0.224"/>
+    <testcase name="ProfileScreen Tests displays empty allergens" classname="profile_screen_test.dart" time="0.154"/>
+    <testcase name="ProfileScreen Tests displays empty disliked foods" classname="profile_screen_test.dart" time="0.411"/>
+    <testcase name="ProfileScreen Tests displays profile without monthly budget" classname="profile_screen_test.dart" time="0.148"/>
+    <testcase name="ProfileScreen Tests displays user badge when available" classname="profile_screen_test.dart" time="0.126"/>
+    <testcase name="ProfileScreen Tests displays empty user recipes list" classname="profile_screen_test.dart" time="0.115"/>
+    <testcase name="ProfileScreen Tests reloads profile when settings returns true" classname="profile_screen_test.dart" time="0.416"/>
+    <testcase name="ProfileScreen Tests displays public profile status" classname="profile_screen_test.dart" time="0.083"/>
+    <testcase name="ProfileScreen Tests displays profile with recipe count" classname="profile_screen_test.dart" time="0.090"/>
+    <testcase name="ProfileScreen Tests displays profile with average recipe rating" classname="profile_screen_test.dart" time="0.114"/>
+    <testcase name="ProfileScreen Tests displays profile with type of cook" classname="profile_screen_test.dart" time="0.092"/>
+    <testcase name="ProfileScreen Tests displays profile with followed users count" classname="profile_screen_test.dart" time="0.098"/>
+    <testcase name="ProfileScreen Tests displays profile with bookmarked recipes count" classname="profile_screen_test.dart" time="0.139"/>
+    <testcase name="ProfileScreen Tests displays profile with liked recipes count" classname="profile_screen_test.dart" time="0.101"/>
+    <testcase name="ProfileScreen Tests displays profile with empty string profile picture URL" classname="profile_screen_test.dart" time="0.107"/>
+  </testsuite>
+  <testsuite name="scenario_dashboard_analytics_test.dart" tests="16" failures="0" errors="0" skipped="0" time="0.249">
+    <testcase name="Scenario 4: Dashboard Analytics Analytics model is initialized correctly" classname="scenario_dashboard_analytics_test.dart" time="0.060"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics data is not null" classname="scenario_dashboard_analytics_test.dart" time="0.007"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics values are non-negative" classname="scenario_dashboard_analytics_test.dart" time="0.008"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics can be created with zero values" classname="scenario_dashboard_analytics_test.dart" time="0.006"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics can handle large numbers" classname="scenario_dashboard_analytics_test.dart" time="0.017"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics data can be compared" classname="scenario_dashboard_analytics_test.dart" time="0.012"/>
+    <testcase name="Scenario 4: Dashboard Analytics Calculate user engagement ratio" classname="scenario_dashboard_analytics_test.dart" time="0.030"/>
+    <testcase name="Scenario 4: Dashboard Analytics Calculate recipe statistics" classname="scenario_dashboard_analytics_test.dart" time="0.013"/>
+    <testcase name="Scenario 4: Dashboard Analytics Calculate total content items" classname="scenario_dashboard_analytics_test.dart" time="0.016"/>
+    <testcase name="Scenario 4: Dashboard Analytics Verify analytics growth tracking" classname="scenario_dashboard_analytics_test.dart" time="0.028"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics data structure is complete" classname="scenario_dashboard_analytics_test.dart" time="0.018"/>
+    <testcase name="Scenario 4: Dashboard Analytics Complete scenario: User views dashboard analytics" classname="scenario_dashboard_analytics_test.dart" time="0.007"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics values have correct types" classname="scenario_dashboard_analytics_test.dart" time="0.009"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics can represent different states" classname="scenario_dashboard_analytics_test.dart" time="0.005"/>
+    <testcase name="Scenario 4: Dashboard Analytics Analytics supports incremental updates" classname="scenario_dashboard_analytics_test.dart" time="0.007"/>
+    <testcase name="Scenario 4: Dashboard Analytics Dashboard can show multiple metric categories" classname="scenario_dashboard_analytics_test.dart" time="0.006"/>
+  </testsuite>
+  <testsuite name="login_screen_test.dart" tests="12" failures="0" errors="0" skipped="0" time="8.010">
+    <testcase name="Login Screen Tests Login screen shows all required elements" classname="login_screen_test.dart" time="2.971"/>
+    <testcase name="Login Screen Tests Login form validation works" classname="login_screen_test.dart" time="1.058"/>
+    <testcase name="Login Screen Tests Navigation to Forgot Password works" classname="login_screen_test.dart" time="0.650"/>
+    <testcase name="Login Screen Tests Successful login shows success message" classname="login_screen_test.dart" time="0.885"/>
+    <testcase name="Login Screen Tests Failed login shows error message" classname="login_screen_test.dart" time="0.883"/>
+    <testcase name="Login Screen Tests Successful login navigates to dashboard" classname="login_screen_test.dart" time="0.756"/>
+    <testcase name="Login Screen Tests Password field is obscured" classname="login_screen_test.dart" time="0.186"/>
+    <testcase name="Login Screen Tests Empty form shows validation errors" classname="login_screen_test.dart" time="0.134"/>
+    <testcase name="Login Screen Tests Email validation accepts valid email format" classname="login_screen_test.dart" time="0.257"/>
+    <testcase name="Login Screen Tests Text fields are interactive" classname="login_screen_test.dart" time="0.121"/>
+    <testcase name="Login Screen Tests Create Account link is tappable" classname="login_screen_test.dart" time="0.109"/>
+  </testsuite>
+  <testsuite name="delete_account_test.dart" tests="6" failures="0" errors="0" skipped="0" time="8.257">
+    <testcase name="Delete Account Tests displays Delete Account button" classname="delete_account_test.dart" time="4.006"/>
+    <testcase name="Delete Account Tests shows confirmation dialog when Delete Account button is tapped" classname="delete_account_test.dart" time="0.822"/>
+    <testcase name="Delete Account Tests closes dialog when Cancel is tapped without deleting account" classname="delete_account_test.dart" time="0.620"/>
+    <testcase name="Delete Account Tests deletes account successfully and navigates to login screen" classname="delete_account_test.dart" time="1.176"/>
+    <testcase name="Delete Account Tests shows error message when account deletion fails" classname="delete_account_test.dart" time="0.841"/>
+    <testcase name="Delete Account Tests shows error when account not found (404)" classname="delete_account_test.dart" time="0.792"/>
+  </testsuite>
+  <testsuite name="contrast_test.dart" tests="16" failures="0" errors="0" skipped="0" time="0.163">
+    <testcase name="Color Contrast Requirements - WCAG AA Primary colors meet minimum contrast ratios" classname="contrast_test.dart" time="0.083"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Text colors meet normal text contrast (4.5:1)" classname="contrast_test.dart" time="0.006"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Large text colors meet minimum contrast (3:1)" classname="contrast_test.dart" time="0.006"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Error, success, and warning colors are accessible" classname="contrast_test.dart" time="0.005"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Link color meets contrast requirements" classname="contrast_test.dart" time="0.007"/>
+    <testcase name="Color Contrast Requirements - WCAG AA meetsNormalTextContrast correctly identifies valid combinations" classname="contrast_test.dart" time="0.007"/>
+    <testcase name="Color Contrast Requirements - WCAG AA meetsLargeTextContrast correctly identifies valid combinations" classname="contrast_test.dart" time="0.004"/>
+    <testcase name="Color Contrast Requirements - WCAG AA getAccessibleTextColor returns appropriate color" classname="contrast_test.dart" time="0.007"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Contrast ratio calculation is symmetric" classname="contrast_test.dart" time="0.005"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Maximum contrast ratio is 21:1 (black on white)" classname="contrast_test.dart" time="0.005"/>
+    <testcase name="Color Contrast Requirements - WCAG AA Minimum contrast ratio is 1:1 (same color)" classname="contrast_test.dart" time="0.003"/>
+    <testcase name="Color Contrast Requirements - WCAG AA White text on button grey meets requirements" classname="contrast_test.dart" time="0.004"/>
+    <testcase name="Color Contrast Requirements - WCAG AA White text on primary green meets requirements" classname="contrast_test.dart" time="0.004"/>
+    <testcase name="Predefined text styles meet requirements Normal text style is accessible on white" classname="contrast_test.dart" time="0.006"/>
+    <testcase name="Predefined text styles meet requirements Heading styles are accessible on white" classname="contrast_test.dart" time="0.006"/>
+    <testcase name="Predefined text styles meet requirements Large text styles meet 3:1 minimum" classname="contrast_test.dart" time="0.005"/>
+  </testsuite>
+  <testsuite name="verify_code_screen_test.dart" tests="4" failures="0" errors="0" skipped="0" time="3.481">
+    <testcase name="VerifyCodeScreen shows UI elements" classname="verify_code_screen_test.dart" time="2.366"/>
+    <testcase name="Shows validation error for empty code" classname="verify_code_screen_test.dart" time="0.350"/>
+    <testcase name="Shows error for invalid code" classname="verify_code_screen_test.dart" time="0.390"/>
+    <testcase name="Navigates to new password screen on success" classname="verify_code_screen_test.dart" time="0.375"/>
+  </testsuite>
+  <testsuite name="recipe_sharing_test.dart" tests="10" failures="0" errors="0" skipped="0" time="0.184">
+    <testcase name="Recipe Sharing Format Tests Should format recipe with ingredients and steps correctly" classname="recipe_sharing_test.dart" time="0.072"/>
+    <testcase name="Recipe Sharing Format Tests Should build correct URL format" classname="recipe_sharing_test.dart" time="0.045"/>
+    <testcase name="Recipe Sharing Format Tests Should format ingredient with quantity and unit" classname="recipe_sharing_test.dart" time="0.007"/>
+    <testcase name="Recipe Sharing Format Tests Should handle recipe with no ingredients" classname="recipe_sharing_test.dart" time="0.011"/>
+    <testcase name="Recipe Sharing Format Tests Should handle recipe with no steps" classname="recipe_sharing_test.dart" time="0.005"/>
+    <testcase name="Recipe Sharing Format Tests Should format multiple ingredients with proper line breaks" classname="recipe_sharing_test.dart" time="0.015"/>
+    <testcase name="Recipe Sharing Format Tests Should format steps with numbering without extra newlines" classname="recipe_sharing_test.dart" time="0.008"/>
+    <testcase name="Recipe Sharing Format Tests Should create complete shareable text structure" classname="recipe_sharing_test.dart" time="0.006"/>
+    <testcase name="Recipe Sharing Format Tests Should handle decimal quantities in ingredients" classname="recipe_sharing_test.dart" time="0.008"/>
+    <testcase name="Recipe Sharing Format Tests Should preserve recipe metadata in Recipe object" classname="recipe_sharing_test.dart" time="0.007"/>
+  </testsuite>
+  <testsuite name="register_screen_test.dart" tests="9" failures="0" errors="0" skipped="0" time="5.266">
+    <testcase name="Initial UI shows form without PDF picker" classname="register_screen_test.dart" time="2.277"/>
+    <testcase name="Selecting Dietitian reveals PDF picker" classname="register_screen_test.dart" time="0.723"/>
+    <testcase name="Validation errors appear on empty form submit" classname="register_screen_test.dart" time="0.270"/>
+    <testcase name="Form passes validation with valid user data" classname="register_screen_test.dart" time="0.768"/>
+    <testcase name="Validation error appears when passwords do not match" classname="register_screen_test.dart" time="0.222"/>
+    <testcase name="Registration API Calls Successful User Registration navigates to LoginScreen" classname="register_screen_test.dart" time="0.434"/>
+    <testcase name="Registration API Calls Successful Dietitian Registration navigates to LoginScreen" classname="register_screen_test.dart" time="0.247"/>
+    <testcase name="Registration API Calls Registration failure with AuthenticationException shows SnackBar" classname="register_screen_test.dart" time="0.158"/>
+    <testcase name="Registration API Calls Registration failure with generic Exception shows SnackBar" classname="register_screen_test.dart" time="0.167"/>
+  </testsuite>
+  <testsuite name="report_service_test.dart" tests="25" failures="0" errors="0" skipped="0" time="0.174">
+    <testcase name="ReportService Tests createReport returns Report on success" classname="report_service_test.dart" time="0.084"/>
+    <testcase name="ReportService Tests reportPost creates report with correct content type" classname="report_service_test.dart" time="0.009"/>
+    <testcase name="ReportService Tests reportRecipe creates report with correct content type" classname="report_service_test.dart" time="0.005"/>
+    <testcase name="ReportService Tests reportQuestion creates report with correct content type" classname="report_service_test.dart" time="0.006"/>
+    <testcase name="ReportService Tests reportAnswer creates report with correct content type" classname="report_service_test.dart" time="0.006"/>
+    <testcase name="ReportService Tests reportQuestion with harassment type" classname="report_service_test.dart" time="0.004"/>
+    <testcase name="ReportService Tests reportAnswer with other type" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="ReportService Tests reportQuestion without description" classname="report_service_test.dart" time="0.004"/>
+    <testcase name="ReportService Tests reportAnswer without description" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="ReportService Tests createReport throws ReportServiceException on failure" classname="report_service_test.dart" time="0.010"/>
+    <testcase name="ReportService Tests reportQuestion throws exception on failure" classname="report_service_test.dart" time="0.004"/>
+    <testcase name="ReportService Tests reportAnswer throws exception on failure" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="ReportType Tests ReportType has correct values" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="ReportContentType Tests ReportContentType has correct values" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="ReportContentType Tests ReportContentType enum has all expected values" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="CreateReportRequest Tests toJson includes all fields when description is provided" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="CreateReportRequest Tests toJson excludes description when null" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="CreateReportRequest Tests toJson excludes description when empty string" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="CreateReportRequest Tests toJson for question report" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="CreateReportRequest Tests toJson for answer report" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="CreateReportRequest Tests toJson for postcomment report" classname="report_service_test.dart" time="0.005"/>
+    <testcase name="Mock Helper Functions Tests getMockQuestionReport creates correct report" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="Mock Helper Functions Tests getMockAnswerReport creates correct report" classname="report_service_test.dart" time="0.003"/>
+    <testcase name="Mock Helper Functions Tests getMockQuestionReport with default values" classname="report_service_test.dart" time="0.002"/>
+    <testcase name="Mock Helper Functions Tests getMockAnswerReport with default values" classname="report_service_test.dart" time="0.002"/>
+  </testsuite>
+</testsuites>

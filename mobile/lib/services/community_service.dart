@@ -4,7 +4,7 @@ import 'storage_service.dart';
 import '../models/forum_comment.dart';
 
 class CommunityService {
-  static const String baseUrl = String.fromEnvironment('API_URL', defaultValue: 'http://10.0.2.2:8000');
+  static const String baseUrl = String.fromEnvironment('API_URL', defaultValue: 'https://fithubmp.xyz:8000');
   String? token;
 
   CommunityService({this.token});
