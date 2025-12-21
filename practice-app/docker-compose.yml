@@ -64,7 +64,7 @@ services:
       context: ./backend/fithub
       dockerfile: Dockerfile.prod
     container_name: fithub-django-prod
-    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec gunicorn fithub.wsgi -b 0.0.0.0:8001"
+    command: sh -c "python manage.py makemigrations api recipes ingredients forum core utils wikidata qa reports && python manage.py migrate && exec gunicorn fithub.wsgi -b 0.0.0.0:8000"
     volumes:
       - .:/code
     depends_on:
